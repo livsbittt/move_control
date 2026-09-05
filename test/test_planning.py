@@ -205,3 +205,13 @@ class GoalBrainTest(unittest.TestCase):
         self.assertIsNone(goal)
         self.assertIn('skip', status)
         self.assertGreater(len(brain.covered), before)  # wp marked swept
+
+    def test_idle_not_done_on_unknown_map(self):
+        # Regression: pose on unknown space (map still filling) must not
+        # report coverage done — nothing was swept yet.
+        m = OccupancyMap(9, 7, 0.05, fill=UNKNOWN)
+        brain = GoalBrain()
+        goal, route, status = brain.plan(m, (0.225, 0.175))
+        self.assertIsNone(goal)
+        self.assertIn('idle', status)
+        self.assertNotEqual(status, 'coverage done')

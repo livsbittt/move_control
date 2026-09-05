@@ -46,6 +46,11 @@ class GoalBrain:
         zz = ZigzagPlanner(m, start=pose, covered=self.covered,
                            lane_width=self.lane_width,
                            lane_step=self.lane_step)
+        if not zz.region:
+            # Pose sits on unknown space (map still filling, or odom~map
+            # drift): nothing is drivable yet. done would be a lie — the
+            # robot hasn't swept anything. Idle and retry next plan.
+            return None, None, 'coverage idle (no known space)'
         wps = zz.waypoints()
         if not wps:
             return None, None, 'coverage done'
