@@ -18,7 +18,8 @@ import time
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from move_control.gridmap import FREE, OCC, UNKNOWN, OccupancyMap
-from move_control.planner import best_route, pick_goal, ZigzagPlanner
+from move_control.planner import (ZigzagPlanner, best_route, cover_ring,
+                                  pick_goal)
 
 RES = 0.05          # m/cell, same as slam_toolbox resolution
 LIDAR_M = 0.45      # C1 usable range in the desk maze (route.py cap)
@@ -26,7 +27,7 @@ V = 0.06            # m/s (real cruise is 0.014; 6x so the sim is watchable)
 W = 1.2             # rad/s turn rate
 DT = 0.1            # s per tick
 REACH_TOL = 0.03    # m, waypoint reached
-REPLAN_EVERY = 30   # ticks between route refreshes while exploring
+REPLAN_EVERY = 300  # ticks; replan mainly on arrival, not mid-route
 
 # 13x13 desk maze: 3-cell (15 cm) corridors, doors punched through walls.
 # Top line is r=h-1. '#' wall, '.' floor.
@@ -80,16 +81,6 @@ def step(x, y, yaw, tx, ty):
     return x, y, yaw, True
 
 
-def cover_ring(covered, sim, x, y, radius_m=0.16):
-    """Cells within radius of the robot count as mapped+swept."""
-    c0, r0 = sim.world_to_grid(x, y)
-    rad = int(math.ceil(radius_m / sim.res))
-    for dc in range(-rad, rad + 1):
-        for dr in range(-rad, rad + 1):
-            if dc * dc + dr * dr <= rad * rad and sim.is_free(c0 + dc, r0 + dr):
-                covered.add((c0 + dc, r0 + dr))
-
-
 def frame(sim, x, y, route, ri, goal, covered, tick, phase):
     marks = {(c, r): 'o' for c, r in covered}
     if route:
@@ -123,7 +114,12 @@ def run(quiet=False, max_ticks=4000, render_every=25, fps=8):
         reveal(sim, true_free, x, y)
         if phase == 'explore':
             if route is None or ri >= len(route['points']) or since_plan >= REPLAN_EVERY:
-                g = pick_goal(sim, (x, y), min_size=4, clear_m=0.06)
+                # min_size 2: raycast reveal is noise-free, real SLAM
+                # maps want 4-6 to skip sensor-noise specks.
+                # min_size 1: raycast reveal is noise-free, so even a
+                # 1-cell shadow frontier is real; real SLAM maps want 4-6.
+                g = pick_goal(sim, (x, y), min_size=1, clear_m=0.06,
+                              retry_clear_m=0.0)
                 since_plan = 0
                 if g is None:
                     phase = 'coverage'

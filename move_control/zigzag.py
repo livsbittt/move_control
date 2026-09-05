@@ -6,6 +6,8 @@ robot; connectors between waypoints are planned separately (best_route).
 covered cells are excluded before lane building, so replanning with a fresh
 covered set advances coverage instead of repeating it.
 """
+import math
+
 from .gridmap import _snap
 
 
@@ -93,3 +95,16 @@ class ZigzagPlanner:
                     flat = list(reversed(flat))
             out.extend(flat)
         return out
+
+
+def cover_ring(covered, m, x, y, radius_m=0.16):
+    """Cells within radius of (x, y) count as swept (mapping coverage).
+
+    Marks known-free cells only, so nothing beyond a wall joins the set.
+    """
+    c0, r0 = m.world_to_grid(x, y)
+    rad = int(math.ceil(radius_m / m.res))
+    for dc in range(-rad, rad + 1):
+        for dr in range(-rad, rad + 1):
+            if dc * dc + dr * dr <= rad * rad and m.is_free(c0 + dc, r0 + dr):
+                covered.add((c0 + dc, r0 + dr))

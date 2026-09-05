@@ -1,0 +1,21 @@
+goal_node:
+  ros__parameters:
+    map_topic: /map
+    odom_topic: /odom
+    # Replan rate (Hz). slam map_update_interval is 2 s; faster is waste.
+    rate: 0.5
+    # explore -> frontier point to go; coverage -> zigzag waypoints.
+    mode: explore
+    # Real SLAM maps have noise specks; 6 keeps phantom edges out. The sim
+    # (tools/explore_sim.py) uses 1 because its raycast reveal is noise-free.
+    min_size: 6
+    # 15-18 cm corridors: 2*0.06 + 1 cell leaves the passage passable.
+    clear_m: 0.06
+    # Sealed-corridor retry: raw-map approach to the frontier; the safety
+    # gate still guards the hardware in that last stretch.
+    retry_clear_m: 0.0
+    # Robot swath ~15 cm; 12 cm lanes overlap. Waypoint every 20 cm.
+    lane_width: 0.12
+    lane_step: 0.20
+    # Coverage waypoint counts as reached within this distance.
+    reach_tol: 0.05

@@ -50,15 +50,20 @@ def frontier_points(m, min_size=6):
     return out
 
 
-def pick_goal(m, start, min_size=6, clear_m=0.06):
+def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None):
     """First reachable frontier (size desc). None if no reachable frontier.
 
-    Returns {'kind': 'frontier', 'x', 'y', 'size', 'route'} with route from
-    best_route().
+    Returns {'kind': 'frontier', 'x', 'y', 'size', 'route', 'clear_m'}.
+    retry_clear_m: when the inflated map seals thin corridors, a second pass
+    at retry_clear_m (0.0 = raw map) still finds an approach; the safety gate
+    still guards the hardware in that last stretch.
     """
-    for f in frontier_points(m, min_size):
-        route = best_route(m, start, (f['x'], f['y']), clear_m)
-        if route:
-            return {'kind': 'frontier', 'x': f['x'], 'y': f['y'],
-                    'size': f['size'], 'route': route}
+    for cm in (clear_m, retry_clear_m):
+        if cm is None:
+            continue
+        for f in frontier_points(m, min_size):
+            route = best_route(m, start, (f['x'], f['y']), clear_m=cm)
+            if route:
+                return {'kind': 'frontier', 'x': f['x'], 'y': f['y'],
+                        'size': f['size'], 'route': route, 'clear_m': cm}
     return None
