@@ -4,10 +4,14 @@
 python3 tools/explore_sim.py                # animated, 8 fps
 python3 tools/explore_sim.py --quiet        # summary + final frame only
 
-Builds the known map by raycast (C1 lidar cap 0.45 m), checks the map and
-makes the point to go with planner.pick_goal (frontier), drives it with
-planner.best_route. When no frontier is left, ZigzagPlanner zigzag-covers
-the known free space. Speed is 6x the real robot so it stays watchable.
+Four classes, one job each:
+  Maze       — the true world: ASCII art -> free-cell set.
+  Robot      — differential toy: rotate-then-drive toward a point.
+  SimLidar   — C1 stand-in: raycast beams paint the known OccupancyMap.
+  ExploreSim — the tick loop: reveal, GoalBrain plan, drive, render.
+
+Driven by the same planning.GoalBrain as goal_node, so sim and node share
+one decision path. Speed is 6x the real robot so it stays watchable.
 """
 import argparse
 import math
@@ -51,101 +55,146 @@ def wrap(a):
     return math.atan2(math.sin(a), math.cos(a))
 
 
-def reveal(sim, true_free, x, y, beams=120):
-    """Lidar reveal: free along each beam, wall at the hit, 0.45 m cap."""
-    for k in range(beams):
-        a = k * (2.0 * math.pi / beams)
-        d = 0.02
-        while d <= LIDAR_M:
-            px = x + math.cos(a) * d
-            py = y + math.sin(a) * d
-            c, r = sim.world_to_grid(px, py)
-            if (c, r) not in true_free:
-                sim.set_cell(c, r, OCC)
-                break
-            sim.set_cell(c, r, FREE)
-            d += 0.02
-        else:
-            continue
-    return
+class Maze:
+    """The true world: ASCII art -> free-cell set (grid coords)."""
+
+    def __init__(self, art):
+        self.h = len(art)
+        self.w = len(art[0])
+        self.free = {(c, self.h - 1 - row) for row, line in enumerate(art)
+                     for c, ch in enumerate(line) if ch == '.'}
 
 
-def step(x, y, yaw, tx, ty):
-    """One dt of rotate-then-drive motion. Returns (x, y, yaw, moved)."""
-    err = wrap(math.atan2(ty - y, tx - x) - yaw)
-    if abs(err) > 0.35:
-        return x, y, yaw + W * DT * (1.0 if err > 0 else -1.0), False
-    x += V * DT * math.cos(yaw)
-    y += V * DT * math.sin(yaw)
-    return x, y, yaw, True
+class Robot:
+    """Differential toy: rotate in place past 0.35 rad error, then drive."""
+
+    def __init__(self, x, y, yaw):
+        self.x = x
+        self.y = y
+        self.yaw = yaw
+
+    def step_toward(self, tx, ty):
+        """One DT of motion; True when the robot drove this tick."""
+        err = wrap(math.atan2(ty - self.y, tx - self.x) - self.yaw)
+        if abs(err) > 0.35:
+            self.yaw += W * DT * (1.0 if err > 0 else -1.0)
+            return False
+        self.x += V * DT * math.cos(self.yaw)
+        self.y += V * DT * math.sin(self.yaw)
+        return True
 
 
-def frame(sim, x, y, route, ri, goal, covered, tick, phase):
-    marks = {(c, r): 'o' for c, r in covered}
-    if route:
-        for pt in route['points'][ri:]:
-            marks[sim.world_to_grid(*pt)] = '+'
-    if goal is not None:
-        marks[sim.world_to_grid(*goal)] = '*'
-    marks[sim.world_to_grid(x, y)] = 'R'
-    nxt = route['points'][ri] if route and ri < len(route['points']) else None
-    head = (f't={tick} {phase} next={nxt} '
-            f'known={len(sim.free_cells())} covered={len(covered)}')
-    print('\033[2J\033[H')
-    print(head)
-    print(sim.render(marks=marks))
+class SimLidar:
+    """C1 stand-in: 2 cm beam steps, wall at the hit, capped range."""
+
+    def __init__(self, beams=120, max_m=LIDAR_M):
+        self.beams = beams
+        self.max_m = max_m
+
+    def paint(self, sim, true_free, x, y):
+        """Reveal: free along each beam, wall at the hit."""
+        for k in range(self.beams):
+            a = k * (2.0 * math.pi / self.beams)
+            d = 0.02
+            while d <= self.max_m:
+                px = x + math.cos(a) * d
+                py = y + math.sin(a) * d
+                c, r = sim.world_to_grid(px, py)
+                if (c, r) not in true_free:
+                    sim.set_cell(c, r, OCC)
+                    break
+                sim.set_cell(c, r, FREE)
+                d += 0.02
 
 
-def run(quiet=False, max_ticks=4000, render_every=25, fps=8):
-    h = len(MAZE)
-    w = len(MAZE[0])
-    true_free = {(c, h - 1 - row) for row, line in enumerate(MAZE)
-                 for c, ch in enumerate(line) if ch == '.'}
-    sim = OccupancyMap(w, h, RES, fill=UNKNOWN)
-    x, y = sim.grid_to_world(1, 1)
-    yaw = 0.0
-    brain = GoalBrain(min_size=1, clear_m=0.06, retry_clear_m=0.0)
-    covered = brain.covered
-    phase = brain.mode
-    route, ri, goal = None, 0, None
-    since_plan = 0
-    for tick in range(1, max_ticks + 1):
-        reveal(sim, true_free, x, y)
-        if route is None or ri >= len(route['points']) or since_plan >= REPLAN_EVERY:
-            goal, route, status = brain.plan(sim, (x, y))
-            since_plan = 0
-            phase = brain.mode
+class ExploreSim:
+    """Wires world + known map + robot + brain and runs the tick loop."""
+
+    def __init__(self, quiet=False, max_ticks=4000, render_every=25,
+                 fps=8.0):
+        self.world = Maze(MAZE)
+        self.sim = OccupancyMap(self.world.w, self.world.h, RES, fill=UNKNOWN)
+        self.robot = Robot(*self.sim.grid_to_world(1, 1), 0.0)
+        self.lidar = SimLidar()
+        self.brain = GoalBrain(min_size=1, clear_m=0.06, retry_clear_m=0.0)
+        self.covered = self.brain.covered
+        self.phase = self.brain.mode
+        self.quiet = quiet
+        self.max_ticks = max_ticks
+        self.render_every = render_every
+        self.fps = fps
+        self.route, self.ri, self.goal = None, 0, None
+        self.since_plan = 0
+        self.tick = 0
+
+    def run(self):
+        for self.tick in range(1, self.max_ticks + 1):
+            self.lidar.paint(self.sim, self.world.free,
+                             self.robot.x, self.robot.y)
+            if self._maybe_plan():
+                break  # brain says coverage done
+            self._drive()
+            self.since_plan += 1
+            if not self.quiet and self.tick % self.render_every == 0:
+                self._frame()
+                time.sleep(1.0 / self.fps)
+        if self.quiet:
+            self._frame()
+        return self._summary()
+
+    def _maybe_plan(self):
+        """Plan when idle. True when the brain says coverage is done."""
+        if self.route is None or self.ri >= len(self.route['points']) \
+                or self.since_plan >= REPLAN_EVERY:
+            self.goal, self.route, status = self.brain.plan(
+                self.sim, (self.robot.x, self.robot.y))
+            self.since_plan = 0
+            self.phase = self.brain.mode
             if status == 'coverage done':
-                break  # zigzag empty -> everything swept
-            if goal is None:
-                route = None  # skip / at-robot: retry next tick
+                return True
+            if self.goal is None:
+                self.route = None  # skip / at-robot: retry next tick
             else:
-                ri = 1  # route points[0] is the robot's own cell
-        if route is None or ri >= len(route['points']):
-            route = None  # force replan next tick
-        if route is not None:
-            tx, ty = route['points'][ri]
-            if math.hypot(tx - x, ty - y) < REACH_TOL:
-                ri += 1
-            else:
-                x, y, yaw, moved = step(x, y, yaw, tx, ty)
-        else:
-            moved = False
-        if moved:
-            cover_ring(covered, sim, x, y)
-        since_plan += 1
-        if not quiet and tick % render_every == 0:
-            frame(sim, x, y, route, ri, goal, covered, tick, phase)
-            time.sleep(1.0 / fps)
-    if quiet:
-        frame(sim, x, y, route, ri, goal, covered, tick, phase)
-    left = true_free - set(sim.free_cells())
-    uncov = len(set(sim.free_cells()) - covered)
-    print(f'done={phase} ticks={tick} known={len(sim.free_cells())}/{len(true_free)} '
-          f'unseen={len(left)} covered={len(covered)} uncovered={uncov}')
-    # Exit reflects exploration; uncovered nooks are informational
-    # (best-effort sweep — lanes can't center in every corner).
-    return 1 if left else 0
+                self.ri = 1  # route points[0] is the robot's own cell
+        return False
+
+    def _drive(self):
+        if self.route is None or self.ri >= len(self.route['points']):
+            self.route = None  # force replan next tick
+            return
+        tx, ty = self.route['points'][self.ri]
+        if math.hypot(tx - self.robot.x, ty - self.robot.y) < REACH_TOL:
+            self.ri += 1
+            return
+        if self.robot.step_toward(tx, ty):
+            cover_ring(self.covered, self.sim, self.robot.x, self.robot.y)
+
+    def _frame(self):
+        marks = {(c, r): 'o' for c, r in self.covered}
+        if self.route:
+            for pt in self.route['points'][self.ri:]:
+                marks[self.sim.world_to_grid(*pt)] = '+'
+        if self.goal is not None:
+            marks[self.sim.world_to_grid(*self.goal)] = '*'
+        marks[self.sim.world_to_grid(self.robot.x, self.robot.y)] = 'R'
+        nxt = (self.route['points'][self.ri]
+               if self.route and self.ri < len(self.route['points']) else None)
+        head = (f't={self.tick} {self.phase} next={nxt} '
+                f'known={len(self.sim.free_cells())} covered={len(self.covered)}')
+        print('\033[2J\033[H')
+        print(head)
+        print(self.sim.render(marks=marks))
+
+    def _summary(self):
+        left = self.world.free - set(self.sim.free_cells())
+        uncov = len(set(self.sim.free_cells()) - self.covered)
+        print(f'done={self.phase} ticks={self.tick} '
+              f'known={len(self.sim.free_cells())}/{len(self.world.free)} '
+              f'unseen={len(left)} covered={len(self.covered)} '
+              f'uncovered={uncov}')
+        # Exit reflects exploration; uncovered nooks are informational
+        # (best-effort sweep — lanes can't center in every corner).
+        return 1 if left else 0
 
 
 def main():
@@ -156,8 +205,9 @@ def main():
     ap.add_argument('--fps', type=float, default=8.0,
                     help='animation delay; ignored with --quiet')
     a = ap.parse_args()
-    sys.exit(run(quiet=a.quiet, max_ticks=a.max_ticks,
-                 render_every=a.render_every, fps=a.fps))
+    sys.exit(ExploreSim(quiet=a.quiet, max_ticks=a.max_ticks,
+                        render_every=a.render_every,
+                        fps=a.fps).run())
 
 
 if __name__ == '__main__':
