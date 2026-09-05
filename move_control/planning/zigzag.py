@@ -8,7 +8,7 @@ covered set advances coverage instead of repeating it.
 """
 import math
 
-from .gridmap import _snap
+from .gridmap import nearest_free
 
 
 class ZigzagPlanner:
@@ -23,7 +23,7 @@ class ZigzagPlanner:
         step = max(2, int(round(lane_step / res)))
         min_run = 3  # below ~15 cm the robot doesn't fit
         if start is not None:
-            sc = _snap(m, m.world_to_grid(*start))
+            sc = nearest_free(m, m.world_to_grid(*start))
             region = m.flood(sc) if sc else set()
         else:
             region = set(m.free_cells())

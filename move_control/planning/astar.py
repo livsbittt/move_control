@@ -7,7 +7,7 @@ so frontier free cells stay reachable. Returns world points + length.
 import heapq
 import math
 
-from .gridmap import FREE, _snap
+from .gridmap import FREE, nearest_free
 
 _STEPS = ((1, 0), (-1, 0), (0, 1), (0, -1),
           (1, 1), (1, -1), (-1, 1), (-1, -1))
@@ -20,8 +20,8 @@ def best_route(m, start, goal, clear_m=0.06):
     wide). Inflation from OCC only; unknown blocks by absence.
     """
     grid = m.inflate(int(round(clear_m / m.res)))
-    sc = _snap(grid, m.world_to_grid(*start), max_occ=2)
-    gc = _snap(grid, m.world_to_grid(*goal), max_occ=2)
+    sc = nearest_free(grid, m.world_to_grid(*start), max_occ=2)
+    gc = nearest_free(grid, m.world_to_grid(*goal), max_occ=2)
     if sc is None or gc is None:
         return None
     g = {sc: 0.0}

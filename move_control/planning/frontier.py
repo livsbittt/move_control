@@ -6,7 +6,7 @@ cell, sizes clusters, and returns the first reachable one as the point to go.
 from collections import deque
 
 from .astar import best_route
-from .gridmap import UNKNOWN, _snap
+from .gridmap import UNKNOWN, nearest_free
 
 
 def frontier_points(m, min_size=6):
@@ -41,7 +41,7 @@ def frontier_points(m, min_size=6):
             continue
         cx = sum(c for c, _r in comp) / len(comp)
         cy = sum(r for _c, r in comp) / len(comp)
-        snap = _snap(m, (cx, cy))
+        snap = nearest_free(m, (cx, cy))
         if snap is None:
             continue
         x, y = m.grid_to_world(*snap)

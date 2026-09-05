@@ -2,10 +2,9 @@
 import math
 import unittest
 
-from move_control.gridmap import FREE, OCC, UNKNOWN, OccupancyMap
-from move_control.astar import best_route
-from move_control.frontier import frontier_points, pick_goal
-from move_control.zigzag import ZigzagPlanner
+from move_control.planning import (FREE, OCC, UNKNOWN, GoalBrain,
+                                   OccupancyMap, ZigzagPlanner, best_route,
+                                   frontier_points, pick_goal)
 
 
 def room(w=9, h=7, pockets=((5, 3, 6, 4),)):
@@ -167,3 +166,42 @@ class ZigzagTest(unittest.TestCase):
             dirs.append(lane_wps[0][0] < lane_wps[-1][0])
         for a, b in zip(dirs, dirs[1:]):
             self.assertNotEqual(a, b)
+
+
+class GoalBrainTest(unittest.TestCase):
+    def test_explore_returns_frontier_goal(self):
+        brain = GoalBrain(min_size=2)
+        goal, route, status = brain.plan(room(), (0.125, 0.125))
+        self.assertIsNotNone(goal)
+        self.assertEqual(brain.mode, 'explore')
+        self.assertTrue(status.startswith('explore'))
+
+    def test_transitions_to_coverage_when_mapped(self):
+        brain = GoalBrain()
+        goal, route, status = brain.plan(room(pockets=()), (0.125, 0.125))
+        self.assertEqual(brain.mode, 'coverage')
+        self.assertTrue(status.startswith('coverage'))
+
+    def test_coverage_done_when_all_covered(self):
+        m = room(pockets=())
+        brain = GoalBrain()
+        brain.mode = 'coverage'
+        brain.covered = set(m.free_cells())
+        goal, route, status = brain.plan(m, (0.125, 0.125))
+        self.assertIsNone(goal)
+        self.assertEqual(status, 'coverage done')
+
+    def test_unreachable_wp_skipped(self):
+        # 5 cm gap is raw-open but sealed at clear_m 0.06: the coverage
+        # waypoint behind it cannot be planned to and gets skipped.
+        m = room(pockets=())
+        for rr in (1, 2, 4, 5):
+            m.set_cell(4, rr, OCC)
+        brain = GoalBrain()
+        brain.mode = 'coverage'
+        brain.covered = {(c, r) for (c, r) in m.free_cells() if c <= 3}
+        before = len(brain.covered)
+        goal, route, status = brain.plan(m, (0.125, 0.125))
+        self.assertIsNone(goal)
+        self.assertIn('skip', status)
+        self.assertGreater(len(brain.covered), before)  # wp marked swept

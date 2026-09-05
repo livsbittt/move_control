@@ -130,7 +130,7 @@ def _clamp_cell(m, cell):
     return (c, r)
 
 
-def _snap(m, cell, max_n=4096, max_occ=0):
+def nearest_free(m, cell, max_n=4096, max_occ=0):
     """Nearest FREE cell. BFS transits unknown freely; max_occ inflated-wall
     cells lets a near-wall goal escape the safety ring on an inflated map,
     while a goal buried in a wall (max_occ exhausted) stays None."""

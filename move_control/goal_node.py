@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Goal node. Check /map, make the point to go, publish the best route.
 
-explore: planner.pick_goal (frontier) — a point at the edge of the unknown.
-When no frontier is left, coverage: ZigzagPlanner hands out the next zigzag
-waypoint. When those run out: done, goal holds.
+Thin I/O around planning.GoalBrain: explore = frontier point at the edge of
+the unknown; no frontier left -> coverage = zigzag waypoints until done.
+All decision logic lives in move_control/planning/goals.py and is unit-tested
+without ROS.
 
 Publishes:
   /goal_point       PoseStamped (map)  the point to go
@@ -14,8 +15,6 @@ Subscribe /goal/cmd: explore|coverage|stop to switch modes at runtime.
 The robot is not driven from here; wander/control stay in charge of motors
 (via the safety gate). If /goal/cmd says stop, only publishing stops.
 """
-import math
-
 import rclpy
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Odometry, OccupancyGrid, Path
@@ -25,8 +24,7 @@ from std_msgs.msg import String
 from tf2_ros import Buffer as TfBuffer
 from tf2_ros import TransformListener
 
-from .planner import (OccupancyMap, ZigzagPlanner, best_route, cover_ring,
-                      pick_goal)
+from .planning import GoalBrain, OccupancyMap
 
 
 class GoalNode(Node):
@@ -57,12 +55,21 @@ class GoalNode(Node):
         self.ox = self.oy = 0.0
         self.have_odom = False
         self.mode = str(self.get_parameter('mode').value)
-        self.covered = set()
+        if self.mode not in ('explore', 'coverage', 'stop'):
+            self.mode = 'explore'
+        self.brain = GoalBrain(
+            min_size=int(self.get_parameter('min_size').value),
+            clear_m=float(self.get_parameter('clear_m').value),
+            retry_clear_m=float(self.get_parameter('retry_clear_m').value),
+            lane_width=float(self.get_parameter('lane_width').value),
+            lane_step=float(self.get_parameter('lane_step').value),
+            reach_tol=float(self.get_parameter('reach_tol').value))
+        self.brain.mode = self.mode if self.mode != 'stop' else 'explore'
         self.timer = self.create_timer(
             1.0 / max(0.1, float(self.get_parameter('rate').value)), self.plan)
-        ms = int(self.get_parameter('min_size').value)
         self.get_logger().info(
-            f'goal_node ready | mode={self.mode} min_size={ms}')
+            f'goal_node ready | mode={self.mode} '
+            f'min_size={self.brain.min_size}')
 
 
     def on_map(self, msg):
@@ -78,6 +85,7 @@ class GoalNode(Node):
         cmd = msg.data.strip().lower()
         if cmd in ('explore', 'coverage', 'stop'):
             self.mode = cmd
+            self.brain.mode = 'explore' if cmd == 'stop' else cmd
             self.get_logger().info(f'mode -> {cmd}')
         else:
             self.get_logger().warn(f'unknown /goal/cmd {cmd!r} (explore|coverage|stop)')
@@ -99,52 +107,16 @@ class GoalNode(Node):
         m = self.map_obj
         (x, y), src = self.pose()
         if m is None or x is None:
-            self.state_pub.publish(String(data=f'waiting map={m is not None} pose={src}'))
+            self.state_pub.publish(
+                String(data=f'waiting map={m is not None} pose={src}'))
             return
-        rate = float(self.get_parameter('rate').value)
-        min_size = int(self.get_parameter('min_size').value)
-        clear_m = float(self.get_parameter('clear_m').value)
-        retry = float(self.get_parameter('retry_clear_m').value)
-        lane_w = float(self.get_parameter('lane_width').value)
-        lane_s = float(self.get_parameter('lane_step').value)
-        tol = float(self.get_parameter('reach_tol').value)
         if self.mode == 'stop':
             self.state_pub.publish(String(data='stopped'))
             return
-        if self.mode == 'explore':
-            g = pick_goal(m, (x, y), min_size=min_size, clear_m=clear_m,
-                          retry_clear_m=retry)
-            if g is not None:
-                self._pub_goal(g['x'], g['y'], g['route'])
-                self.state_pub.publish(String(
-                    data=f"explore goal=({g['x']:.2f},{g['y']:.2f}) "
-                         f"size={g['size']} route={g['route']['length']:.2f}m "
-                         f"pose~{src}"))
-                return
-            self.get_logger().info('no frontier left -> coverage mode')
-            self.mode = 'coverage'
-        # coverage mode
-        cover_ring(self.covered, m, x, y, radius_m=lane_w / 2 + 0.08)
-        zz = ZigzagPlanner(m, start=(x, y), covered=self.covered,
-                           lane_width=lane_w, lane_step=lane_s)
-        wps = zz.waypoints()
-        if not wps:
-            self.state_pub.publish(String(data='coverage done'))
-            return
-        goal = wps[0]
-        route = best_route(m, (x, y), goal, clear_m=clear_m)
-        if route is None:
-            # Waypoint behind a wall/unknown: mark swept and move on.
-            self.covered.add(m.world_to_grid(*goal))
-            self.state_pub.publish(String(data='coverage wp unreachable, skip'))
-            return
-        if math.hypot(goal[0] - x, goal[1] - y) < tol:
-            self.state_pub.publish(String(data='coverage wp at robot'))
-            return
-        self._pub_goal(goal[0], goal[1], route)
-        self.state_pub.publish(String(
-            data=f'coverage goal=({goal[0]:.2f},{goal[1]:.2f}) '
-                 f'left={len(wps)} route={route["length"]:.2f}m pose~{src}'))
+        goal, route, status = self.brain.plan(m, (x, y))
+        self.state_pub.publish(String(data=f'{status} pose~{src}'))
+        if goal is not None and route is not None:
+            self._pub_goal(goal[0], goal[1], route)
 
     def _pub_goal(self, x, y, route):
         stamp = self.get_clock().now().to_msg()

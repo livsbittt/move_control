@@ -22,7 +22,7 @@ Build (in the robot workspace `/home/pinky/dev_ws/wj`):
 colcon build --packages-select move_control lcd_control
 ```
 
-Tests — pure-logic unittest suite (52 tests, no ROS needed; run from repo root, `python3-numpy`/`python3-opencv` required):
+Tests — pure-logic unittest suite (75 tests, no ROS needed; run from repo root, `python3-numpy`/`python3-opencv` required):
 ```bash
 python3 -m pytest test/ -q                          # all
 python3 -m pytest test/test_recover.py -q           # one file
@@ -68,12 +68,12 @@ Each ROS node is an `rclpy.Node` composed of **subject mixins**, one concern eac
 - `calib_node` — `/calib/step` FSM: stable floor IR → slow ±x nudge to solve `cmd_linear_sign` + lidar nose yaw → wait for a real IR cliff. Writes `config/auto_calib.yaml` **and** pushes params into the running safety_node via the `SetParameters` service.
 - `camera_detect_node` — OV5647 via picamera2, treated as **BGR8** (libcamera RGB888 is BGR in memory), frame rotated 180°. HSV floor/void/obstacle classification in `camera.py:classify_frame` → `/camera/cliff`, `/camera/blocked`, `/camera/side`.
 - `control_node` — odom-P-controller for straight/rotate goals (published as raw `Float64` on `/goal_distance`, `/goal_rotate`).
-- `goal_node` — map-driven point to go: `/map` + TF map→base_link (odom fallback) → `/goal_point` (PoseStamped), `/route` (Path), `/goal_node/state`; `/goal/cmd` explore|coverage|stop. explore = frontier goal (`pick_goal`); no frontier left → coverage = zigzag waypoint queue with covered-cell tracking. Advisory only — never touches `/cmd_vel_raw`; motors stay with wander/control behind the safety gate.
+- `goal_node` — map-driven point to go: `/map` + TF map→base_link (odom fallback) → `/goal_point` (PoseStamped), `/route` (Path), `/goal_node/state`; `/goal/cmd` explore|coverage|stop. explore = frontier goal; no frontier left → coverage = zigzag waypoint queue. Thin I/O over `planning.GoalBrain` (explore→coverage FSM lives in `planning/goals.py`). Advisory only — never touches `/cmd_vel_raw`; motors stay with wander/control behind the safety gate.
 - `watch_node` — graph health: required node set, **exclusive topic ownership** (`/cmd_vel`→safety_node, `/cmd_vel_raw`→wander_node, `/scan`→sllidar_node), foreign-node detection (gazebo bridges). Publishes `/robot/ok|health|interrupt`; `once:=true` exits non-zero on interrupts.
 
 ### Pure-logic modules (no ROS imports — what the tests cover)
 
-`recover.py` (stuck/backup/escape policy), `route.py` (longest free straight line), `modes.py` (the one canonical `/robot/mode` label: hazard > wander action > contact bands; wander publishes it, LCD only displays), `lidar.py`, `body.py`, `filt.py`, `camera.py`, `watch.py`, and the map-planning set `planner.py` → `gridmap.py`/`astar.py`/`frontier.py`/`zigzag.py` (map check → point to go, best route, zigzag coverage; `test_planner.py`). Keep new decision logic here and it stays unit-testable.
+`recover.py` (stuck/backup/escape policy), `route.py` (longest free straight line), `modes.py` (the one canonical `/robot/mode` label: hazard > wander action > contact bands; wander publishes it, LCD only displays), `lidar.py`, `body.py`, `filt.py`, `camera.py`, `watch.py`, and the `planning/` subpackage (`gridmap`/`astar`/`frontier`/`zigzag` + `goals.py` — the GoalBrain explore→coverage FSM shared by goal_node and the sim; `test_planning.py`). Keep new decision logic here and it stays unit-testable.
 
 ### Lidar geometry — the one non-obvious trap
 

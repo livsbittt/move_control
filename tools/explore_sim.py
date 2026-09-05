@@ -17,9 +17,8 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from move_control.gridmap import FREE, OCC, UNKNOWN, OccupancyMap
-from move_control.planner import (ZigzagPlanner, best_route, cover_ring,
-                                  pick_goal)
+from move_control.planning import (FREE, OCC, UNKNOWN, GoalBrain,
+                                   OccupancyMap, cover_ring)
 
 RES = 0.05          # m/cell, same as slam_toolbox resolution
 LIDAR_M = 0.45      # C1 usable range in the desk maze (route.py cap)
@@ -105,45 +104,23 @@ def run(quiet=False, max_ticks=4000, render_every=25, fps=8):
     sim = OccupancyMap(w, h, RES, fill=UNKNOWN)
     x, y = sim.grid_to_world(1, 1)
     yaw = 0.0
-    covered = set()
-    fails = {}
-    phase = 'explore'
+    brain = GoalBrain(min_size=1, clear_m=0.06, retry_clear_m=0.0)
+    covered = brain.covered
+    phase = brain.mode
     route, ri, goal = None, 0, None
     since_plan = 0
     for tick in range(1, max_ticks + 1):
         reveal(sim, true_free, x, y)
-        if phase == 'explore':
-            if route is None or ri >= len(route['points']) or since_plan >= REPLAN_EVERY:
-                # min_size 2: raycast reveal is noise-free, real SLAM
-                # maps want 4-6 to skip sensor-noise specks.
-                # min_size 1: raycast reveal is noise-free, so even a
-                # 1-cell shadow frontier is real; real SLAM maps want 4-6.
-                g = pick_goal(sim, (x, y), min_size=1, clear_m=0.06,
-                              retry_clear_m=0.0)
-                since_plan = 0
-                if g is None:
-                    phase = 'coverage'
-                    route, ri, goal = None, 0, None
-                else:
-                    route = g['route']
-                    ri = 1  # points[0] is the robot's own cell
-                    goal = (g['x'], g['y'])
-        if phase == 'coverage' and route is None:
-            zz = ZigzagPlanner(sim, start=(x, y), covered=covered,
-                               lane_width=0.12, lane_step=0.20)
-            wps = zz.waypoints()
-            if not wps:
+        if route is None or ri >= len(route['points']) or since_plan >= REPLAN_EVERY:
+            goal, route, status = brain.plan(sim, (x, y))
+            since_plan = 0
+            phase = brain.mode
+            if status == 'coverage done':
                 break  # zigzag empty -> everything swept
-            goal = wps[0]
-            route = best_route(sim, (x, y), goal, clear_m=0.06)
-            if route is None:
-                cell = sim.world_to_grid(*goal)
-                fails[cell] = fails.get(cell, 0) + 1
-                if fails[cell] >= 2:
-                    covered.add(cell)  # give up on this spot, keep sweeping
-                route = None
-                continue
-            ri = 1
+            if goal is None:
+                route = None  # skip / at-robot: retry next tick
+            else:
+                ri = 1  # route points[0] is the robot's own cell
         if route is None or ri >= len(route['points']):
             route = None  # force replan next tick
         if route is not None:
