@@ -42,8 +42,25 @@ def stuck_flip(stuck_n):
     return int(stuck_n) >= 2
 
 
-def escape_may_abort(turned_rad, on_wall, blocked, min_rad=ESCAPE_MIN_TURN):
-    if blocked or on_wall:
+def is_stuck_motion(moved, dt, v_cmd, stuck_m, stuck_sec):
+    """Stall only if we asked to move more than stuck_m and did not.
+
+    A think-speed crawl (3 mm/s) cannot cover 8 mm in 1.2 s — that is not stuck.
+    """
+    if float(dt) < float(stuck_sec):
+        return False
+    if float(moved) >= float(stuck_m):
+        return False
+    expected = abs(float(v_cmd)) * float(dt)
+    if expected <= float(stuck_m):
+        return False
+    return True
+
+
+def escape_may_abort(
+    turned_rad, on_wall, blocked, min_rad=ESCAPE_MIN_TURN, pinched=False
+):
+    if blocked or on_wall or pinched:
         return False
     return float(turned_rad) >= float(min_rad)
 

@@ -10,6 +10,7 @@ from ..recover import (
     STUCK_CLEAR_M,
     escape_may_abort,
     escape_may_desense,
+    is_stuck_motion,
     stuck_flip,
     stuck_kind,
 )
@@ -115,15 +116,17 @@ class Motion:
         self._commit_escape_params('stuck, need escape')
 
     def _is_stuck(self) -> bool:
-        if not self.seen_forward or not self._sensors_ready():
-            return False
-        if self.motion_t is None or not self.have_odom:
+        if not self.seen_forward or self.motion_t is None or not self.have_odom:
             return False
         dt = (self.now() - self.motion_t).nanoseconds * 1e-9
-        if dt < float(self.get_parameter('stuck_sec').value):
-            return False
         moved = math.hypot(self.odom_x - self.motion_x, self.odom_y - self.motion_y)
-        return moved < float(self.get_parameter('stuck_m').value)
+        return is_stuck_motion(
+            moved,
+            dt,
+            abs(self._fwd_speed()),
+            float(self.get_parameter('stuck_m').value),
+            float(self.get_parameter('stuck_sec').value),
+        )
 
     def _note_motion(self):
         if self.motion_t is None:
@@ -204,6 +207,16 @@ class Motion:
         self._from_stuck = False
         self._stuck_n = 0
 
+    def _resume_forward(self, use_line=False):
+        if self._from_stuck_now():
+            self._clear_stuck()
+        self._enter('forward')
+        out = Twist()
+        out.linear.x = self._fwd_speed()
+        out.angular.z = self._line_wz() if use_line else self._steer_wz()
+        self.seen_forward = True
+        self._publish(out, 'forward')
+
     def _recover_stuck(self):
         """Do not look-then-forward. Backup if the tail is free, else spin."""
         self._stuck_n = int(getattr(self, '_stuck_n', 0)) + 1
@@ -275,12 +288,7 @@ class Motion:
         w = float(self.wturn)
         cmd.angular.z = self._spin_wz()
         if self._aligned_to_open():
-            self._enter('forward')
-            cmd = Twist()
-            cmd.linear.x = self._fwd_speed()
-            cmd.angular.z = self._steer_wz()
-            self.seen_forward = True
-            self._publish(cmd, 'forward')
+            self._resume_forward()
             return
         turn_rad = math.radians(float(self.get_parameter('turn_deg').value))
         need_sec = turn_rad / max(0.02, abs(w)) + 0.25
@@ -294,14 +302,8 @@ class Motion:
                 self._enter('wall')
                 self._publish(Twist(), 'wall')
                 return
-            else:
-                self._enter('forward')
-                cmd = Twist()
-                cmd.linear.x = self._fwd_speed()
-                cmd.angular.z = self._steer_wz()
-                self.seen_forward = True
-                self._publish(cmd, 'forward')
-                return
+            self._resume_forward()
+            return
         self._publish(cmd, 'turn')
 
     def _tick_escape(self):
@@ -314,7 +316,7 @@ class Motion:
             self._publish(cmd, 'backup')
             return
         self._look_accum()
-        if self._try_turn_backup('escape objects close'):
+        if not self._from_stuck_now() and self._try_turn_backup('escape objects close'):
             return
         if (
             not self._from_stuck_now()
@@ -322,12 +324,7 @@ class Motion:
             and not self._on_wall()
             and not self._front_pinched()
         ):
-            self._enter('forward')
-            out = Twist()
-            out.linear.x = self._fwd_speed()
-            out.angular.z = self._line_wz()
-            self.seen_forward = True
-            self._publish(out, 'forward')
+            self._resume_forward(use_line=True)
             return
         cmd = Twist()
         cmd.angular.z = self._spin_wz()
@@ -342,6 +339,7 @@ class Motion:
             self._publish(Twist(), 'recon')
             return
         turned = self._turned()
+        pinched = self._front_pinched()
         aligned = (
             self.elapsed() >= 0.40
             and self._aligned_to_open()
@@ -352,43 +350,47 @@ class Motion:
         ):
             if escape_may_desense(self.elapsed(), turned, self._from_stuck_now()):
                 self._escape_false()
-            if self._from_stuck_now():
-                self._clear_stuck()
-            self._enter('forward')
-            out = Twist()
-            out.linear.x = self._fwd_speed()
-            out.angular.z = self._steer_wz()
-            self.seen_forward = True
-            self._publish(out, 'forward')
+            self._resume_forward()
             return
-        if self.elapsed() > 2.5 and self._on_wall() and self._try_turn_backup('escape still on wall'):
+        if (
+            not self._from_stuck_now()
+            and self.elapsed() > 2.5
+            and self._on_wall()
+            and self._try_turn_backup('escape still on wall')
+        ):
             return
         if self._on_wall() and (turned >= math.radians(80.0) or self.elapsed() > 8.0):
             self.turn_sign = -self.turn_sign
             self._mark_pose()
             self.t0 = self.now()
+            cmd.angular.z = self._spin_wz()
             self.get_logger().warn(f'wall still — flip escape sign={self.turn_sign:.0f}')
-        if escape_may_abort(turned, self._on_wall(), self.blocked):
-            if self._from_stuck_now():
-                self._clear_stuck()
-            self._enter('forward')
-            out = Twist()
-            out.linear.x = self._fwd_speed()
-            self.seen_forward = True
-            self._publish(out, 'forward')
+        if escape_may_abort(
+            turned, self._on_wall(), self.blocked, pinched=pinched
+        ):
+            self._resume_forward()
             return
         if self.elapsed() > 12.0:
-            if self._from_stuck_now():
-                self._clear_stuck()
-            self._enter('forward')
-            out = Twist()
-            out.linear.x = self._fwd_speed()
-            self.seen_forward = True
-            self._publish(out, 'forward')
-            return
+            if self._on_wall() or pinched or self.blocked:
+                self.turn_sign = -self.turn_sign
+                self._mark_pose()
+                self.t0 = self.now()
+                cmd.angular.z = self._spin_wz()
+                self.get_logger().warn(
+                    f'escape timeout — flip sign={self.turn_sign:.0f}'
+                )
+            else:
+                self._resume_forward()
+                return
         self._publish(cmd, 'escape')
 
     def _tick_wait(self):
         self._publish(Twist(), 'wait')
-        if self._ir_ready() and (self._sensors_ready() or self.elapsed() > 2.0):
+        ir_ok = self._ir_ready()
+        sense_ok = self._sensors_ready()
+        if ir_ok and (sense_ok or self.elapsed() > 2.0):
+            self._enter('forward')
+            return
+        if sense_ok and self.elapsed() > 4.0:
+            self.get_logger().warn('wait: IR not in floor band — lidar ready, go')
             self._enter('forward')

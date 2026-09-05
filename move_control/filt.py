@@ -7,10 +7,12 @@ import math
 
 
 class MedianLp:
-    def __init__(self, median_n=5, fc_hz=1.5, dt=0.05):
+    def __init__(self, median_n=5, fc_hz=1.5, dt=0.05, miss_n=8):
         self.n = max(1, int(median_n) | 1)  # odd
         self.buf = []
         self.y = None
+        self.miss = 0
+        self.miss_n = max(1, int(miss_n))
         self.set_cutoff(fc_hz, dt)
 
     def set_cutoff(self, fc_hz, dt):
@@ -20,7 +22,13 @@ class MedianLp:
 
     def push(self, x):
         if x is None or (isinstance(x, float) and (not math.isfinite(x) or x < 0.0)):
+            self.miss += 1
+            if self.miss >= self.miss_n:
+                self.y = None
+                self.buf = []
+                return None
             return self.y
+        self.miss = 0
         self.buf.append(float(x))
         if len(self.buf) > self.n:
             del self.buf[0]

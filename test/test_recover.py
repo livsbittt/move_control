@@ -9,6 +9,7 @@ from move_control.recover import (
     escape_may_desense,
     gate_keep_angular,
     have_turn_space,
+    is_stuck_motion,
     need_space_to_turn,
     stuck_flip,
     stuck_kind,
@@ -51,11 +52,25 @@ class RecoverTest(unittest.TestCase):
             need_space_to_turn(0.04, 0.04, 0.04, clear, True, 2, 2)
         )
 
+    def test_crawl_is_not_stuck(self):
+        stuck_m, stuck_sec = 0.008, 1.2
+        # think 3 mm/s cannot cover 8 mm in 1.2 s
+        self.assertFalse(is_stuck_motion(0.0036, 1.2, 0.003, stuck_m, stuck_sec))
+        # cruise commanded, chassis did not move
+        self.assertTrue(is_stuck_motion(0.001, 1.2, 0.014, stuck_m, stuck_sec))
+        # actually moved
+        self.assertFalse(is_stuck_motion(0.010, 1.2, 0.014, stuck_m, stuck_sec))
+        # window not elapsed
+        self.assertFalse(is_stuck_motion(0.0, 0.5, 0.014, stuck_m, stuck_sec))
+
     def test_escape_abort_needs_45deg_and_not_on_wall(self):
         self.assertFalse(escape_may_abort(math.radians(13.0), False, False))
         self.assertTrue(escape_may_abort(ESCAPE_MIN_TURN, False, False))
         self.assertFalse(escape_may_abort(ESCAPE_MIN_TURN, True, False))
         self.assertFalse(escape_may_abort(ESCAPE_MIN_TURN, False, True))
+        self.assertFalse(
+            escape_may_abort(ESCAPE_MIN_TURN, False, False, pinched=True)
+        )
 
     def test_timeout_does_not_desense_stuck(self):
         # 5s / 13° used to call _escape_false. Must not, especially when stuck.

@@ -178,6 +178,13 @@ class Judge:
         if self._look_nF < 3 and self.elapsed() < look_sec + 1.2:
             return
         if self._look_nF < 1:
+            if self.seen_forward:
+                self.get_logger().warn('look: no front at contact — escape')
+                self._enter('escape')
+                cmd = Twist()
+                cmd.angular.z = self._spin_wz()
+                self._publish(cmd, 'escape')
+                return
             self.get_logger().warn('look: no front range yet — wait')
             self._enter('wait')
             self._publish(Twist(), 'wait')

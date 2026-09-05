@@ -15,8 +15,8 @@ wander_node:
     auto_start: true
     pause_sec: 0.25
     # Judge: look (sample) → calc (score) → maybe recon (look again).
-    look_sec: 1.00
-    calc_sec: 0.50
+    look_sec: 0.40
+    calc_sec: 0.20
     recon_sec: 1.20
     recon_max: 2
     backup_m: 0.025
