@@ -22,7 +22,7 @@ Build (in the robot workspace `/home/pinky/dev_ws/wj`):
 colcon build --packages-select move_control lcd_control
 ```
 
-Tests — pure-logic unittest suite (45 tests, no ROS needed; run from repo root, `python3-numpy`/`python3-opencv` required):
+Tests — pure-logic unittest suite (52 tests, no ROS needed; run from repo root, `python3-numpy`/`python3-opencv` required):
 ```bash
 python3 -m pytest test/ -q                          # all
 python3 -m pytest test/test_recover.py -q           # one file

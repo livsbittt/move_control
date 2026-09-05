@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import math
 import unittest
 
 from move_control.gridmap import FREE, OCC, UNKNOWN, OccupancyMap
@@ -98,3 +99,71 @@ class AstarTest(unittest.TestCase):
         self.assertIsNotNone(r)
         for c, rr in r['cells']:
             self.assertTrue(m.is_free(c, rr), (c, rr))
+
+
+class FrontierTest(unittest.TestCase):
+    def test_pick_goal_reachable(self):
+        m = room()
+        g = pick_goal(m, (0.125, 0.125), min_size=2)
+        self.assertIsNotNone(g)
+        self.assertEqual(g['kind'], 'frontier')
+        c, r = m.world_to_grid(g['x'], g['y'])
+        self.assertTrue(m.is_free(c, r), (c, r))
+        self.assertGreaterEqual(g['route']['length'], 0.08)
+
+    def test_pick_goal_none_when_mapped(self):
+        self.assertIsNone(pick_goal(room(pockets=()), (0.125, 0.125)))
+
+    def test_pick_goal_retry_sealed_corridor(self):
+        # 5 cm gap: raw-open, sealed at clear_m 0.06. The retry pass at 0.0
+        # still finds an approach to the frontier behind it.
+        m = room(w=9, h=7, pockets=((6, 2, 7, 3),))
+        for rr in (1, 2, 4, 5):
+            m.set_cell(4, rr, OCC)
+        self.assertIsNone(pick_goal(m, (0.125, 0.125), min_size=2))
+        g = pick_goal(m, (0.125, 0.125), min_size=2, retry_clear_m=0.0)
+        self.assertIsNotNone(g)
+        self.assertEqual(g['clear_m'], 0.0)
+
+    def test_pick_goal_skips_degenerate(self):
+        m = room()
+        self.assertIsNone(pick_goal(m, (0.125, 0.125), min_size=2,
+                                    min_route_m=99.0))
+        self.assertIsNotNone(pick_goal(m, (0.125, 0.125), min_size=2,
+                                       min_route_m=0.0))
+
+
+class ZigzagTest(unittest.TestCase):
+    def test_coverage_completes(self):
+        m = room(w=12, h=10, pockets=())
+        zz = ZigzagPlanner(m, start=(0.075, 0.075), lane_width=0.12,
+                           lane_step=0.20)
+        wps = zz.wps  # cells; waypoints() is the world-metre view
+        self.assertTrue(wps)
+        for wc, wr in wps:
+            self.assertTrue(m.is_free(wc, wr), (wc, wr))
+        # Every free cell within half a lane + half a step of a waypoint.
+        tol = (0.12 / 2 + 0.20 / 2) / 0.05
+        for c, r in m.free_cells():
+            d = min(math.hypot(c - wc, r - wr) for wc, wr in wps)
+            self.assertLessEqual(d, tol + 1e-9, (c, r))
+
+    def test_covered_lane_dropped(self):
+        m = room(w=12, h=10, pockets=())
+        cov = {(c, 1) for c in range(1, 11)}
+        zz = ZigzagPlanner(m, start=(0.075, 0.075), covered=cov)
+        self.assertNotIn(1, [lane['key'] for lane in zz.lanes])
+        zz_all = ZigzagPlanner(m, start=(0.075, 0.075))
+        self.assertIn(1, [lane['key'] for lane in zz_all.lanes])
+
+    def test_serpentine_alternates(self):
+        m = room(w=12, h=10, pockets=())
+        zz = ZigzagPlanner(m, start=(0.075, 0.075))
+        keys = list(dict.fromkeys(r for _c, r in zz.wps))
+        self.assertGreaterEqual(len(keys), 3)
+        dirs = []
+        for key in keys:
+            lane_wps = [(c, r) for c, r in zz.wps if r == key]
+            dirs.append(lane_wps[0][0] < lane_wps[-1][0])
+        for a, b in zip(dirs, dirs[1:]):
+            self.assertNotEqual(a, b)

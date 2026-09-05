@@ -50,20 +50,24 @@ def frontier_points(m, min_size=6):
     return out
 
 
-def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None):
-    """First reachable frontier (size desc). None if no reachable frontier.
+def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
+              min_route_m=0.08):
+    """First usable frontier goal (size desc). None if nothing worth driving.
 
     Returns {'kind': 'frontier', 'x', 'y', 'size', 'route', 'clear_m'}.
     retry_clear_m: when the inflated map seals thin corridors, a second pass
     at retry_clear_m (0.0 = raw map) still finds an approach; the safety gate
     still guards the hardware in that last stretch.
+    min_route_m: routes shorter than this are skipped — a frontier the robot
+    already sits on reveals nothing new, and returning it as the point to go
+    would just spin the replan loop.
     """
     for cm in (clear_m, retry_clear_m):
         if cm is None:
             continue
         for f in frontier_points(m, min_size):
             route = best_route(m, start, (f['x'], f['y']), clear_m=cm)
-            if route:
+            if route and route['length'] >= min_route_m:
                 return {'kind': 'frontier', 'x': f['x'], 'y': f['y'],
                         'size': f['size'], 'route': route, 'clear_m': cm}
     return None

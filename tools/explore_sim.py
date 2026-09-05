@@ -163,9 +163,12 @@ def run(quiet=False, max_ticks=4000, render_every=25, fps=8):
     if quiet:
         frame(sim, x, y, route, ri, goal, covered, tick, phase)
     left = true_free - set(sim.free_cells())
+    uncov = len(set(sim.free_cells()) - covered)
     print(f'done={phase} ticks={tick} known={len(sim.free_cells())}/{len(true_free)} '
-          f'unseen={len(left)} covered={len(covered)}')
-    return 0 if not left else 1
+          f'unseen={len(left)} covered={len(covered)} uncovered={uncov}')
+    # Exit reflects exploration; uncovered nooks are informational
+    # (best-effort sweep — lanes can't center in every corner).
+    return 1 if left else 0
 
 
 def main():
@@ -176,8 +179,8 @@ def main():
     ap.add_argument('--fps', type=float, default=8.0,
                     help='animation delay; ignored with --quiet')
     a = ap.parse_args()
-    run(quiet=a.quiet, max_ticks=a.max_ticks, render_every=a.render_every,
-        fps=a.fps)
+    sys.exit(run(quiet=a.quiet, max_ticks=a.max_ticks,
+                 render_every=a.render_every, fps=a.fps))
 
 
 if __name__ == '__main__':
