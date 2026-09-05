@@ -1,0 +1,11 @@
+control_node:
+  ros__parameters:
+    cmd_vel_topic: /cmd_vel_raw
+    odom_topic: /odom
+    vmax: 0.08
+    wmax: 0.6
+    kp: 0.8
+    kp_yaw: 1.2
+    tolerance: 0.02
+    yaw_tolerance_deg: 4.0
+    odom_timeout: 0.5

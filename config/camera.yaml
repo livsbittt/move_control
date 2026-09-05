@@ -1,0 +1,9 @@
+camera_detect_node:
+  ros__parameters:
+    width: 320
+    height: 240
+    fps: 8.0
+    void_frac: 0.28
+    obst_frac: 0.55
+    hits: 2
+    warmup_frames: 12

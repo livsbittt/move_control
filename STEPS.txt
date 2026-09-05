@@ -1,0 +1,94 @@
+Pinky Pro move_control
+======================
+
+zip 위치 (핑키):
+  /home/pinky/dev_ws/wj/src/move_control.zip
+
+풀기 (지우지 말고 덮기):
+  cd /home/pinky/dev_ws/wj/src
+  unzip -o move_control.zip
+  ls move_control/move_control/calib_node.py
+
+빌드:
+  cd /home/pinky/dev_ws/wj
+  colcon build --packages-select move_control lcd_control
+
+매 터미널:
+  source /opt/ros/jazzy/setup.bash
+  source /home/pinky/pinky_pro/install/setup.bash
+  source /home/pinky/dev_ws/wj/install/setup.bash
+
+확인:
+  ros2 pkg executables move_control
+  → calib_node  camera_detect_node  control_node  safety_node  wander_node
+  ros2 pkg executables lcd_control
+  → lcd_node
+  ros2 pkg executables pinky_web
+  → web_node
+
+웹 + SQLite WAL:
+  ros2 launch pinky_web web.launch.py
+  브라우저  http://<핑키IP>:8090
+  DB        /home/pinky/dev_ws/wj/pinky.db  (journal_mode=WAL)
+
+
+1) 자동 캘리브 (wander 끄고, 책상 가운데)
+  창1  ros2 launch pinky_bringup bringup_robot.launch.xml
+  창2  ros2 run pinky_sensor_adc main_node
+  창3  ros2 run move_control calib_node
+
+  ros2 topic pub --once /calib/step std_msgs/msg/String "{data: auto}"
+  상태: ros2 topic echo /calib/status
+         ros2 topic echo /calib/phase
+  1) 바닥 IR 안정될 때까지 대기 (4095 들어올림은 건너뜀)
+  2) 느린 +x 로 전진/후진 부호 + 라이다 요 (줄어드는 빔 = 전방)
+  3) 코만 책상 밖 — 절벽 IR이 몇 번 연속이면 자동 샘플
+  라이다만: ros2 topic pub --once /calib/step std_msgs/msg/String "{data: lidar}"
+  정지 거리(3cm)는 맵 크기가 아니라 센서 클리어런스. 카메라 look-ahead 벽은 끔.
+  OK mode=low 와 cmd_linear_sign=±1 이 나와야 함.
+  취소: ros2 topic pub --once /calib/step std_msgs/msg/String "{data: abort}"
+
+  수동이 필요하면:
+    ros2 topic pub --once /calib/step std_msgs/msg/String "{data: floor}"
+    ros2 topic pub --once /calib/step std_msgs/msg/String "{data: cliff}"
+    ros2 topic pub --once /calib/step std_msgs/msg/String "{data: compute}"
+
+
+2) 자율 주행
+  창1 bringup
+  창2 adc
+  창3 ros2 launch move_control wander.launch.py
+  창4 LCD/LED (별 패키지, 모터와 무관):
+      ros2 run pinky_led led_server
+      ros2 launch lcd_control lcd.launch.py
+      emotion_server 가 켜져 있으면 LCD 맵 대신 얼굴 GIF.
+
+  라이다 3cm / 초음파 2.5cm / IR 절벽 / IMU 기울기·들어올림
+  후진은 라이다 뒤쪽이 비어 있을 때만. 뒤가 막히면 후진 대신 회전.
+  기울기면 뒤 경로가 비어 있으면 후진, 아니면 정지. 들어올림이면 즉시 정지.
+  IR 절벽(코가 허공): 잠깐 정지 → IR이 바닥으로 돌아올 때까지만 후진 → 회전 → 전진
+  벽 / 카메라 허공·장애물(아직 바닥): 잠깐 정지 → 제자리 회전 → 전진
+  상태: ros2 topic echo /wander/state
+  LCD 모드: ros2 topic echo /safety/mode
+  카메라: ros2 topic echo /camera/debug
+  LCD 맵이 안 나오면 emotion_server 를 끄고 lcd_control 을 다시.
+
+정지 (노드는 살리고 모터만 멈춤):
+  ros2 topic pub --once /wander/cmd std_msgs/msg/String "{data: stop}"
+재시작:
+  ros2 topic pub --once /wander/cmd std_msgs/msg/String "{data: start}"
+
+
+3) 20cm / 90도 (wander 끄고, safety+control)
+  ros2 run move_control safety_node --ros-args \
+    --params-file /home/pinky/dev_ws/wj/src/move_control/config/safety.yaml
+  ros2 run move_control control_node --ros-args \
+    --params-file /home/pinky/dev_ws/wj/src/move_control/config/control.yaml
+  ros2 topic pub --once /goal_distance std_msgs/msg/Float64 "{data: 0.2}"
+  ros2 topic pub --once /goal_rotate std_msgs/msg/Float64 "{data: 90.0}"
+
+
+wander 정지: Ctrl+C 또는
+  ros2 topic pub --once /wander/cmd std_msgs/msg/String "{data: stop}"
+모터만 0:
+  ros2 topic pub --once /cmd_vel geometry_msgs/msg/Twist "{linear: {x: 0.0}, angular: {z: 0.0}}"

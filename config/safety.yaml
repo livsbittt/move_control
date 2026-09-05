@@ -1,0 +1,32 @@
+safety_node:
+  ros__parameters:
+    cmd_in: /cmd_vel_raw
+    cmd_out: /cmd_vel
+    scan_topic: /scan
+    us_topic: /us_sensor/range
+    ir_topic: /ir_sensor/range
+    stop_distance: 0.03
+    clear_distance: 0.05
+    us_stop_distance: 0.025
+    us_clear_distance: 0.04
+    us_scale: 1.0
+    us_invalid_hold: 5
+    us_hits: 3
+    cmd_linear_sign: -1.0
+    front_half_width_deg: 22.0
+    lidar_yaw_offset: 0.0
+    sensor_timeout: 1.0
+    camera_as_wall: false
+    imu_topic: /imu_raw
+    tilt_deg: 20.0
+    gyro_dps: 90.0
+    pickup_acc: 3.5
+    imu_roll0: 0.0
+    imu_pitch0: 0.0
+    camera_cliff_topic: /camera/cliff
+    camera_block_topic: /camera/blocked
+    cliff_enable: true
+    cliff_raw_max: 800
+    cliff_clear_raw: 1500
+    cliff_mode: low
+    cliff_hits: 2

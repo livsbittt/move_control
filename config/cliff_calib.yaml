@@ -1,0 +1,8 @@
+# 실제 절벽은 IR이 낮아짐 (237). 4095는 들어 올려서 ADC가 포화된 값 — 쓰지 말 것.
+safety_node:
+  ros__parameters:
+    cliff_enable: true
+    cliff_raw_max: 800
+    cliff_clear_raw: 1500
+    cliff_mode: low
+    cliff_hits: 2
