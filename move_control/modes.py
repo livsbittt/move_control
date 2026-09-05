@@ -95,8 +95,8 @@ def pick_mode(
     on_wall=False,
     front=float('inf'),
     us=float('inf'),
-    wall_front=0.12,
-    warn_front=0.25,
+    wall_front=0.08,
+    warn_front=0.11,
 ) -> str:
     """One mode. Hazard, then wander action, then contact while still driving."""
     if estop:
@@ -114,8 +114,8 @@ def pick_mode(
     if on_wall:
         return 'WALL'
     d = nose_range(front, us)
-    lo = float(wall_front or 0.12)
-    hi = float(warn_front or 0.25)
+    lo = float(wall_front or 0.08)
+    hi = float(warn_front or 0.11)
     if d == d and lo < d <= hi:
         return 'WARN'
     return WANDER_TO_MODE.get(w, 'FWD')

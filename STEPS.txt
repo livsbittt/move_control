@@ -14,6 +14,19 @@ zip 위치 (핑키):
   모드 정의: move_control/modes.py  (subject: hazard | contact | judge | motion | idle)
   wander 가 /robot/mode 발행. LCD 는 표시만.
 
+클래스 (SRP, subject 하나):
+  wander/  Senses | Judge | Contact | Motion | Node(idle)
+  safety/  Bumper | Hazard | Gate | Scale | Node
+  camera.py  classify   camera_detect_node.py  capture
+  lcd_control  LcdIO | LcdHud | StatusView | Battery | LedRing
+  watch.py  graph interrupt   watch_node
+
+런:
+  ros2 launch move_control robot.launch.py
+  (bringup+ADC+LED 이미 켜진 뒤. IMU→safety→wander→LCD/web/watch)
+  좁은 맵: safety 가 L+R 로 /safety/map_range /safety/open_max 자동.
+  감시: ros2 topic echo /robot/health
+
 빌드:
   cd /home/pinky/dev_ws/wj
   colcon build --packages-select move_control lcd_control
@@ -70,12 +83,13 @@ zip 위치 (핑키):
       (robot.yaml + lcd.yaml)
       emotion_server 가 켜져 있으면 LCD 맵 대신 얼굴 GIF.
 
-  라이다 1.8cm / 초음파 2.0cm / 전방 콘 8도 / 라이다 요 150도 (스캔 0=뒤)
+  라이다 1.8cm / 초음파 2.0cm / 전방 콘 8도 / 라이다 요 180도 (스캔 0=뒤, 코=π)
+  원격 gazebo /scan 은 버림 (sim stamp / 640빔). 섹터는 10% 분위수.
   카메라 화면 180도 회전
   IR 절벽 / IMU 기울기·들어올림
   속도: odom 남은 간격 / 0.50s, 생각 3mm/s, 크루즈 1.4cm/s
   센서 필터: 메디안 5 + 푸리에 저역통과 1.5Hz (민감 스파이크 제거).
-  후진: 뒤 라이다가 비어야 함. 거리는 뒤 여유×0.45. 꼬리는 뒤 L/R 비율로 조향.
+  후진: 뒤 라이다가 비어야 함. 거리는 뒤 여유 전체(캡 12cm). 꼬리 스윙도 회전 여유에 포함.
   좁은 미로+코너: 막히면 pause → look(0.8s 정지, L/R/F 평균) → 방향 잠금.
   WALL (F/US ≤12cm 또는 bumper): look → wall → 뒤가 비면 backup, 아니면 escape. 벽에 붙어 있으면 전진 안 함.
   회전 중 부호를 다시 고르지 않음. 옆이 열려도 전방이 넓으면 조향만.
@@ -88,7 +102,9 @@ zip 위치 (핑키):
   상태 /wander/state 와 LCD /safety/mode (하나):
         ESTOP PICK CLIFF TILT
         WALL   코가 벽 (F 또는 US ≤12cm, 또는 bumper). look → 뒤 비면 backup, 아니면 escape. 붙어 있으면 전진 없음.
-        LOOK   정지하고 L/R/F 평균 후 방향 잠금
+        LOOK   정지, L/R/F 샘플
+        CALC   샘플로 점수 매겨 전진/후진/회전 결정. L≈R 이면 LOOK 다시
+        RECON  회전 중 반대가 더 열리면 멈추고 LOOK 다시 (최대 2번)
         BACK   후진
         ESCAPE 잠근 쪽으로 느린 회전 (미로/코너). 카메라 장애물은 WALL 이 아니라 ESCAPE.
         TURN   절벽 후 회전

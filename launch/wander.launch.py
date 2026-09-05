@@ -14,12 +14,16 @@ def generate_launch_description():
             executable='main_node',
             name='pinky_imu_bno055',
             output='screen',
+            respawn=True,
+            respawn_delay=1.0,
         ),
         Node(
             package='move_control',
             executable='camera_detect_node',
             output='screen',
             parameters=[os.path.join(cfg, 'camera.yaml')],
+            respawn=True,
+            respawn_delay=1.0,
         ),
         Node(
             package='move_control',
@@ -31,11 +35,15 @@ def generate_launch_description():
                 os.path.join(cfg, 'cliff_calib.yaml'),
                 os.path.join(cfg, 'auto_calib.yaml'),
             ],
+            respawn=True,
+            respawn_delay=1.0,
         ),
         Node(
             package='move_control',
             executable='wander_node',
             output='screen',
             parameters=[robot, os.path.join(cfg, 'wander.yaml')],
+            respawn=True,
+            respawn_delay=1.0,
         ),
     ])

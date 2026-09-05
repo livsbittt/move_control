@@ -26,3 +26,4 @@ safety_node:
     # Median spike kill + Fourier low-pass (fc Hz) so ranges are not twitchy.
     filt_median: 5
     filt_hz: 1.5
+    # Yaw / percentile: robot.yaml. Drop remote /scan in code.

@@ -25,7 +25,9 @@ from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Imu, LaserScan, Range
 from std_msgs.msg import String, UInt16MultiArray
 
-from move_control.safety_node import parse_us_range, roll_pitch, sector_min
+from move_control.body import URDF_RADIUS, use_radius
+from move_control.lidar import NOSE_YAW, is_robot_scan, sector_range
+from move_control.safety_node import parse_us_range, roll_pitch
 
 
 def yaw_from_quat(q) -> float:
@@ -114,6 +116,7 @@ class CalibNode(Node):
         self.declare_parameter('nudge_v', 0.012)
         self.declare_parameter('settle_sec', 0.45)
         self.declare_parameter('cliff_wait_sec', 60.0)
+        self.declare_parameter('robot_radius', URDF_RADIUS)
         self.need = int(self.get_parameter('samples').value)
 
         self.pub_status = self.create_publisher(String, '/calib/status', 10)
@@ -198,9 +201,11 @@ class CalibNode(Node):
         self.have_odom = True
 
     def on_scan(self, msg: LaserScan):
+        if not is_robot_scan(msg):
+            return
         self.last_scan = _copy_scan(msg)
         if self.phase in ('auto_floor', 'auto_wait_floor') or self.collecting == 'floor':
-            d = sector_min(msg, 0.0, math.radians(22.0))
+            d = sector_range(msg, NOSE_YAW, math.radians(22.0))
             if math.isfinite(d) and d > 0.0:
                 self.scan_buf.append(d)
 
@@ -510,9 +515,13 @@ class CalibNode(Node):
         extra['us_stop_distance'] = 0.020
         extra['us_clear_distance'] = 0.028
         extra['front_half_width_deg'] = 8.0
+        extra['robot_radius'] = use_radius(
+            self.get_parameter('robot_radius').value
+            if self.has_parameter('robot_radius') else URDF_RADIUS
+        )
         if self.lidar_yaw is None:
-            extra['lidar_yaw_offset'] = 2.61799388
-            apply_params.append(('lidar_yaw_offset', 2.61799388))
+            extra['lidar_yaw_offset'] = float(NOSE_YAW)
+            apply_params.append(('lidar_yaw_offset', float(NOSE_YAW)))
         apply_params.extend([
             ('camera_as_wall', False),
             ('camera_block_as_wall', True),
@@ -521,6 +530,7 @@ class CalibNode(Node):
             ('us_stop_distance', 0.020),
             ('us_clear_distance', 0.028),
             ('front_half_width_deg', 8.0),
+            ('robot_radius', extra['robot_radius']),
         ])
         if self.lidar_yaw is not None:
             extra['lidar_yaw_offset'] = float(self.lidar_yaw)

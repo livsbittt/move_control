@@ -9,8 +9,8 @@ wander_node:
     vback_think: 0.002
     wturn: 0.10
     wturn_think: 0.045
-    slow_front: 0.05
-    slow_rear: 0.04
+    slow_front: 0.04
+    slow_rear: 0.03
     think_horizon: 0.50
     auto_start: true
     pause_sec: 0.25
@@ -20,7 +20,10 @@ wander_node:
     recon_sec: 1.20
     recon_max: 2
     backup_m: 0.025
-    backup_max_m: 0.050
+    backup_max_m: 0.12
+    # Spin only if F and the turn-into side are farther than this; else reverse.
+    turn_clear_m: 0.08
+    turn_back_max: 2
     backup_min_sec: 0.15
     backup_clear_sec: 0.20
     backup_max_sec: 4.00
@@ -31,13 +34,13 @@ wander_node:
     open_ratio: 2.0
     hug_ratio: 0.50
     pinch_ratio: 1.55
-    escape_front: 0.12
-    escape_front_min: 0.035
-    escape_front_max: 0.28
+    escape_front: 0.08
+    escape_front_min: 0.040
+    escape_front_max: 0.14
     escape_hold_sec: 0.40
     auto_escape: true
     align_deg: 22.0
-    far_scale: 3.0
+    far_scale: 1.8
     stuck_sec: 1.2
     stuck_m: 0.008
     steer_k: 0.9

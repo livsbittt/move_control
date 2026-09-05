@@ -10,16 +10,27 @@
     clear_distance: 0.028
     us_stop_distance: 0.020
     us_clear_distance: 0.028
-    # WALL recover: nose contact. WARN crawl: still driving.
-    wall_front: 0.12
-    warn_front: 0.25
+    # Tight bumper vs Pinky 110×120mm + C1 5cm min / US-016 2cm min.
+    # Official Nav2 footprint is 6cm half + 3cm pad. Old 12/25cm was a maze-wide zone.
+    wall_front: 0.08
+    warn_front: 0.11
     # +1 = wander forward is nose-first. Do not auto-flip.
     cmd_linear_sign: 1.0
     auto_linear_sign: false
-    # Scan 0 is the back. Front sonar calib ~150deg.
-    lidar_yaw_offset: 2.61799388
-    scan_yaw_offset: 2.61799388
+    # Scan 0 = back. Nose = π (live US↔lidar calib ≈ 180deg).
+    lidar_yaw_offset: 3.14159265
+    scan_yaw_offset: 3.14159265
+    scan_pctl: 0.10
+    scan_ignore_m: 0.04
     front_half_width_deg: 8.0
     cliff_raw_max: 800
     cliff_clear_raw: 1500
     cliff_mode: low
+    # Circumradius from base_link (URDF rear caster 7.6cm). Calib yaml wins if set.
+    robot_radius: 0.076
+    # Narrow maze HUD / opening cap. Safety auto-cals from L+R.
+    auto_map: true
+    map_range: 0.28
+    map_range_min: 0.18
+    map_range_max: 0.40
+    open_max: 0.40

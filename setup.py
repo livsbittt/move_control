@@ -29,6 +29,7 @@ setup(
             'wander_node = move_control.wander_node:main',
             'calib_node = move_control.calib_node:main',
             'camera_detect_node = move_control.camera_detect_node:main',
+            'watch_node = move_control.watch_node:main',
         ],
     },
 )
