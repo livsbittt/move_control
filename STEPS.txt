@@ -70,6 +70,8 @@ zip 위치 (핑키):
   벽 / 카메라 허공·장애물(아직 바닥): 잠깐 정지 → 제자리 회전 → 전진
   상태: ros2 topic echo /wander/state
   LCD 모드: ros2 topic echo /safety/mode
+  LCD 위험: CLIFF / WALL / WARN / TILT / PICK / ESTOP
+            라이다 빨강 3cm 주황 5cm, 초음파 빨강 2.5cm 주황 4cm
   카메라: ros2 topic echo /camera/debug
   LCD 맵이 안 나오면 emotion_server 를 끄고 lcd_control 을 다시.
 

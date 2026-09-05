@@ -30,7 +30,7 @@ class WanderNode(Node):
         self.declare_parameter('wturn_think', 0.06)
         self.declare_parameter('slow_front', 0.18)
         self.declare_parameter('slow_rear', 0.12)
-        self.declare_parameter('stop_front', 0.04)
+        self.declare_parameter('stop_front', 0.03)
         self.declare_parameter('auto_start', True)
         self.declare_parameter('pause_sec', 0.40)
         self.declare_parameter('backup_min_sec', 0.20)

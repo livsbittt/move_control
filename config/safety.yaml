@@ -5,8 +5,10 @@ safety_node:
     scan_topic: /scan
     us_topic: /us_sensor/range
     ir_topic: /ir_sensor/range
+    # STEPS danger: lidar 3cm stop / 5cm clear. Not map size.
     stop_distance: 0.03
     clear_distance: 0.05
+    # STEPS danger: ultrasonic 2.5cm stop / 4cm clear.
     us_stop_distance: 0.025
     us_clear_distance: 0.04
     us_scale: 1.0

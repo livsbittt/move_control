@@ -9,7 +9,7 @@ wander_node:
     wturn_think: 0.06
     slow_front: 0.18
     slow_rear: 0.12
-    stop_front: 0.04
+    stop_front: 0.03
     auto_start: true
     pause_sec: 0.40
     backup_min_sec: 0.20

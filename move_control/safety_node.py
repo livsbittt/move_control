@@ -4,9 +4,9 @@ import math
 import rclpy
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy, qos_profile_sensor_data
 from sensor_msgs.msg import Imu, LaserScan, Range
-from std_msgs.msg import Bool, Float32, UInt16MultiArray
+from std_msgs.msg import Bool, Float32, String, UInt16MultiArray
 
 
 def wrap_pi(a: float) -> float:
@@ -84,6 +84,7 @@ class SafetyNode(Node):
         self.cmd_out = self.get_parameter('cmd_out').value
 
         self.pub = self.create_publisher(Twist, self.cmd_out, 10)
+        self.raw_zero_pub = self.create_publisher(Twist, self.get_parameter('cmd_in').value, 10)
         self.block_pub = self.create_publisher(Bool, '/safety/blocked', 10)
         self.cliff_pub = self.create_publisher(Bool, '/safety/cliff', 10)
         self.tilt_pub = self.create_publisher(Bool, '/safety/tilt', 10)
@@ -92,7 +93,17 @@ class SafetyNode(Node):
         self.us_pub = self.create_publisher(Float32, '/safety/us_range', 10)
         self.rear_pub = self.create_publisher(Float32, '/safety/rear_range', 10)
         self.rear_clear_pub = self.create_publisher(Bool, '/safety/rear_clear', 10)
+        self.wander_cmd = self.create_publisher(String, '/wander/cmd', 10)
+        self.calib_step = self.create_publisher(String, '/calib/step', 10)
+        latched = QoSProfile(
+            depth=1,
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+        )
+        self.estop_pub = self.create_publisher(Bool, '/estop/state', latched)
         self.create_subscription(Twist, self.get_parameter('cmd_in').value, self.on_cmd, 10)
+        self.create_subscription(Bool, '/estop', self.on_estop, latched)
+        self.create_subscription(String, '/estop/cmd', self.on_estop_cmd, 10)
         self.create_subscription(
             LaserScan, self.get_parameter('scan_topic').value, self.on_scan, qos_profile_sensor_data
         )
@@ -135,9 +146,11 @@ class SafetyNode(Node):
         self.pickup = False
         self._cam_cliff_logged = False
         self._tilt_logged = False
+        self._pickup_logged = False
         self._us_invalid = 0
         self._us_hits = 0
         self._imu_has_g = False
+        self.estop = False
         self.us_scale = float(self.get_parameter('us_scale').value)
         self.us_invalid_hold = max(1, int(self.get_parameter('us_invalid_hold').value))
         self.cmd_linear_sign = float(self.get_parameter('cmd_linear_sign').value)
@@ -151,8 +164,10 @@ class SafetyNode(Node):
             f'{int(bool(self.get_parameter("camera_as_wall").value))} '
             f'cliff_mode={self.get_parameter("cliff_mode").value} '
             f'th={self.get_parameter("cliff_raw_max").value} '
-            f'lidar_yaw={math.degrees(self.lidar_yaw):.0f}deg'
+            f'lidar_yaw={math.degrees(self.lidar_yaw):.0f}deg | '
+            'E-STOP /estop Bool or /estop/cmd stop|release'
         )
+        self.estop_pub.publish(Bool(data=False))
 
     def now(self):
         return self.get_clock().now()
@@ -163,8 +178,46 @@ class SafetyNode(Node):
         return (self.now() - stamp).nanoseconds / 1e9
 
     def on_cmd(self, msg: Twist):
+        if self.estop:
+            self._publish_zero()
+            return
         self.last_cmd = msg
         self.last_cmd_time = self.now()
+
+    def on_estop(self, msg: Bool):
+        if msg.data:
+            self.engage_estop('topic')
+        else:
+            self.release_estop()
+
+    def on_estop_cmd(self, msg: String):
+        cmd = msg.data.strip().lower()
+        if cmd in ('stop', 'estop', 'e-stop', 'emergency', 'kill', 'halt', 'on', '1', 'true'):
+            self.engage_estop(cmd)
+        elif cmd in ('release', 'clear', 'reset', 'off', '0', 'false', 'resume'):
+            self.release_estop()
+        else:
+            self.get_logger().warn(f'unknown /estop/cmd {cmd!r} (stop|release)')
+
+    def engage_estop(self, why: str = ''):
+        if not self.estop:
+            self.get_logger().error(f'EMERGENCY STOP {why}'.strip())
+        self.estop = True
+        self.last_cmd = Twist()
+        self.wander_cmd.publish(String(data='stop'))
+        self.calib_step.publish(String(data='abort'))
+        self.raw_zero_pub.publish(Twist())
+        self._publish_zero()
+        self.estop_pub.publish(Bool(data=True))
+
+    def release_estop(self):
+        if self.estop:
+            self.get_logger().warn('E-STOP released — motors stay 0 until a new command')
+        self.estop = False
+        self.last_cmd = Twist()
+        self.last_cmd_time = None
+        self._publish_zero()
+        self.estop_pub.publish(Bool(data=False))
 
     def on_us(self, msg: Range):
         self.last_us_time = self.now()
@@ -301,6 +354,11 @@ class SafetyNode(Node):
 
     def tick(self):
         self._refresh_distances()
+        if self.estop:
+            self.raw_zero_pub.publish(Twist())
+            self._publish_zero()
+            self.estop_pub.publish(Bool(data=True))
+            return
         lidar_d = self.lidar_distance()
         us = self.us_distance()
         # Speed/think uses lidar only. US flicker at 2 cm must not look like a wall 2 cm away.
@@ -374,6 +432,11 @@ class SafetyNode(Node):
             self._tilt_logged = True
         elif not tilt:
             self._tilt_logged = False
+        if pickup and not self._pickup_logged:
+            self.get_logger().error('PICKUP — motors 0')
+            self._pickup_logged = True
+        elif not pickup:
+            self._pickup_logged = False
         self.tilt_pub.publish(Bool(data=tilt))
         self.pickup_pub.publish(Bool(data=pickup))
 
@@ -418,9 +481,12 @@ class SafetyNode(Node):
 
     def stop_motors(self):
         try:
-            self.pub.publish(Twist())
+            self.engage_estop('shutdown')
         except Exception:
-            pass
+            try:
+                self.pub.publish(Twist())
+            except Exception:
+                pass
 
 
 def sector_min(scan: LaserScan, heading: float, half_width: float) -> float:
