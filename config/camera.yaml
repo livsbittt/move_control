@@ -3,7 +3,8 @@ camera_detect_node:
     width: 320
     height: 240
     fps: 8.0
+    rotate_deg: 180
     void_frac: 0.28
-    obst_frac: 0.55
+    obst_frac: 0.45
     hits: 2
     warmup_frames: 12

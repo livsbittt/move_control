@@ -87,20 +87,40 @@ def classify_frame(
     mx0, mx1 = int(0.20 * w), int(0.80 * w)
     mid_obst = float(obst[my0:my1, mx0:mx1].mean()) if obst[my0:my1, mx0:mx1].size else 0.0
 
+    mid_cols = []
+    for x0, x1 in ((0, w // 3), (w // 3, 2 * w // 3), (2 * w // 3, w)):
+        sl = (slice(my0, my1), slice(x0, x1))
+        mid_cols.append(
+            {
+                'void': float(void[sl].mean()) if void[sl].size else 0.0,
+                'obst': float(obst[sl].mean()) if obst[sl].size else 0.0,
+                'floor': float(floor[sl].mean()) if floor[sl].size else 0.0,
+            }
+        )
+
     on_floor = any(c['floor'] >= 0.20 for c in cols)
     cliff = on_floor and any(c['void'] >= void_frac for c in cols)
-    blocked = on_floor and mid_obst >= obst_frac
-    scores = [c['void'] + 0.5 * c['obst'] for c in cols]
-    imax = int(np.argmax(scores))
-    if max(scores) - min(scores) < 0.08:
-        side = 0.0
+    # Narrow maze: side walls fill the mid band. Blocked = CENTER column only
+    # (corner / dead-end ahead), not the walls hugging left/right.
+    blocked = mid_cols[1]['obst'] >= obst_frac
+    lo, lc, lr = mid_cols[0]['obst'], mid_cols[1]['obst'], mid_cols[2]['obst']
+    if lr > lo + 0.08:
+        side = 1.0
+    elif lo > lr + 0.08:
+        side = -1.0
     else:
-        side = float((-1, 0, 1)[imax])
+        scores = [c['void'] + 0.5 * c['obst'] for c in cols]
+        imax = int(np.argmax(scores))
+        if max(scores) - min(scores) < 0.08:
+            side = 0.0
+        else:
+            side = float((-1, 0, 1)[imax])
     return {
         'cliff': cliff,
         'blocked': blocked,
         'side': side,
         'cols': cols,
+        'mid_cols': mid_cols,
         'mid_obst': mid_obst,
         'floor_hsv': new_floor,
     }
@@ -113,6 +133,7 @@ def _empty_result():
         'side': 0.0,
         'cols': [{'void': 0.0, 'obst': 0.0, 'floor': 0.0}] * 3,
         'mid_obst': 0.0,
+        'mid_cols': [{'void': 0.0, 'obst': 0.0, 'floor': 0.0}] * 3,
         'floor_hsv': None,
     }
 
@@ -127,6 +148,7 @@ class CameraDetectNode(Node):
         self.declare_parameter('obst_frac', 0.35)
         self.declare_parameter('hits', 2)
         self.declare_parameter('warmup_frames', 12)
+        self.declare_parameter('rotate_deg', 180)
 
         self.cliff_pub = self.create_publisher(Bool, '/camera/cliff', 10)
         self.block_pub = self.create_publisher(Bool, '/camera/blocked', 10)
@@ -147,7 +169,8 @@ class CameraDetectNode(Node):
         self.get_logger().info(
             f'camera_detect ready {int(self.get_parameter("width").value)}x'
             f'{int(self.get_parameter("height").value)} @ '
-            f'{float(self.get_parameter("fps").value):.0f}Hz'
+            f'{float(self.get_parameter("fps").value):.0f}Hz '
+            f'rotate={int(self.get_parameter("rotate_deg").value)}'
         )
 
     def _start_cam(self):
@@ -198,6 +221,13 @@ class CameraDetectNode(Node):
             return
         if rgb is None or rgb.ndim != 3:
             return
+        rot = int(self.get_parameter('rotate_deg').value) % 360
+        if rot == 180:
+            rgb = np.rot90(rgb, 2)
+        elif rot == 90:
+            rgb = np.rot90(rgb, 1)
+        elif rot == 270:
+            rgb = np.rot90(rgb, 3)
         self._publish_front(rgb)
         res = classify_frame(
             rgb,
@@ -229,14 +259,16 @@ class CameraDetectNode(Node):
         self.block_pub.publish(Bool(data=self._blocked))
         self.side_pub.publish(Float32(data=float(res['side'])))
         cols = res['cols']
+        mcols = res.get('mid_cols', cols)
         self.dbg_pub.publish(
             String(
                 data=(
                     f'cliff={int(self._cliff)} block={int(self._blocked)} '
                     f'side={res["side"]:.0f} mid_obst={res["mid_obst"]:.2f} '
-                    f'L v={cols[0]["void"]:.2f}o={cols[0]["obst"]:.2f} '
-                    f'C v={cols[1]["void"]:.2f}o={cols[1]["obst"]:.2f} '
-                    f'R v={cols[2]["void"]:.2f}o={cols[2]["obst"]:.2f}'
+                    f'L o={mcols[0]["obst"]:.2f} C o={mcols[1]["obst"]:.2f} '
+                    f'R o={mcols[2]["obst"]:.2f} '
+                    f'near L={cols[0]["obst"]:.2f} C={cols[1]["obst"]:.2f} '
+                    f'R={cols[2]["obst"]:.2f}'
                 )
             )
         )

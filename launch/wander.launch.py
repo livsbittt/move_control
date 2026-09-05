@@ -7,6 +7,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     cfg = os.path.join(get_package_share_directory('move_control'), 'config')
+    robot = os.path.join(cfg, 'robot.yaml')
     return LaunchDescription([
         Node(
             package='pinky_imu_bno055',
@@ -25,6 +26,7 @@ def generate_launch_description():
             executable='safety_node',
             output='screen',
             parameters=[
+                robot,
                 os.path.join(cfg, 'safety.yaml'),
                 os.path.join(cfg, 'cliff_calib.yaml'),
                 os.path.join(cfg, 'auto_calib.yaml'),
@@ -34,6 +36,6 @@ def generate_launch_description():
             package='move_control',
             executable='wander_node',
             output='screen',
-            parameters=[os.path.join(cfg, 'wander.yaml')],
+            parameters=[robot, os.path.join(cfg, 'wander.yaml')],
         ),
     ])

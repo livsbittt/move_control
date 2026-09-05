@@ -1,0 +1,25 @@
+# Single source for every Pinky node. Load this file FIRST.
+#   ros2 launch ... parameters: [robot.yaml, <node>.yaml]
+#
+# /** applies the same numbers to safety, wander, lcd, calib.
+/**:
+  ros__parameters:
+    # Bumper halt (safety). C1 lidar min is ~5cm, so this is US + very close hits.
+    stop_distance: 0.018
+    stop_front: 0.018
+    clear_distance: 0.028
+    us_stop_distance: 0.020
+    us_clear_distance: 0.028
+    # WALL recover: nose contact. WARN crawl: still driving.
+    wall_front: 0.12
+    warn_front: 0.25
+    # +1 = wander forward is nose-first. Do not auto-flip.
+    cmd_linear_sign: 1.0
+    auto_linear_sign: false
+    # Scan 0 is the back. Front sonar calib ~150deg.
+    lidar_yaw_offset: 2.61799388
+    scan_yaw_offset: 2.61799388
+    front_half_width_deg: 8.0
+    cliff_raw_max: 800
+    cliff_clear_raw: 1500
+    cliff_mode: low

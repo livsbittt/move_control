@@ -1,13 +1,14 @@
 # Written by calib_node auto.
 safety_node:
   ros__parameters:
-    cmd_linear_sign: -1.0
-    stop_distance: 0.025
-    clear_distance: 0.035
-    us_stop_distance: 0.022
-    us_clear_distance: 0.032
-    front_half_width_deg: 12.0
-    lidar_yaw_offset: 0.0
+    cmd_linear_sign: 1.0
+    stop_distance: 0.018
+    clear_distance: 0.028
+    us_stop_distance: 0.020
+    us_clear_distance: 0.028
+    front_half_width_deg: 8.0
+    lidar_yaw_offset: 2.61799388
     camera_as_wall: false
+    camera_block_as_wall: true
     imu_roll0: 0.0
     imu_pitch0: 0.0

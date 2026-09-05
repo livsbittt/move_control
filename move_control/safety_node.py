@@ -4,9 +4,12 @@ import math
 import rclpy
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
+from rclpy.parameter import Parameter
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy, qos_profile_sensor_data
 from sensor_msgs.msg import Imu, LaserScan, Range
 from std_msgs.msg import Bool, Float32, String, UInt16MultiArray
+
+from .filt import IrMedian, MedianLp
 
 
 def wrap_pi(a: float) -> float:
@@ -48,18 +51,20 @@ class SafetyNode(Node):
         self.declare_parameter('scan_topic', '/scan')
         self.declare_parameter('us_topic', '/us_sensor/range')
         self.declare_parameter('ir_topic', '/ir_sensor/range')
-        self.declare_parameter('stop_distance', 0.025)
-        self.declare_parameter('clear_distance', 0.035)
-        self.declare_parameter('us_stop_distance', 0.022)
-        self.declare_parameter('us_clear_distance', 0.032)
-        self.declare_parameter('front_half_width_deg', 12.0)
-        self.declare_parameter('lidar_yaw_offset', 0.0)
+        self.declare_parameter('stop_distance', 0.018)
+        self.declare_parameter('clear_distance', 0.028)
+        self.declare_parameter('us_stop_distance', 0.020)
+        self.declare_parameter('us_clear_distance', 0.028)
+        self.declare_parameter('front_half_width_deg', 8.0)
+        self.declare_parameter('lidar_yaw_offset', 2.61799388)
         self.declare_parameter('sensor_timeout', 1.0)
         self.declare_parameter('us_scale', 1.0)
         self.declare_parameter('us_invalid_hold', 5)
         self.declare_parameter('us_hits', 3)
-        self.declare_parameter('cmd_linear_sign', -1.0)
+        self.declare_parameter('cmd_linear_sign', 1.0)
+        self.declare_parameter('auto_linear_sign', False)
         self.declare_parameter('camera_as_wall', False)
+        self.declare_parameter('camera_block_as_wall', True)
         self.declare_parameter('imu_topic', '/imu_raw')
         self.declare_parameter('tilt_deg', 20.0)
         self.declare_parameter('gyro_dps', 90.0)
@@ -73,6 +78,8 @@ class SafetyNode(Node):
         self.declare_parameter('cliff_hits', 2)
         self.declare_parameter('camera_cliff_topic', '/camera/cliff')
         self.declare_parameter('camera_block_topic', '/camera/blocked')
+        self.declare_parameter('filt_median', 5)
+        self.declare_parameter('filt_hz', 1.5)
 
         self.stop_d = float(self.get_parameter('stop_distance').value)
         self.clear_d = float(self.get_parameter('clear_distance').value)
@@ -82,6 +89,17 @@ class SafetyNode(Node):
         self.lidar_yaw = float(self.get_parameter('lidar_yaw_offset').value)
         self.timeout = float(self.get_parameter('sensor_timeout').value)
         self.cmd_out = self.get_parameter('cmd_out').value
+        nmed = max(1, int(self.get_parameter('filt_median').value))
+        fchz = float(self.get_parameter('filt_hz').value)
+        dt = 0.05
+        self._lp = {
+            k: MedianLp(nmed, fchz, dt)
+            for k in (
+                'front', 'rear', 'us', 'left', 'right',
+                'rear_left', 'rear_right',
+            )
+        }
+        self._ir_f = IrMedian(nmed)
 
         self.pub = self.create_publisher(Twist, self.cmd_out, 10)
         self.raw_zero_pub = self.create_publisher(Twist, self.get_parameter('cmd_in').value, 10)
@@ -93,6 +111,13 @@ class SafetyNode(Node):
         self.us_pub = self.create_publisher(Float32, '/safety/us_range', 10)
         self.rear_pub = self.create_publisher(Float32, '/safety/rear_range', 10)
         self.rear_clear_pub = self.create_publisher(Bool, '/safety/rear_clear', 10)
+        self.left_pub = self.create_publisher(Float32, '/safety/left_range', 10)
+        self.right_pub = self.create_publisher(Float32, '/safety/right_range', 10)
+        self.rear_left_pub = self.create_publisher(Float32, '/safety/rear_left', 10)
+        self.rear_right_pub = self.create_publisher(Float32, '/safety/rear_right', 10)
+        self.can_rev_pub = self.create_publisher(Bool, '/safety/can_reverse', 10)
+        self.open_pub = self.create_publisher(Float32, '/safety/open_range', 10)
+        self.open_yaw_pub = self.create_publisher(Float32, '/safety/open_yaw', 10)
         self.wander_cmd = self.create_publisher(String, '/wander/cmd', 10)
         self.calib_step = self.create_publisher(String, '/calib/step', 10)
         latched = QoSProfile(
@@ -133,6 +158,12 @@ class SafetyNode(Node):
         self.last_imu_time = None
         self.lidar_front = float('inf')
         self.lidar_rear = float('inf')
+        self.lidar_left = float('inf')
+        self.lidar_right = float('inf')
+        self.lidar_rear_left = float('inf')
+        self.lidar_rear_right = float('inf')
+        self.open_range = float('inf')
+        self.open_yaw = 0.0
         self.us_front = float('inf')
         self.rear_blocked = False
         self._imu_n = 0
@@ -145,11 +176,17 @@ class SafetyNode(Node):
         self.tilt = False
         self.pickup = False
         self._cam_cliff_logged = False
+        self._cam_block_logged = False
         self._tilt_logged = False
         self._pickup_logged = False
         self._us_invalid = 0
         self._us_hits = 0
         self._imu_has_g = False
+        self._sign_t = None
+        self._sign_front0 = None
+        self._sign_vx0 = 0.0
+        self._sign_flip_t = None
+        self._sign_hits = 0
         self.estop = False
         self.us_scale = float(self.get_parameter('us_scale').value)
         self.us_invalid_hold = max(1, int(self.get_parameter('us_invalid_hold').value))
@@ -162,9 +199,12 @@ class SafetyNode(Node):
             f'safety_node ready | lidar_stop={self.stop_d:.2f}m us_stop={self.us_stop:.2f}m '
             f'linear_sign={self.cmd_linear_sign:.0f} cam_wall='
             f'{int(bool(self.get_parameter("camera_as_wall").value))} '
+            f'cam_block={int(bool(self.get_parameter("camera_block_as_wall").value))} '
             f'cliff_mode={self.get_parameter("cliff_mode").value} '
             f'th={self.get_parameter("cliff_raw_max").value} '
-            f'lidar_yaw={math.degrees(self.lidar_yaw):.0f}deg | '
+            f'lidar_yaw={math.degrees(self.lidar_yaw):.0f}deg '
+            f'filt={int(self.get_parameter("filt_median").value)}/'
+            f'{float(self.get_parameter("filt_hz").value):.1f}Hz | '
             'E-STOP /estop Bool or /estop/cmd stop|release'
         )
         self.estop_pub.publish(Bool(data=False))
@@ -234,6 +274,16 @@ class SafetyNode(Node):
         yaw = self.lidar_yaw
         self.lidar_front = sector_min(msg, yaw, self.half_w)
         self.lidar_rear = sector_min(msg, wrap_pi(yaw + math.pi), self.half_w)
+        side = math.radians(70.0)
+        side_w = math.radians(28.0)
+        self.lidar_left = sector_min(msg, wrap_pi(yaw + side), side_w)
+        self.lidar_right = sector_min(msg, wrap_pi(yaw - side), side_w)
+        rear = wrap_pi(yaw + math.pi)
+        self.lidar_rear_left = sector_min(msg, wrap_pi(rear + side), side_w)
+        self.lidar_rear_right = sector_min(msg, wrap_pi(rear - side), side_w)
+        self.open_range, self.open_yaw = opening_max(
+            msg, yaw, math.radians(70.0), max_r=1.20
+        )
         self.last_scan_time = self.now()
 
     def on_ir(self, msg: UInt16MultiArray):
@@ -293,9 +343,10 @@ class SafetyNode(Node):
         if self.age(self.last_ir_time) > self.timeout or len(self.ir_raw) < 3:
             # Hold last value if IR drops mid-edge; never invent a cliff from silence.
             return self.cliff
+        ir_f = self._ir_f.push(self.ir_raw)
         # 4095 = lifted / ADC sat. Need 2 real sensors to declare a cliff.
-        ir = tuple(v for v in self.ir_raw if v < 4000)
-        sat = sum(1 for v in self.ir_raw if v >= 4000)
+        ir = tuple(v for v in ir_f if v < 4000)
+        sat = sum(1 for v in ir_f if v >= 4000)
         need = int(self.get_parameter('cliff_hits').value)
         if sat >= 2:
             return False
@@ -351,6 +402,14 @@ class SafetyNode(Node):
         sign = float(self.get_parameter('cmd_linear_sign').value)
         self.cmd_linear_sign = 1.0 if sign >= 0.0 else -1.0
         self.lidar_yaw = float(self.get_parameter('lidar_yaw_offset').value)
+        fc = float(self.get_parameter('filt_hz').value)
+        for lp in self._lp.values():
+            lp.set_cutoff(fc, 0.05)
+
+    def _filt(self, name, raw):
+        v = raw if math.isfinite(raw) and raw > 0.0 else None
+        y = self._lp[name].push(v)
+        return y if y is not None else raw
 
     def tick(self):
         self._refresh_distances()
@@ -359,11 +418,23 @@ class SafetyNode(Node):
             self._publish_zero()
             self.estop_pub.publish(Bool(data=True))
             return
-        lidar_d = self.lidar_distance()
-        us = self.us_distance()
+        lidar_d = self._filt('front', self.lidar_distance())
+        us = self._filt('us', self.us_distance())
+        left = self._filt('left', self.lidar_left)
+        right = self._filt('right', self.lidar_right)
+        rleft = self._filt('rear_left', self.lidar_rear_left)
+        rright = self._filt('rear_right', self.lidar_rear_right)
         # Speed/think uses lidar only. US flicker at 2 cm must not look like a wall 2 cm away.
         self.range_pub.publish(Float32(data=float(lidar_d if math.isfinite(lidar_d) else -1.0)))
         self.us_pub.publish(Float32(data=float(us if math.isfinite(us) else -1.0)))
+        def _m(v):
+            return float(v if math.isfinite(v) else -1.0)
+        self.left_pub.publish(Float32(data=_m(left)))
+        self.right_pub.publish(Float32(data=_m(right)))
+        self.rear_left_pub.publish(Float32(data=_m(rleft)))
+        self.rear_right_pub.publish(Float32(data=_m(rright)))
+        self.open_pub.publish(Float32(data=_m(self.open_range)))
+        self.open_yaw_pub.publish(Float32(data=float(self.open_yaw)))
 
         # Cliff is independent of lidar. Always evaluate IR even if /scan is missing.
         if self.age(self.last_ir_time) > self.timeout:
@@ -377,7 +448,7 @@ class SafetyNode(Node):
         self.cliff_pub.publish(Bool(data=self.cliff))
 
         lidar_ok = self.sensors_ok()
-        rear_d = self.rear_distance()
+        rear_d = self._filt('rear', self.rear_distance())
         self.rear_pub.publish(Float32(data=float(rear_d if math.isfinite(rear_d) else -1.0)))
         if not lidar_ok:
             self.get_logger().warn('no lidar — reverse disabled until scan', throttle_duration_sec=2.0)
@@ -399,7 +470,9 @@ class SafetyNode(Node):
         else:
             self.blocked = False
             self.rear_blocked = False
-        self.rear_clear_pub.publish(Bool(data=lidar_ok and not self.rear_blocked))
+        can_rev = lidar_ok and not self.rear_blocked and rear_d > self.stop_d
+        self.rear_clear_pub.publish(Bool(data=can_rev))
+        self.can_rev_pub.publish(Bool(data=can_rev))
 
         us_need = max(1, int(self.get_parameter('us_hits').value))
         if us <= self.us_stop:
@@ -416,8 +489,14 @@ class SafetyNode(Node):
 
         cam_ok = self.age(self.last_cam_time) < self.timeout
         use_cam = bool(self.get_parameter('camera_as_wall').value)
+        use_cam_block = use_cam or bool(self.get_parameter('camera_block_as_wall').value)
         cam_cliff = bool(self.cam_cliff) if cam_ok and use_cam else False
-        cam_block = bool(self.cam_block) if cam_ok and use_cam else False
+        cam_block = bool(self.cam_block) if cam_ok and use_cam_block else False
+        if cam_block and not self._cam_block_logged:
+            self.get_logger().warn('camera obstacle / corner — turn, no reverse')
+            self._cam_block_logged = True
+        elif not cam_block:
+            self._cam_block_logged = False
         if cam_cliff and not self._cam_cliff_logged:
             self.get_logger().warn('camera drop ahead — treat as wall (turn, no reverse)')
             self._cam_cliff_logged = True
@@ -440,8 +519,7 @@ class SafetyNode(Node):
         self.tilt_pub.publish(Bool(data=tilt))
         self.pickup_pub.publish(Bool(data=pickup))
 
-        # IR cliff = over the edge (backup). Lidar/US = wall (turn).
-        # Camera look-ahead is off unless camera_as_wall is set.
+        # IR cliff = reverse. Lidar/US = bumper wall. Camera block = corner look-ahead (turn).
         obstacle = self.blocked or self.us_blocked or cam_block or cam_cliff
         self.block_pub.publish(Bool(data=obstacle))
 
@@ -471,10 +549,75 @@ class SafetyNode(Node):
             cmd.linear.x = 0.0
         if (self.cliff or tilt) and cmd.linear.x >= 0.0:
             cmd.angular.z = 0.0
-        # Hardware on this robot treats +x as reverse. Flip after the
-        # semantic halt so "forward" still means drive toward the camera.
+        if abs(cmd.linear.x) >= 0.004:
+            self._auto_linear_sign(us, lidar_d, self.last_cmd.linear.x, self.last_cmd.angular.z)
+        else:
+            self._sign_t = None
+            self._sign_front0 = None
+            self._sign_hits = 0
+        # Apply after semantic halt: +raw means nose-forward.
         cmd.linear.x *= self.cmd_linear_sign
         self.pub.publish(cmd)
+
+    def _auto_linear_sign(self, us, lidar, vx_sem, wz):
+        """If nose-forward makes a real front wall recede, the motor sign is inverted."""
+        if not bool(self.get_parameter('auto_linear_sign').value):
+            self._sign_t = None
+            self._sign_hits = 0
+            return
+        front = None
+        if math.isfinite(us) and 0.04 < us < 0.80:
+            front = us
+        elif math.isfinite(lidar) and 0.10 < lidar < 0.80:
+            front = lidar
+        if (
+            abs(vx_sem) < 0.004
+            or abs(wz) > 0.06
+            or front is None
+        ):
+            self._sign_t = None
+            self._sign_front0 = None
+            self._sign_hits = 0
+            return
+        if self._sign_t is None:
+            self._sign_t = self.now()
+            self._sign_front0 = front
+            self._sign_vx0 = vx_sem
+            return
+        dt = (self.now() - self._sign_t).nanoseconds * 1e-9
+        if dt < 0.70:
+            return
+        dfront = front - self._sign_front0
+        self._sign_t = None
+        self._sign_front0 = None
+        if abs(dfront) < 0.03:
+            self._sign_hits = 0
+            return
+        want_fwd = self._sign_vx0 > 0.0
+        wrong = (want_fwd and dfront > 0.0) or ((not want_fwd) and dfront < 0.0)
+        if not wrong:
+            self._sign_hits = 0
+            return
+        self._sign_hits += 1
+        if self._sign_hits < 2:
+            return
+        if self._sign_flip_t is not None:
+            if (self.now() - self._sign_flip_t).nanoseconds * 1e-9 < 20.0:
+                return
+        self._sign_hits = 0
+        self.cmd_linear_sign = -self.cmd_linear_sign
+        self._sign_flip_t = self.now()
+        self.set_parameters([
+            Parameter('cmd_linear_sign', Parameter.Type.DOUBLE, float(self.cmd_linear_sign)),
+        ])
+        why = (
+            f'forward opened front {dfront*100:.1f}cm'
+            if want_fwd else
+            f'backup closed front {dfront*100:.1f}cm'
+        )
+        self.get_logger().error(
+            f'drive sign auto-flip → {self.cmd_linear_sign:.0f} ({why})'
+        )
 
     def _publish_zero(self):
         self.pub.publish(Twist())
@@ -487,6 +630,26 @@ class SafetyNode(Node):
                 self.pub.publish(Twist())
             except Exception:
                 pass
+
+
+def opening_max(scan: LaserScan, heading: float, half_width: float, max_r=1.20):
+    """Farthest hit in the front fan, capped to maze scale. +yaw = left."""
+    angle = scan.angle_min
+    hi = min(float(max_r), scan.range_max if scan.range_max > 0.0 else float(max_r))
+    best_r = 0.0
+    best_yaw = 0.0
+    found = False
+    for r in scan.ranges:
+        if math.isfinite(r) and 0.0 < r < hi:
+            rel = wrap_pi(angle - heading)
+            if abs(rel) <= half_width and (not found or r > best_r):
+                best_r = r
+                best_yaw = rel
+                found = True
+        angle += scan.angle_increment
+    if not found:
+        return float('inf'), 0.0
+    return best_r, best_yaw
 
 
 def sector_min(scan: LaserScan, heading: float, half_width: float) -> float:

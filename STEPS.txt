@@ -9,6 +9,11 @@ zip 위치 (핑키):
   unzip -o move_control.zip
   ls move_control/move_control/calib_node.py
 
+공유 파라미터 (하나만):
+  src/move_control/config/robot.yaml
+  모드 정의: move_control/modes.py  (subject: hazard | contact | judge | motion | idle)
+  wander 가 /robot/mode 발행. LCD 는 표시만.
+
 빌드:
   cd /home/pinky/dev_ws/wj
   colcon build --packages-select move_control lcd_control
@@ -45,7 +50,7 @@ zip 위치 (핑키):
   3) 코만 책상 밖 — 절벽 IR이 몇 번 연속이면 자동 샘플
   라이다만: ros2 topic pub --once /calib/step std_msgs/msg/String "{data: lidar}"
   정지 거리(3cm)는 맵 크기가 아니라 센서 클리어런스. 카메라 look-ahead 벽은 끔.
-  OK mode=low 와 cmd_linear_sign=±1 이 나와야 함.
+  OK mode=low 와 cmd_linear_sign=+1 (전진=+x). 후진으로 나가면 safety 가 부호를 자동 반전.
   취소: ros2 topic pub --once /calib/step std_msgs/msg/String "{data: abort}"
 
   수동이 필요하면:
@@ -58,25 +63,52 @@ zip 위치 (핑키):
   창1 bringup
   창2 adc
   창3 ros2 launch move_control wander.launch.py
+      (robot.yaml + wander/safety yaml)
   창4 LCD/LED (별 패키지, 모터와 무관):
       ros2 run pinky_led led_server
       ros2 launch lcd_control lcd.launch.py
+      (robot.yaml + lcd.yaml)
       emotion_server 가 켜져 있으면 LCD 맵 대신 얼굴 GIF.
 
-  라이다 2.5cm / 초음파 2.2cm / 전방 콘 12도 (좁은 길, 옆벽 무시)
+  라이다 1.8cm / 초음파 2.0cm / 전방 콘 8도 / 라이다 요 150도 (스캔 0=뒤)
+  카메라 화면 180도 회전
   IR 절벽 / IMU 기울기·들어올림
   속도: odom 남은 간격 / 0.50s, 생각 3mm/s, 크루즈 1.4cm/s
-  후진 2.5cm odom, 회전 40도 odom
+  센서 필터: 메디안 5 + 푸리에 저역통과 1.5Hz (민감 스파이크 제거).
+  후진: 뒤 라이다가 비어야 함. 거리는 뒤 여유×0.45. 꼬리는 뒤 L/R 비율로 조향.
+  좁은 미로+코너: 막히면 pause → look(0.8s 정지, L/R/F 평균) → 방향 잠금.
+  WALL (F/US ≤12cm 또는 bumper): look → wall → 뒤가 비면 backup, 아니면 escape. 벽에 붙어 있으면 전진 안 함.
+  회전 중 부호를 다시 고르지 않음. 옆이 열려도 전방이 넓으면 조향만.
+  카메라 코너 벽 → 그 반대로 회전(후진 없음). 초음파가 라이다보다 가까우면 전방.
+  후진 2.5cm odom, 회전 최대 70도 또는 전방이 열릴 때까지
   후진은 라이다 뒤쪽이 비어 있을 때만. 뒤가 막히면 후진 대신 회전.
   기울기면 뒤 경로가 비어 있으면 후진, 아니면 정지. 들어올림이면 즉시 정지.
   IR 절벽(코가 허공): 잠깐 정지 → IR이 바닥으로 돌아올 때까지만 후진 → 회전 → 전진
   벽 / 카메라 허공·장애물(아직 바닥): 잠깐 정지 → 제자리 회전 → 전진
-  상태: ros2 topic echo /wander/state
-  LCD 모드: ros2 topic echo /safety/mode
-  LCD 위험: CLIFF / WALL / WARN / TILT / PICK / ESTOP
-            라이다 빨강 2.5cm 주황 3.5cm, 초음파 빨강 2.2cm 주황 3.2cm
+  상태 /wander/state 와 LCD /safety/mode (하나):
+        ESTOP PICK CLIFF TILT
+        WALL   코가 벽 (F 또는 US ≤12cm, 또는 bumper). look → 뒤 비면 backup, 아니면 escape. 붙어 있으면 전진 없음.
+        LOOK   정지하고 L/R/F 평균 후 방향 잠금
+        BACK   후진
+        ESCAPE 잠근 쪽으로 느린 회전 (미로/코너). 카메라 장애물은 WALL 이 아니라 ESCAPE.
+        TURN   절벽 후 회전
+        PAUSE  절벽 vs 벽 구분
+        WARN   12–25cm, 아직 전진 (크롤)
+        FWD WAIT STOP
+        ros2 topic echo /wander/state
+        ros2 topic echo /safety/mode
   카메라: ros2 topic echo /camera/debug
   LCD 맵이 안 나오면 emotion_server 를 끄고 lcd_control 을 다시.
+  LCD 보기: ros2 topic pub --once /lcd/view std_msgs/msg/String "{data: map}"
+            ros2 topic pub --once /lcd/view std_msgs/msg/String "{data: camera}"
+
+  맵 만들기 (wander 켠 채로, 이 로봇 SLAM):
+      ros2 launch move_control map.launch.py
+      웹 http://<핑키IP>:8090  의 Map 그림이 커져야 함
+      저장:
+        mkdir -p /home/pinky/dev_ws/wj/maps
+        ros2 run nav2_map_server map_saver_cli -f /home/pinky/dev_ws/wj/maps/pinky
+      LCD 맵은 라이다 폴라 HUD. 점유격자 맵은 /map + 웹.
 
 정지 (노드는 살리고 모터만 멈춤):
   ros2 topic pub --once /wander/cmd std_msgs/msg/String "{data: stop}"
