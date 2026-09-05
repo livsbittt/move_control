@@ -23,12 +23,15 @@ class ControlNode(Node):
         super().__init__('control_node')
         self.declare_parameter('cmd_vel_topic', '/cmd_vel_raw')
         self.declare_parameter('odom_topic', '/odom')
-        self.declare_parameter('vmax', 0.08)
-        self.declare_parameter('wmax', 0.6)
-        self.declare_parameter('kp', 0.8)
-        self.declare_parameter('kp_yaw', 1.2)
-        self.declare_parameter('tolerance', 0.02)
-        self.declare_parameter('yaw_tolerance_deg', 4.0)
+        self.declare_parameter('vmax', 0.014)
+        self.declare_parameter('vmax_think', 0.003)
+        self.declare_parameter('vmin', 0.003)
+        self.declare_parameter('think_dist', 0.04)
+        self.declare_parameter('wmax', 0.35)
+        self.declare_parameter('kp', 1.0)
+        self.declare_parameter('kp_yaw', 1.4)
+        self.declare_parameter('tolerance', 0.008)
+        self.declare_parameter('yaw_tolerance_deg', 2.0)
         self.declare_parameter('odom_timeout', 0.5)
         cmd_topic = self.get_parameter('cmd_vel_topic').value
         self.pub = self.create_publisher(Twist, cmd_topic, 10)
@@ -39,6 +42,7 @@ class ControlNode(Node):
         self.have_odom = False
         self.last_odom_time = self.get_clock().now()
         self.x = self.y = self.yaw = 0.0
+        self.vx = 0.0
         self.mode = None
         self.goal = 0.0
         self.start_x = self.start_y = self.yaw_start = 0.0
@@ -48,6 +52,7 @@ class ControlNode(Node):
         p = msg.pose.pose.position
         self.x, self.y = p.x, p.y
         self.yaw = yaw_from_quat(msg.pose.pose.orientation)
+        self.vx = float(msg.twist.twist.linear.x)
         self.have_odom = True
         self.last_odom_time = self.get_clock().now()
 
@@ -81,24 +86,32 @@ class ControlNode(Node):
             self.pub.publish(cmd)
             return
         vmax = float(self.get_parameter('vmax').value)
+        v_think = float(self.get_parameter('vmax_think').value)
+        vmin = float(self.get_parameter('vmin').value)
+        think_d = float(self.get_parameter('think_dist').value)
         wmax = float(self.get_parameter('wmax').value)
         if self.mode == 'straight':
             rem = self.goal - self.traveled()
             if abs(rem) < float(self.get_parameter('tolerance').value):
                 self.mode = None
-                self.get_logger().info(f'arrived {self.traveled():.3f} m')
+                self.get_logger().info(f'arrived {self.traveled():.3f} m odom')
             else:
-                cmd.linear.x = max(-vmax, min(vmax, float(self.get_parameter('kp').value) * rem))
-                if abs(cmd.linear.x) < 0.03 and abs(rem) > 0.01:
-                    cmd.linear.x = 0.03 if rem > 0 else -0.03
+                cap = v_think if abs(rem) < think_d else vmax
+                v = max(-cap, min(cap, float(self.get_parameter('kp').value) * rem))
+                if abs(v) < vmin and abs(rem) > float(self.get_parameter('tolerance').value):
+                    v = vmin if rem > 0 else -vmin
+                if abs(self.vx) > cap * 1.25:
+                    v = v_think if rem > 0 else -v_think
+                cmd.linear.x = v
         elif self.mode == 'rotate':
             err = wrap_pi(self.goal - wrap_pi(self.yaw - self.yaw_start))
             tol = math.radians(float(self.get_parameter('yaw_tolerance_deg').value))
             if abs(err) < tol:
                 self.mode = None
-                self.get_logger().info('rotate done')
+                self.get_logger().info(f'rotate done odom {math.degrees(wrap_pi(self.yaw - self.yaw_start)):.1f}deg')
             else:
-                cmd.angular.z = max(-wmax, min(wmax, float(self.get_parameter('kp_yaw').value) * err))
+                w_cap = 0.12 if abs(err) < math.radians(12.0) else wmax
+                cmd.angular.z = max(-w_cap, min(w_cap, float(self.get_parameter('kp_yaw').value) * err))
         self.pub.publish(cmd)
 
     def stop(self):

@@ -63,7 +63,10 @@ zip 위치 (핑키):
       ros2 launch lcd_control lcd.launch.py
       emotion_server 가 켜져 있으면 LCD 맵 대신 얼굴 GIF.
 
-  라이다 3cm / 초음파 2.5cm / IR 절벽 / IMU 기울기·들어올림
+  라이다 2.5cm / 초음파 2.2cm / 전방 콘 12도 (좁은 길, 옆벽 무시)
+  IR 절벽 / IMU 기울기·들어올림
+  속도: odom 남은 간격 / 0.50s, 생각 3mm/s, 크루즈 1.4cm/s
+  후진 2.5cm odom, 회전 40도 odom
   후진은 라이다 뒤쪽이 비어 있을 때만. 뒤가 막히면 후진 대신 회전.
   기울기면 뒤 경로가 비어 있으면 후진, 아니면 정지. 들어올림이면 즉시 정지.
   IR 절벽(코가 허공): 잠깐 정지 → IR이 바닥으로 돌아올 때까지만 후진 → 회전 → 전진
@@ -71,7 +74,7 @@ zip 위치 (핑키):
   상태: ros2 topic echo /wander/state
   LCD 모드: ros2 topic echo /safety/mode
   LCD 위험: CLIFF / WALL / WARN / TILT / PICK / ESTOP
-            라이다 빨강 3cm 주황 5cm, 초음파 빨강 2.5cm 주황 4cm
+            라이다 빨강 2.5cm 주황 3.5cm, 초음파 빨강 2.2cm 주황 3.2cm
   카메라: ros2 topic echo /camera/debug
   LCD 맵이 안 나오면 emotion_server 를 끄고 lcd_control 을 다시.
 

@@ -1,18 +1,24 @@
 wander_node:
   ros__parameters:
     cmd_topic: /cmd_vel_raw
-    vmax: 0.018
-    vmax_think: 0.005
-    vback: 0.006
+    odom_topic: /odom
+    # Narrow path: cruise 1.4cm/s, think 3mm/s. v = min(blend, gap/think_horizon, odom-safe).
+    vmax: 0.014
+    vmax_think: 0.003
+    vback: 0.004
     vback_think: 0.002
-    wturn: 0.12
-    wturn_think: 0.06
-    slow_front: 0.18
-    slow_rear: 0.12
-    stop_front: 0.03
+    wturn: 0.10
+    wturn_think: 0.045
+    slow_front: 0.08
+    slow_rear: 0.06
+    stop_front: 0.025
+    think_horizon: 0.50
     auto_start: true
-    pause_sec: 0.40
-    backup_min_sec: 0.20
-    backup_clear_sec: 0.30
-    backup_max_sec: 6.00
-    turn_sec: 5.0
+    pause_sec: 0.25
+    backup_m: 0.025
+    backup_max_m: 0.050
+    backup_min_sec: 0.15
+    backup_clear_sec: 0.20
+    backup_max_sec: 4.00
+    turn_deg: 40.0
+    turn_sec: 3.0

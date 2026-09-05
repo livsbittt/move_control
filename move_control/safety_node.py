@@ -48,11 +48,11 @@ class SafetyNode(Node):
         self.declare_parameter('scan_topic', '/scan')
         self.declare_parameter('us_topic', '/us_sensor/range')
         self.declare_parameter('ir_topic', '/ir_sensor/range')
-        self.declare_parameter('stop_distance', 0.03)
-        self.declare_parameter('clear_distance', 0.05)
-        self.declare_parameter('us_stop_distance', 0.025)
-        self.declare_parameter('us_clear_distance', 0.04)
-        self.declare_parameter('front_half_width_deg', 22.0)
+        self.declare_parameter('stop_distance', 0.025)
+        self.declare_parameter('clear_distance', 0.035)
+        self.declare_parameter('us_stop_distance', 0.022)
+        self.declare_parameter('us_clear_distance', 0.032)
+        self.declare_parameter('front_half_width_deg', 12.0)
         self.declare_parameter('lidar_yaw_offset', 0.0)
         self.declare_parameter('sensor_timeout', 1.0)
         self.declare_parameter('us_scale', 1.0)
@@ -492,13 +492,12 @@ class SafetyNode(Node):
 def sector_min(scan: LaserScan, heading: float, half_width: float) -> float:
     angle = scan.angle_min
     best = float('inf')
+    hi = scan.range_max if scan.range_max > 0.0 else 12.0
     for r in scan.ranges:
-        if math.isfinite(r) and r > 0.0:
-            if r < scan.range_min:
-                r = scan.range_min
-            if r < scan.range_max:
-                if abs(wrap_pi(angle - heading)) <= half_width and r < best:
-                    best = r
+        # Keep hits inside range_min — C1 often reports 2–4 cm as < range_min=5 cm.
+        if math.isfinite(r) and 0.0 < r < hi:
+            if abs(wrap_pi(angle - heading)) <= half_width and r < best:
+                best = r
         angle += scan.angle_increment
     return best
 

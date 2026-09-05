@@ -5,17 +5,17 @@ safety_node:
     scan_topic: /scan
     us_topic: /us_sensor/range
     ir_topic: /ir_sensor/range
-    # STEPS danger: lidar 3cm stop / 5cm clear. Not map size.
-    stop_distance: 0.03
-    clear_distance: 0.05
-    # STEPS danger: ultrasonic 2.5cm stop / 4cm clear.
-    us_stop_distance: 0.025
-    us_clear_distance: 0.04
+    # Narrow corridor: lidar 2.5cm stop / 3.5cm clear. Cone 12deg so side walls do not count.
+    stop_distance: 0.025
+    clear_distance: 0.035
+    # US ~2cm blind zone; stop just above it.
+    us_stop_distance: 0.022
+    us_clear_distance: 0.032
     us_scale: 1.0
     us_invalid_hold: 5
     us_hits: 3
     cmd_linear_sign: -1.0
-    front_half_width_deg: 22.0
+    front_half_width_deg: 12.0
     lidar_yaw_offset: 0.0
     sensor_timeout: 1.0
     camera_as_wall: false

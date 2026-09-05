@@ -14,29 +14,43 @@ import random
 
 import rclpy
 from geometry_msgs.msg import Twist
+from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from std_msgs.msg import Bool, Float32, String, UInt16MultiArray
+
+
+def wrap_pi(a: float) -> float:
+    return math.atan2(math.sin(a), math.cos(a))
+
+
+def yaw_from_quat(q) -> float:
+    return math.atan2(2.0 * (q.w * q.z + q.x * q.y), 1.0 - 2.0 * (q.y * q.y + q.z * q.z))
 
 
 class WanderNode(Node):
     def __init__(self):
         super().__init__('wander_node')
         self.declare_parameter('cmd_topic', '/cmd_vel_raw')
-        self.declare_parameter('vmax', 0.018)
-        self.declare_parameter('vmax_think', 0.005)
-        self.declare_parameter('vback', 0.006)
+        self.declare_parameter('odom_topic', '/odom')
+        self.declare_parameter('vmax', 0.014)
+        self.declare_parameter('vmax_think', 0.003)
+        self.declare_parameter('vback', 0.004)
         self.declare_parameter('vback_think', 0.002)
-        self.declare_parameter('wturn', 0.12)
-        self.declare_parameter('wturn_think', 0.06)
-        self.declare_parameter('slow_front', 0.18)
-        self.declare_parameter('slow_rear', 0.12)
-        self.declare_parameter('stop_front', 0.03)
+        self.declare_parameter('wturn', 0.10)
+        self.declare_parameter('wturn_think', 0.045)
+        self.declare_parameter('slow_front', 0.08)
+        self.declare_parameter('slow_rear', 0.06)
+        self.declare_parameter('stop_front', 0.025)
+        self.declare_parameter('think_horizon', 0.50)
         self.declare_parameter('auto_start', True)
-        self.declare_parameter('pause_sec', 0.40)
-        self.declare_parameter('backup_min_sec', 0.20)
-        self.declare_parameter('backup_clear_sec', 0.30)
-        self.declare_parameter('backup_max_sec', 6.00)
-        self.declare_parameter('turn_sec', 5.0)
+        self.declare_parameter('pause_sec', 0.25)
+        self.declare_parameter('backup_m', 0.025)
+        self.declare_parameter('backup_max_m', 0.050)
+        self.declare_parameter('backup_min_sec', 0.15)
+        self.declare_parameter('backup_clear_sec', 0.20)
+        self.declare_parameter('backup_max_sec', 4.00)
+        self.declare_parameter('turn_deg', 40.0)
+        self.declare_parameter('turn_sec', 3.0)
 
         self.vmax = float(self.get_parameter('vmax').value)
         self.vback = float(self.get_parameter('vback').value)
@@ -62,6 +76,9 @@ class WanderNode(Node):
         self.create_subscription(Float32, '/camera/side', self.on_cam_side, 10)
         self.create_subscription(String, '/wander/cmd', self.on_cmd, 10)
         self.create_subscription(Bool, '/wander/enable', self.on_enable, 10)
+        self.create_subscription(
+            Odometry, self.get_parameter('odom_topic').value, self.on_odom, 10
+        )
         self.create_timer(0.05, self.tick)
 
         self.cliff = False
@@ -78,11 +95,17 @@ class WanderNode(Node):
         self.cliff_clear_since = None
         self.enabled = bool(self.get_parameter('auto_start').value)
         self.seen_forward = False
+        self.have_odom = False
+        self.odom_x = self.odom_y = self.odom_yaw = 0.0
+        self.odom_vx = 0.0
+        self.seg_x = self.seg_y = self.seg_yaw = 0.0
         self.state = 'wait' if self.enabled else 'stop'
         self.t0 = self.now()
         self.get_logger().info(
-            f'wander ready vmax={self.vmax:.3f} think={float(self.get_parameter("vmax_think").value):.3f} | '
-            'slow when deciding | rear lidar for backup | /wander/cmd stop|start'
+            f'wander ready vmax={self.vmax:.3f} think={float(self.get_parameter("vmax_think").value):.3f} '
+            f'stop={float(self.get_parameter("stop_front").value)*100:.1f}cm '
+            f'backup={float(self.get_parameter("backup_m").value)*100:.1f}cm '
+            f'turn={float(self.get_parameter("turn_deg").value):.0f}deg | odom speed'
         )
 
     def now(self):
@@ -119,6 +142,13 @@ class WanderNode(Node):
 
     def on_cam_side(self, msg: Float32):
         self.cam_side = float(msg.data)
+
+    def on_odom(self, msg: Odometry):
+        p = msg.pose.pose.position
+        self.odom_x, self.odom_y = p.x, p.y
+        self.odom_yaw = yaw_from_quat(msg.pose.pose.orientation)
+        self.odom_vx = float(msg.twist.twist.linear.x)
+        self.have_odom = True
 
     def on_enable(self, msg: Bool):
         self._set_enabled(bool(msg.data))
@@ -186,7 +216,22 @@ class WanderNode(Node):
             self.pub.publish(Twist())
         else:
             self.get_logger().info('forward')
+        if state in ('backup', 'turn', 'forward'):
+            self._mark_pose()
         self.state_pub.publish(String(data=state))
+
+    def _mark_pose(self):
+        self.seg_x, self.seg_y, self.seg_yaw = self.odom_x, self.odom_y, self.odom_yaw
+
+    def _traveled(self) -> float:
+        if not self.have_odom:
+            return 0.0
+        return math.hypot(self.odom_x - self.seg_x, self.odom_y - self.seg_y)
+
+    def _turned(self) -> float:
+        if not self.have_odom:
+            return 0.0
+        return abs(wrap_pi(self.odom_yaw - self.seg_yaw))
 
     def _blend_speed(self, dist, v_think, v_open, d_stop, d_slow):
         """Crawl when close (thinking); cruise only if the path is open."""
@@ -199,8 +244,24 @@ class WanderNode(Node):
         t = (dist - d_stop) / max(1e-4, d_slow - d_stop)
         return v_think + t * (v_open - v_think)
 
+    def _safe_speed(self, dist, v_think, v_open, d_stop, d_slow) -> float:
+        """Blend by remaining gap, then cap with odom so we can still stop."""
+        v_blend = self._blend_speed(dist, v_think, v_open, d_stop, d_slow)
+        horizon = max(0.05, float(self.get_parameter('think_horizon').value))
+        if not math.isfinite(dist) or dist < 0.0:
+            return v_think
+        gap = dist - d_stop
+        if gap <= 0.0:
+            return v_think
+        v_gap = gap / horizon
+        v = min(v_blend, v_gap, v_open)
+        v = max(v, v_think)
+        if self.have_odom and abs(self.odom_vx) * horizon > gap:
+            v = v_think
+        return v
+
     def _fwd_speed(self) -> float:
-        return self._blend_speed(
+        return self._safe_speed(
             self.front_range,
             float(self.get_parameter('vmax_think').value),
             self.vmax,
@@ -209,7 +270,7 @@ class WanderNode(Node):
         )
 
     def _back_speed(self) -> float:
-        return self._blend_speed(
+        return self._safe_speed(
             self.rear_range,
             float(self.get_parameter('vback_think').value),
             self.vback,
@@ -308,8 +369,13 @@ class WanderNode(Node):
         cmd = Twist()
         cmd.linear.x = -self._back_speed()
         elapsed = self.elapsed()
+        traveled = self._traveled()
+        backup_max_m = float(self.get_parameter('backup_max_m').value)
+        too_far = elapsed >= self.backup_max_sec or (
+            self.have_odom and traveled >= backup_max_m
+        )
 
-        if elapsed >= self.backup_max_sec:
+        if too_far:
             if self.tilt:
                 self.get_logger().error('tilt still after backup — stop')
                 self._set_enabled(False)
@@ -337,7 +403,11 @@ class WanderNode(Node):
             self.cliff_clear_since = self.now()
             self.get_logger().info(f'cliff clear, extra {self.backup_clear_sec:.2f}s then turn')
         clear_for = (self.now() - self.cliff_clear_since).nanoseconds * 1e-9
-        if elapsed >= self.backup_min_sec and clear_for >= self.backup_clear_sec:
+        backup_m = float(self.get_parameter('backup_m').value)
+        # Narrow path: once IR/tilt is clear, turn. Odom only guarantees a short
+        # minimum if we somehow cleared instantly (tilt twitch).
+        min_m = (not self.have_odom) or traveled >= min(backup_m, 0.015)
+        if elapsed >= self.backup_min_sec and clear_for >= self.backup_clear_sec and min_m:
             self._enter('turn')
             cmd = Twist()
             cmd.angular.z = self._turn_rate() * self.turn_sign
@@ -358,8 +428,16 @@ class WanderNode(Node):
             self._publish(cmd, 'turn')
             return
         cmd = Twist()
-        cmd.angular.z = self._turn_rate() * self.turn_sign
-        if self.elapsed() >= self.turn_sec:
+        w = self._turn_rate()
+        cmd.angular.z = w * self.turn_sign
+        turn_rad = math.radians(float(self.get_parameter('turn_deg').value))
+        need_sec = turn_rad / max(0.02, abs(w)) + 0.25
+        cap_sec = max(self.turn_sec, need_sec)
+        turned_enough = (
+            (self.have_odom and self._turned() >= turn_rad)
+            or self.elapsed() >= cap_sec
+        )
+        if turned_enough:
             if self.blocked:
                 self._enter('turn')
             else:
