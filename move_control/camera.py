@@ -3,7 +3,7 @@ import numpy as np
 
 
 def classify_frame(
-    rgb,
+    bgr,
     floor_hsv=None,
     void_v_ratio=0.50,
     hue_shift=35.0,
@@ -16,10 +16,10 @@ def classify_frame(
     void_frac=0.12,
     obst_frac=0.35,
 ):
-    """Return dict of flags and column scores. rgb is HxWx3 uint8 RGB."""
+    """Return dict of flags and column scores. bgr is HxWx3 uint8 BGR."""
     import cv2
 
-    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV).astype(np.float32)
+    hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV).astype(np.float32)
     h_ch, s_ch, v_ch = hsv[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
     h, w = v_ch.shape
 

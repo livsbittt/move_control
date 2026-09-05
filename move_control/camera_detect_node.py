@@ -4,7 +4,7 @@
   /camera/cliff    drop visible ahead — still on the floor, so turn (do not reverse)
   /camera/blocked  obstacle filling the view ahead
   /camera/side     -1 left, +1 right, 0 center/unknown
-  /camera/front    real OV5647 RGB image for the LCD (not Gazebo)
+  /camera/front    OV5647 BGR8 (libcamera RGB888 is BGR in memory)
 """
 import time
 
@@ -15,6 +15,13 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Bool, Float32, String
 
 from .camera import classify_frame
+
+
+def _rotate(img, deg):
+    k = (int(deg) // 90) % 4
+    if k:
+        img = np.rot90(img, k)
+    return np.ascontiguousarray(img)
 
 
 class CameraDetectNode(Node):
@@ -94,22 +101,16 @@ class CameraDetectNode(Node):
             self.block_pub.publish(Bool(data=False))
             return
         try:
-            rgb = self._cam.capture_array('main')
+            bgr = self._cam.capture_array('main')
         except Exception as exc:
             self.get_logger().warn(f'capture failed: {exc}', throttle_duration_sec=2.0)
             return
-        if rgb is None or rgb.ndim != 3:
+        if bgr is None or bgr.ndim != 3:
             return
-        rot = int(self.get_parameter('rotate_deg').value) % 360
-        if rot == 180:
-            rgb = np.rot90(rgb, 2)
-        elif rot == 90:
-            rgb = np.rot90(rgb, 1)
-        elif rot == 270:
-            rgb = np.rot90(rgb, 3)
-        self._publish_front(rgb)
+        bgr = _rotate(bgr, self.get_parameter('rotate_deg').value)
+        self._publish_front(bgr)
         res = classify_frame(
-            rgb,
+            bgr,
             floor_hsv=self._floor_hsv,
             void_frac=float(self.get_parameter('void_frac').value),
             obst_frac=float(self.get_parameter('obst_frac').value),
@@ -152,16 +153,16 @@ class CameraDetectNode(Node):
             )
         )
 
-    def _publish_front(self, rgb):
+    def _publish_front(self, bgr):
         msg = Image()
         msg.header.stamp = self.get_clock().now().to_msg()
         msg.header.frame_id = 'camera_link'
-        msg.height = int(rgb.shape[0])
-        msg.width = int(rgb.shape[1])
-        msg.encoding = 'rgb8'
+        msg.height = int(bgr.shape[0])
+        msg.width = int(bgr.shape[1])
+        msg.encoding = 'bgr8'
         msg.is_bigendian = 0
         msg.step = msg.width * 3
-        msg.data = np.ascontiguousarray(rgb).tobytes()
+        msg.data = np.ascontiguousarray(bgr).tobytes()
         self.img_pub.publish(msg)
 
     def destroy_node(self):
