@@ -2,17 +2,20 @@
 import math
 import unittest
 
-from move_control.recover import (
+from move_control.control.recover import (
     ESCAPE_MIN_TURN,
     backup_limit_m,
     escape_may_abort,
     escape_may_desense,
-    gate_keep_angular,
     have_turn_space,
+    hazard_action,
     is_stuck_motion,
     need_space_to_turn,
+    ratio_sign,
+    side_sign,
     stuck_flip,
     stuck_kind,
+    wall_first_move,
 )
 
 
@@ -85,9 +88,39 @@ class RecoverTest(unittest.TestCase):
         wturn = 0.10
         self.assertGreater(wturn * 8.0, ESCAPE_MIN_TURN)
 
-    def test_cliff_tilt_keep_spin(self):
-        self.assertEqual(gate_keep_angular(0.10, vx=0.0, cliff=True, tilt=False), 0.10)
-        self.assertEqual(gate_keep_angular(-0.10, vx=0.0, cliff=False, tilt=True), -0.10)
+    def test_hazard_action_matrix(self):
+        # No hazard → none.
+        self.assertEqual(hazard_action(False, False, True, True), 'none')
+        # Tilt is always trusted: backup if the tail is free, else spin.
+        self.assertEqual(hazard_action(True, False, False, True), 'backup')
+        self.assertEqual(hazard_action(True, False, False, False), 'turn')
+        # Cliff is trusted only after the first forward drive (IR settle).
+        self.assertEqual(hazard_action(False, True, True, True), 'backup')
+        self.assertEqual(hazard_action(False, True, False, True), 'look')
+        self.assertEqual(hazard_action(False, True, True, False), 'turn')
+        self.assertEqual(hazard_action(False, True, False, False), 'turn')
+
+    def test_wall_first_move(self):
+        # Reverse off the wall once if the tail is clear; after that, spin.
+        self.assertEqual(wall_first_move(True, False), 'backup')
+        self.assertEqual(wall_first_move(True, True), 'escape')
+        self.assertEqual(wall_first_move(False, False), 'escape')
+
+    def test_side_sign_gates_small_scores(self):
+        # ±0.3 camera side gate; inside the gate is no call.
+        self.assertEqual(side_sign(0.3), 1.0)
+        self.assertEqual(side_sign(-0.3), -1.0)
+        self.assertEqual(side_sign(0.29), 0.0)
+        self.assertEqual(side_sign(0.0), 0.0)
+        self.assertEqual(side_sign(float('nan')), 0.0)
+
+    def test_ratio_sign_wider_side_wins(self):
+        # 1.15 ratio; near-equal sides give no opinion, None = no-echo.
+        self.assertEqual(ratio_sign(0.40, 0.30), 1.0)
+        self.assertEqual(ratio_sign(0.30, 0.40), -1.0)
+        self.assertEqual(ratio_sign(0.40, 0.36), 0.0)
+        self.assertEqual(ratio_sign(None, 0.40), 0.0)
+        self.assertEqual(ratio_sign(0.40, None), 0.0)
 
 
 if __name__ == '__main__':

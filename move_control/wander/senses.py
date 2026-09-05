@@ -5,8 +5,9 @@ import random
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool, Float32, UInt16MultiArray
 
-from ..body import turn_clear_m, use_radius
-from ..recover import have_turn_space, need_space_to_turn
+from ..sensing.body import turn_clear_m, use_radius
+from ..control.modes import nose_on_wall
+from ..control.recover import have_turn_space, need_space_to_turn, ratio_sign, side_sign
 
 
 def yaw_from_quat(q) -> float:
@@ -29,6 +30,11 @@ class Senses:
 
     def on_pickup(self, msg: Bool):
         self.pickup = bool(msg.data)
+
+    def on_estop(self, msg: Bool):
+        # Label truth only. Safety owns the e-stop: it zeros /cmd_vel and
+        # forces /wander/cmd 'stop'; wander only reflects the latch here.
+        self.estop = bool(msg.data)
 
     def on_rear(self, msg: Bool):
         self.rear_clear = bool(msg.data)
@@ -147,13 +153,12 @@ class Senses:
 
     def _pick_turn_sign(self) -> float:
         # Camera side only at a real corner (center obstacle), not corridor walls.
-        if self.cam_block and abs(self.cam_side) >= 0.3:
-            return 1.0 if self.cam_side > 0.0 else -1.0
-        if self._finite(self.left_range) and self._finite(self.right_range):
-            if self.left_range > self.right_range * 1.15:
-                return 1.0
-            if self.right_range > self.left_range * 1.15:
-                return -1.0
+        s = side_sign(self.cam_side) if self.cam_block else 0.0
+        if s:
+            return s
+        s = ratio_sign(self.left_range, self.right_range)
+        if s:
+            return s
         vals = self._local_ranges()
         if vals:
             wide = max(vals, key=vals.get)
@@ -266,11 +271,7 @@ class Senses:
     def _on_wall(self) -> bool:
         """Bumper contact from lidar/US only. Camera obstacle is a corner (ESCAPE)."""
         wall_d = float(self.get_parameter('wall_front').value)
-        if self._finite(self.us_range) and 0.0 < self.us_range <= wall_d and self.us_range < 0.80:
-            return True
-        if self._finite(self.front_range) and 0.0 < self.front_range <= wall_d:
-            return True
-        return False
+        return nose_on_wall(self.front_range, self.us_range, wall_d)
 
     def _hugging(self) -> bool:
         vals = self._local_ranges()

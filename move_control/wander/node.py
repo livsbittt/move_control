@@ -6,10 +6,11 @@ import rclpy
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
+from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from std_msgs.msg import Bool, Float32, String, UInt16MultiArray
 
-from ..body import URDF_RADIUS
-from ..modes import pick_mode
+from ..sensing.body import URDF_RADIUS
+from ..control.modes import pick_mode
 from .contact import Contact
 from .judge import Judge
 from .motion import Motion
@@ -87,6 +88,15 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         self.create_subscription(Bool, '/safety/blocked', self.on_block, 10)
         self.create_subscription(Bool, '/safety/tilt', self.on_tilt, 10)
         self.create_subscription(Bool, '/safety/pickup', self.on_pickup, 10)
+        # Label-only input: safety owns the e-stop decision; wander just
+        # mirrors the latch so /robot/mode can say ESTOP.
+        latched = QoSProfile(
+            depth=1,
+            reliability=ReliabilityPolicy.RELIABLE,
+            durability=DurabilityPolicy.TRANSIENT_LOCAL,
+        )
+        self.estop = False
+        self.create_subscription(Bool, '/estop/state', self.on_estop, latched)
         self.create_subscription(Bool, '/safety/rear_clear', self.on_rear, 10)
         self.create_subscription(Float32, '/safety/min_range', self.on_front_range, 10)
         self.create_subscription(Float32, '/safety/rear_range', self.on_rear_range, 10)
@@ -299,6 +309,39 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
             self.motion_x, self.motion_y = self.odom_x, self.odom_y
         self.state_pub.publish(String(data=state))
 
+    def _publish_mode(self):
+        """One fused label, one computation. /safety/mode is a deprecated
+        alias the external LCD still reads — same payload, single source."""
+        mode = String(data=self._mode_label())
+        self.mode_pub.publish(mode)
+        self.safety_mode_pub.publish(mode)
+
+    def _announce(self, state: str):
+        """Pair the FSM state with the fused label so neither goes stale."""
+        self.state_pub.publish(String(data=state))
+        self._publish_mode()
+
+    def _hold(self, state: str):
+        """Enter a state and publish its stop-and-hold command."""
+        self._enter(state)
+        self._publish(Twist(), state)
+
+    def _start_backup(self):
+        self._enter('backup')
+        self._publish(self._back_cmd(), 'backup')
+
+    def _start_escape(self, sign=None):
+        self._enter('escape')
+        cmd = Twist()
+        cmd.angular.z = self._spin_wz(sign)
+        self._publish(cmd, 'escape')
+
+    def _start_turn(self, sign=None):
+        self._enter('turn')
+        cmd = Twist()
+        cmd.angular.z = self._spin_wz(sign)
+        self._publish(cmd, 'turn')
+
     def tick(self):
         self.vmax = float(self.get_parameter('vmax').value)
         self.vback = float(self.get_parameter('vback').value)
@@ -313,10 +356,7 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
                 self._stop_n = n + 1
                 self._publish(Twist(), 'stop')
             else:
-                self.state_pub.publish(String(data='stop'))
-                mode = String(data=self._mode_label())
-                self.mode_pub.publish(mode)
-                self.safety_mode_pub.publish(mode)
+                self._announce('stop')
             return
         if self.pickup:
             if self.state != 'stop':
@@ -345,14 +385,14 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         elif self.state == 'escape':
             self._tick_escape()
         else:
-            self._enter('stop')
-            self._publish(Twist(), 'stop')
+            self._hold('stop')
 
     def _mode_label(self) -> str:
         return pick_mode(
             pickup=self.pickup,
             cliff=self.cliff,
             tilt=self.tilt,
+            estop=self.estop,
             wander_state=self.state,
             on_wall=self._on_wall(),
             front=self.front_range,
@@ -364,16 +404,14 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
     def _publish(self, cmd: Twist, state: str):
         self.pub.publish(cmd)
         self.state_pub.publish(String(data=state))
-        mode = String(data=self._mode_label())
-        self.mode_pub.publish(mode)
-        self.safety_mode_pub.publish(mode)
+        self._publish_mode()
 
     def stop_motors(self):
         try:
             self.enabled = False
             self.state = 'stop'
             self.pub.publish(Twist())
-            self.state_pub.publish(String(data='stop'))
+            self._announce('stop')
         except Exception:
             pass
 

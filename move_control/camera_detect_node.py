@@ -14,7 +14,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 from std_msgs.msg import Bool, Float32, String
 
-from .camera import classify_frame
+from .sensing.camera import classify_frame
 
 
 def _rotate(img, deg):

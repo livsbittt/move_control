@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 
-from move_control.body import (
+from move_control.sensing.body import (
     URDF_RADIUS,
     ignore_m,
     turn_clear_m,

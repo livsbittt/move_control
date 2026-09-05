@@ -4,9 +4,9 @@ import math
 from sensor_msgs.msg import LaserScan, Range
 from std_msgs.msg import Float32
 
-from ..body import ignore_m, use_radius
-from ..lidar import find_frontiers, is_robot_scan, opening_max, sector_range, wrap_pi
-from ..route import line_route
+from ..sensing.body import ignore_m, use_radius
+from ..sensing.lidar import find_frontiers, is_robot_scan, opening_max, sector_range, wrap_pi
+from ..control.route import line_route
 
 
 def parse_us_range(msg: Range, scale: float = 1.0):

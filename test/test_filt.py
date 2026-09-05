@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 
-from move_control.filt import MedianLp
+from move_control.sensing.filt import MedianLp
 
 
 class FiltTest(unittest.TestCase):

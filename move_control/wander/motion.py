@@ -4,12 +4,13 @@ import math
 from geometry_msgs.msg import Twist
 from rclpy.parameter import Parameter
 
-from ..lidar import wrap_pi
-from ..recover import (
+from ..sensing.lidar import wrap_pi
+from ..control.recover import (
     ESCAPE_MIN_TURN,
     STUCK_CLEAR_M,
     escape_may_abort,
     escape_may_desense,
+    hazard_action,
     is_stuck_motion,
     stuck_flip,
     stuck_kind,
@@ -248,31 +249,29 @@ class Motion:
             f'F={self.front_range:.2f} rear={self.rear_range:.2f}'
         )
         if kind == 'backup':
-            self._enter('backup')
-            cmd = Twist()
-            cmd.linear.x = -self._back_speed()
-            cmd.angular.z = self._rear_steer_wz()
-            self._publish(cmd, 'backup')
+            self._start_backup()
             return
-        self._enter('escape')
-        cmd = Twist()
-        cmd.angular.z = self._spin_wz()
-        self._publish(cmd, 'escape')
+        self._start_escape()
 
     def _tick_forward(self):
         self._note_motion()
         if self._from_stuck_now() and self._traveled() >= STUCK_CLEAR_M:
             self._clear_stuck()
-        if self.tilt or self.cliff or self.blocked or self._on_wall():
-            self._enter('pause')
-            self._publish(Twist(), 'pause')
+        if (
+            hazard_action(
+                self.tilt, self.cliff, self.seen_forward, self._can_reverse()
+            )
+            != 'none'
+            or self.blocked
+            or self._on_wall()
+        ):
+            self._hold('pause')
             return
         if self._is_stuck():
             self._recover_stuck()
             return
         if self._want_lidar_escape():
-            self._enter('look')
-            self._publish(Twist(), 'look')
+            self._hold('look')
             return
         cmd = Twist()
         cmd.linear.x = self._fwd_speed()
@@ -281,17 +280,14 @@ class Motion:
         self._publish(cmd, 'forward')
 
     def _tick_turn(self):
-        if (self.cliff or self.tilt) and self.seen_forward and self._can_reverse():
-            self._enter('backup')
-            cmd = Twist()
-            cmd.linear.x = -self._back_speed()
-            cmd.angular.z = self._rear_steer_wz()
-            self._publish(cmd, 'backup')
+        act = hazard_action(
+            self.tilt, self.cliff, self.seen_forward, self._can_reverse()
+        )
+        if act == 'backup':
+            self._start_backup()
             return
-        if (self.cliff or self.tilt) and self.seen_forward and not self._can_reverse():
-            cmd = Twist()
-            cmd.angular.z = self._spin_wz()
-            self._publish(cmd, 'turn')
+        if act != 'none':
+            self._start_turn()
             return
         if self.blocked or self._on_wall():
             self._enter('wall')
@@ -324,12 +320,10 @@ class Motion:
 
     def _tick_escape(self):
         """Rotate in place toward the farthest lidar gap until it is in front."""
-        if (self.cliff or self.tilt) and self.seen_forward and self._can_reverse():
-            self._enter('backup')
-            cmd = Twist()
-            cmd.linear.x = -self._back_speed()
-            cmd.angular.z = self._rear_steer_wz()
-            self._publish(cmd, 'backup')
+        if hazard_action(
+            self.tilt, self.cliff, self.seen_forward, self._can_reverse()
+        ) == 'backup':
+            self._start_backup()
             return
         self._look_accum()
         if not self._from_stuck_now() and self._try_turn_backup('escape objects close'):

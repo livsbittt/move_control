@@ -1,4 +1,4 @@
-"""Stuck / escape / backup policy. Pure functions — no ROS."""
+"""Stuck / escape / backup / hazard response and turn-sign rules. Pure — no ROS."""
 import math
 
 ESCAPE_MIN_TURN = math.radians(45.0)
@@ -72,7 +72,53 @@ def escape_may_desense(elapsed, turned_rad, from_stuck):
     return float(elapsed) < 0.85 and float(turned_rad) < math.radians(20.0)
 
 
-def gate_keep_angular(wz, vx=0.0, cliff=False, tilt=False):
-    """Cliff/tilt must not zero spin. If reverse is illegal, spin is the move."""
-    del vx, cliff, tilt
-    return wz
+def hazard_action(tilt, cliff, seen_forward, can_reverse):
+    """One cliff/tilt answer for every FSM state.
+
+    backup — hazard trusted (tilt always; cliff only after we drove once)
+             and the tail is free.
+    turn   — hazard and reverse illegal: spin is the only legal move
+             (safety halts forward on cliff/tilt but never zeroes the spin).
+    look   — cliff before any forward drive is untrusted (IR floor band may
+             be unready, not a hole): stop and re-look, never blind-reverse.
+    none   — no hazard.
+    """
+    if not (tilt or cliff):
+        return 'none'
+    if not can_reverse:
+        return 'turn'
+    if tilt or seen_forward:
+        return 'backup'
+    return 'look'
+
+
+def wall_first_move(can_reverse, backed):
+    """First move against a wall: reverse off it if the tail is clear and we
+    have not just backed, else the wall becomes a spin (escape)."""
+    return 'backup' if (can_reverse and not backed) else 'escape'
+
+
+def side_sign(side, gate=0.30):
+    """Turn-sign from the camera side score. ±1.0; 0.0 = no call. NaN-safe."""
+    try:
+        s = float(side)
+    except (TypeError, ValueError):
+        return 0.0
+    if s != s or abs(s) < float(gate):
+        return 0.0
+    return 1.0 if s > 0.0 else -1.0
+
+
+def ratio_sign(left, right, ratio=1.15):
+    """Turn-sign from side distances: the wider side wins. No-echo = no call."""
+    try:
+        l, r = float(left), float(right)
+    except (TypeError, ValueError):
+        return 0.0
+    if l != l or r != r or l <= 0.0 or r <= 0.0:
+        return 0.0
+    if l > r * float(ratio):
+        return 1.0
+    if r > l * float(ratio):
+        return -1.0
+    return 0.0

@@ -3,6 +3,8 @@ import math
 
 from geometry_msgs.msg import Twist
 
+from ..control.recover import hazard_action, ratio_sign, side_sign, wall_first_move
+
 
 class Judge:
 
@@ -50,16 +52,12 @@ class Judge:
         if abs(fy) > math.radians(10.0):
             return 1.0 if fy > 0.0 else -1.0
         if self.cam_block and self._look_n > 0:
-            side = self._look_cam / self._look_n
-            if abs(side) >= 0.3:
-                return 1.0 if side > 0.0 else -1.0
-        L = self._median(self._samp_L)
-        R = self._median(self._samp_R)
-        if L is not None and R is not None:
-            if L > R * 1.15:
-                return 1.0
-            if R > L * 1.15:
-                return -1.0
+            s = side_sign(self._look_cam / self._look_n)
+            if s:
+                return s
+        s = ratio_sign(self._median(self._samp_L), self._median(self._samp_R))
+        if s:
+            return s
         if self._look_n > 0:
             yaw = self._look_yaw / self._look_n
             if abs(yaw) > math.radians(8.0):
@@ -75,12 +73,17 @@ class Judge:
             if self._can_reverse() and self._need_space_to_turn(sign):
                 return 'backup', sign, 'stuck space'
             return 'escape', sign, 'stuck spin'
-        if (self.tilt or (self.cliff and self.seen_forward)) and self._can_reverse():
+        act = hazard_action(
+            self.tilt, self.cliff, self.seen_forward, self._can_reverse()
+        )
+        if act == 'backup':
             return 'backup', sign, 'cliff/tilt'
-        if self.tilt or self.cliff:
+        if act == 'turn':
             return 'turn', sign, 'cliff/tilt no rear'
+        if act == 'look':
+            return 'look', sign, 'cliff unconfirmed'
         if self._on_wall():
-            if self._can_reverse() and not self._wall_backed:
+            if wall_first_move(self._can_reverse(), self._wall_backed) == 'backup':
                 return 'backup', sign, 'wall rear clear'
             if self._need_space_to_turn(sign):
                 return 'backup', sign, 'space for turn'
@@ -124,46 +127,26 @@ class Judge:
         self.get_logger().info(f'calc {kind} sign={sign:.0f} ({why})')
         if kind == 'look':
             self._calc_tries += 1
-            self._enter('look')
-            self._publish(Twist(), 'look')
+            self._hold('look')
             return
         if kind == 'backup':
             if 'space' in why:
                 self._turn_backs = int(getattr(self, '_turn_backs', 0)) + 1
-            self._enter('backup')
-            cmd = Twist()
-            cmd.linear.x = -self._back_speed()
-            cmd.angular.z = self._rear_steer_wz()
-            self._publish(cmd, 'backup')
+            self._start_backup()
             return
         if kind == 'turn':
-            self._enter('turn')
-            cmd = Twist()
-            cmd.angular.z = self._spin_wz(sign)
-            self._publish(cmd, 'turn')
+            self._start_turn(sign)
             return
         if kind == 'forward':
-            self._enter('forward')
-            cmd = Twist()
-            cmd.linear.x = self._fwd_speed()
-            cmd.angular.z = self._steer_wz()
-            self.seen_forward = True
-            self._publish(cmd, 'forward')
+            self._resume_forward()
             return
         if kind == 'escape':
             if self._on_wall() and not getattr(self, '_from_stuck', False):
-                self._enter('wall')
-                self._publish(Twist(), 'wall')
+                self._hold('wall')
                 return
-            self._enter('escape')
-            cmd = Twist()
-            cmd.angular.z = self._spin_wz(sign)
-            self._publish(cmd, 'escape')
+            self._start_escape(sign)
             return
-        self._enter('escape')
-        cmd = Twist()
-        cmd.angular.z = self._spin_wz(sign)
-        self._publish(cmd, 'escape')
+        self._start_escape(sign)
 
     def _tick_look(self):
         """Stop and sample. Calc scores next."""
@@ -180,14 +163,10 @@ class Judge:
         if self._look_nF < 1:
             if self.seen_forward:
                 self.get_logger().warn('look: no front at contact — escape')
-                self._enter('escape')
-                cmd = Twist()
-                cmd.angular.z = self._spin_wz()
-                self._publish(cmd, 'escape')
+                self._start_escape()
                 return
             self.get_logger().warn('look: no front range yet — wait')
-            self._enter('wait')
-            self._publish(Twist(), 'wait')
+            self._hold('wait')
             return
         F, L, R = self._look_means()
         def _fmt(x):
@@ -195,8 +174,7 @@ class Judge:
         self.get_logger().info(
             f'look done n={self._look_n} F={_fmt(F)} L={_fmt(L)} R={_fmt(R)}'
         )
-        self._enter('calc')
-        self._publish(Twist(), 'calc')
+        self._hold('calc')
 
     def _tick_calc(self):
         """Score look samples; look again if L and R are too close."""
@@ -212,8 +190,7 @@ class Judge:
         self._publish(Twist(), 'recon')
         if self.elapsed() < 0.35:
             return
-        self._enter('look')
-        self._publish(Twist(), 'look')
+        self._hold('look')
 
     def _want_recon(self) -> bool:
         if self._recon_n >= int(self.get_parameter('recon_max').value):
@@ -236,19 +213,16 @@ class Judge:
         if self.elapsed() < self.pause_sec:
             self._publish(cmd, 'pause')
             return
-        if (self.tilt or (self.cliff and self.seen_forward)) and self._can_reverse():
-            self._enter('backup')
-            cmd.linear.x = -self._back_speed()
-            cmd.angular.z = self._rear_steer_wz()
-            self._publish(cmd, 'backup')
-        elif self.tilt or self.cliff:
-            self._enter('look')
-            self._publish(Twist(), 'look')
-        elif self.blocked or self._on_wall():
-            self._enter('look')
-            self._publish(Twist(), 'look')
-        else:
-            self._enter('forward')
-            cmd.linear.x = self._fwd_speed()
-            self.seen_forward = True
-            self._publish(cmd, 'forward')
+        act = hazard_action(
+            self.tilt, self.cliff, self.seen_forward, self._can_reverse()
+        )
+        if act == 'backup':
+            self._start_backup()
+            return
+        if act == 'turn':
+            self._start_turn()
+            return
+        if act == 'look' or self.blocked or self._on_wall():
+            self._hold('look')
+            return
+        self._resume_forward()

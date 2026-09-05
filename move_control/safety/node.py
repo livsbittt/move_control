@@ -9,9 +9,9 @@ from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy, qos_profi
 from sensor_msgs.msg import Imu, LaserScan, Range
 from std_msgs.msg import Bool, Float32, String, UInt16MultiArray
 
-from ..filt import IrMedian, MedianLp
-from ..body import URDF_RADIUS, use_radius
-from ..lidar import NOSE_YAW
+from ..sensing.filt import IrMedian, MedianLp
+from ..sensing.body import URDF_RADIUS, use_radius
+from ..sensing.lidar import NOSE_YAW
 from .bumper import Bumper
 from .gate import Gate
 from .hazard import Hazard
@@ -289,6 +289,8 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             self.blocked = False
             self.rear_blocked = False
         can_rev = lidar_ok and not self.rear_blocked and rear_d > self.stop_d
+        # Same value on both topics: /safety/can_reverse is a same-value alias
+        # kept for the external LCD/web — one computation, like /safety/mode.
         self.rear_clear_pub.publish(Bool(data=can_rev))
         self.can_rev_pub.publish(Bool(data=can_rev))
 

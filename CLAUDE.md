@@ -49,7 +49,7 @@ ros2 topic pub --once /goal_distance std_msgs/msg/Float64 "{data: 0.2}"  # contr
 ros2 topic pub --once /goal_rotate   std_msgs/msg/Float64 "{data: 90.0}" # control_node rotate test
 ```
 
-Observe: `/wander/state`, `/safety/mode`, `/robot/mode` (same label), `/robot/health`, `/camera/debug`, `/goal_point`, `/route`, `/goal_node/state`, `ros2 pkg executables move_control`.
+Observe: `/wander/state` (FSM verb), `/robot/mode` (canonical fused label), `/safety/mode` (deprecated alias, same label), `/robot/health`, `/camera/debug`, `/goal_point`, `/route`, `/goal_node/state`, `ros2 pkg executables move_control`.
 
 There is no linter configured. LCD/LED/web live in **other packages** (`lcd_control`, `pinky_web`) — not in this repo.
 
@@ -63,7 +63,7 @@ There is no linter configured. LCD/LED/web live in **other packages** (`lcd_cont
 
 Each ROS node is an `rclpy.Node` composed of **subject mixins**, one concern each:
 
-- `wander_node` = `Senses | Judge | Contact | Motion` + FSM in `wander/node.py`. States: `wait forward pause look calc recon wall backup turn escape stop` (one 20 ms `tick()` dispatcher). Behavior: IR cliff → pause → back until IR clears → turn; wall/camera block → `look` (median L/R/F samples) → `calc` (score openings) → locked turn or backup; `escape` for maze corners; stall detection flips the escape sign after 2 failures.
+- `wander_node` = `Senses | Judge | Contact | Motion` + FSM in `wander/node.py`. States: `wait forward pause look calc recon wall backup turn escape stop` (one 20 ms `tick()` dispatcher). Behavior: IR cliff → pause → back until IR clears → turn; wall/camera block → `look` (median L/R/F samples) → `calc` (score openings) → locked turn or backup; `escape` for maze corners; stall detection flips the escape sign after 2 failures. Wander subscribes latched `/estop/state` for the **label only** — safety owns the e-stop decision. State and mode are always published together (`_announce`); FSM entries go through shared helpers (`_hold` / `_start_backup` / `_start_escape` / `_start_turn` / `_resume_forward`).
 - `safety_node` = `Bumper | Hazard | Gate | Scale`. Fuses lidar sectors, US, IR, IMU, camera; publishes ~20 `/safety/*` range/bool topics that wander consumes; auto-scales the narrow-maze HUD (`map_range`/`open_max`) from live corridor width L+R.
 - `calib_node` — `/calib/step` FSM: stable floor IR → slow ±x nudge to solve `cmd_linear_sign` + lidar nose yaw → wait for a real IR cliff. Writes `config/auto_calib.yaml` **and** pushes params into the running safety_node via the `SetParameters` service.
 - `camera_detect_node` — OV5647 via picamera2, treated as **BGR8** (libcamera RGB888 is BGR in memory), frame rotated 180°. HSV floor/void/obstacle classification in `camera.py:classify_frame` → `/camera/cliff`, `/camera/blocked`, `/camera/side`.
@@ -73,7 +73,14 @@ Each ROS node is an `rclpy.Node` composed of **subject mixins**, one concern eac
 
 ### Pure-logic modules (no ROS imports — what the tests cover)
 
-`recover.py` (stuck/backup/escape policy), `route.py` (longest free straight line), `modes.py` (the one canonical `/robot/mode` label: hazard > wander action > contact bands; wander publishes it, LCD only displays), `lidar.py`, `body.py`, `filt.py`, `camera.py`, `watch.py`, and the `planning/` subpackage (`gridmap`/`astar`/`frontier`/`zigzag` + `goals.py` — the GoalBrain explore→coverage FSM shared by goal_node and the sim; `test_planning.py`). Keep new decision logic here and it stays unit-testable.
+Decision logic lives in subject subpackages, each with a facade `__init__`, mirroring the data flow sensor → geometry → policy → map:
+
+- `sensing/` — raw data → robot-frame geometry: `lidar` (C1 scan geometry, the nose-yaw trap, sector ranges, frontiers), `filt` (median/low-pass), `body` (URDF footprint constants, chassis-hit ignore), `camera` (HSV floor/void/obstacle classification).
+- `control/` — geometry → motion policy: `recover` (stuck/backup/escape policy + `hazard_action` — tilt is always trusted, cliff only after the first forward drive, rear clear → backup else spin, one cliff/tilt answer for every FSM state; also `wall_first_move` and the turn-sign rules `side_sign`/`ratio_sign`), `route` (longest free straight line), `modes` (the one canonical `/robot/mode` label: hazard > wander action > contact bands; wander publishes it — and `/safety/mode` only as a deprecated same-value alias for the LCD — so ESTOP is reachable via the latched `/estop/state` subscription; state = what the FSM is doing, mode = why).
+- `planning/` — map → goals: `gridmap`/`astar`/`frontier`/`zigzag` + `goals` (GoalBrain explore→coverage FSM shared by goal_node and the sim; `test_planning.py`).
+- `watch.py` — graph health inspect (single consumer, stays top-level).
+
+Keep new decision logic in these and it stays unit-testable; tests mirror the modules (`test_recover.py`, `test_planning.py`, ...).
 
 ### Lidar geometry — the one non-obvious trap
 

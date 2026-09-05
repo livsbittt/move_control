@@ -1,7 +1,7 @@
 """Subject: contact. WALL / BACK — bumper recover."""
 from geometry_msgs.msg import Twist
 
-from ..recover import backup_limit_m
+from ..control.recover import backup_limit_m, hazard_action, wall_first_move
 
 
 class Contact:
@@ -36,6 +36,13 @@ class Contact:
         k = float(self.get_parameter('steer_k').value)
         return max(-wmax, min(wmax, -k * frac))
 
+    def _back_cmd(self) -> Twist:
+        """Standard reverse command: back speed with tail steering."""
+        cmd = Twist()
+        cmd.linear.x = -self._back_speed()
+        cmd.angular.z = self._rear_steer_wz()
+        return cmd
+
     def _try_turn_backup(self, why: str) -> bool:
         """Reverse to make turning room. Uses live F / turn-side object distance."""
         n = int(getattr(self, '_turn_backs', 0))
@@ -49,41 +56,26 @@ class Contact:
             f'F={self.front_range:.2f} side={side:.2f} '
             f'rear={self.rear_range:.2f} sign={self.turn_sign:.0f}'
         )
-        self._enter('backup')
-        cmd = Twist()
-        cmd.linear.x = -self._back_speed()
-        cmd.angular.z = self._rear_steer_wz()
-        self._publish(cmd, 'backup')
+        self._start_backup()
         return True
 
     def _tick_wall(self):
         """Wall bumper: reverse off it if the tail is clear, else spin away."""
-        if self.cliff or self.tilt:
-            self._enter('pause')
-            self._publish(Twist(), 'pause')
+        if hazard_action(
+            self.tilt, self.cliff, self.seen_forward, self._can_reverse()
+        ) != 'none':
+            self._hold('pause')
             return
         if not self._on_wall() and not self.blocked and self._aligned_to_open():
-            self._enter('forward')
-            cmd = Twist()
-            cmd.linear.x = self._fwd_speed()
-            cmd.angular.z = self._steer_wz()
-            self.seen_forward = True
-            self._publish(cmd, 'forward')
+            self._resume_forward()
             return
-        if self._can_reverse() and not self._wall_backed:
+        if wall_first_move(self._can_reverse(), self._wall_backed) == 'backup':
             self._wall_backed = True
-            self._enter('backup')
-            cmd = Twist()
-            cmd.linear.x = -self._back_speed()
-            cmd.angular.z = self._rear_steer_wz()
-            self._publish(cmd, 'backup')
+            self._start_backup()
             return
         if self._try_turn_backup('wall still tight'):
             return
-        self._enter('escape')
-        cmd = Twist()
-        cmd.angular.z = self._spin_wz()
-        self._publish(cmd, 'escape')
+        self._start_escape()
 
     def _finish_backup(self):
         """Stuck recovery spins next. Otherwise look and re-plan."""

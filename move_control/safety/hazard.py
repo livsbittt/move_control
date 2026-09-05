@@ -5,7 +5,7 @@ from geometry_msgs.msg import Twist
 from sensor_msgs.msg import Imu
 from std_msgs.msg import Bool, String, UInt16MultiArray
 
-from ..lidar import wrap_pi
+from ..sensing.lidar import wrap_pi
 
 
 def roll_pitch(q):

@@ -1,7 +1,7 @@
 """Subject: straight-line route. Avoid walls. Not a circular path."""
 import math
 
-from .lidar import NOSE_YAW, is_robot_scan, sector_range, wrap_pi
+from ..sensing.lidar import NOSE_YAW, is_robot_scan, sector_range, wrap_pi
 
 
 def line_route(

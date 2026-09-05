@@ -11,8 +11,9 @@ zip 위치 (핑키):
 
 공유 파라미터 (하나만):
   src/move_control/config/robot.yaml
-  모드 정의: move_control/modes.py  (subject: hazard | contact | judge | motion | idle)
-  wander 가 /robot/mode 발행. LCD 는 표시만.
+  모드/정책 정의: move_control/modes.py (라벨) · recover.py (hazard_action 등 정책) — ROS 없는 순수 로직.
+  wander 가 /robot/mode 발행 (정본). /safety/mode 는 같은 값의 LCD 하위호환 별칭.
+  ESTOP 은 wander 가 /estop/state (latched) 를 구독해 라벨에 반영. LCD 는 표시만.
 
 클래스 (SRP, subject 하나):
   wander/  Senses | Judge | Contact | Motion | Node(idle)
@@ -96,10 +97,10 @@ zip 위치 (핑키):
   카메라 코너 벽 → 그 반대로 회전(후진 없음). 초음파가 라이다보다 가까우면 전방.
   후진 2.5cm odom, 회전 최대 70도 또는 전방이 열릴 때까지
   후진은 라이다 뒤쪽이 비어 있을 때만. 뒤가 막히면 후진 대신 회전.
-  기울기면 뒤 경로가 비어 있으면 후진, 아니면 정지. 들어올림이면 즉시 정지.
+  기울기면 뒤 경로가 비어 있으면 후진, 아니면 제자리 회전. 들어올림이면 즉시 정지.
   IR 절벽(코가 허공): 잠깐 정지 → IR이 바닥으로 돌아올 때까지만 후진 → 회전 → 전진
   벽 / 카메라 허공·장애물(아직 바닥): 잠깐 정지 → 제자리 회전 → 전진
-  상태 /wander/state 와 LCD /safety/mode (하나):
+  상태 /wander/state 와 모드 /robot/mode (정본; /safety/mode 는 같은 값의 별칭):
         ESTOP PICK CLIFF TILT
         WALL   코가 벽 (F 또는 US ≤12cm, 또는 bumper). look → 뒤 비면 backup, 아니면 escape. 붙어 있으면 전진 없음.
         LOOK   정지, L/R/F 샘플
@@ -112,7 +113,8 @@ zip 위치 (핑키):
         WARN   12–25cm, 아직 전진 (크롤)
         FWD WAIT STOP
         ros2 topic echo /wander/state
-        ros2 topic echo /safety/mode
+        ros2 topic echo /robot/mode
+        ros2 topic echo /safety/mode   # 별칭 (같은 값)
   카메라: ros2 topic echo /camera/debug
   LCD 맵이 안 나오면 emotion_server 를 끄고 lcd_control 을 다시.
   LCD 보기: ros2 topic pub --once /lcd/view std_msgs/msg/String "{data: map}"

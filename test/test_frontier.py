@@ -2,7 +2,7 @@
 import math
 import unittest
 
-from move_control.lidar import find_frontiers, robot_yaw
+from move_control.sensing.lidar import find_frontiers, robot_yaw
 
 
 class _Stamp:

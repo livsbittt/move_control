@@ -8,6 +8,11 @@
 """
 from dataclasses import dataclass
 
+# US-016 echo beyond ~0.8 m is noise, not a nose contact; lidar beyond 8 m
+# is the C1 trust horizon.
+US_NOSE_MAX_M = 0.80
+LIDAR_NOSE_MAX_M = 8.0
+
 
 class Subject:
     HAZARD = 'hazard'
@@ -50,8 +55,6 @@ MODES = (
     Mode('STOP', Subject.IDLE, 'wander disabled', 'hold'),
 )
 
-BY_NAME = {m.name: m for m in MODES}
-
 # Wander finite-state names → mode label (action/idle). Hazards overlay on top.
 WANDER_TO_MODE = {
     'forward': 'FWD',
@@ -67,15 +70,34 @@ WANDER_TO_MODE = {
     'stop': 'STOP',
 }
 
+# Wander states that own the label outright; only 'forward' falls through
+# to the contact bands.
+NON_FORWARD_STATES = frozenset(WANDER_TO_MODE) - {'forward'}
+
 
 def nose_range(front, us):
     """Closer of lidar front and a real US echo. Ignore US no-echo ~0.97 m."""
     hits = []
-    if _hit(front, 8.0):
+    if _hit(front, LIDAR_NOSE_MAX_M):
         hits.append(front)
-    if _hit(us, 0.80):
+    if _hit(us, US_NOSE_MAX_M):
         hits.append(us)
     return min(hits) if hits else float('inf')
+
+
+def nose_on_wall(front, us, wall_front=0.08):
+    """Nose contact from lidar/US only — one definition for label and FSM.
+
+    US counts only under US_NOSE_MAX_M: a long US-016 echo must not read as
+    a wall. Camera obstacle is a corner (ESCAPE), not a wall.
+    """
+    wall = float(wall_front or 0.08)
+    us_wall = (
+        _hit(us, US_NOSE_MAX_M) and float(us) < US_NOSE_MAX_M and float(us) <= wall
+    )
+    return us_wall or (
+        _hit(front, LIDAR_NOSE_MAX_M) and float(front) <= wall
+    )
 
 
 def _hit(d, hi):
@@ -108,7 +130,9 @@ def pick_mode(
     if tilt:
         return 'TILT'
     w = (wander_state or 'stop').strip().lower()
-    if w in ('look', 'calc', 'recon', 'pause', 'wall', 'backup', 'turn', 'escape', 'wait', 'stop'):
+    # Non-forward states own the label outright; only forward falls through
+    # to the contact bands.
+    if w in NON_FORWARD_STATES:
         return WANDER_TO_MODE[w]
     # forward (or unknown): contact bands
     if on_wall:

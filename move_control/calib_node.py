@@ -25,8 +25,8 @@ from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Imu, LaserScan, Range
 from std_msgs.msg import String, UInt16MultiArray
 
-from move_control.body import URDF_RADIUS, use_radius
-from move_control.lidar import NOSE_YAW, is_robot_scan, sector_range
+from move_control.sensing.body import URDF_RADIUS, use_radius
+from move_control.sensing.lidar import NOSE_YAW, is_robot_scan, sector_range
 from move_control.safety_node import parse_us_range, roll_pitch
 
 
