@@ -17,9 +17,9 @@
     # +1 = wander forward is nose-first. Do not auto-flip.
     cmd_linear_sign: 1.0
     auto_linear_sign: false
-    # Scan 0 = back. Nose = π (live US↔lidar calib ≈ 180deg).
-    lidar_yaw_offset: 3.14159265
-    scan_yaw_offset: 3.14159265
+    # Scan 0 = back. Nose ≈ 190deg (US 16cm matched lidar 14.7cm; 180deg was 12cm).
+    lidar_yaw_offset: 3.31612558
+    scan_yaw_offset: 3.31612558
     scan_pctl: 0.10
     scan_ignore_m: 0.04
     front_half_width_deg: 8.0

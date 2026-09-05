@@ -24,9 +24,9 @@ def _front_open_scan():
 
 class RouteTest(unittest.TestCase):
     def test_nose_yaw_is_front(self):
-        self.assertAlmostEqual(MOUNT_YAW_DEG, 0.0)
+        self.assertAlmostEqual(MOUNT_YAW_DEG, 10.0)
         self.assertAlmostEqual(robot_yaw(NOSE_YAW, NOSE_YAW), 0.0, places=6)
-        self.assertAlmostEqual(robot_yaw(math.pi, NOSE_YAW), 0.0, places=6)
+        self.assertAlmostEqual(math.degrees(robot_yaw(NOSE_YAW, math.pi)), 10.0, places=5)
 
     def test_picks_straight_ahead(self):
         line = line_route(_front_open_scan(), yaw_offset=math.pi, occ=0.12, max_r=0.45)

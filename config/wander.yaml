@@ -45,3 +45,5 @@ wander_node:
     stuck_m: 0.008
     steer_k: 0.9
     steer_wmax: 0.05
+    # Roomba-style: hold warn_front on the nearer wall while driving.
+    vacuum_follow: true

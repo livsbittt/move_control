@@ -63,6 +63,7 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         self.declare_parameter('stuck_m', 0.008)
         self.declare_parameter('steer_k', 0.9)
         self.declare_parameter('steer_wmax', 0.05)
+        self.declare_parameter('vacuum_follow', True)
         self.declare_parameter('turn_clear_m', 0.08)
         self.declare_parameter('turn_back_max', 2)
         self.declare_parameter('robot_radius', URDF_RADIUS)

@@ -7,7 +7,7 @@ safety_node:
     us_stop_distance: 0.020
     us_clear_distance: 0.028
     front_half_width_deg: 8.0
-    lidar_yaw_offset: 3.14159265
+    lidar_yaw_offset: 3.31612558
     robot_radius: 0.076
     camera_as_wall: false
     camera_block_as_wall: true

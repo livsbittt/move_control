@@ -8,7 +8,8 @@ Robot yaw 0 = front, +CCW = left:  wrap(scan_angle - lidar_yaw_offset).
 """
 import math
 
-MOUNT_YAW_DEG = 0.0
+# +CCW from back. 10deg from π so the front cone matches the nose sonar.
+MOUNT_YAW_DEG = 10.0
 NOSE_YAW = math.pi + math.radians(MOUNT_YAW_DEG)
 
 

@@ -29,8 +29,24 @@ class Motion:
         wmax = float(self.get_parameter('steer_wmax').value)
         return max(-wmax, min(wmax, 1.4 * yaw))
 
+    def _vacuum_follow_wz(self) -> float:
+        """Roomba wall-follow: hold standoff to the nearer side wall."""
+        set_d = float(self.get_parameter('warn_front').value)
+        wmax = float(self.get_parameter('steer_wmax').value)
+        L, R = self.left_range, self.right_range
+        have_l = self._finite(L) and L < 0.40
+        have_r = self._finite(R) and R < 0.40
+        k = 2.2 * wmax / max(set_d, 0.04)
+        if have_r and (not have_l or R <= L):
+            return max(-wmax, min(wmax, -k * (R - set_d)))
+        if have_l:
+            return max(-wmax, min(wmax, k * (L - set_d)))
+        return 0.0
+
     def _steer_wz(self) -> float:
-        """Ratio steer: (L-R)/(L+R). Hard away when hugging the nearer wall."""
+        """Ratio steer: (L-R)/(L+R). Vacuum follow holds a side standoff."""
+        if bool(self.get_parameter('vacuum_follow').value):
+            return self._vacuum_follow_wz()
         wmax = float(self.get_parameter('steer_wmax').value)
         if not (self._finite(self.left_range) and self._finite(self.right_range)):
             return 0.0
