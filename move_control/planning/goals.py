@@ -16,7 +16,9 @@ class GoalBrain:
     """Decide the next point to go. Owns mode + covered set, not the map."""
 
     def __init__(self, min_size=6, clear_m=0.06, retry_clear_m=0.0,
-                 lane_width=0.12, lane_step=0.20, reach_tol=0.05):
+                 lane_width=0.12, lane_step=0.20, reach_tol=0.05,
+                 max_options=3):
+        self.max_options = max(1, int(max_options))
         self.min_size = int(min_size)
         self.clear_m = float(clear_m)
         self.retry_clear_m = retry_clear_m
@@ -25,6 +27,7 @@ class GoalBrain:
         self.reach_tol = float(reach_tol)
         self.mode = 'explore'
         self.covered = set()
+        self.last_options = []  # ranked frontier candidates for display
 
     def plan(self, m, pose):
         """Next point to go: (goal_xy | None, route | None, status str).
@@ -37,8 +40,12 @@ class GoalBrain:
                           clear_m=self.clear_m,
                           retry_clear_m=self.retry_clear_m)
             if g is not None:
+                self.last_options = g.get('options', [])
                 st = (f"explore goal=({g['x']:.2f},{g['y']:.2f}) "
-                      f"size={g['size']} route={g['route']['length']:.2f}m")
+                      f"score={g.get('score', 0):.1f} "
+                      f"size={g['size']} "
+                      f"route={g['route']['length']:.2f}m "
+                      f"alts={max(0, len(self.last_options) - 1)}")
                 return (g['x'], g['y']), g['route'], st
             self.mode = 'coverage'  # map fully frontiered
         cover_ring(self.covered, m, pose[0], pose[1],

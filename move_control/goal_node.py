@@ -16,8 +16,9 @@ The robot is not driven from here; wander/control stay in charge of motors
 (via the safety gate). If /goal/cmd says stop, only publishing stops.
 """
 import rclpy
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Point, PoseStamped
 from nav_msgs.msg import Odometry, OccupancyGrid, Path
+from visualization_msgs.msg import Marker, MarkerArray
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from std_msgs.msg import String
@@ -40,6 +41,7 @@ class GoalNode(Node):
         self.declare_parameter('lane_width', 0.12)
         self.declare_parameter('lane_step', 0.20)
         self.declare_parameter('reach_tol', 0.05)
+        self.declare_parameter('max_options', 3)
         self.create_subscription(
             OccupancyGrid, self.get_parameter('map_topic').value,
             self.on_map, qos_profile_sensor_data)
@@ -49,6 +51,7 @@ class GoalNode(Node):
         self.goal_pub = self.create_publisher(PoseStamped, '/goal_point', 10)
         self.route_pub = self.create_publisher(Path, '/route', 10)
         self.state_pub = self.create_publisher(String, '/goal_node/state', 10)
+        self.options_pub = self.create_publisher(MarkerArray, '/goal/options', 10)
         self.tf = TfBuffer()
         self.tf_listener = TransformListener(self.tf, self)
         self.map_obj = None
@@ -63,7 +66,8 @@ class GoalNode(Node):
             retry_clear_m=float(self.get_parameter('retry_clear_m').value),
             lane_width=float(self.get_parameter('lane_width').value),
             lane_step=float(self.get_parameter('lane_step').value),
-            reach_tol=float(self.get_parameter('reach_tol').value))
+            reach_tol=float(self.get_parameter('reach_tol').value),
+            max_options=int(self.get_parameter('max_options').value))
         self.brain.mode = self.mode if self.mode != 'stop' else 'explore'
         self.timer = self.create_timer(
             1.0 / max(0.1, float(self.get_parameter('rate').value)), self.plan)
@@ -115,8 +119,42 @@ class GoalNode(Node):
             return
         goal, route, status = self.brain.plan(m, (x, y))
         self.state_pub.publish(String(data=f'{status} pose~{src}'))
+        self._pub_options()
         if goal is not None and route is not None:
             self._pub_goal(goal[0], goal[1], route)
+
+    def _pub_options(self):
+        """Show the frontier alternatives in RViz: /goal/options.
+
+        The chosen route is marker 0 (thick green); alternatives follow in
+        score order (thin orange). No options -> one DELETEALL marker.
+        """
+        arr = MarkerArray()
+        opts = self.brain.last_options if self.mode != 'stop' else []
+        if not opts:
+            clear = Marker()
+            clear.action = Marker.DELETEALL
+            arr.markers.append(clear)
+        for i, opt in enumerate(opts):
+            mk = Marker()
+            mk.header.frame_id = 'map'
+            mk.header.stamp = self.get_clock().now().to_msg()
+            mk.ns = 'goal_options'
+            mk.id = i
+            mk.type = Marker.LINE_STRIP
+            mk.action = Marker.ADD
+            mk.pose.orientation.w = 1.0
+            mk.scale.x = 0.02 if i == 0 else 0.01
+            if i == 0:
+                mk.color.r, mk.color.g, mk.color.b, mk.color.a = \
+                    0.2, 1.0, 0.2, 0.9
+            else:
+                mk.color.r, mk.color.g, mk.color.b, mk.color.a = \
+                    1.0, 0.6, 0.1, 0.5
+            mk.points = [Point(x=float(px), y=float(py), z=0.01)
+                         for px, py in opt['route']['points']]
+            arr.markers.append(mk)
+        self.options_pub.publish(arr)
 
     def _pub_goal(self, x, y, route):
         stamp = self.get_clock().now().to_msg()

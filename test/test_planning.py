@@ -162,6 +162,22 @@ class FrontierTest(RoomCase):
         self.assertIsNotNone(pick_goal(self.m, self.start, min_size=2,
                                        min_route_m=0.0))
 
+    def test_pick_goal_best_ratio_not_biggest(self):
+        # Ratio beat raw size: a small frontier next door outscores a big
+        # one behind a wall (detour kills its gain-per-metre).
+        m = self.room(w=13, h=7, pockets=((3, 2, 3, 3), (9, 1, 11, 4)))
+        m = self.wall_col(m, 6, (1, 2, 4, 5))  # gap only at row 3
+        g = pick_goal(m, self.START, min_size=2, retry_clear_m=0.0)
+        self.assertIsNotNone(g)
+        c, _ = m.world_to_grid(g['x'], g['y'])
+        self.assertLess(c, 6, g)  # winner is on the near side of the wall
+        opts = g['options']
+        self.assertGreaterEqual(len(opts), 2)
+        self.assertGreaterEqual(opts[0]['score'], opts[1]['score'])
+        self.assertLessEqual(len(opts), 3)
+        # The winner is NOT the biggest candidate — the ratio decided.
+        self.assertLess(opts[0]['size'], max(o['size'] for o in opts))
+
 
 class ZigzagTest(RoomCase):
     def setUp(self):

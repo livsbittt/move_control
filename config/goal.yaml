@@ -19,3 +19,5 @@ goal_node:
     lane_step: 0.20
     # Coverage waypoint counts as reached within this distance.
     reach_tol: 0.05
+    # Show at most this many frontier alternatives on /goal/options.
+    max_options: 3

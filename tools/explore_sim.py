@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """ASCII sim: SLAM-style exploring, then zigzag coverage. No ROS needed.
 
+Frame marks: '#' wall '.' free '~' unknown 'o' swept '+' route
+'1' chosen route '2'/'3' ranked alternative routes '*' goal 'R' robot.
+
 python3 tools/explore_sim.py                # animated, 8 fps
 python3 tools/explore_sim.py --quiet        # summary + final frame only
 
@@ -124,6 +127,7 @@ class ExploreSim:
         self.render_every = render_every
         self.fps = fps
         self.route, self.ri, self.goal = None, 0, None
+        self.options = []
         self.since_plan = 0
         self.tick = 0
 
@@ -148,6 +152,7 @@ class ExploreSim:
                 or self.since_plan >= REPLAN_EVERY:
             self.goal, self.route, status = self.brain.plan(
                 self.sim, (self.robot.x, self.robot.y))
+            self.options = self.brain.last_options
             self.since_plan = 0
             self.phase = self.brain.mode
             if status == 'coverage done':
@@ -171,7 +176,12 @@ class ExploreSim:
 
     def _frame(self):
         marks = {(c, r): 'o' for c, r in self.covered}
-        if self.route:
+        if self.options:
+            # '1' = chosen route, '2'/'3' = ranked alternatives
+            for i, opt in enumerate(self.options):
+                for pt in opt['route']['points']:
+                    marks[self.sim.world_to_grid(*pt)] = str(i + 1)
+        elif self.route:
             for pt in self.route['points'][self.ri:]:
                 marks[self.sim.world_to_grid(*pt)] = '+'
         if self.goal is not None:

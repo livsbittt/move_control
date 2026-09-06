@@ -51,10 +51,14 @@ def frontier_points(m, min_size=6):
 
 
 def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
-              min_route_m=0.08):
-    """First usable frontier goal (size desc). None if nothing worth driving.
+              min_route_m=0.08, max_options=3):
+    """Best frontier by unknown gained per metre driven (size / length).
 
-    Returns {'kind': 'frontier', 'x', 'y', 'size', 'route', 'clear_m'}.
+    Every reachable frontier is scored, not just the biggest: a small
+    frontier next door can beat a big one across the maze. Returns
+    {'kind', 'x', 'y', 'size', 'route', 'clear_m', 'score', 'options'}
+    where options are the top max_options candidates (chosen first), so the
+    driver can show the alternatives.
     retry_clear_m: when the inflated map seals thin corridors, a second pass
     at retry_clear_m (0.0 = raw map) still finds an approach; the safety gate
     still guards the hardware in that last stretch.
@@ -62,12 +66,34 @@ def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
     already sits on reveals nothing new, and returning it as the point to go
     would just spin the replan loop.
     """
+    best_safe = None
+    best_raw = None
+    options = []
     for cm in (clear_m, retry_clear_m):
         if cm is None:
             continue
+        pass_best = None
         for f in frontier_points(m, min_size):
             route = best_route(m, start, (f['x'], f['y']), clear_m=cm)
-            if route and route['length'] >= min_route_m:
-                return {'kind': 'frontier', 'x': f['x'], 'y': f['y'],
-                        'size': f['size'], 'route': route, 'clear_m': cm}
-    return None
+            if not route or route['length'] < min_route_m:
+                continue
+            cand = {'kind': 'frontier', 'x': f['x'], 'y': f['y'],
+                    'size': f['size'], 'route': route, 'clear_m': cm,
+                    'score': f['size'] / max(route['length'], 1e-6)}
+            options.append(cand)
+            if pass_best is None or cand['score'] > pass_best['score']:
+                pass_best = cand
+        if cm == clear_m:
+            best_safe = pass_best
+        else:
+            best_raw = pass_best
+    # The safe-margin pass wins the choice; the raw pass only backs it up
+    # when nothing is reachable with clearance. All candidates stay in
+    # options either way, so the driver can show every alternative.
+    best = best_safe if best_safe is not None else best_raw
+    if best is None:
+        return None
+    options.sort(key=lambda o: o['score'], reverse=True)
+    best = dict(best)
+    best['options'] = options[:max(1, int(max_options))]
+    return best

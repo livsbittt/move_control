@@ -49,7 +49,7 @@ ros2 topic pub --once /goal_distance std_msgs/msg/Float64 "{data: 0.2}"  # contr
 ros2 topic pub --once /goal_rotate   std_msgs/msg/Float64 "{data: 90.0}" # control_node rotate test
 ```
 
-Observe: `/wander/state` (FSM verb), `/robot/mode` (canonical fused label), `/safety/mode` (deprecated alias, same label), `/robot/health`, `/camera/debug`, `/goal_point`, `/route`, `/goal_node/state`, `ros2 pkg executables move_control`.
+Observe: `/wander/state` (FSM verb), `/robot/mode` (canonical fused label), `/safety/mode` (deprecated alias, same label), `/robot/health`, `/camera/debug`, `/goal_point`, `/route`, `/goal/options`, `/goal_node/state`, `ros2 pkg executables move_control`.
 
 There is no linter configured. LCD/LED/web live in **other packages** (`lcd_control`, `pinky_web`) — not in this repo.
 
