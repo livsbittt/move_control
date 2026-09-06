@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Gazebo test of the planning stack (GUI shows the maze + robot).
+#   bash tools/gz/test_planning.sh
+cd "$(dirname "$0")/../.."
+source /opt/ros/jazzy/setup.bash
+set -- 
+mkdir -p /tmp/gztest
+log() { echo "[runner] $*"; }
+
+log "world + server + GUI"
+gz sim -r tools/gz/pinky_maze.sdf > /tmp/gztest/gz.log 2>&1 &
+GZ=$!
+sleep 6
+log "bridge"
+ros2 run ros_gz_bridge parameter_bridge \
+  /lidar/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan \
+  /model/pinky/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry \
+  /cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist \
+  /clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock \
+  --ros-args -p use_sim_time:=true \
+  -r /lidar/scan:=/scan -r /model/pinky/odometry:=/odom \
+  > /tmp/gztest/bridge.log 2>&1 &
+BR=$!
+sleep 2
+log "goal_node"
+python3 -c "import move_control.goal_node as g; g.main()" --ros-args \
+  -p use_sim_time:=true --params-file config/goal.yaml \
+  -p mode:=explore -p min_size:=4 -p rate:=1.0 \
+  > /tmp/gztest/goal.log 2>&1 &
+GO=$!
+sleep 2
+log "driver (TF glue first, slam needs it)"
+python3 tools/gz/driver.py --ros-args -p use_sim_time:=true \
+  -p v:=0.12 -p w:=0.8 > /tmp/gztest/driver.log 2>&1 &
+DR=$!
+log "waiting for static lidar TF from driver..."
+for i in $(seq 1 60); do
+  if timeout 2 ros2 topic echo /tf_static --once 2>/dev/null | grep -q frame_id; then
+    log "static TF up (try $i)"
+    break
+  fi
+  sleep 1
+done
+log "slam_toolbox (after static lidar TF exists)"
+ros2 launch slam_toolbox online_async_launch.py use_sim_time:=true \
+  slam_params_file:="$PWD/tools/gz/slam_sim.yaml" > /tmp/gztest/slam.log 2>&1 &
+SL=$!
+log "all up: gz=$GZ bridge=$BR slam=$SL goal=$GO driver=$DR"
+log "GUI: gz window | logs: /tmp/gztest/*.log"
+trap 'kill $DR $GO $SL $BR 2>/dev/null; sleep 1; kill $GZ 2>/dev/null' INT TERM
+wait

@@ -1,0 +1,22 @@
+# slam_toolbox tuned for the 0.45 m CPU lidar in the gz maze.
+slam_toolbox:
+  ros__parameters:
+    odom_frame: odom
+    map_frame: map
+    base_frame: base_link
+    scan_topic: /scan
+    mode: mapping
+    debug_logging: false
+    throttle_scans: 1
+    transform_publish_period: 0.05
+    map_update_interval: 1.0
+    resolution: 0.05
+    use_map_saver: true
+    min_laser_range: 0.05
+    max_laser_range: 0.45
+    minimum_travel_distance: 0.05
+    minimum_travel_heading: 0.15
+    transform_timeout: 0.5
+    stack_size_to_use: 40000000
+    use_scan_matching: true
+    minimum_time_interval: 0.2
