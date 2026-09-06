@@ -223,10 +223,12 @@ class GoalBrainTest(RoomCase):
         self.assertEqual(self.brain.mode, 'explore')
         self.assertTrue(status.startswith('explore'))
 
-    def test_transitions_to_coverage_when_mapped(self):
+    def test_sweeps_coverage_when_no_frontiers(self):
+        # No frontier this tick -> the brain falls through to a coverage
+        # waypoint for the sweep, while staying ready to explore again.
         goal, route, status = self.brain.plan(self.known, self.START)
-        self.assertEqual(self.brain.mode, 'coverage')
         self.assertTrue(status.startswith('coverage'))
+        self.assertIsNotNone(goal)
 
     def test_coverage_done_when_all_covered(self):
         self.brain.mode = 'coverage'
@@ -299,3 +301,17 @@ class GoalBrainTest(RoomCase):
         self.assertIn('stall', st)
         st_next = brain.plan(m, self.START)[2]
         self.assertTrue(st_next.startswith('wide-first'), st_next)
+
+    def test_returns_to_explore_when_frontier_reappears(self):
+        # A growing map re-opens frontiers: after coverage the brain must
+        # try explore again instead of staying 'coverage done'.
+        brain = GoalBrain(min_size=2)
+        m = self.known_room()
+        brain.covered = set(m.free_cells())
+        goal, route, status = brain.plan(m, self.START)
+        self.assertEqual(status, 'coverage done')
+        m.set_cell(6, 3, UNKNOWN)
+        m.set_cell(6, 4, UNKNOWN)
+        goal, route, status = brain.plan(m, self.START)
+        self.assertEqual(brain.mode, 'explore')
+        self.assertTrue(status.startswith('explore'), status)

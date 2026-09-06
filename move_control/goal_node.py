@@ -51,6 +51,7 @@ class GoalNode(Node):
         self.declare_parameter('stall_min_dist', 0.15)
         self.declare_parameter('blacklist_plans', 20)
         self.declare_parameter('escape_clear_m', 0.08)
+        self.declare_parameter('debug', False)
         self.create_subscription(
             OccupancyGrid, self.get_parameter('map_topic').value,
             self.on_map, qos_profile_sensor_data)
@@ -151,6 +152,10 @@ class GoalNode(Node):
             self.state_pub.publish(String(data='stopped'))
             return
         goal, route, status = self.brain.plan(m, (x, y))
+        if self.get_parameter('debug').value:
+            self.get_logger().info(
+                f'plan covered={len(self.brain.covered)} '
+                f'blacklist={len(self.brain._blacklist)} :: {status}')
         self._pub_status(status, route, src)
         self._pub_options()
         if goal is not None and route is not None:

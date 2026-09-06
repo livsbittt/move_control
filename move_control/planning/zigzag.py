@@ -35,6 +35,19 @@ class ZigzagPlanner:
     def waypoints(self):
         return list(self.points)
 
+    def probe_point(self, pose):
+        """Farthest reachable free cell centre from pose (world m), or None.
+
+        Used when coverage is done but the world may still be bigger than
+        the map: driving there pushes the sensor envelope outward.
+        """
+        if not self.region:
+            return None
+        sc = self.m.world_to_grid(*pose)
+        cell = max(self.region,
+                   key=lambda c: (c[0] - sc[0]) ** 2 + (c[1] - sc[1]) ** 2)
+        return self.m.grid_to_world(*cell)
+
     def _build(self, region, stride, step, min_run, covered):
         lanes = []
         if not region:

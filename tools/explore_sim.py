@@ -154,7 +154,8 @@ class ExploreSim:
                 self.sim, (self.robot.x, self.robot.y))
             self.options = self.brain.last_options
             self.since_plan = 0
-            self.phase = self.brain.mode
+            self.phase = 'coverage' if status.startswith('coverage') \
+                else 'explore'
             if status == 'coverage done':
                 return True
             if self.goal is None:

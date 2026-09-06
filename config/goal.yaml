@@ -32,5 +32,9 @@ goal_node:
     # After a stall, routes are planned with this clearance (2-cell
     # inflation seals 15 cm gaps) until the robot leaves the stuck area.
     escape_clear_m: 0.08
+    # When coverage reports done, keep sending the robot to the farthest
+    # reachable cell: a small fully-known map may still be a tiny corner of
+    # the true world, and only driving grows it.
+    probe_when_done: true
     # Nominal cruise (m/s) for the ETA until odom speed is available.
     speed_mps: 0.014

@@ -19,12 +19,13 @@ class GoalBrain:
                  lane_width=0.12, lane_step=0.20, reach_tol=0.05,
                  max_options=3, stall_plans=6, progress_m=0.03,
                  stall_min_dist=0.15, blacklist_plans=20,
-                 escape_clear_m=0.08):
+                 escape_clear_m=0.08, probe_when_done=False):
         self.max_options = max(1, int(max_options))
         # Wide-first escape: after a stall, routes are planned with this
         # clearance (2-cell inflation seals 15 cm gaps) until the robot has
         # left the stuck neighborhood — the way out avoids tight obstacles.
         self.escape_clear_m = float(escape_clear_m)
+        self.probe_when_done = bool(probe_when_done)
         # Stall watchdog: if the robot gets nowhere for this many plan calls,
         # bench that frontier and take the next-best option.
         self.stall_plans = max(2, int(stall_plans))
@@ -126,7 +127,11 @@ class GoalBrain:
                       f"alts={max(0, len(self.last_options) - 1)}")
                 return (g['x'], g['y']), g['route'], \
                     ('wide-first ' if wide else '') + prefix + st
-            self.mode = 'coverage'  # map fully frontiered
+            # No frontier this tick: sweep coverage below, but keep the
+            # explore request — a growing map will re-open frontiers and
+            # this branch picks them up automatically on a later plan.
+            if self.mode != 'explore':
+                self.mode = 'explore'
         cover_ring(self.covered, m, pose[0], pose[1],
                    radius_m=self.lane_width / 2 + 0.08)
         zz = ZigzagPlanner(m, start=pose, covered=self.covered,
@@ -139,6 +144,17 @@ class GoalBrain:
             return None, None, 'coverage idle (no known space)'
         wps = zz.waypoints()
         if not wps:
+            if self.probe_when_done:
+                probe = zz.probe_point(pose)
+                if probe is not None:
+                    # Tiny pockets seal under inflation; fall back to the
+                    # raw map so the robot can at least leave the pocket.
+                    for cm in (self.clear_m, 0.0):
+                        route = best_route(m, pose, probe, clear_m=cm)
+                        if route and route['length'] >= 0.05:
+                            return probe, route, (
+                                f'probe goal=({probe[0]:.2f},{probe[1]:.2f}) '
+                                f'route={route["length"]:.2f}m')
             return None, None, 'coverage done'
         goal = wps[0]
         route = best_route(m, pose, goal, clear_m=self.clear_m)

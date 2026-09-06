@@ -7,9 +7,14 @@ set --
 mkdir -p /tmp/gztest
 log() { echo "[runner] $*"; }
 
-log "world + server + GUI"
-gz sim -r tools/gz/pinky_maze.sdf > /tmp/gztest/gz.log 2>&1 &
+log "world: server + GUI (separate procs so a GUI crash can't kill the sim)"
+# --headless-rendering: GPU lidar via EGL on the server; GUI is a client.
+gz sim -s -r --headless-rendering tools/gz/pinky_maze.sdf \
+  > /tmp/gztest/gz.log 2>&1 &
 GZ=$!
+sleep 3
+gz sim -g tools/gz/pinky_maze.sdf > /tmp/gztest/gui.log 2>&1 &
+GUI=$!
 sleep 6
 log "bridge"
 ros2 run ros_gz_bridge parameter_bridge \
@@ -45,7 +50,11 @@ log "slam_toolbox (after static lidar TF exists)"
 ros2 launch slam_toolbox online_async_launch.py use_sim_time:=true \
   slam_params_file:="$PWD/tools/gz/slam_sim.yaml" > /tmp/gztest/slam.log 2>&1 &
 SL=$!
+log "dashboard"
+python3 tools/dashboard.py --ros-args -p use_sim_time:=true -p port:=8080 \
+  > /tmp/gztest/dash.log 2>&1 &
+DA=$!
 log "all up: gz=$GZ bridge=$BR slam=$SL goal=$GO driver=$DR"
 log "GUI: gz window | logs: /tmp/gztest/*.log"
-trap 'kill $DR $GO $SL $BR 2>/dev/null; sleep 1; kill $GZ 2>/dev/null' INT TERM
+trap 'kill $DR $GO $SL $BR $DA $GUI 2>/dev/null; sleep 1; kill $GZ 2>/dev/null' INT TERM
 wait
