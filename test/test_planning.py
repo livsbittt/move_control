@@ -254,3 +254,34 @@ class GoalBrainTest(RoomCase):
         self.assertIsNone(goal)
         self.assertIn('idle', status)
         self.assertNotEqual(status, 'coverage done')
+
+    def test_stall_switches_to_alternative(self):
+        # Robot pinned at one pose: after stall_plans plans with no
+        # progress the frontier is benched and the next-best option wins.
+        brain = GoalBrain(min_size=2, stall_plans=2, progress_m=0.05,
+                          stall_min_dist=0.05, blacklist_plans=50)
+        m = self.room(w=13, h=7, pockets=((3, 2, 3, 3), (9, 1, 11, 4)))
+        goal1, _route, st1 = brain.plan(m, self.START)
+        self.assertIsNotNone(goal1)
+        for _ in range(2):  # same pose again and again = stuck
+            goal2, _route, st2 = brain.plan(m, self.START)
+        self.assertIn('stall', st2)
+        c1 = m.world_to_grid(*goal1)
+        c2 = m.world_to_grid(*goal2)
+        self.assertNotEqual(c1, c2)
+        self.assertIn(c1, brain._blacklist)
+
+    def test_blacklist_expires(self):
+        # A benched cell is retried after blacklist_plans plan calls —
+        # and a still-stuck robot simply re-benches it (expiry moves up).
+        brain = GoalBrain(min_size=2, stall_plans=2, progress_m=0.05,
+                          stall_min_dist=0.05, blacklist_plans=3)
+        m = self.room(w=13, h=7, pockets=((3, 2, 3, 3), (9, 1, 11, 4)))
+        brain.plan(m, self.START)
+        for _ in range(2):
+            brain.plan(m, self.START)
+        first = max(brain._blacklist.values())
+        for _ in range(5):
+            brain.plan(m, self.START)
+        still = max(brain._blacklist.values()) if brain._blacklist else 0
+        self.assertGreater(still, first)  # old entry expired, fresh one set

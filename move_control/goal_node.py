@@ -15,13 +15,15 @@ Subscribe /goal/cmd: explore|coverage|stop to switch modes at runtime.
 The robot is not driven from here; wander/control stay in charge of motors
 (via the safety gate). If /goal/cmd says stop, only publishing stops.
 """
+import math
+
 import rclpy
 from geometry_msgs.msg import Point, PoseStamped
 from nav_msgs.msg import Odometry, OccupancyGrid, Path
 from visualization_msgs.msg import Marker, MarkerArray
 from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
-from std_msgs.msg import String
+from std_msgs.msg import Float32, String
 from tf2_ros import Buffer as TfBuffer
 from tf2_ros import TransformListener
 
@@ -42,6 +44,12 @@ class GoalNode(Node):
         self.declare_parameter('lane_step', 0.20)
         self.declare_parameter('reach_tol', 0.05)
         self.declare_parameter('max_options', 3)
+        # Nominal cruise for the ETA when odom history is not in yet.
+        self.declare_parameter('speed_mps', 0.014)
+        self.declare_parameter('stall_plans', 6)
+        self.declare_parameter('progress_m', 0.03)
+        self.declare_parameter('stall_min_dist', 0.15)
+        self.declare_parameter('blacklist_plans', 20)
         self.create_subscription(
             OccupancyGrid, self.get_parameter('map_topic').value,
             self.on_map, qos_profile_sensor_data)
@@ -52,11 +60,13 @@ class GoalNode(Node):
         self.route_pub = self.create_publisher(Path, '/route', 10)
         self.state_pub = self.create_publisher(String, '/goal_node/state', 10)
         self.options_pub = self.create_publisher(MarkerArray, '/goal/options', 10)
+        self.eta_pub = self.create_publisher(Float32, '/goal/eta', 10)
         self.tf = TfBuffer()
         self.tf_listener = TransformListener(self.tf, self)
         self.map_obj = None
         self.ox = self.oy = 0.0
         self.have_odom = False
+        self._hist = []  # (t, x, y) odom ring for the effective speed
         self.mode = str(self.get_parameter('mode').value)
         if self.mode not in ('explore', 'coverage', 'stop'):
             self.mode = 'explore'
@@ -67,7 +77,11 @@ class GoalNode(Node):
             lane_width=float(self.get_parameter('lane_width').value),
             lane_step=float(self.get_parameter('lane_step').value),
             reach_tol=float(self.get_parameter('reach_tol').value),
-            max_options=int(self.get_parameter('max_options').value))
+            max_options=int(self.get_parameter('max_options').value),
+            stall_plans=int(self.get_parameter('stall_plans').value),
+            progress_m=float(self.get_parameter('progress_m').value),
+            stall_min_dist=float(self.get_parameter('stall_min_dist').value),
+            blacklist_plans=int(self.get_parameter('blacklist_plans').value))
         self.brain.mode = self.mode if self.mode != 'stop' else 'explore'
         self.timer = self.create_timer(
             1.0 / max(0.1, float(self.get_parameter('rate').value)), self.plan)
@@ -84,6 +98,21 @@ class GoalNode(Node):
         p = msg.pose.pose.position
         self.ox, self.oy = p.x, p.y
         self.have_odom = True
+        now = self.get_clock().now().nanoseconds * 1e-9
+        self._hist.append((now, p.x, p.y))
+        cut = now - 5.0
+        while self._hist and self._hist[0][0] < cut:
+            self._hist.pop(0)
+
+    def v_eff(self):
+        """Mean speed over the last ~3 s of odom. 0.0 when not enough."""
+        h = self._hist
+        for i, (t0, _x, _y) in enumerate(h):
+            if h[-1][0] - t0 >= 1.5 or i == len(h) - 1:
+                dt = h[-1][0] - t0
+                d = math.hypot(h[-1][1] - _x, h[-1][2] - _y)
+                return d / dt if dt > 0.2 else 0.0
+        return 0.0
 
     def on_cmd(self, msg):
         cmd = msg.data.strip().lower()
@@ -118,10 +147,28 @@ class GoalNode(Node):
             self.state_pub.publish(String(data='stopped'))
             return
         goal, route, status = self.brain.plan(m, (x, y))
-        self.state_pub.publish(String(data=f'{status} pose~{src}'))
+        self._pub_status(status, route, src)
         self._pub_options()
         if goal is not None and route is not None:
             self._pub_goal(goal[0], goal[1], route)
+
+    def _pub_status(self, status, route, src):
+        """State line + /goal/eta. eta is seconds at the odom-derived speed
+        (nominal cruise fallback); 0.0 = no estimate. The stall watchdog in
+        the brain is what actually swaps an unreachable goal out."""
+        v = self.v_eff()
+        if v <= 0.002:
+            v = float(self.get_parameter('speed_mps').value)
+            v_note = 'nom'
+        else:
+            v_note = 'odo'
+        eta = 0.0
+        if route is not None and route.get('length'):
+            eta = min(999.0, route['length'] / max(v, 0.001))
+        self.eta_pub.publish(Float32(data=eta))
+        eta_txt = f'eta~{eta:.0f}s({v_note})' if eta > 0.0 else 'eta=?'
+        self.state_pub.publish(
+            String(data=f'{status} {eta_txt} v={v * 100:.1f}cm/s pose~{src}'))
 
     def _pub_options(self):
         """Show the frontier alternatives in RViz: /goal/options.

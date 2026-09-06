@@ -21,3 +21,13 @@ goal_node:
     reach_tol: 0.05
     # Show at most this many frontier alternatives on /goal/options.
     max_options: 3
+    # Stall watchdog: after this many plan calls (2 s each) with under
+    # progress_m of approach, the frontier is benched and the next-best
+    # option becomes the goal. stall_min_dist exempts nearly-reached goals.
+    stall_plans: 6
+    progress_m: 0.03
+    stall_min_dist: 0.15
+    # Benched cells are retried after this many plan calls (~2 min).
+    blacklist_plans: 20
+    # Nominal cruise (m/s) for the ETA until odom speed is available.
+    speed_mps: 0.014

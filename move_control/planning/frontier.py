@@ -51,7 +51,7 @@ def frontier_points(m, min_size=6):
 
 
 def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
-              min_route_m=0.08, max_options=3):
+              min_route_m=0.08, max_options=3, exclude=None):
     """Best frontier by unknown gained per metre driven (size / length).
 
     Every reachable frontier is scored, not just the biggest: a small
@@ -59,6 +59,8 @@ def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
     {'kind', 'x', 'y', 'size', 'route', 'clear_m', 'score', 'options'}
     where options are the top max_options candidates (chosen first), so the
     driver can show the alternatives.
+    exclude: set of grid cells to skip — the stall watchdog benches
+    frontiers the robot repeatedly fails to approach.
     retry_clear_m: when the inflated map seals thin corridors, a second pass
     at retry_clear_m (0.0 = raw map) still finds an approach; the safety gate
     still guards the hardware in that last stretch.
@@ -66,6 +68,7 @@ def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
     already sits on reveals nothing new, and returning it as the point to go
     would just spin the replan loop.
     """
+    exclude = exclude or set()
     best_safe = None
     best_raw = None
     options = []
@@ -74,6 +77,8 @@ def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
             continue
         pass_best = None
         for f in frontier_points(m, min_size):
+            if f['cell'] in exclude:
+                continue
             route = best_route(m, start, (f['x'], f['y']), clear_m=cm)
             if not route or route['length'] < min_route_m:
                 continue

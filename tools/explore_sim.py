@@ -189,7 +189,15 @@ class ExploreSim:
         marks[self.sim.world_to_grid(self.robot.x, self.robot.y)] = 'R'
         nxt = (self.route['points'][self.ri]
                if self.route and self.ri < len(self.route['points']) else None)
-        head = (f't={self.tick} {self.phase} next={nxt} '
+        eta = 0.0
+        if self.route and self.ri < len(self.route['points']):
+            left = math.hypot(self.route['points'][self.ri][0] - self.robot.x,
+                              self.route['points'][self.ri][1] - self.robot.y)
+            for a, b in zip(self.route['points'][self.ri:],
+                            self.route['points'][self.ri + 1:]):
+                left += math.hypot(b[0] - a[0], b[1] - a[1])
+            eta = left / V
+        head = (f't={self.tick} {self.phase} next={nxt} eta~{eta:.0f}s '
                 f'known={len(self.sim.free_cells())} covered={len(self.covered)}')
         print('\033[2J\033[H')
         print(head)
