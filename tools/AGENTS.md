@@ -1,0 +1,25 @@
+<!-- Parent: ../AGENTS.md -->
+<!-- Generated: 2026-09-06 | Updated: 2026-09-06 -->
+# tools/ (offline simulator)
+
+## Purpose
+ASCII simulator of the full explore→coverage pipeline (frontier explore → zigzag coverage) without ROS. Reuses `move_control/planning` directly.
+
+## Key Files
+| File | Description |
+|---|---|
+| `explore_sim.py` | ASCII sim: `--quiet` mode for CI-style checks; exits non-zero on failure |
+| `__pycache__/` | generated |
+
+## For AI Agents
+
+### Working In This Directory
+- The sim must stay import-side-effect-free; it imports `move_control.planning` (pure logic) only.
+- Use it to sanity-check planning changes: `python3 tools/explore_sim.py --quiet`.
+
+## Dependencies
+
+### Internal
+- `move_control/planning` — shares GoalBrain with goal_node.
+
+<!-- MANUAL: -->
