@@ -26,6 +26,23 @@ from visualization_msgs.msg import MarkerArray
 STATE = {}
 LOCK = threading.Lock()
 PUBS = {}
+MAP_PNG = {'bytes': None}  # rendered live map for /map.png
+_PATH = {'xy': None, 'm': 0.0}  # odom path length since dashboard start
+
+
+def render_png(msg):
+    """Live map as a PNG: the mapping result the browser loads on /map.png
+    without polling a w*h-int JSON array every 0.5 s."""
+    import numpy as np
+    import cv2
+    info = msg.info
+    arr = np.array(msg.data, np.int16).reshape(info.height, info.width)
+    img = np.full((info.height, info.width, 3), 205, np.uint8)
+    img[(arr >= 0) & (arr < 65)] = (255, 255, 255)
+    img[arr >= 65] = (0, 0, 0)
+    ok, buf = cv2.imencode('.png', img)
+    if ok:
+        MAP_PNG['bytes'] = buf.tobytes()
 
 
 def cb_map(msg):
@@ -35,6 +52,7 @@ def cb_map(msg):
         STATE['map'] = [info.width, info.height, info.resolution,
                         info.origin.position.x, info.origin.position.y,
                         data]
+    render_png(msg)
 
 
 def cb_odom(msg):
@@ -42,8 +60,14 @@ def cb_odom(msg):
     q = msg.pose.pose.orientation
     yaw = math.atan2(2.0 * (q.w * q.z + q.x * q.y),
                      1.0 - 2.0 * (q.y * q.y + q.z * q.z))
+    m = math.hypot(p.x - _PATH['xy'][0], p.y - _PATH['xy'][1]) \
+        if _PATH['xy'] else 0.0
+    if m < 1.0:  # teleport = odom reset, not travel
+        _PATH['m'] += m
+    _PATH['xy'] = (p.x, p.y)
     with LOCK:
         STATE['pose'] = [round(p.x, 3), round(p.y, 3), round(yaw, 3)]
+        STATE['path'] = round(_PATH['m'], 1)
 
 
 def cb_goal(msg):
@@ -95,6 +119,34 @@ def make_handler():
             elif self.path == '/state.json':
                 with LOCK:
                     body = json.dumps(STATE).encode()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(body)
+            elif self.path == '/map.png':
+                with LOCK:
+                    png = MAP_PNG['bytes']
+                if png is None:
+                    self.send_response(404)
+                    self.end_headers()
+                    return
+                self.send_response(200)
+                self.send_header('Content-Type', 'image/png')
+                self.end_headers()
+                self.wfile.write(png)
+            elif self.path == '/result.json':
+                with LOCK:
+                    body = {k: STATE.get(k) for k in
+                            ('state', 'path', 'eta', 'pose')}
+                mf = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                  '..', 'map', 'gz_maze_metrics.json')
+                body['metrics'] = None
+                if os.path.isfile(mf):
+                    try:
+                        body['metrics'] = json.load(open(mf))
+                    except (OSError, ValueError):
+                        pass
+                body = json.dumps(body).encode()
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()

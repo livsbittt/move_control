@@ -6,9 +6,15 @@ robot; connectors between waypoints are planned separately (best_route).
 covered cells are excluded before lane building, so replanning with a fresh
 covered set advances coverage instead of repeating it.
 """
+import heapq
 import math
 
 from .gridmap import nearest_free
+
+# 8-connected steps shared by the walk-distance probe flood (no corner
+# cutting — the same rule best_route's A* uses).
+_STEPS8 = ((1, 0), (-1, 0), (0, 1), (0, -1),
+           (1, 1), (1, -1), (-1, 1), (-1, -1))
 
 
 class ZigzagPlanner:
@@ -35,18 +41,78 @@ class ZigzagPlanner:
     def waypoints(self):
         return list(self.points)
 
-    def probe_point(self, pose):
-        """Farthest reachable free cell centre from pose (world m), or None.
+    def probe_point(self, pose, walk_min_m=0.10, covered=None,
+                    straight_min_m=None):
+        """Farthest free cell by walk distance, no corner cutting.
 
         Used when coverage is done but the world may still be bigger than
         the map: driving there pushes the sensor envelope outward.
+
+        The region flood is 8-conn and may cross corner-cut diagonals A*
+        cannot drive (best_route forbids cutting corners), so a probe on
+        one of those dead-flood cells returned best_route=None at every
+        clearance and the loop sat frozen on 'coverage done'. Farthest by
+        walk distance uses best_route's own connectivity, so the raw-map
+        route always exists. walk_min_m skips cells within the driver's
+        arrival tolerance so standing on the target can't re-deadlock.
+
+        covered (sim rig): cells already swept are skipped, so the probe
+        ADVANCES — the farthest-walk cell otherwise stays the same cell
+        after the robot stands on it and the loop re-picks it forever.
+        straight_min_m optionally rejects walk-far-but-straight-near cells
+        (a point 2 cm away across a wall corner); None keeps the plain
+        walk-farthest contract. Failing that gate, the walk-farthest cell
+        is still returned — an imperfect probe beats 'coverage done'.
+
+        The gates filter only the target pick, never the expansion: an
+        early continue once truncated the flood at the start cell's own
+        neighbours (all straight-near) and probe_point returned None — or
+        worse, a next-door cell — on every map.
         """
         if not self.region:
             return None
-        sc = self.m.world_to_grid(*pose)
-        cell = max(self.region,
-                   key=lambda c: (c[0] - sc[0]) ** 2 + (c[1] - sc[1]) ** 2)
-        return self.m.grid_to_world(*cell)
+        start = nearest_free(self.m, self.m.world_to_grid(*pose))
+        if start is None:
+            return None
+        wmin = walk_min_m / self.m.res  # m -> cells; the flood counts cells
+        dist = {start: 0.0}
+        q = [(0.0, start)]
+        far_c, far_d = None, -1.0
+        far_any, far_any_d = None, -1.0
+        while q:
+            d, cur = heapq.heappop(q)
+            if d > dist.get(cur, 1e9):
+                continue
+            if d >= wmin:
+                if d > far_any_d:
+                    far_any, far_any_d = cur, d
+                if covered is None or cur not in covered:
+                    wx, wy = self.m.grid_to_world(*cur)
+                    if (straight_min_m is None or
+                            math.hypot(wx - pose[0],
+                                       wy - pose[1]) >= straight_min_m):
+                        if d > far_d:
+                            far_c, far_d = cur, d
+            for dc, dr in _STEPS8:
+                if dc and dr and not (
+                        self.m.is_free(cur[0] + dc, cur[1])
+                        and self.m.is_free(cur[0], cur[1] + dr)):
+                    continue  # no corner cutting, like best_route
+                nx = (cur[0] + dc, cur[1] + dr)
+                if not self.m.is_free(*nx) or nx in dist:
+                    continue
+                nd = d + math.hypot(dc, dr)
+                if nd < dist.get(nx, 1e9):
+                    dist[nx] = nd
+                    heapq.heappush(q, (nd, nx))
+        # No cell passed the straight gate: return the walk-far fallback
+        # rather than None — 'coverage done' on a walk-far region is the
+        # exact deadlock this probe exists to break. The caller's latch +
+        # reach_tol release keeps a fallback pick from re-pinging.
+        far_c = far_c if far_c is not None else far_any
+        if far_c is None:
+            return None
+        return self.m.grid_to_world(*far_c)
 
     def _build(self, region, stride, step, min_run, covered):
         lanes = []

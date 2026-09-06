@@ -13,10 +13,17 @@ slam_toolbox:
     resolution: 0.05
     use_map_saver: true
     min_laser_range: 0.05
-    max_laser_range: 0.45
-    minimum_travel_distance: 0.05
-    minimum_travel_heading: 0.15
+    max_laser_range: 3.0
+    # Dense insertion (was 0.05 m / 0.15 rad): sparser scans fan apart
+    # during turns and leave 1-cell unknown seams that shatter the free
+    # space into flood islands — the brain then sees a 6-cell pocket and
+    # reports 'coverage done' on a 526-cell map.
+    minimum_travel_distance: 0.02
+    minimum_travel_heading: 0.08
     transform_timeout: 0.5
     stack_size_to_use: 40000000
+    # Scan matching corrects wheel-odom slip (the sim robot slides during
+    # turn-in-place phases); it stays on now that the sim robot actually
+    # rolls — it only corrupted maps when the old SDF ground on its belly.
     use_scan_matching: true
     minimum_time_interval: 0.2

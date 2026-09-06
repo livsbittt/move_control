@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import math
 import unittest
+from unittest import mock
 
 from move_control.planning import (FREE, OCC, UNKNOWN, GoalBrain,
                                    OccupancyMap, ZigzagPlanner, best_route,
@@ -210,6 +211,67 @@ class ZigzagTest(RoomCase):
         for a, b in zip(dirs, dirs[1:]):
             self.assertNotEqual(a, b)
 
+    def test_probe_farthest_by_walk(self):
+        # Farthest by walk distance lands in the far column (8-conn ties
+        # across the column, walk_min 0.10 is far below the walk there).
+        probe = self.zz.probe_point(self.CORNER)
+        self.assertIsNotNone(probe)
+        c, r = self.m.world_to_grid(*probe)
+        self.assertTrue(self.m.is_free(c, r), (c, r))
+        self.assertEqual(c, 10)  # far column of the 12x10 room
+
+    def test_probe_no_corner_cutting(self):
+        # The probe flood shares best_route's connectivity: chambers joined
+        # only by corner-cut diagonals stay separate, so a raw-map route to
+        # the probe always exists (the coverage-done deadlock regression).
+        m = self.room(w=9, h=5, pockets=())
+        self.wall_col(m, 4, (1, 2, 3))  # full wall, gap freed below
+        m.set_cell(4, 2, FREE)          # gap cell in the wall
+        m.set_cell(3, 2, OCC)           # pinch: (3,1)<->(4,2) is cut-only
+        zz = ZigzagPlanner(m, start=self.START)
+        probe = zz.probe_point(self.START)
+        self.assertIsNotNone(probe)
+        c, r = m.world_to_grid(*probe)
+        self.assertTrue(m.is_free(c, r), (c, r))
+        self.assertLessEqual(c, 3, (c, r))  # cut-only diagonal can't cross
+        self.assertIsNotNone(
+            best_route(m, self.START, probe, clear_m=0.0))
+
+    def test_probe_walk_min_filters_near_cells(self):
+        # Cells closer than walk_min_m (driver arrival band) never win, so
+        # standing on the target can't re-pick it and re-deadlock.
+        m = self.room(w=3, h=3, pockets=())  # single free cell (1, 1)
+        zz = ZigzagPlanner(m, start=self.CORNER)
+        self.assertIsNone(zz.probe_point(self.CORNER))
+        self.assertEqual(
+            m.world_to_grid(*zz.probe_point(self.CORNER, walk_min_m=0.0)),
+            (1, 1))
+
+    def test_probe_skips_covered_keeps_flood(self):
+        # Covered cells stay traversable but unpickable: the flood must
+        # cross a fully covered column and still find the far side. A
+        # rejected candidate that stopped the expansion once truncated the
+        # search behind the covered wall (probe landed short of it).
+        m = self.open_room()
+        covered = {(5, r) for r in range(1, 9)}
+        zz = ZigzagPlanner(m, start=self.CORNER)
+        probe = zz.probe_point(self.CORNER, covered=covered)
+        self.assertIsNotNone(probe)
+        c, r = m.world_to_grid(*probe)
+        self.assertEqual(c, 10)  # far side of the covered wall
+        self.assertNotIn((c, r), covered)
+
+    def test_probe_walk_min_is_metres(self):
+        # walk_min_m is metres: 0.35 m rejects every cell of a 10x5 cm
+        # room (max walk 1 cell); 0.04 m admits the neighbour. A cell-count
+        # comparison once let a 5 cm neighbour pass as "far".
+        m = self.room(w=4, h=3, pockets=())  # 2 free cells
+        zz = ZigzagPlanner(m, start=self.CORNER)
+        self.assertIsNone(zz.probe_point(self.CORNER, walk_min_m=0.35))
+        self.assertEqual(
+            m.world_to_grid(*zz.probe_point(self.CORNER, walk_min_m=0.04)),
+            (2, 1))
+
 
 class GoalBrainTest(RoomCase):
     def setUp(self):
@@ -315,3 +377,49 @@ class GoalBrainTest(RoomCase):
         goal, route, status = brain.plan(m, self.START)
         self.assertEqual(brain.mode, 'explore')
         self.assertTrue(status.startswith('explore'), status)
+
+    def test_probe_moves_when_done(self):
+        # probe_when_done: all covered + no frontiers -> drive to the
+        # farthest reachable cell instead of declaring done (fresh sim maps
+        # otherwise deadlock on 'coverage done' at plan #1).
+        brain = GoalBrain(min_size=2, probe_when_done=True)
+        m = self.known_room()
+        brain.covered = set(m.free_cells())
+        goal, route, status = brain.plan(m, self.START)
+        self.assertIsNotNone(goal)
+        self.assertTrue(status.startswith('probe'), status)
+
+    def test_probe_latch_until_reached(self):
+        # One probe target holds across plan ticks (probe mode has no stall
+        # watchdog) and releases only when reached, so the goal cannot
+        # ping-pong between far corners as the robot closes in.
+        brain = GoalBrain(min_size=2, probe_when_done=True)
+        m = self.known_room()
+        brain.covered = set(m.free_cells())
+        g1, _r, _s = brain.plan(m, self.START)
+        g2, _r, _s = brain.plan(m, self.START)  # same pose: same target
+        self.assertEqual(m.world_to_grid(*g2), m.world_to_grid(*g1))
+        # Reached (within reach_tol): latch releases, new farthest wins.
+        near = m.grid_to_world(*m.world_to_grid(*g1))
+        g3, _r, _s = brain.plan(m, near)
+        self.assertNotEqual(m.world_to_grid(*g3), m.world_to_grid(*g1))
+
+    def test_probe_rests_after_dead_target(self):
+        # A probe with no route at either clearance rests for blacklist_plans
+        # plan calls instead of retrying the same dead cell every tick;
+        # after the rest a fresh probe is attempted again.
+        brain = GoalBrain(min_size=2, probe_when_done=True, blacklist_plans=3)
+        m = self.known_room()
+        brain.covered = set(m.free_cells())
+        with mock.patch('move_control.planning.goals.best_route',
+                        return_value=None):
+            g1, _r, s1 = brain.plan(m, self.START)
+            self.assertIsNone(g1)
+            self.assertEqual(s1, 'coverage done')
+            g2, _r, s2 = brain.plan(m, self.START)  # resting
+            self.assertIsNone(g2)
+            self.assertGreater(brain._probe_deadline, brain._plan_n)
+        for _ in range(2):
+            g, _r, s = brain.plan(m, self.START)
+        self.assertIsNotNone(g)
+        self.assertTrue(s.startswith('probe'), s)

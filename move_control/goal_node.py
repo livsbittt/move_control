@@ -51,6 +51,14 @@ class GoalNode(Node):
         self.declare_parameter('stall_min_dist', 0.15)
         self.declare_parameter('blacklist_plans', 20)
         self.declare_parameter('escape_clear_m', 0.08)
+        # Coverage-done fallback: when zigzag has no lanes left, keep sending
+        # the robot to the farthest reachable cell. Fresh maps with narrow
+        # corridors (sim maze) otherwise deadlock on 'coverage done' at plan
+        # #1 and never move.
+        self.declare_parameter('probe_when_done', False)
+        # Sim-only: raw-map retry for inflation-sealed coverage waypoints
+        # (0.3 m sim corridors seal under clear_m; real corridors don't).
+        self.declare_parameter('retry_unreachable_wp', False)
         self.declare_parameter('debug', False)
         self.create_subscription(
             OccupancyGrid, self.get_parameter('map_topic').value,
@@ -84,7 +92,11 @@ class GoalNode(Node):
             progress_m=float(self.get_parameter('progress_m').value),
             stall_min_dist=float(self.get_parameter('stall_min_dist').value),
             blacklist_plans=int(self.get_parameter('blacklist_plans').value),
-            escape_clear_m=float(self.get_parameter('escape_clear_m').value))
+            escape_clear_m=float(self.get_parameter('escape_clear_m').value),
+            probe_when_done=bool(
+                self.get_parameter('probe_when_done').value),
+            retry_unreachable_wp=bool(
+                self.get_parameter('retry_unreachable_wp').value))
         self.brain.mode = self.mode if self.mode != 'stop' else 'explore'
         self.timer = self.create_timer(
             1.0 / max(0.1, float(self.get_parameter('rate').value)), self.plan)

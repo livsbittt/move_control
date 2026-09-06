@@ -2,8 +2,10 @@
 
 explore: pick_goal (frontier) while frontiers last, then coverage:
 ZigzagPlanner waypoints with covered-cell tracking. Unreachable coverage
-waypoints are skipped instead of stalling the loop. goal_node and
-tools/explore_sim.py are thin drivers around this brain.
+waypoints are skipped instead of stalling the loop. When coverage is done
+and probe_when_done is set, a latched farthest-cell probe keeps pushing
+the sensor envelope outward while the map may still be growing. goal_node
+and tools/explore_sim.py are thin drivers around this brain.
 """
 import math
 
@@ -19,13 +21,26 @@ class GoalBrain:
                  lane_width=0.12, lane_step=0.20, reach_tol=0.05,
                  max_options=3, stall_plans=6, progress_m=0.03,
                  stall_min_dist=0.15, blacklist_plans=20,
-                 escape_clear_m=0.08, probe_when_done=False):
+                 escape_clear_m=0.08, probe_when_done=False,
+                 retry_unreachable_wp=False):
         self.max_options = max(1, int(max_options))
         # Wide-first escape: after a stall, routes are planned with this
         # clearance (2-cell inflation seals 15 cm gaps) until the robot has
         # left the stuck neighborhood — the way out avoids tight obstacles.
         self.escape_clear_m = float(escape_clear_m)
         self.probe_when_done = bool(probe_when_done)
+        # Sim-rig knob: retry an inflation-sealed coverage wp on the raw
+        # map instead of burning it as covered. On the 0.3 m sim corridors
+        # clear_m inflation seals the whole lane set and coverage starved
+        # to 'coverage done' on a 526-cell map. Off by default: a 5 cm gap
+        # that is raw-open is still not drivable for real hardware.
+        self.retry_unreachable_wp = bool(retry_unreachable_wp)
+        # Latched probe target (world xy) + rest window (plan_n counter).
+        # The farthest cell shifts as the robot closes in and probe mode
+        # has no stall watchdog, so an unlatched goal ping-pongs between
+        # far corners forever.
+        self._probe = None
+        self._probe_deadline = 0
         # Stall watchdog: if the robot gets nowhere for this many plan calls,
         # bench that frontier and take the next-best option.
         self.stall_plans = max(2, int(stall_plans))
@@ -91,6 +106,39 @@ class GoalBrain:
                      if exp <= self._plan_n]:
             del self._blacklist[cell]
 
+    def _probe_goal(self, m, pose, zz):
+        """Coverage-done probe: one latched farthest-cell target.
+
+        Returns (goal, route, status); goal None -> caller falls through
+        to 'coverage done'. The latch holds one target until it is reached
+        (within reach_tol) or the map takes the cell back; a target with
+        no route at either clearance rests the probe for blacklist_plans
+        plan calls — the driver's wiggle keeps SLAM scanning while the map
+        may grow back an option.
+        """
+        if self._probe is not None:
+            if math.hypot(self._probe[0] - pose[0],
+                          self._probe[1] - pose[1]) < self.reach_tol:
+                self._probe = None  # reached: next farthest is >= walk_min away
+            elif not m.is_free(*m.world_to_grid(*self._probe)):
+                self._probe = None  # noisy SLAM took the cell back
+        if self._probe is None:
+            self._probe = zz.probe_point(pose, covered=self.covered)
+        if self._probe is None:
+            return None, None, ''  # nothing reachable >= walk_min yet
+        # Tiny pockets seal under inflation; fall back to the raw map so
+        # the robot can at least leave the pocket.
+        for cm in (self.clear_m, 0.0):
+            route = best_route(m, pose, self._probe, clear_m=cm)
+            if route and route['length'] >= 0.05:
+                return self._probe, route, (
+                    f'probe goal=({self._probe[0]:.2f},{self._probe[1]:.2f}) '
+                    f'route={route["length"]:.2f}m')
+        # Dead at both clearances (SLAM repainted): drop latch, rest probe.
+        self._probe = None
+        self._probe_deadline = self._plan_n + self.blacklist_plans
+        return None, None, ''
+
     def plan(self, m, pose):
         """Next point to go: (goal_xy | None, route | None, status str).
 
@@ -144,20 +192,21 @@ class GoalBrain:
             return None, None, 'coverage idle (no known space)'
         wps = zz.waypoints()
         if not wps:
-            if self.probe_when_done:
-                probe = zz.probe_point(pose)
-                if probe is not None:
-                    # Tiny pockets seal under inflation; fall back to the
-                    # raw map so the robot can at least leave the pocket.
-                    for cm in (self.clear_m, 0.0):
-                        route = best_route(m, pose, probe, clear_m=cm)
-                        if route and route['length'] >= 0.05:
-                            return probe, route, (
-                                f'probe goal=({probe[0]:.2f},{probe[1]:.2f}) '
-                                f'route={route["length"]:.2f}m')
+            if self.probe_when_done and self._plan_n >= self._probe_deadline:
+                goal, route, status = self._probe_goal(m, pose, zz)
+                if goal is not None:
+                    return goal, route, status
             return None, None, 'coverage done'
         goal = wps[0]
         route = best_route(m, pose, goal, clear_m=self.clear_m)
+        if route is None and self.retry_unreachable_wp and \
+                self.retry_clear_m < self.clear_m:
+            # Lane cells hug walls; clear_m inflation seals most of a
+            # 0.3 m corridor so every lane wp read 'unreachable, skip'
+            # and the covered set swallowed the whole region (sim rig:
+            # 526-cell map starved to 'coverage done'). Raw-map retry —
+            # same principle as the frontier's sealed-corridor retry.
+            route = best_route(m, pose, goal, clear_m=self.retry_clear_m)
         if route is None:
             self.covered.add(m.world_to_grid(*goal))
             return None, None, 'coverage wp unreachable, skip'

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Generate the Gazebo maze world from the ASCII maze in explore_sim.
 
-Same 13x13 corridors, scaled 3x (15 cm cells -> 45 cm corridors) so the
-sim robot has room to turn. Writes pinky_maze.sdf next to this script.
+Same 13x13 maze, 2x scale (30 cm corridors) so the sim robot (18 cm with
+wheels) fits with ~6 cm clearance per side and can turn in place. Writes
+pinky_maze.sdf next to this script.
 """
 import os
 import sys
@@ -12,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))  # tools/gz -> repo root: tools.explore_sim
 from tools.explore_sim import MAZE
 
-CELL = 0.15   # m per maze cell in gz (3x the planner's 5 cm grid)
+CELL = 0.30   # m per maze cell in gz (2x the planner's 5 cm grid)
 H = 0.15      # wall height
 
 
@@ -68,7 +69,14 @@ def wheel(parent, name, y):
         leaf(i, a, 1e-5)
     for a in ('ixy', 'ixz', 'iyz'):
         leaf(i, a, 0.0)
-    geom_box(lnk, 'col', 'collision', 0, 0, 0, 0.02, 0.028, 0.028)
+    # Rolling cylinder collision — a box collision slides on the ground, so
+    # the joint-kinematic odom diverged from the physical pose (robot spun
+    # in place at spawn while odom claimed translation).
+    col = sub(lnk, 'collision', name='col')
+    colg = sub(col, 'geometry')
+    cyl = sub(colg, 'cylinder')
+    leaf(cyl, 'radius', 0.028)
+    leaf(cyl, 'length', 0.02)
     v = geom_box(lnk, 'vis', 'visual', 0, 0, 0, 0.02, 0.028, 0.028, vis=True)
     geo = sub(v, 'geometry')
     cyl = sub(geo, 'cylinder')
@@ -76,10 +84,18 @@ def wheel(parent, name, y):
     leaf(cyl, 'length', 0.02)
     col = lnk.find("collision[@name='col']")
     surf = sub(col, 'surface')
+    # Grip + stiff contact, the pinky-pro sim values: mu 1.5 on default-soft
+    # contacts lets the wheels sink ~6 mm into the ground box and the robot
+    # plows at ~1 cm/s under full command (measured on this rig); kp 1e7
+    # keeps penetration ~microns so wheels roll.
+    cont = sub(surf, 'contact')
+    ode_c = sub(cont, 'ode')
+    leaf(ode_c, 'kp', 1e7)
+    leaf(ode_c, 'max_vel', 0.1)
     fric = sub(surf, 'friction')
     ode = sub(fric, 'ode')
-    leaf(ode, 'mu', 1.5)
-    leaf(ode, 'mu2', 1.5)
+    leaf(ode, 'mu', 200)
+    leaf(ode, 'mu2', 200)
     return lnk
 
 
@@ -87,24 +103,31 @@ def build():
     sdf = ET.Element('sdf', version='1.8')
     w = sub(sdf, 'world', name='pinky_maze')
 
-    ph = sub(w, 'physics', name='1ms', type='ignored')
+    # ODE, not the DART default: ODE honors kp/mu on the robot contacts —
+    # on DART the wheels sank ~6 mm into the ground and a pressed nose
+    # embedded 5-7 cm into walls, pinning the robot (pinky's working maze
+    # world runs type="ode" too).
+    ph = sub(w, 'physics', name='1ms', type='ode')
     leaf(ph, 'max_step_size', 0.001)
     leaf(ph, 'real_time_factor', 1.0)
 
+    # NOTE: no PosePublisher here — it aborts the gz-sim10 server when it
+    # fails to init, and the driver node owns the ROS TF anyway.
     for name in ('gz-sim-physics-system', 'gz-sim-user-commands-system',
-                 'gz-sim-scene-broadcaster-system', 'gz-sim-sensors-system',
-                 'gz-sim-pose-publisher-system'):
+                 'gz-sim-scene-broadcaster-system'):
         sub(w, 'plugin', filename=name, name={
-        'gz-sim-physics-system': 'gz::sim::systems::Physics',
-        'gz-sim-user-commands-system': 'gz::sim::systems::UserCommands',
-        'gz-sim-scene-broadcaster-system': 'gz::sim::systems::SceneBroadcaster',
-        'gz-sim-sensors-system': 'gz::sim::systems::Sensors',
-        'gz-sim-pose-publisher-system': 'gz::sim::systems::PosePublisher',
-    }[name])
+            'gz-sim-physics-system': 'gz::sim::systems::Physics',
+            'gz-sim-user-commands-system': 'gz::sim::systems::UserCommands',
+            'gz-sim-scene-broadcaster-system':
+                'gz::sim::systems::SceneBroadcaster',
+        }[name])
+    sensors = sub(w, 'plugin', filename='gz-sim-sensors-system',
+                  name='gz::sim::systems::Sensors')
+    leaf(sensors, 'render_engine', 'ogre2')
 
     arena = len(MAZE[0]) * CELL
     g = sub(w, 'model', name='ground')
-    g.set('static', 'true')
+    leaf(g, 'static', 'true')
     gl = sub(g, 'link', name='link')
     geom_box(gl, 'col', 'collision', arena / 2, arena / 2, -0.05,
              arena + 1, arena + 1, 0.1)
@@ -112,14 +135,14 @@ def build():
              arena + 1, arena + 1, 0.1, vis=True)
 
     m = sub(w, 'model', name='maze')
-    m.set('static', 'true')
+    leaf(m, 'static', 'true')
     ml = sub(m, 'link', name='link')
     for i, (x, y, wd) in enumerate(walls()):
         geom_box(ml, f'w{i}', 'collision', x, y, H / 2, wd, CELL, H)
         geom_box(ml, f'v{i}', 'visual', x, y, H / 2, wd, CELL, H, vis=True)
 
     r = sub(w, 'model', name='pinky')
-    leaf(r, 'pose', '0.225 0.225 0.07 0 0 0')
+    leaf(r, 'pose', f'{1.5 * CELL} {1.5 * CELL} 0.07 0 0 0')
     base = sub(r, 'link', name='base')
     ine = sub(base, 'inertial')
     leaf(ine, 'mass', 0.6)
@@ -128,14 +151,20 @@ def build():
         leaf(ii, a, 0.001)
     for a in ('ixy', 'ixz', 'iyz'):
         leaf(ii, a, 0.0)
-    geom_box(base, 'col', 'collision', 0, 0, 0, 0.16, 0.12, 0.06)
-    vis = geom_box(base, 'vis', 'visual', 0, 0, 0, 0.16, 0.12, 0.06, vis=True)
+    # Chassis lifted: centered on the link origin it hung 2 mm into the
+    # ground at wheel contact, so the robot rested on its belly, wheels
+    # spinning in the air — odom moved, the robot never did.
+    geom_box(base, 'col', 'collision', 0, 0, 0.05, 0.16, 0.12, 0.06)
+    vis = geom_box(base, 'vis', 'visual', 0, 0, 0.05, 0.16, 0.12, 0.06, vis=True)
     mat = sub(vis, 'material')
     amb = sub(mat, 'ambient')
     amb.text = '0.2 0.4 1 1'
 
-    sense = sub(base, 'sensor', name='lidar', type='lidar')
-    leaf(sense, 'pose', '0 0 0.05 0 0 0')
+    sense = sub(base, 'sensor', name='lidar', type='gpu_lidar')
+    # Above the chassis box (top 0.08) but below the wall top (0.15):
+    # inside the box, every beam starts inside a collision and the SLAM
+    # map degenerates to a ~5 cm occupied blob around the robot.
+    leaf(sense, 'pose', '0 0 0.10 0 0 0')
     leaf(sense, 'topic', 'lidar/scan')
     leaf(sense, 'update_rate', 10)
     leaf(sense, 'always_on', 1)
@@ -149,13 +178,19 @@ def build():
     leaf(hor, 'max_angle', 3.14159)
     rng = sub(lid, 'range')
     leaf(rng, 'min', 0.02)
-    leaf(rng, 'max', 0.45)
+    # 3 m, not the real C1's 10 m and not the old 0.45 m: 0.45 m sealed
+    # every scan ring inside the 0.3 m corridors, so frontiers survived
+    # only as 1-3 cell ray tips and the brain collapsed into micro-goals.
+    leaf(rng, 'max', 3.0)
     leaf(rng, 'resolution', 0.01)
 
     wheel(r, 'wheel_left', 0.082)
     wheel(r, 'wheel_right', -0.082)
     ca = sub(r, 'link', name='caster')
-    leaf(ca, 'pose', '0.06 0 0.012 0 0 0')
+    # Caster 5 mm above the wheel plane: level with it, the frictionless
+    # caster took the robot's weight and the wheels just spun (physical
+    # speed ~10 cm/min while odom counted full hops).
+    leaf(ca, 'pose', f'0.06 0 {0.012 + 0.005} 0 0 0')
     ine = sub(ca, 'inertial')
     leaf(ine, 'mass', 0.02)
     ci = sub(ine, 'inertia')
@@ -165,6 +200,9 @@ def build():
         leaf(ci, a, 0.0)
     cc = geom_box(ca, 'col', 'collision', 0, 0, 0, 0.024, 0.024, 0.024)
     surf = sub(cc, 'surface')
+    cont = sub(surf, 'contact')
+    ode_c = sub(cont, 'ode')
+    leaf(ode_c, 'kp', 1e7)
     fric = sub(surf, 'friction')
     ode = sub(fric, 'ode')
     leaf(ode, 'mu', 0.0)
@@ -191,13 +229,6 @@ def build():
     leaf(dd, 'frame_id', 'odom')
     leaf(dd, 'child_frame_id', 'base_link')
     leaf(dd, 'max_linear_acceleration', 0.5)
-    pp = sub(r, 'plugin', filename='gz-sim-pose-publisher-system',
-             name='gz::sim::systems::PosePublisher')
-    leaf(pp, 'publish_link_pose', 1)
-    leaf(pp, 'publish_sensor_pose', 1)
-    leaf(pp, 'publish_model_pose', 0)
-    leaf(pp, 'tf_topic', '/model/tf')
-    leaf(pp, 'pose_publish_frequency', 20)
     return ET.tostring(sdf, encoding='unicode')
 
 

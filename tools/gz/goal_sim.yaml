@@ -1,0 +1,14 @@
+# Sim-only overrides on top of config/goal.yaml (load both, this one last).
+# The sim maze's fresh maps have frontier fragments < the real robot's
+# min_size 6; the 0.45 m sim lidar seals every scan ring inside the
+# corridors, so frontiers survive only as 1-3 cell ray tips at corridor
+# ends — 2 lets explore pick them up. use_sim_time so the rig needs no
+# -p overrides at all.
+goal_node:
+  ros__parameters:
+    use_sim_time: true
+    min_size: 2
+    rate: 1.0
+    # 0.3 m sim corridors seal under clear_m 0.06; retry sealed coverage
+    # waypoints on the raw map instead of burning them as covered.
+    retry_unreachable_wp: true

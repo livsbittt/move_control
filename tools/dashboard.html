@@ -39,6 +39,10 @@ b { color:#8fd0ff; }
       <button onclick="tw(0,-0.5)">&#8594;</button>
     </div>
     <div class="row">options: <span id="nopt">0</span> | route pts: <span id="nrp">0</span></div>
+    <div class="row"><b>mapping result</b><br>
+      <img id="resimg" src="/map.png" width="280" style="margin:4px 0; image-rendering:pixelated; border:1px solid #4a5a6a;">
+      <table id="res_t" style="font-size:12px"></table>
+    </div>
     <div class="row">/goal/options shows every frontier route the planner
       considered; marker 0 = chosen.</div>
   </div>
@@ -61,6 +65,29 @@ async function poll() {
   nrp.textContent = (s.route || []).length;
   draw(s);
 }
+
+async function pollResult() {
+  const r = await fetch('/result.json');
+  const s = await r.json();
+  const im = document.getElementById('resimg');
+  im.src = '/map.png?t=' + Date.now();
+  const t = document.getElementById('res_t');
+  t.innerHTML = '<tr><td>path</td><td>' + (s.path != null ? s.path + ' m' : '-') +
+    '</td></tr>' +
+    '<tr><td>state</td><td>' + (s.state || '-') + '</td></tr>' +
+    '<tr><td>ok</td><td>' + (s.metrics ? s.metrics.ok : '-') + '</td></tr>';
+  if (s.metrics) {
+    const m = s.metrics;
+    const rows = [['wall_recall', m.wall_recall], ['corridor_purity', m.corridor_purity],
+                  ['phantom', m.phantom_frac], ['unknown', m.interior_unknown]];
+    for (const [k, v] of rows) {
+      t.innerHTML += '<tr><td>' + k + '</td><td>' + v + '</td></tr>';
+    }
+  }
+}
+setInterval(pollResult, 5000);
+pollResult();
+
 </script>
 <script>
 const c = document.getElementById('map').getContext('2d');
