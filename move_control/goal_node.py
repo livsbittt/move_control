@@ -50,6 +50,7 @@ class GoalNode(Node):
         self.declare_parameter('progress_m', 0.03)
         self.declare_parameter('stall_min_dist', 0.15)
         self.declare_parameter('blacklist_plans', 20)
+        self.declare_parameter('escape_clear_m', 0.08)
         self.create_subscription(
             OccupancyGrid, self.get_parameter('map_topic').value,
             self.on_map, qos_profile_sensor_data)
@@ -81,7 +82,8 @@ class GoalNode(Node):
             stall_plans=int(self.get_parameter('stall_plans').value),
             progress_m=float(self.get_parameter('progress_m').value),
             stall_min_dist=float(self.get_parameter('stall_min_dist').value),
-            blacklist_plans=int(self.get_parameter('blacklist_plans').value))
+            blacklist_plans=int(self.get_parameter('blacklist_plans').value),
+            escape_clear_m=float(self.get_parameter('escape_clear_m').value))
         self.brain.mode = self.mode if self.mode != 'stop' else 'explore'
         self.timer = self.create_timer(
             1.0 / max(0.1, float(self.get_parameter('rate').value)), self.plan)

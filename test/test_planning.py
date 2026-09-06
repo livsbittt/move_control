@@ -285,3 +285,17 @@ class GoalBrainTest(RoomCase):
             brain.plan(m, self.START)
         still = max(brain._blacklist.values()) if brain._blacklist else 0
         self.assertGreater(still, first)  # old entry expired, fresh one set
+
+    def test_wide_first_until_clear(self):
+        # After a stall the following plans demand wide routes (2-cell
+        # inflation, 15 cm gaps sealed) while near the stuck pose.
+        brain = GoalBrain(min_size=2, stall_plans=2, progress_m=0.05,
+                          stall_min_dist=0.05, blacklist_plans=50)
+        m = self.room(w=13, h=7, pockets=((3, 2, 3, 3), (9, 1, 11, 4)))
+        brain.plan(m, self.START)
+        st = ''
+        for _ in range(2):
+            st = brain.plan(m, self.START)[2]
+        self.assertIn('stall', st)
+        st_next = brain.plan(m, self.START)[2]
+        self.assertTrue(st_next.startswith('wide-first'), st_next)

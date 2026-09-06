@@ -18,8 +18,13 @@ class GoalBrain:
     def __init__(self, min_size=6, clear_m=0.06, retry_clear_m=0.0,
                  lane_width=0.12, lane_step=0.20, reach_tol=0.05,
                  max_options=3, stall_plans=6, progress_m=0.03,
-                 stall_min_dist=0.15, blacklist_plans=20):
+                 stall_min_dist=0.15, blacklist_plans=20,
+                 escape_clear_m=0.08):
         self.max_options = max(1, int(max_options))
+        # Wide-first escape: after a stall, routes are planned with this
+        # clearance (2-cell inflation seals 15 cm gaps) until the robot has
+        # left the stuck neighborhood — the way out avoids tight obstacles.
+        self.escape_clear_m = float(escape_clear_m)
         # Stall watchdog: if the robot gets nowhere for this many plan calls,
         # bench that frontier and take the next-best option.
         self.stall_plans = max(2, int(stall_plans))
@@ -37,6 +42,7 @@ class GoalBrain:
         self.last_options = []  # ranked frontier candidates for display
         self._plan_n = 0
         self._blacklist = {}    # cell -> plan_n when it may be tried again
+        self._wide_cell = None  # stuck pose: demand wide routes near it
         self._target = None     # current goal cell
         self._first = self._best = 0.0
         self._n = 0
@@ -62,9 +68,10 @@ class GoalBrain:
         self._blacklist[cell] = self._plan_n + self.blacklist_plans
         tried = self._n
         self._target = None
+        self._wide_cell = (pose[0], pose[1])  # escape wide from here
         alt = pick_goal(m, pose, min_size=self.min_size,
-                        clear_m=self.clear_m,
-                        retry_clear_m=self.retry_clear_m,
+                        clear_m=self.escape_clear_m,
+                        retry_clear_m=self.clear_m,
                         exclude=set(self._blacklist))
         if alt is None:
             return None, (f'stall: frontier {cell} benched, '
@@ -91,10 +98,21 @@ class GoalBrain:
         """
         self._plan_n += 1
         self._gc_blacklist()
+        # Wide-first latch: near the last stuck pose, plan with extra
+        # clearance until the robot is clear of that obstacle pocket.
+        wide = False
+        if self._wide_cell is not None:
+            if math.hypot(pose[0] - self._wide_cell[0],
+                          pose[1] - self._wide_cell[1]) <= 0.30:
+                wide = True
+            else:
+                self._wide_cell = None
         if self.mode == 'explore':
+            clear_first = self.escape_clear_m if wide else self.clear_m
+            clear_retry = self.clear_m if wide else self.retry_clear_m
             g = pick_goal(m, pose, min_size=self.min_size,
-                          clear_m=self.clear_m,
-                          retry_clear_m=self.retry_clear_m,
+                          clear_m=clear_first,
+                          retry_clear_m=clear_retry,
                           exclude=set(self._blacklist))
             if g is not None:
                 g, prefix = self._watchdog(m, pose, g)
@@ -106,7 +124,8 @@ class GoalBrain:
                       f"size={g['size']} "
                       f"route={g['route']['length']:.2f}m "
                       f"alts={max(0, len(self.last_options) - 1)}")
-                return (g['x'], g['y']), g['route'], prefix + st
+                return (g['x'], g['y']), g['route'], \
+                    ('wide-first ' if wide else '') + prefix + st
             self.mode = 'coverage'  # map fully frontiered
         cover_ring(self.covered, m, pose[0], pose[1],
                    radius_m=self.lane_width / 2 + 0.08)

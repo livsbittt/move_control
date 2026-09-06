@@ -29,5 +29,8 @@ goal_node:
     stall_min_dist: 0.15
     # Benched cells are retried after this many plan calls (~2 min).
     blacklist_plans: 20
+    # After a stall, routes are planned with this clearance (2-cell
+    # inflation seals 15 cm gaps) until the robot leaves the stuck area.
+    escape_clear_m: 0.08
     # Nominal cruise (m/s) for the ETA until odom speed is available.
     speed_mps: 0.014
