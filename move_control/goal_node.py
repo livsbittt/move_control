@@ -136,7 +136,9 @@ class GoalNode(Node):
         except Exception:
             if self.have_odom:
                 return (self.ox, self.oy), 'odom~map'
-            return None, 'none'
+            # Nested-unpack safe: (x, y), src = pose() must never see a
+            # bare None (crashed goal_node within seconds on this exact line).
+            return (None, None), 'none'
 
     def plan(self):
         m = self.map_obj
