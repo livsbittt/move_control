@@ -12,6 +12,7 @@ from std_msgs.msg import Bool, Float32, String, UInt16MultiArray
 from ..sensing.filt import IrMedian, MedianLp
 from ..sensing.body import URDF_RADIUS, use_radius
 from ..sensing.lidar import NOSE_YAW
+from ..control.lidar_guard import lidar_blocked, lidar_can_rotate
 from .bumper import Bumper
 from .gate import Gate
 from .hazard import Hazard
@@ -24,14 +25,15 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         super().__init__('safety_node')
         self.declare_parameter('cmd_in', '/cmd_vel_raw')
         self.declare_parameter('cmd_out', '/cmd_vel')
+        self.declare_parameter('start_estopped', True)
         self.declare_parameter('scan_topic', '/scan')
         self.declare_parameter('us_topic', '/us_sensor/range')
         self.declare_parameter('ir_topic', '/ir_sensor/range')
-        self.declare_parameter('stop_distance', 0.018)
-        self.declare_parameter('clear_distance', 0.028)
+        self.declare_parameter('stop_distance', 0.12)
+        self.declare_parameter('clear_distance', 0.14)
         self.declare_parameter('us_stop_distance', 0.020)
         self.declare_parameter('us_clear_distance', 0.028)
-        self.declare_parameter('front_half_width_deg', 8.0)
+        self.declare_parameter('front_half_width_deg', 45.0)
         self.declare_parameter('lidar_yaw_offset', NOSE_YAW)
         self.declare_parameter('scan_pctl', 0.10)
         self.declare_parameter('scan_ignore_m', 0.04)
@@ -197,7 +199,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self._sign_vx0 = 0.0
         self._sign_flip_t = None
         self._sign_hits = 0
-        self.estop = False
+        self.estop = bool(self.get_parameter('start_estopped').value)
         self.us_scale = float(self.get_parameter('us_scale').value)
         self.us_invalid_hold = max(1, int(self.get_parameter('us_invalid_hold').value))
         self.cmd_linear_sign = float(self.get_parameter('cmd_linear_sign').value)
@@ -218,7 +220,10 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             f'{float(self.get_parameter("filt_hz").value):.1f}Hz | '
             'E-STOP /estop Bool or /estop/cmd stop|release'
         )
-        self.estop_pub.publish(Bool(data=False))
+        if self.estop:
+            self.engage_estop('startup')
+        else:
+            self.estop_pub.publish(Bool(data=False))
 
     def now(self):
         return self.get_clock().now()
@@ -234,7 +239,8 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             self.raw_zero_pub.publish(Twist())
             self._publish_zero()
             self.estop_pub.publish(Bool(data=True))
-            return
+            # Keep sensing and publishing while stopped so clearance can
+            # be inspected without releasing the emergency stop.
         lidar_d = self._filt('front', self.lidar_distance())
         us = self._filt('us', self.us_distance())
         left = self._filt('left', self.lidar_left)
@@ -276,25 +282,13 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         rear_d = self._filt('rear', self.rear_distance())
         self.rear_pub.publish(Float32(data=float(rear_d if math.isfinite(rear_d) else -1.0)))
         if not lidar_ok:
-            self.get_logger().warn('no lidar — reverse disabled until scan', throttle_duration_sec=2.0)
-            self.blocked = False
-            self.rear_blocked = True
-        elif self.stop_d > 1e-4:
-            if lidar_d <= self.stop_d:
-                if not self.blocked:
-                    self.get_logger().warn(f'BLOCKED lidar={lidar_d:.2f} m')
-                self.blocked = True
-            elif lidar_d >= self.clear_d:
-                self.blocked = False
-            if rear_d <= self.stop_d:
-                if not self.rear_blocked:
-                    self.get_logger().warn(f'REAR blocked lidar={rear_d:.2f} m')
-                self.rear_blocked = True
-            elif rear_d >= self.clear_d:
-                self.rear_blocked = False
-        else:
-            self.blocked = False
-            self.rear_blocked = False
+            self.get_logger().warn('no lidar — motion disabled until scan', throttle_duration_sec=2.0)
+        self.blocked = lidar_blocked(
+            self.lidar_distance(), lidar_d, self.blocked,
+            self.stop_d, self.clear_d, lidar_ok)
+        self.rear_blocked = lidar_blocked(
+            self.rear_distance(), rear_d, self.rear_blocked,
+            self.stop_d, self.clear_d, lidar_ok)
         can_rev = lidar_ok and not self.rear_blocked and rear_d > self.stop_d
         # Same value on both topics: /safety/can_reverse is a same-value alias
         # kept for the external LCD/web — one computation, like /safety/mode.
@@ -350,6 +344,9 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         obstacle = self.blocked or self.us_blocked or cam_block or cam_cliff
         self.block_pub.publish(Bool(data=obstacle))
 
+        if self.estop:
+            return
+
         if pickup:
             self._publish_zero()
             return
@@ -366,14 +363,17 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         elif tilt and self.rear_blocked:
             cmd.linear.x = 0.0
 
-        # Missing lidar must not freeze the robot; IR+US still work. Reverse still
-        # needs a rear view when lidar is up. Cliff/tilt must not zero spin —
-        # if reverse is illegal, in-place turn is the only move.
+        # No fresh valid clearance means stop, including an unobserved spin.
         halt_fwd = obstacle or self.cliff or tilt
         if halt_fwd and cmd.linear.x > 0.0:
             cmd.linear.x = 0.0
         if cmd.linear.x < 0.0 and self.rear_blocked:
             cmd.linear.x = 0.0
+        if not lidar_can_rotate(
+                (self.lidar_front, self.lidar_rear, self.lidar_left,
+                 self.lidar_right, self.lidar_rear_left, self.lidar_rear_right),
+                self.robot_r, lidar_ok):
+            cmd.angular.z = 0.0
         if abs(cmd.linear.x) >= 0.004:
             self._auto_linear_sign(us, lidar_d, self.last_cmd.linear.x, self.last_cmd.angular.z)
         else:

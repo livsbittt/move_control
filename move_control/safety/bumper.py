@@ -7,6 +7,7 @@ from std_msgs.msg import Float32
 from ..sensing.body import ignore_m, use_radius
 from ..sensing.lidar import find_frontiers, is_robot_scan, opening_max, sector_range, wrap_pi
 from ..control.route import line_route
+from ..control.lidar_guard import lidar_limits
 
 
 def parse_us_range(msg: Range, scale: float = 1.0):
@@ -51,12 +52,13 @@ class Bumper:
             return
         self._scan_ok += 1
         yaw = self.lidar_yaw
-        pctl = float(self.get_parameter('scan_pctl').value)
         lo = max(
             float(self.get_parameter('scan_ignore_m').value),
             ignore_m(getattr(self, 'robot_r', 0.076)),
         )
-        kw = dict(pctl=pctl, ignore_below=lo, max_r=12.0)
+        # A percentile can discard the one beam touching a jamb. Bumper
+        # braking uses the closest valid beam; display smoothing stays downstream.
+        kw = dict(pctl=0.0, ignore_below=lo, max_r=12.0)
         self.lidar_front = sector_range(msg, yaw, self.half_w, **kw)
         self.lidar_rear = sector_range(msg, wrap_pi(yaw + math.pi), self.half_w, **kw)
         side = math.radians(70.0)
@@ -155,6 +157,10 @@ class Bumper:
         self.lidar_yaw = float(self.get_parameter('lidar_yaw_offset').value)
         if self.has_parameter('robot_radius'):
             self.robot_r = use_radius(self.get_parameter('robot_radius').value)
+        self.stop_d, self.clear_d = lidar_limits(
+            self.stop_d, self.clear_d, self.robot_r)
+        # The 8-degree centre cone missed corners in the chassis path.
+        self.half_w = max(math.pi / 4, self.half_w)
         fc = float(self.get_parameter('filt_hz').value)
         for lp in self._lp.values():
             lp.set_cutoff(fc, 0.05)

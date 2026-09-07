@@ -4,16 +4,18 @@
 # /** applies the same numbers to safety, wander, lcd, calib.
 /**:
   ros__parameters:
-    # Bumper halt (safety). C1 lidar min is ~5cm, so this is US + very close hits.
-    stop_distance: 0.018
-    stop_front: 0.018
-    clear_distance: 0.028
+    # A safety restart must not silently release a physical emergency stop.
+    start_estopped: true
+    # Lidar-origin range: body radius 76mm + offset 17mm + stand-off 18mm.
+    # Round the conservative 111mm floor upward; the C1 cannot see 18mm.
+    stop_distance: 0.12
+    stop_front: 0.12
+    clear_distance: 0.14
     us_stop_distance: 0.020
     us_clear_distance: 0.028
-    # Tight bumper vs Pinky 110×120mm + C1 5cm min / US-016 2cm min.
-    # Official Nav2 footprint is 6cm half + 3cm pad. Old 12/25cm was a maze-wide zone.
-    wall_front: 0.08
-    warn_front: 0.11
+    # Wander's close-wall bands remain advisory; safety's body envelope wins.
+    wall_front: 0.14
+    warn_front: 0.18
     # +1 = wander forward is nose-first. Do not auto-flip.
     cmd_linear_sign: 1.0
     auto_linear_sign: false
@@ -22,7 +24,7 @@
     scan_yaw_offset: 3.31612558
     scan_pctl: 0.10
     scan_ignore_m: 0.04
-    front_half_width_deg: 8.0
+    front_half_width_deg: 45.0
     cliff_raw_max: 800
     cliff_clear_raw: 1500
     cliff_mode: low

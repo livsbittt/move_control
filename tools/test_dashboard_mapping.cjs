@@ -1,0 +1,82 @@
+const {test} = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const vm = require('node:vm');
+const path = require('node:path');
+
+function dashboard() {
+  const elements = new Map();
+  const noop = () => {};
+  const element = id => {
+    if (!elements.has(id)) elements.set(id, {
+      disabled: false, style: {}, textContent: '', width: 0, height: 0,
+      classList: {add: noop, remove: noop, toggle: noop},
+      parentElement: {classList: {toggle: noop}},
+      addEventListener: noop,
+      getContext: () => ({}),
+      getBoundingClientRect: () => ({width: 0, height: 0}),
+    });
+    return elements.get(id);
+  };
+  const images = [];
+  const context = vm.createContext({
+    document: {getElementById: element, querySelectorAll: () => []},
+    window: {addEventListener: noop, confirm: () => false},
+    location: {port: '28161', protocol: 'http:', hostname: 'robot'},
+    ResizeObserver: class {observe() {}},
+    Image: class {constructor() {images.push(this);}},
+    fetch: async () => {throw new Error('offline');},
+    setInterval: () => 1, clearInterval: noop, setTimeout: noop,
+    requestAnimationFrame: noop, HTMLInputElement: class {},
+  });
+  const html = fs.readFileSync(path.join(__dirname, '../web/dashboard.html'), 'utf8');
+  const source = html.match(/<script>([\s\S]*?)<\/script>/)[1];
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 
+    'globalThis.mappingTest = {S, renderMapping, mappingAction, loadMap};})();'), context);
+  return {context, elements, images, ...context.mappingTest};
+}
+
+test('unavailable SLAM disables controls; resume only enabled while paused', () => {
+  const d = dashboard();
+  d.renderMapping(null);
+  assert.equal(d.elements.get('mapreset').disabled, true);
+  assert.equal(d.elements.get('mapresume').disabled, true);
+  d.renderMapping({available: true, paused: false});
+  assert.equal(d.elements.get('mapreset').disabled, false);
+  assert.equal(d.elements.get('mapresume').disabled, true);
+  d.renderMapping({available: true, paused: true});
+  assert.equal(d.elements.get('mapresume').disabled, false);
+});
+
+test('canceling reset sends no request', async () => {
+  const d = dashboard();
+  let requests = 0;
+  d.context.fetch = async () => {requests++;};
+  d.renderMapping({available: true, paused: true});
+  await d.mappingAction('reset');
+  assert.equal(requests, 0);
+});
+
+test('pre-reset image cannot return after reset epoch changes', () => {
+  const d = dashboard();
+  d.S.mapEpoch = 1;
+  d.S.data.map = [10, 10, .05, 0, 0, 2];
+  d.loadMap(2);
+  d.S.mapEpoch = 2;
+  d.images[0].onload();
+  assert.equal(d.S.img.im, null);
+});
+
+test('service failure is visible and is not reported as a successful reset', async () => {
+  const d = dashboard();
+  await new Promise(resolve => setImmediate(resolve));
+  d.S.data.map_control = {available: true, paused: true};
+  d.S.pin = {x: 1, y: 2};
+  d.context.window.confirm = () => true;
+  d.context.fetch = async () => ({ok: false, json: async () => ({message: 'SLAM unavailable'})});
+  d.renderMapping(d.S.data.map_control);
+  await d.mappingAction('reset');
+  assert.equal(d.elements.get('mappingerror').textContent, 'SLAM unavailable');
+  assert.equal(d.S.mappingBusy, false);
+  assert.equal(d.S.pin.x, 1);
+});

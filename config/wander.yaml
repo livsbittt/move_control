@@ -12,7 +12,7 @@ wander_node:
     slow_front: 0.04
     slow_rear: 0.03
     think_horizon: 0.50
-    auto_start: true
+    auto_start: false
     pause_sec: 0.25
     # Judge: look (sample) → calc (score) → maybe recon (look again).
     look_sec: 0.40

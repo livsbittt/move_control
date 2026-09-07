@@ -15,6 +15,8 @@ Backend API (all CORS *, JSON contract unchanged since v1):
   POST /goal         "x,y" (map metres)           -> /goal/cmd (manual goal)
   POST /wander       start|stop                   -> /wander/cmd
   POST /estop        stop|release                 -> /estop/cmd
+  POST /map/reset    stop commands + reset SLAM, paused; clear map caches
+  POST /map/resume   resume SLAM measurements only (no motion commands)
   POST /teleop       {"x":..,"z":..} Twist on the resolved teleop topic.
                      'auto' resolution: safety alive -> /cmd_vel_raw (every
                      Twist passes the gate); sim rig (no safety, /cmd_vel has
@@ -36,12 +38,21 @@ import rclpy
 from rclpy.node import Node
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from rclpy.qos import qos_profile_sensor_data
+from rclpy.time import Time
+from tf2_ros import Buffer, TransformListener, TransformException
+from move_control.sensing.map_pose import update_pose
 from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import PoseStamped, Twist
 from nav_msgs.msg import OccupancyGrid, Odometry, Path
 from sensor_msgs.msg import Image, LaserScan
 from std_msgs.msg import Bool, Float32, String
 from visualization_msgs.msg import MarkerArray
+from rcl_interfaces.srv import GetParameters
+from rcl_interfaces.msg import ParameterType
+try:
+    from slam_toolbox.srv import Reset, Pause
+except ImportError:
+    Reset = Pause = None  # Viewing remains available without SLAM installed.
 
 # STATE keys — the JSON contract with the page; never rename these strings.
 K_TELEOP = 'teleop_topic'
@@ -75,7 +86,120 @@ CAM_WIDTH = 320            # inspection scale, not documentation
 CAM_QUALITY = 70
 
 
-def render_png(msg):
+class MapControl:
+    """Serialize HTTP SLAM operations while ROS futures run on the spin thread."""
+    def __init__(self, node):
+        self.node = node
+        self.lock = threading.Lock()
+        self.pending = None
+        self.map_after_ns = 0
+        self.reset = node.create_client(Reset, '/slam_toolbox/reset') if Reset else None
+        self.pause = node.create_client(Pause, '/slam_toolbox/pause_new_measurements') if Pause else None
+        self.params = node.create_client(GetParameters, '/slam_toolbox/get_parameters')
+        self.update(available=False, paused=None, busy=False, error='', epoch=0)
+        threading.Thread(target=self.poll, daemon=True).start()
+
+    def update(self, **values):
+        with LOCK:
+            STATE.setdefault('map_control', {}).update(values)
+
+    def snapshot(self):
+        with LOCK:
+            return dict(STATE['map_control'])
+
+    def call(self, client, request):
+        if self.pending is not None and not self.pending.done():
+            raise RuntimeError('Previous SLAM request is still pending')
+        if client is None or not client.service_is_ready():
+            raise ConnectionError('SLAM service is unavailable')
+        future = client.call_async(request)
+        self.pending = future
+        ready = threading.Event()
+        future.add_done_callback(lambda _: ready.set())
+        if not ready.wait(2.0):
+            # Do not cancel: the server may still apply a timed-out toggle.
+            # Retaining this future prevents a second mutation until it ends.
+            raise TimeoutError('SLAM response timed out; outcome is unknown')
+        return future.result()
+
+    def read_paused(self):
+        response = self.call(self.params, GetParameters.Request(
+            names=['paused_new_measurements']))
+        if len(response.values) != 1 or response.values[0].type != ParameterType.PARAMETER_BOOL:
+            raise RuntimeError('SLAM paused state is unavailable')
+        paused = response.values[0].bool_value
+        self.update(paused=paused)
+        return paused
+
+    def poll(self):
+        while rclpy.ok():
+            if self.lock.acquire(blocking=False):
+                try:
+                    available = bool(self.reset and self.reset.service_is_ready())
+                    self.update(available=available)
+                    if available:
+                        self.read_paused()
+                        self.update(error='', busy=False)
+                    else:
+                        self.update(paused=None)
+                except Exception as exc:
+                    self.update(paused=None, error=str(exc))
+                finally:
+                    self.lock.release()
+            time.sleep(2.0)
+
+    def execute(self, action):
+        if not self.lock.acquire(blocking=False):
+            return 409, {'ok': False, 'message': 'Map control is busy',
+                         'map_control': self.snapshot()}
+        self.update(busy=True, error='')
+        status, message = 200, ''
+        try:
+            if self.pending is not None and not self.pending.done():
+                raise RuntimeError('Previous SLAM request is still pending')
+            if action == 'reset':
+                self.node.wander_pub.publish(String(data='stop'))
+                self.node.estop_pub.publish(String(data='stop'))
+                self.node.goal_pub.publish(String(data='stop'))
+                response = self.call(self.reset, Reset.Request(pause_new_measurements=True)
+                                     if Reset else None)
+                if response.result != Reset.Response.RESULT_SUCCESS:
+                    raise RuntimeError('SLAM rejected map reset')
+                self.map_after_ns = self.node.get_clock().now().nanoseconds
+                with LOCK:
+                    for key in (K_MAP, K_GOAL, K_ROUTE, K_OPTIONS, K_TRAIL, K_PREV,
+                                K_POSE, 'trail_odom', 'path_exact_m'):
+                        STATE.pop(key, None)
+                    STATE[K_PATH] = 0.0
+                    STATE[K_ETA] = None
+                    STATE[K_GSTATE] = 'map reset; mapping paused'
+                    MAP_PNG['bytes'] = None
+                    MAP_PNG['gen'] += 1
+                    STATE['map_control']['epoch'] += 1
+                    STATE['map_control']['paused'] = True
+                message = 'Map reset; mapping paused and stop commands sent'
+            elif action == 'resume':
+                if self.read_paused():
+                    response = self.call(self.pause, Pause.Request() if Pause else None)
+                    if not response.status:
+                        raise RuntimeError('SLAM rejected mapping resume')
+                    if self.read_paused():
+                        raise RuntimeError('SLAM still reports mapping paused')
+                message = 'Mapping active; robot motion remains unchanged'
+            else:
+                raise ValueError('Unknown map operation')
+        except Exception as exc:
+            status = 504 if isinstance(exc, TimeoutError) else 503 if isinstance(exc, ConnectionError) else 409
+            message = str(exc)
+            self.update(paused=None, error=message)
+        finally:
+            self.update(busy=bool(self.pending is not None and not self.pending.done()))
+            self.lock.release()
+        return status, {'ok': status == 200, 'message': message,
+                        'map_control': self.snapshot()}
+
+
+def render_png(msg, epoch=None):
     """OccupancyGrid -> PNG for /map.png. Colors match the canvas tokens
     (unknown #161615 / free #232322 / wall #e1e0d9) so overlays blend —
     dark unknown recedes, light walls read as structure."""
@@ -96,6 +220,8 @@ def render_png(msg):
     ok, buf = cv2.imencode('.png', img)
     if ok:
         with LOCK:
+            if epoch is not None and epoch != STATE.get('map_control', {}).get('epoch', 0):
+                return
             MAP_PNG['bytes'] = buf.tobytes()
             MAP_PNG['gen'] += 1
 
@@ -197,6 +323,10 @@ class WebNode(Node):
         self.goal_pub = self.create_publisher(String, '/goal/cmd', 10)
         self.wander_pub = self.create_publisher(String, '/wander/cmd', 10)
         self.estop_pub = self.create_publisher(String, '/estop/cmd', 10)
+        self.map_control = MapControl(self)
+        self.map_frame = 'map'
+        self.tf = Buffer()
+        self.tf_listener = TransformListener(self.tf, self)
 
         self.create_subscription(
             OccupancyGrid, '/map', self.on_map, qos_profile_sensor_data)
@@ -254,9 +384,20 @@ class WebNode(Node):
     # -- ROS callbacks ----------------------------------------------------
 
     def on_map(self, msg):
-        info = msg.info
-        render_png(msg)
         with LOCK:
+            control = STATE.get('map_control', {})
+            epoch = control.get('epoch', 0)
+            if epoch and control.get('paused') is not False:
+                return
+        stamp = msg.header.stamp.sec * 1000000000 + msg.header.stamp.nanosec
+        if stamp <= self.map_control.map_after_ns and self.map_control.map_after_ns:
+            return
+        info = msg.info
+        self.map_frame = msg.header.frame_id or 'map'
+        render_png(msg, epoch)
+        with LOCK:
+            if epoch != STATE.get('map_control', {}).get('epoch', 0):
+                return
             STATE[K_MAP] = [info.width, info.height, info.resolution,
                             info.origin.position.x, info.origin.position.y,
                             MAP_PNG['gen']]
@@ -266,19 +407,22 @@ class WebNode(Node):
         q = msg.pose.pose.orientation
         yaw = math.atan2(2.0 * (q.w * q.z + q.x * q.y),
                          1.0 - 2.0 * (q.y * q.y + q.z * q.z))
+        transform = None
+        source_frame = msg.header.frame_id or 'odom'
+        if source_frame == self.map_frame:
+            transform = (0.0, 0.0, 0.0)
+        else:
+            try:
+                tf = self.tf.lookup_transform(self.map_frame, source_frame, Time())
+                t, r = tf.transform.translation, tf.transform.rotation
+                angle = math.atan2(2.0 * (r.w * r.z + r.x * r.y),
+                                   1.0 - 2.0 * (r.y * r.y + r.z * r.z))
+                transform = (t.x, t.y, angle)
+            except TransformException:
+                pass  # Drawing odom as map would fabricate an aligned pose.
         with LOCK:
-            STATE[K_POSE] = [round(p.x, 3), round(p.y, 3), round(yaw, 3)]
-            trail = STATE.setdefault(K_TRAIL, [])
-            if not trail or math.hypot(p.x - trail[-1][0],
-                                       p.y - trail[-1][1]) >= 0.01:
-                trail.append([round(p.x, 3), round(p.y, 3)])
-                del trail[:-TRAIL_MAX]
-            prev = STATE.get(K_PREV)
-            if prev is not None:
-                d = math.hypot(p.x - prev[0], p.y - prev[1])
-                if d < 1.0:  # teleport = odom reset, not travel
-                    STATE[K_PATH] = round(STATE.get(K_PATH, 0.0) + d, 2)
-            STATE[K_PREV] = (p.x, p.y)
+            update_pose(STATE, p.x, p.y, yaw, transform, TRAIL_MAX)
+            STATE['pose_frame'] = self.map_frame
 
     def on_goal(self, msg):
         with LOCK:
@@ -500,6 +644,13 @@ def _handler(node, html, api):
                 return
             ln = int(self.headers.get('Content-Length', 0))
             body = self.rfile.read(ln).decode()
+            if self.path in ('/map/reset', '/map/resume'):
+                status, result = node.map_control.execute(self.path.rsplit('/', 1)[1])
+                self.send_response(status)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps(result).encode())
+                return
             verb = POST_VERBS.get(self.path)
             if verb:
                 attr, allowed = verb

@@ -85,6 +85,9 @@ button { background:var(--surface-2); color:var(--ink);
 button:hover { border-color:var(--muted); }
 button:active { transform:translateY(1px); }
 button:focus-visible { outline:2px solid var(--route); outline-offset:2px; }
+button:disabled { opacity:0.45; cursor:not-allowed; transform:none; }
+.mapping-error { color:var(--serious); font-size:12px; margin-top:8px; }
+.mapping-error:empty { display:none; }
 button.danger { background:rgba(208,59,59,0.16);
                 border-color:rgba(208,59,59,0.55); }
 button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
@@ -165,6 +168,16 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
     </div>
   </section>
   <aside>
+    <div class="card" id="mappingcard">
+      <h3>매핑</h3>
+      <p class="hint" id="mappingstatus" role="status">매핑 상태 확인 중…</p>
+      <div class="btnrow">
+        <button type="button" class="danger" id="mapreset" disabled>지도 초기화</button>
+        <button type="button" id="mapresume" disabled>매핑 재개</button>
+      </div>
+      <p class="hint">초기화하면 주행을 정지하고 지도 수집을 일시정지합니다. 다시 배치한 뒤 매핑을 재개하세요.</p>
+      <div class="mapping-error" id="mappingerror" role="alert"></div>
+    </div>
     <div class="card">
       <h3>Goal</h3>
       <p class="hint">advisory — wander and control drive the robot</p>
@@ -280,6 +293,7 @@ const S = {
   pin: null, lastOk: 0, raf: 0,
   tele: { lin: 1, ang: 1 },
   held: new Set(), kt: null,
+  mappingBusy: false, mapEpoch: null,
 };
 // ---- helpers + api ---------------------------------------------------------
 const $ = id => document.getElementById(id);
@@ -292,6 +306,40 @@ async function getJson(path) {
 async function post(path, body) {
   try { await fetch(API + path, { method: 'POST', body: body }); }
   catch (e) {}
+}
+function renderMapping(control) {
+  const ready = !!control && control.available;
+  const busy = S.mappingBusy || !!(control && control.busy);
+  $('mapreset').disabled = !ready || busy;
+  $('mapresume').disabled = !ready || busy || control.paused !== true;
+  setTxt('mappingstatus', busy ? '처리 중…' : !ready ? 'SLAM 연결 대기' :
+    control.paused === true ? '지도 수집 일시정지' :
+    control.paused === false ? '지도 수집 중' : '매핑 상태 확인 중…');
+}
+async function mappingAction(action) {
+  if (S.mappingBusy || $(action === 'reset' ? 'mapreset' : 'mapresume').disabled) return;
+  if (action === 'reset' && !window.confirm('현재 지도를 초기화하고 주행을 정지합니다. 계속할까요?')) return;
+  S.mappingBusy = true;
+  if (action === 'reset') { S.held.clear(); ksync(); }
+  setTxt('mappingerror', '');
+  renderMapping(S.data.map_control);
+  try {
+    const r = await fetch(API + '/map/' + action, { method: 'POST' });
+    const result = await r.json();
+    if (!r.ok || result.ok === false) throw new Error(result.message || '매핑 요청에 실패했습니다.');
+    if (action === 'reset') {
+      S.pin = null;
+      S.img.gen = -1;
+      S.view.ok = false;
+      updatePin();
+    }
+    await poll();
+  } catch (e) {
+    setTxt('mappingerror', e.message || '로봇과 연결할 수 없습니다.');
+  } finally {
+    S.mappingBusy = false;
+    renderMapping(S.data.map_control);
+  }
 }
 const api = {
   cmd: v => post('/cmd', v),
@@ -675,10 +723,18 @@ const BIND = [
 ];
 async function poll() {
   const s = await getJson('/state.json');
-  if (!s) { $('live').classList.remove('live'); return; }
+  if (!s) { $('live').classList.remove('live'); renderMapping(null); return; }
   $('live').classList.add('live');
   S.lastOk = Date.now();
   S.data = s;
+  if (s.map_control && S.mapEpoch !== s.map_control.epoch) {
+    S.mapEpoch = s.map_control.epoch;
+    S.img = {gen: -1, im: null, t: 0};
+    S.pin = null;
+    S.view.ok = false;
+    updatePin();
+  }
+  renderMapping(s.map_control);
   BIND.forEach(([id, fn]) => setTxt(id, fn(s)));
   $('estopChip').classList.toggle('crit', s.estop === true);
   $('mode').parentElement.classList.toggle('crit', s.mode === 'ESTOP');
@@ -790,6 +846,8 @@ document.querySelectorAll('[data-view]').forEach(b =>
   }));
 $('pinsend').addEventListener('click', sendPin);
 $('pinclear').addEventListener('click', clearPin);
+$('mapreset').addEventListener('click', () => mappingAction('reset'));
+$('mapresume').addEventListener('click', () => mappingAction('resume'));
 function fit() {
   const dpr = window.devicePixelRatio || 1;
   const r = wrap.getBoundingClientRect();
@@ -800,9 +858,13 @@ function fit() {
 }
 new ResizeObserver(fit).observe(wrap);
 function loadMap(gen) {
+  const epoch = S.mapEpoch;
   S.img.t = Date.now();
   const image = new Image();
-  image.onload = () => { S.img.gen = gen; S.img.im = image; draw(S.data); };
+  image.onload = () => {
+    if (epoch !== S.mapEpoch || !S.data.map || S.data.map[5] !== gen) return;
+    S.img.gen = gen; S.img.im = image; draw(S.data);
+  };
   image.src = API + '/map.png?g=' + gen;
 }
 setInterval(poll, CFG.poll_ms);
