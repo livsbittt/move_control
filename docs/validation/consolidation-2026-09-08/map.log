@@ -1,0 +1,28 @@
+[WARN] [1788810917.048842425] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788810917.048968625] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1788810917.195830182] [map_server]: 
+	map_server lifecycle node launched. 
+	Waiting on external lifecycle transitions to activate
+	See https://design.ros2.org/articles/node_lifecycle.html for more information.
+[INFO] [1788810917.196054522] [map_server]: Creating
+[INFO] [1788810917.340901718] [map_server]: Configuring
+[INFO] [1788810917.341168168] [map_io]: Loading yaml file: /tmp/consolidation-final/map/calibrated_2026-09-08/map.yaml
+[INFO] [1788810917.341853391] [map_io]: resolution: 0.02
+[INFO] [1788810917.341882442] [map_io]: origin[0]: 0.295911
+[INFO] [1788810917.341893178] [map_io]: origin[1]: 0.296086
+[INFO] [1788810917.341900887] [map_io]: origin[2]: 0
+[INFO] [1788810917.341908607] [map_io]: free_thresh: 0.196
+[INFO] [1788810917.341916027] [map_io]: occupied_thresh: 0.65
+[INFO] [1788810917.341927821] [map_io]: mode: trinary
+[INFO] [1788810917.341937877] [map_io]: negate: 0
+[INFO] [1788810917.342388418] [map_io]: Loading image_file: /tmp/consolidation-final/map/calibrated_2026-09-08/map.pgm
+[INFO] [1788810917.343642482] [map_io]: Read map /tmp/consolidation-final/map/calibrated_2026-09-08/map.pgm: 166 X 166 map @ 0.02 m/cell
+[INFO] [1788810917.652585116] [map_server]: Activating
+[INFO] [1788810917.662993251] [map_server]: Creating bond (map_server) to lifecycle manager.
+[INFO] [1788810992.394958651] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[INFO] [1788810992.395375992] [map_server]: Running Nav2 LifecycleNode rcl preshutdown (map_server)
+[INFO] [1788810992.395563283] [map_server]: Deactivating
+[INFO] [1788810992.395621477] [map_server]: Destroying bond (map_server) to lifecycle manager.
+[INFO] [1788810992.426186119] [map_server]: Cleaning up
+[INFO] [1788810992.426289325] [map_server]: Destroying bond (map_server) to lifecycle manager.
+[INFO] [1788810992.573785785] [map_server]: Destroying

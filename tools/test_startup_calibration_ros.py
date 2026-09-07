@@ -33,12 +33,24 @@ class StartupCalibrationTest(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         path = Path(self.tmp.name) / 'calibration.json'
         path.write_text('{"ready": true, "phase": "ready"}')
-        self.node = StartupCalibrationNode(parameter_overrides=[Parameter('result_path', value=str(path))])
+        self.node = StartupCalibrationNode(parameter_overrides=[Parameter('result_path', value=str(path)), Parameter('calibration_rotation', value=False)])
         self.node.raw_pub = Mock()
         self.node.ready_pub = Mock()
         self.node.read_tf = Mock()
         self.clock = patch('move_control.startup_calibration_node.time.monotonic', return_value=100.)
         self.now = self.clock.start()
+        original_tick = self.node.tick
+        def tick_with_gate_ack():
+            original_tick()
+            # Simulated final gate acknowledges the freshly published atomic
+            # packet; persisted completion remains evidence, not a live lease.
+            if self.node.phase == 'ready':
+                self.node.publish()
+                packet = self.node.profile_packet()
+                self.node.on_applied(String(data=json.dumps(dict(applied=packet['enabled'],
+                    revision=self.node.profile_revision, session=self.node.profile_session))))
+                self.node.publish()
+        self.node.tick = tick_with_gate_ack
 
     def tearDown(self):
         self.clock.stop()
@@ -47,6 +59,12 @@ class StartupCalibrationTest(unittest.TestCase):
 
     def refresh(self, when, moving=False):
         self.now.return_value = when
+        self.node.geometry_revision = 'fixture-geometry'
+        self.node.geometry_profile = {'effective': {'turn_clear': .1}}
+        self.node.geometry_received = when
+        request = getattr(self.node, '_trial_request', (when, 0., 0.))
+        self.node.gate_decision = (when+.25, dict(requested_v=request[1], safe_v=request[1],
+            requested_omega=request[2], safe_omega=request[2]))
         self.node.safety_limits = (when, dict(front_m=.65, rear_m=.65,
             front_stop_m=.12, rear_stop_m=.091, us_stop_m=.02))
         self.node.raw_ranges = {'lidar': (when,.65,True), 'us': (when,.65,True)}
@@ -248,7 +266,8 @@ class StartupCalibrationTest(unittest.TestCase):
         self.node.tick()
         self.assertEqual(self.node.phase, 'ready')
         self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
-        self.assertTrue(json.loads((Path(self.tmp.name) / 'calibration.json').read_text())['ready'])
+        self.assertFalse(json.loads((Path(self.tmp.name) / 'calibration.json').read_text())['ready'])
+        self.assertTrue(self.node.report()['ready'])
 
     def test_auto_motion_never_retries_after_abort_or_failure(self):
         for final_phase in ('aborted', 'failed'):
@@ -294,7 +313,8 @@ class StartupCalibrationTest(unittest.TestCase):
         self.assertEqual(self.node.phase, 'ready', self.node.message)
         self.assertEqual(speed, 0.)
         saved = json.loads((Path(self.tmp.name) / 'calibration.json').read_text())
-        self.assertTrue(saved['settings_applied'])
+        self.assertFalse(saved['settings_applied'])
+        self.assertTrue(self.node.report()['settings_applied'])
         self.assertEqual(len(saved['motion']['legs']), 4)
 
     def test_round_trip_rear_clearance_loss_aborts_before_reverse(self):
@@ -314,7 +334,8 @@ class StartupCalibrationTest(unittest.TestCase):
         self.assertEqual(self.node.phase, 'ready')
         self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
         report = json.loads((Path(self.tmp.name) / 'calibration.json').read_text())
-        self.assertTrue(report['ready'])
+        self.assertFalse(report['ready'])
+        self.assertTrue(self.node.report()['ready'])
         self.assertTrue(all(report['motion']['checks'].values()))
         self.assertAlmostEqual(report['estimates']['imu_gyro_bias_rad_s'][0], .001)
         self.assertFalse(report['settings_applied'])
@@ -361,7 +382,7 @@ class StartupCalibrationTest(unittest.TestCase):
         self.assertEqual(self.node.phase, 'ready')
         self.assertEqual(self.node.report()['phase'], 'sensor_hold')
         self.assertTrue(self.node.report()['calibration_verified'])
-        self.assertTrue(self.node.report()['settings_applied'])
+        self.assertFalse(self.node.report()['settings_applied'])
         self.assertAlmostEqual(self.node.scale_pub.publish.call_args.args[0].data[0], 1.1, places=6)
         self.assertFalse(self.node.ready_pub.publish.call_args.args[0].data)
         self.refresh(112., moving=True)

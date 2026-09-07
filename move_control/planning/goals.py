@@ -96,12 +96,16 @@ class GoalBrain:
         self._failed_goals = []
         self._failed_exits = []
         self._route_tick = 0
+        self.execution_feedback = False
+        self._explore_viewpoint = None
 
     def avoid_route_exit(self, point):
+        self._explore_viewpoint = None
         if point is not None and all(math.isfinite(v) for v in point):
             self._failed_exits.append((tuple(point), self._route_tick+self.blacklist_plans))
 
     def avoid_goal(self, goal):
+        self._explore_viewpoint = None
         if goal is not None and all(math.isfinite(v) for v in goal):
             self._failed_goals.append((tuple(goal), self._plan_n+self.blacklist_plans))
         self.clear_manual()
@@ -109,6 +113,7 @@ class GoalBrain:
 
     def restart_recovery(self):
         """An explicit new mode request starts a fresh attempt, retaining visits."""
+        self._explore_viewpoint = None
         self._failed_goals.clear()
         self._failed_exits.clear()
         self._blacklist.clear()
@@ -119,6 +124,7 @@ class GoalBrain:
     def complete_goal(self, m, pose, goal):
         """Successful arrival consumes a target, without a failure penalty."""
         self._track_map_lattice(m)
+        self._explore_viewpoint = None
         self._completed_goals.append((tuple(goal), self._plan_n + self.blacklist_plans))
         cover_ring(self.covered, m, pose[0], pose[1], radius_m=self.lane_width / 2)
         self._target = self._probe = self._wide_cell = None
@@ -129,6 +135,7 @@ class GoalBrain:
         """Clear map-session memory without changing configured geometry."""
         self.covered.clear()
         self._completed_goals.clear()
+        self._explore_viewpoint = None
         self._failed_goals.clear()
         self._failed_exits.clear()
         self._coverage_deferred.clear()
@@ -163,6 +170,12 @@ class GoalBrain:
         exempt) => blacklist it for blacklist_plans plan calls and re-pick
         from the remaining options. Returns (goal | None, status prefix).
         """
+        # The active route executor measures translation and heading progress
+        # and explicitly requests replans. A second XY-only watchdog would
+        # replace its goal during a legitimate safety-limited alignment turn.
+        if self.execution_feedback:
+            self._n = 0
+            return g, ''
         cell = m.world_to_grid(g['x'], g['y'])
         dist = math.hypot(g['x'] - pose[0], g['y'] - pose[1])
         if self._target != cell:
@@ -210,6 +223,7 @@ class GoalBrain:
     def set_manual(self, x, y):
         """Latch an external goal; replaces any previous one."""
         self._manual = (float(x), float(y))
+        self._explore_viewpoint = None
         self._manual_n = 0
 
     def clear_manual(self):
@@ -329,6 +343,25 @@ class GoalBrain:
             status = 'alternative exit: ' + status
         return goal, route, status
 
+    def _retained_frontier(self, m, pose, margins):
+        saved = self._explore_viewpoint
+        self._explore_viewpoint = None
+        if not self.execution_feedback or saved is None:
+            return None
+        target = (saved['x'], saved['y'])
+        if math.dist(pose, target) <= self.reach_tol or not m.is_free(*m.world_to_grid(*target)):
+            return None
+        for margin in margins:
+            if margin is None:
+                continue
+            route = best_route(m, pose, target, clear_m=margin,
+                               avoid_points=[xy for xy, _ in self._failed_exits])
+            if route and math.dist(route['points'][-1], target) <= m.res:
+                # Keep an executable observation point until arrival. Tiny
+                # scan fragments changing rank are not execution failure.
+                return dict(saved, route=route, options=[], clear_m=margin)
+        return None
+
     def _plan_candidate(self, m, pose):
         if not (m.ox <= pose[0] < m.ox + m.w*m.res and
                 m.oy <= pose[1] < m.oy + m.h*m.res):
@@ -409,7 +442,9 @@ class GoalBrain:
                 # explicit footprint floor applies to the whole route, not
                 # only when the start cell already needs an escape.
                 clear_retry = self.start_escape_clear_m
-            g = pick_goal(m, pose, min_size=self.min_size,
+            g = self._retained_frontier(m, pose, (clear_first, clear_retry))
+            if g is None:
+                g = pick_goal(m, pose, min_size=self.min_size,
                           clear_m=clear_first,
                           retry_clear_m=clear_retry,
                           exclude=set(self._blacklist) | failed | completed)
@@ -418,6 +453,7 @@ class GoalBrain:
                 if g is None:
                     return None, None, prefix
                 self.last_options = g.get('options', [])
+                self._explore_viewpoint = {key: g[key] for key in ('x', 'y', 'size', 'score') if key in g}
                 st = (f"explore goal=({g['x']:.2f},{g['y']:.2f}) "
                       f"score={g.get('score', 0):.1f} "
                       f"size={g['size']} "

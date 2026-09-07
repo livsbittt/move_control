@@ -12,6 +12,14 @@ from move_control import web_node as web
 
 
 class CalibrationHttpTest(unittest.TestCase):
+    def test_display_limits_come_from_valid_effective_profile(self):
+        packet = {'valid': True, 'revision': 'test',
+                  'effective': {'stop': .15, 'clear': .17, 'radius': .09}}
+        web.WebNode.on_safety_profile(self.node, SimpleNamespace(data=json.dumps(packet)))
+        self.assertEqual(web.STATE[web.K_LIMITS]['stop'], .15)
+        web.WebNode.on_safety_profile(self.node, SimpleNamespace(data='[]'))
+        self.assertFalse(web.STATE['safety_profile']['valid'])
+
     def setUp(self):
         web.STATE.clear()
         self.node = SimpleNamespace(wander_pub=Mock(), teleop_pub=Mock(), calibration_pub=Mock(), estop_pub=Mock())

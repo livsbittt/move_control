@@ -21,9 +21,10 @@ from .bumper import Bumper
 from .gate import Gate
 from .hazard import Hazard
 from .scale import Scale
+from .evidence import Evidence
 
 
-class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
+class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
 
     def __init__(self):
         super().__init__('safety_node')
@@ -48,6 +49,9 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.declare_parameter('scan_pctl', 0.10)
         self.declare_parameter('scan_ignore_m', 0.04)
         self.declare_parameter('sensor_timeout', 1.0)
+        self.declare_parameter('imu_angular_velocity_unit', 'deg_s')
+        self.declare_parameter('safety_max_linear', .014)
+        self.declare_parameter('safety_max_angular', .10)
         self.declare_parameter('us_scale', 1.0)
         self.declare_parameter('us_invalid_hold', 5)
         self.declare_parameter('us_hits', 3)
@@ -138,6 +142,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             reliability=ReliabilityPolicy.RELIABLE,
             durability=DurabilityPolicy.TRANSIENT_LOCAL,
         )
+        self.init_evidence(latched)
         self.estop_pub = self.create_publisher(Bool, '/estop/state', latched)
         self.drive_scales = [1., 1.]
         self.drive_scale_time = 0.
@@ -253,7 +258,16 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         return (self.now() - stamp).nanoseconds / 1e9
 
     def tick(self):
-        self._refresh_distances()
+        try:
+            self._refresh_distances()
+            self.refresh_profile()
+        except (ValueError, TypeError, OverflowError):
+            self.profile_valid = False
+        if not self.profile_valid:
+            self.halt_with_reason('invalid_geometry')
+            self.last_cmd = Twist()
+            self.last_cmd_time = None
+            return
         if self.estop:
             self.raw_zero_pub.publish(Twist())
             self._publish_zero()
@@ -353,15 +367,21 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.can_rev_pub.publish(Bool(data=can_rev))
 
         us_need = max(1, int(self.get_parameter('us_hits').value))
-        if us <= self.us_stop:
+        us_generation = self.observations.generation('us')
+        new_us = us_generation != self._us_hit_generation
+        self._us_hit_generation = us_generation
+        us_raw = self.us_distance()
+        us_fresh = self.observations.fresh('us', time.monotonic())
+        if us_fresh and min(us_raw, us) <= self.us_stop and new_us:
             self._us_hits += 1
             if self._us_hits >= us_need:
                 if not self.us_blocked:
                     self.get_logger().warn(f'WALL us={us:.3f} m (stop {self.us_stop:.3f})')
                 self.us_blocked = True
-        else:
+        elif (new_us and us_fresh and math.isfinite(us_raw) and math.isfinite(us)
+              and us_raw > self.us_stop and us > self.us_stop):
             self._us_hits = 0
-            if us >= self.us_clear and self.us_blocked:
+            if us_raw >= self.us_clear and us >= self.us_clear and self.us_blocked:
                 self.get_logger().info(f'wall clear us={us:.3f} m')
                 self.us_blocked = False
 
@@ -388,21 +408,29 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.block_pub.publish(Bool(data=obstacle))
 
         if self.estop:
+            self.record_decision(0., 0., 'estop')
+            return
+
+        failure = self.required_observation_failure()
+        if not self.profile_valid or failure:
+            self.halt_with_reason(failure or 'invalid_geometry')
+            self.last_cmd = Twist()
+            self.last_cmd_time = None
             return
 
         if (self.get_parameter('localization_required').value and
                 not lease_ready(self.localization_status, self.now().nanoseconds * 1e-9)):
-            self._publish_zero()
+            self.halt_with_reason('localization_unavailable')
             # Commands issued against a lost pose cannot be replayed on recovery.
             self.last_cmd = Twist()
             self.last_cmd_time = None
             return
 
         if pickup:
-            self._publish_zero()
+            self.halt_with_reason('pickup')
             return
         if self.age(self.last_cmd_time) > 0.5 and not tilt:
-            self._publish_zero()
+            self.halt_with_reason('command_stale')
             return
 
         cmd = Twist()
@@ -422,6 +450,13 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             cmd.linear.x = 0.0
         if not can_rotate:
             cmd.angular.z = 0.0
+        # Removing one component changes the requested swept trajectory.
+        # Stop so the planner can issue an explicit straight or spin command.
+        if (self.last_cmd.linear.x != 0. and self.last_cmd.angular.z != 0. and
+                (cmd.linear.x != self.last_cmd.linear.x or
+                 cmd.angular.z != self.last_cmd.angular.z)):
+            self.halt_with_reason('trajectory_changed')
+            return
         if abs(cmd.linear.x) >= 0.004:
             self._auto_linear_sign(us, lidar_d, self.last_cmd.linear.x, self.last_cmd.angular.z)
         else:
@@ -430,6 +465,16 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             self._sign_hits = 0
         # Apply after semantic halt: +raw means nose-forward.
         cmd.linear.x = self.corrected_drive_speed(cmd.linear.x)
+        if abs(cmd.linear.x) < 1e-4 and abs(cmd.angular.z) <= .06:
+            gains = self.calibration_lease.angular_gains(time.monotonic())
+            cmd.angular.z *= gains[0 if cmd.angular.z >= 0 else 1]
+        scale = min(1., self.profile.max_linear / max(abs(cmd.linear.x), 1e-12),
+                    self.profile.max_angular / max(abs(cmd.angular.z), 1e-12))
+        cmd.linear.x *= scale
+        cmd.angular.z *= scale
+        self.record_decision(cmd.linear.x, cmd.angular.z,
+                             'allow' if (cmd.linear.x == self.last_cmd.linear.x and
+                                         cmd.angular.z == self.last_cmd.angular.z) else 'motion_limited')
         cmd.linear.x *= self.cmd_linear_sign
         self.pub.publish(cmd)
 
@@ -449,9 +494,10 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             self._publish_zero()
 
     def corrected_drive_speed(self, speed):
-        # A short low-speed trial does not calibrate the entire motor curve.
-        if abs(speed) <= .014 and self.drive_ready and time.monotonic() - self.drive_scale_time <= 1.5:
-            return speed * self.drive_scales[0 if speed >= 0 else 1]
+        # Atomic lease binds both gains to the current geometry and expiry.
+        if abs(speed) <= .014 and abs(self.last_cmd.angular.z) < 1e-4:
+            gains = self.calibration_lease.gains(time.monotonic())
+            return speed * gains[0 if speed >= 0 else 1]
         return speed
 
     def on_drive_scale(self, msg):

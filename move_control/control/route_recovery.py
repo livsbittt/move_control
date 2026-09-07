@@ -11,6 +11,7 @@ class RouteRecovery:
     def reset(self):
         self.anchor = self.budget_anchor = None
         self.progress_since = self.blocked_since = None
+        self.hold_since = None
         self.requested = None
         self.failed_goal = None
         self.failed_exit = None
@@ -20,7 +21,16 @@ class RouteRecovery:
 
     def update(self, now, pose, reason, goal, route_stamp, safe, route_exit=None):
         if not safe or pose is None:
+            if self.hold_since is None:
+                self.hold_since = now
             return 'safety_hold'
+        if self.hold_since is not None:
+            duration = max(0., now-self.hold_since)
+            for name in ('progress_since', 'blocked_since', 'requested'):
+                stamp = getattr(self, name)
+                if stamp is not None:
+                    setattr(self, name, stamp+duration)
+            self.hold_since = None
         if self.exhausted:
             return 'exhausted'
         xy = tuple(pose[:2])
@@ -41,8 +51,8 @@ class RouteRecovery:
                 self.progress_since, self.blocked_since = now, None
                 self.alignment_heading = self.alignment_best_error = None
                 return 'alternative'
-            if now-self.requested < self.wait_seconds:
-                return 'waiting'
+            # Waiting for a distinct executable route is not a failed drive.
+            return 'waiting'
         else:
             if reason in ('align', 'turn_away') and len(pose) >= 3:
                 target = route_exit if route_exit is not None else goal

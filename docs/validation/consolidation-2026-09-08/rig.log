@@ -1,0 +1,9 @@
+[WARN] [1788810917.693644430] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788810917.693746881] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+{"phase": "drive", "sim_s": 12.350000000000001, "route_count": 0, "error": [0.0016269830797648037, 0.001002542963869545]}
+{"phase": "teleport_translation", "sim_s": 20.405, "route_count": 11}
+{"phase": "rotate", "sim_s": 32.050000000000004, "route_count": 11, "error": [0.003743450757756881, 0.0024775601138025123]}
+{"phase": "teleport_rotation", "sim_s": 36.06, "route_count": 17}
+{"phase": "scan_outage", "sim_s": 48.910000000000004, "route_count": 17, "error": [0.0028269434124916634, 0.004400857994734109]}
+{"phase": "scan_restored", "sim_s": 51.95, "route_count": 18}
+{"passed": true, "reason": "Initial localization, motion, translation/yaw teleport recovery and scan outage passed", "events": [{"phase": "drive", "sim_s": 12.350000000000001, "route_count": 0, "error": [0.0016269830797648037, 0.001002542963869545]}, {"phase": "teleport_translation", "sim_s": 20.405, "route_count": 11}, {"phase": "rotate", "sim_s": 32.050000000000004, "route_count": 11, "error": [0.003743450757756881, 0.0024775601138025123]}, {"phase": "teleport_rotation", "sim_s": 36.06, "route_count": 17}, {"phase": "scan_outage", "sim_s": 48.910000000000004, "route_count": 17, "error": [0.0028269434124916634, 0.004400857994734109]}, {"phase": "scan_restored", "sim_s": 51.95, "route_count": 18}], "samples": 1037, "route_messages": 19, "odom_source": "integrated final safety command, no ground-truth pose input", "ground_truth_role": "scoring only", "cmd_vel_publishers": ["safety_node"]}

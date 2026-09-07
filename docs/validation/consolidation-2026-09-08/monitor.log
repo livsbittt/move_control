@@ -1,0 +1,8 @@
+[WARN] [1788810917.454501847] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788810917.454567298] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[WARN] [1788810923.157060630] [localization_monitor]: Localization uncertain: global AMCL recovery requested
+[INFO] [1788810933.356511969] [localization_monitor]: Unique map/scan candidate supplied to AMCL: {"unique": true, "pose": [2.555911414789362, 0.6060854936996971, -3.552713678800501e-15], "agreement": 1.0, "quality": 1.0, "margin": 0.2741858777202928}
+[WARN] [1788810947.460049886] [localization_monitor]: Localization uncertain: global AMCL recovery requested
+[INFO] [1788810959.065352824] [localization_monitor]: Unique map/scan candidate supplied to AMCL: {"unique": true, "pose": [0.45591146128098453, 3.4560854302207504, 1.5707963267948912], "agreement": 1.0, "quality": 1.0, "margin": 0.05073931650754493}
+[WARN] [1788810969.192700530] [localization_monitor]: Localization uncertain: global AMCL recovery requested
+[INFO] [1788810982.065419093] [localization_monitor]: Unique map/scan candidate supplied to AMCL: {"unique": true, "pose": [0.45591146128098453, 3.4560854302207504, -1.5707963267948983], "agreement": 1.0, "quality": 1.0, "margin": 0.05073931650754493}

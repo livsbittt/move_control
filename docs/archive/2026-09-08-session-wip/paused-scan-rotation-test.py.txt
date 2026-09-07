@@ -1,0 +1,63 @@
+import math
+import unittest
+
+import numpy as np
+
+from move_control.sensing import scan_rotation as scan
+
+
+def room_ranges(yaw=0., x=0., y=0., count=720):
+    """Raycast four static walls; regenerated beams, not reused correspondences."""
+    angles = np.arange(count) * 2 * math.pi / count + yaw
+    cx, sy = np.cos(angles), np.sin(angles)
+    with np.errstate(divide='ignore', invalid='ignore'):
+        tx = np.where(cx > 0, (.85-x)/cx, (-.65-x)/cx)
+        ty = np.where(sy > 0, (.70-y)/sy, (-.50-y)/sy)
+    return np.minimum(tx, ty)
+
+
+def points(ranges):
+    return scan.scan_points(ranges, 0., 2*math.pi/len(ranges), .05, 40., 0.)
+
+
+class ScanRotationTest(unittest.TestCase):
+    def test_tracks_rotation_with_lidar_lever_arm_and_resampled_noisy_beams(self):
+        reference = points(room_ranges())
+        pose = (0., 0., 0.)
+        rng = np.random.default_rng(10)
+        for degrees in (2, 5, 10, 15, 20, 15, 5, 0, -5, -15, -20):
+            yaw = math.radians(degrees)
+            x, y = .017*(1-math.cos(yaw)), -.017*math.sin(yaw)
+            current = points(room_ranges(yaw, x, y) + rng.normal(0., .001, 720))
+            result = scan.match_scan(reference, current, pose)
+            self.assertTrue(result['ok'], result)
+            self.assertLess(abs(result['yaw']-yaw), math.radians(.5))
+            self.assertLess(abs(result['x']-x), .003)
+            pose = (result['x'], result['y'], result['yaw'])
+
+    def test_single_wall_is_unobservable_and_short_or_nonfinite_scan_fails(self):
+        wall = np.column_stack((np.ones(100), np.linspace(-.5, .5, 100)))
+        self.assertFalse(scan.match_scan(wall, wall)['ok'])
+        self.assertFalse(scan.match_scan(wall[:5], wall[:5])['ok'])
+        bad = wall.copy()
+        bad[3, 0] = np.nan
+        self.assertFalse(scan.match_scan(bad, wall)['ok'])
+
+    def test_translation_is_not_mistaken_for_rotation(self):
+        result = scan.match_scan(points(room_ranges()), points(room_ranges(x=.025, y=-.01)))
+        self.assertTrue(result['ok'], result)
+        self.assertLess(abs(result['yaw']), math.radians(.3))
+        self.assertAlmostEqual(result['x'], .025, delta=.003)
+
+    def test_clearance_requires_all_around_observation_and_rejects_close_hit(self):
+        ranges = room_ranges()
+        args = (0., math.pi/360, .05, 40., .20)
+        self.assertTrue(scan.rotation_clearance(ranges, *args))
+        ranges[10] = .12
+        self.assertFalse(scan.rotation_clearance(ranges, *args))
+        ranges[:60] = math.inf
+        self.assertFalse(scan.rotation_clearance(ranges, *args))
+
+    def test_mount_heading_uses_robot_frame(self):
+        rear = scan.scan_points([1.]*720, 0., math.pi/360, .05, 40., math.pi)
+        self.assertLess(rear[0, 0], -.99)

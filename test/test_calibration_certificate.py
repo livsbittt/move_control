@@ -53,3 +53,34 @@ class CalibrationCertificateTest(unittest.TestCase):
         for record in (None,[],{},'not json'):
             self.assertIsNone(validate_certificate(record,{}))
         with self.assertRaises(ValueError):make_certificate({'bad':float('nan')},complete_motion())
+
+class RotationCertificateTest(unittest.TestCase):
+    @staticmethod
+    def rotation():
+        from move_control.control.rotation_trial import RotationTrial
+        trial=RotationTrial(0.)
+        yaw=speed=0.
+        for i in range(1,1201):
+            yaw+=speed*.05
+            speed=trial.update(i*.05,yaw,yaw,yaw,0.,True)
+            if trial.done or trial.error:break
+        assert trial.done, trial.error
+        return trial.report()
+
+    def test_rotation_identity_survives_and_legacy_never_claims_it(self):
+        report=self.rotation()
+        record=make_certificate({'machine':'a'},complete_motion(),report)
+        self.assertEqual(record['schema'],2)
+        self.assertIsNotNone(validate_certificate(record,{'machine':'a'}))
+        self.assertIsNone(validate_certificate(record,{'machine':'b'}))
+        legacy=make_certificate({},complete_motion())
+        self.assertNotIn('rotation',legacy)
+        legacy['rotation']=report
+        self.assertIsNone(validate_certificate(legacy,{}))
+
+    def test_truncated_or_tampered_rotation_rejected(self):
+        record=make_certificate({},complete_motion(),self.rotation())
+        record['rotation']['legs'][0]['commanded_rad']+=.001
+        self.assertIsNone(validate_certificate(record,{}))
+        report=self.rotation();report['legs'].pop()
+        with self.assertRaises(ValueError):make_certificate({},complete_motion(),report)

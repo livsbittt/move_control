@@ -1,5 +1,6 @@
 """Subject: contact sensing. Lidar sectors + US. Publish ranges."""
 import math
+import time
 from ..control.lidar_guard import scan_body_clearance
 from ..control.footprint_guard import translation_clearance
 
@@ -36,8 +37,12 @@ def parse_us_range(msg: Range, scale: float = 1.0):
 class Bumper:
 
     def on_us(self, msg: Range):
-        self.last_us_time = self.now()
         parsed = parse_us_range(msg, self.us_scale)
+        accepted = self.observe('us', msg, valid=parsed is not None)
+        if parsed is not None and not accepted:
+            return
+        if accepted:
+            self.last_us_time = self.now()
         if parsed is None:
             self._us_invalid += 1
             if self._us_invalid >= self.us_invalid_hold:
@@ -65,8 +70,11 @@ class Bumper:
                 self.lidar_yaw = nose_from_quaternion(q.x, q.y, q.z, q.w)
                 self.lidar_yaw_source = 'tf:' + msg.header.frame_id
                 mount = tf.transform.translation
+                if not all(math.isfinite(v) for v in (mount.x, mount.y, mount.z)):
+                    raise ValueError('Nonfinite mount')
                 self.lidar_mount = (mount.x, mount.y)
             except (TransformException, ValueError) as error:
+                self.observe('lidar', valid=False)
                 self.last_scan_time = None
                 self.lidar_mount = None
                 self.lidar_yaw_source = 'missing_tf'
@@ -77,6 +85,10 @@ class Bumper:
             self.lidar_yaw = float(self.get_parameter('lidar_yaw_offset').value)
             self.lidar_yaw_source = 'parameter'
             self.lidar_mount = None
+        if not self.observe('lidar', msg, valid=bool(msg.ranges) and
+                            all(math.isfinite(v) for v in (msg.angle_min, msg.angle_increment,
+                                                          msg.range_min, msg.range_max))):
+            return
         self._scan_ok += 1
         self.lidar_measurement_time = Time.from_msg(msg.header.stamp)
         yaw = self.lidar_yaw
@@ -182,10 +194,10 @@ class Bumper:
         return float('inf')
 
     def sensors_ok(self) -> bool:
-        return self.age(self.last_scan_time) < self.timeout
+        return self.observations.fresh('lidar', time.monotonic())
 
     def us_distance(self) -> float:
-        if self.age(self.last_us_time) < self.timeout:
+        if self.observations.fresh('us', time.monotonic()):
             return self.us_front
         return float('inf')
 
@@ -215,5 +227,12 @@ class Bumper:
 
     def _filt(self, name, raw):
         v = raw if math.isfinite(raw) and raw > 0.0 else None
-        y = self._lp[name].push(v)
+        stream = 'us' if name == 'us' else 'lidar'
+        generation = self.observations.generation(stream)
+        if self._filtered_generations.get(name) != generation:
+            self._filtered_generations[name] = generation
+            y = self._lp[name].push(v)
+            self._filtered_values[name] = y
+        else:
+            y = self._filtered_values.get(name)
         return y if y is not None else raw

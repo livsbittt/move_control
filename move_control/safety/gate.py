@@ -9,6 +9,13 @@ from ..sensing.localization import lease_ready
 class Gate:
 
     def on_cmd(self, msg: Twist):
+        values = (msg.linear.x, msg.linear.y, msg.linear.z,
+                  msg.angular.x, msg.angular.y, msg.angular.z)
+        if not all(math.isfinite(value) for value in values):
+            self.last_cmd = Twist()
+            self.last_cmd_time = None
+            self.halt_with_reason('invalid_command')
+            return
         if (self.estop or (self.get_parameter('localization_required').value and
                 not lease_ready(self.localization_status, self.now().nanoseconds * 1e-9))):
             self.last_cmd = Twist()

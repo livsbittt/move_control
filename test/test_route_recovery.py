@@ -16,15 +16,27 @@ def test_zero_command_hold_replans_then_requires_a_different_fresh_route():
     assert r.attempts==1
 
 
-def test_no_route_does_not_erase_failed_target_and_retries_are_bounded():
-    r=RouteRecovery()
-    tick(r,0)
-    assert tick(r,5)=='replan'
-    assert tick(r,10,goal=None)=='replan'
-    assert tick(r,11)=='waiting'
-    assert tick(r,15)=='replan'
-    assert tick(r,20)=='exhausted'
-    assert tick(r,50,goal=(2.,0.))=='exhausted'
+def test_waiting_for_planner_preserves_budget_but_failed_drives_are_bounded():
+    r = RouteRecovery()
+    tick(r, 0)
+    assert tick(r, 5) == 'replan'
+    assert tick(r, 100, goal=None) == 'waiting'
+    assert r.failed_goal == (1., 0.) and r.attempts == 1
+    for t, goal in ((101, (2., 0.)), (111, (3., 0.))):
+        assert tick(r, t, goal=goal) == 'alternative'
+        tick(r, t+1, goal=goal)
+        assert tick(r, t+6, goal=goal) == 'replan'
+    assert tick(r, 121, goal=(4., 0.)) == 'alternative'
+    tick(r, 122, goal=(4., 0.))
+    assert tick(r, 127, goal=(4., 0.)) == 'exhausted'
+
+
+def test_localization_hold_freezes_recovery_deadlines():
+    r = RouteRecovery()
+    tick(r, 0)
+    assert tick(r, 2, safe=False) == 'safety_hold'
+    assert tick(r, 102) == 'following'
+    assert tick(r, 105) == 'replan'
 
 
 def test_normal_alignment_is_allowed_but_endless_rotation_is_not_progress():

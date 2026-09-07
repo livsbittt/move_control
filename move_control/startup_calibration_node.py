@@ -6,6 +6,7 @@ from pathlib import Path
 import tempfile
 import time
 import socket
+import uuid
 from types import SimpleNamespace
 
 import numpy as np
@@ -29,14 +30,17 @@ from .control.calibration_certificate import make_certificate, validate_certific
 from .control.calibration_clearance import motion_clearance
 from .control.navigation_calibration import environment_profile, map_ray
 from .planning import OccupancyMap
+from .calibration_rotation import CalibrationRotation
+from .calibration_atomic import CalibrationAtomic
 
 
-class StartupCalibrationNode(Node):
+class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
     def __init__(self, parameter_overrides=None):
         super().__init__('startup_calibration_node', parameter_overrides=parameter_overrides or [])
         self.declare_parameter('lidar_yaw_offset', NOSE_YAW)
         self.declare_parameter('imu_angular_velocity_unit', 'rad_s')
         self.declare_parameter('calibration_auto_motion', True)
+        self.declare_parameter('calibration_rotation', True)
         self.declare_parameter('calibration_require_us_agreement', True)
         self.declare_parameter('calibration_us_max_range', 3.0)
         self.declare_parameter('calibration_round_trip', False)
@@ -48,6 +52,12 @@ class StartupCalibrationNode(Node):
         self.status_pub = self.create_publisher(String, '/calibration/status', latched)
         self.ready_pub = self.create_publisher(Bool, '/calibration/ready', latched)
         self.scale_pub = self.create_publisher(Float32MultiArray, '/calibration/drive_scale', latched)
+        self.profile_pub = self.create_publisher(String, '/calibration/profile', latched)
+        self.geometry_revision = self.geometry_profile = self.geometry_received = None
+        self.gate_decision = None
+        self.create_subscription(String, '/safety/profile', self.on_safety_profile, latched)
+        self.create_subscription(String, '/calibration/applied', self.on_applied, latched)
+        self.create_subscription(String, '/safety/decision', self.on_gate_decision, 10)
         self.raw_pub = self.create_publisher(Twist, '/cmd_vel_raw', 10)
         self.wander_pub = self.create_publisher(String, '/wander/cmd', 10)
         self.create_subscription(String, '/calibration/cmd', self.on_command, 10)
@@ -84,6 +94,11 @@ class StartupCalibrationNode(Node):
             self.certificate_path().unlink(missing_ok=True)
         self.zero()
         self.wander_pub.publish(String(data='stop'))
+        self.profile_session = uuid.uuid4().hex
+        self.profile_sequence = 0
+        self.profile_revision = self.applied_profile = None
+        self.trial_geometry_revision = None
+        self.reset_rotation()
         self.baseline = StationaryBaseline(
             require_us_stable=bool(self.get_parameter('calibration_require_us_agreement').value))
         self.range_filters = {name: CalibrationRangeFilter() for name in ('lidar', 'us')}
@@ -115,7 +130,7 @@ class StartupCalibrationNode(Node):
         self.publish()
 
     def zero(self):
-        self.raw_pub.publish(Twist())
+        self.publish_trial(Twist())
 
     def stamped(self, msg, max_age=1.):
         stamp = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
@@ -133,7 +148,7 @@ class StartupCalibrationNode(Node):
 
     def on_estop(self, msg):
         self.estop = bool(msg.data)
-        if self.estop and self.phase == 'validating_motion':
+        if self.estop and self.phase in ('validating_motion', 'validating_rotation'):
             self.finish(False, 'Emergency stop engaged')
 
     def on_wander(self, msg):
@@ -146,6 +161,8 @@ class StartupCalibrationNode(Node):
             transform = self.tf.lookup_transform('base_link', msg.header.frame_id, rclpy.time.Time())
             q = transform.transform.rotation
             self.lidar_nose = nose_from_quaternion(q.x, q.y, q.z, q.w)
+            p = transform.transform.translation
+            self.rotation_mount_offset = math.hypot(p.x, p.y)
         except Exception:
             valid = False
         distance = sector_range(msg, self.lidar_nose,
@@ -154,7 +171,8 @@ class StartupCalibrationNode(Node):
         odom_rows = self.baseline.samples['odom']
         if not odom_rows or not 0 <= time.monotonic()-odom_rows[-1][0] <= .2:
             pose = None
-        if self.phase == 'ready':
+        self.rotation_scan_sample(msg, valid and self.stamped(msg, .25))
+        if self.phase in ('ready', 'validating_rotation'):
             # A navigation turn may leave the calibration wall entirely.
             # Runtime sensor health uses actual scan returns, not a wall fit.
             precision = distance
@@ -189,7 +207,7 @@ class StartupCalibrationNode(Node):
         p, q, v = msg.pose.pose.position, msg.pose.pose.orientation, msg.twist.twist.linear
         yaw = math.atan2(2 * (q.w*q.z + q.x*q.y), 1 - 2 * (q.y*q.y + q.z*q.z))
         norm = math.sqrt(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w)
-        self.add('odom', (p.x, p.y, yaw, math.hypot(v.x, v.y)), self.stamped(msg) and .9 <= norm <= 1.1)
+        self.add('odom', (p.x, p.y, yaw, math.hypot(v.x, v.y)), self.stamped(msg, .25 if self.phase == 'validating_rotation' else 1.) and .9 <= norm <= 1.1)
 
     def on_map(self, msg):
         known = sum(value >= 0 for value in msg.data)
@@ -220,12 +238,13 @@ class StartupCalibrationNode(Node):
         gx, gy, gz = g.x * scale, g.y * scale, g.z * scale
         gyro = math.sqrt(gx*gx+gy*gy+gz*gz)
         tilt = max(abs(roll), abs(pitch))
+        self.rotation_imu_yaw = math.atan2(2*(q.w*q.z+q.x*q.y), 1-2*(q.y*q.y+q.z*q.z))
         # Stationary gyro limits qualify calibration, not normal route turns.
         # Runtime tilt, timestamps, finite values and gravity remain required.
         self.add('imu', (gravity, gyro, tilt,
                          gx, gy, gz, a.x, a.y, a.z, roll, pitch),
-                 unit in ('rad_s', 'deg_s') and self.stamped(msg) and .9 <= norm <= 1.1 and 8 <= gravity <= 11.5 and
-                 (self.phase == 'ready' or gyro < .15) and tilt < math.radians(20))
+                 unit in ('rad_s', 'deg_s') and self.stamped(msg, .25 if self.phase == 'validating_rotation' else 1.) and .9 <= norm <= 1.1 and 8 <= gravity <= 11.5 and
+                 (self.phase in ('ready', 'validating_rotation') or gyro < .15) and tilt < math.radians(20))
 
     def on_camera(self, msg):
         pixels = np.frombuffer(bytes(msg.data), np.uint8)
@@ -266,6 +285,9 @@ class StartupCalibrationNode(Node):
             self.safety_limits = (0., {})
 
     def safe_motion(self, now):
+        reason = self.trial_gate_reason(now)
+        if reason:
+            return reason
         stamp, limits = self.safety_limits
         if not 0 <= now-stamp <= .75:
             self.motion_clearance = {'reason': 'Missing fresh safety motion limits', 'target_m': None}
@@ -320,6 +342,7 @@ class StartupCalibrationNode(Node):
 
     def stationary_report(self, now):
         result = self.baseline.report(now)
+        result['camera']['eligible'] = True  # RGB quality is advisory; safety owns hazard inputs.
         if not self.get_parameter('calibration_require_us_agreement').value:
             result['us'] = self.runtime_health(now)['us']
         return result
@@ -399,6 +422,8 @@ class StartupCalibrationNode(Node):
         if motion is None:
             return
         self.motion = motion
+        self.saved_rotation = saved.get('rotation') if saved.get('schema') == 2 else None
+        self.trial_geometry_revision = saved.get('safety_geometry_revision')
         self.round_trip = SimpleNamespace(done=True, scales=[motion['forward_scale'], motion['reverse_scale']])
         self.phase = 'ready'
         self.runtime_ready = False
@@ -429,6 +454,7 @@ class StartupCalibrationNode(Node):
                 self.publish()
                 return
             self.wander_pub.publish(String(data='stop'))
+            self.trial_geometry_revision = self.geometry_revision
             self.selected_target = self.motion_clearance['target_m']
             self.baseline_values = self.baseline.statistics(now)
             if self.environment_map is not None:
@@ -449,7 +475,7 @@ class StartupCalibrationNode(Node):
             fresh = bool(rows) and 0 <= now-rows[-1][0] <= (5. if name == 'map' else 1.)
             valid = bool(rows) and rows[-1][2]
             advisory_echo = name == 'us' and not self.get_parameter('calibration_require_us_agreement').value
-            eligible = fresh and (valid or (advisory_echo and self.us_source_valid))
+            eligible = name == 'camera' or (fresh and (valid or (advisory_echo and self.us_source_valid)))
             detail = 'Live sensor data valid; stationary limits do not apply during driving'
             if not fresh:
                 detail = 'Waiting for fresh sensor data; saved calibration retained'
@@ -467,10 +493,15 @@ class StartupCalibrationNode(Node):
         self.read_tf()
         # TF collection timestamps its own samples; evaluate freshness after it.
         now = time.monotonic()
+        if self.phase == 'validating_rotation':
+            self.tick_rotation(now)
+            return
         if self.phase == 'ready':
             previously_ready = self.runtime_ready
             self.sensors = self.runtime_health(now)
             missing = [name for name, item in self.sensors.items() if not item['eligible']]
+            if not self.geometry_fresh(now):
+                missing.append('safety_geometry')
             if missing:
                 self.zero()
                 if self.runtime_ready:
@@ -558,11 +589,11 @@ class StartupCalibrationNode(Node):
                     self.finish(False, self.round_trip.error)
                     return
                 if self.round_trip.done:
-                    self.finish(True, 'Round-trip correction verified and saved')
+                    self.complete_translation(True, 'Round-trip correction verified and saved')
                     return
                 cmd = Twist()
                 cmd.linear.x = speed
-                self.raw_pub.publish(cmd)
+                self.publish_trial(cmd)
                 if now - self.last_report >= .5:
                     self.publish()
                 return
@@ -576,11 +607,11 @@ class StartupCalibrationNode(Node):
                 passed, checks = motion_result(evidence,
                     require_us=bool(self.get_parameter('calibration_require_us_agreement').value))
                 self.motion['checks'] = checks
-                self.finish(passed, 'Motion sensors agree' if passed else 'Motion validation failed; inspect sensor agreement')
+                self.complete_translation(passed, 'Motion sensors agree' if passed else 'Motion validation failed; inspect sensor agreement')
                 return
             cmd = Twist()
             cmd.linear.x = MOTION_SPEED
-            self.raw_pub.publish(cmd)
+            self.publish_trial(cmd)
         if now - self.last_report >= .5:
             self.publish()
 
@@ -594,7 +625,11 @@ class StartupCalibrationNode(Node):
         lidar = self.baseline_values.get('lidar', {}).get('mean', [])
         us = self.baseline_values.get('us', {}).get('mean', [])
         return {'phase': 'sensor_hold' if self.phase == 'ready' and not self.runtime_ready else self.phase,
-                'ready': self.phase == 'ready' and self.runtime_ready,
+                'ready': self.phase == 'ready' and self.runtime_ready and self.settings_applied(),
+                'rotation': self.rotation_report(),
+                'rotation_verified': bool(self.rotation_report() and self.rotation_report().get('done')),
+                'rotation_required_for_new_trial': bool(self.get_parameter('calibration_rotation').value),
+                'profile_revision': self.profile_revision,
                 'calibration_verified': self.phase == 'ready', 'message': self.message,
                 'auto_motion': bool(self.get_parameter('calibration_auto_motion').value),
                 'us_precision_required': bool(self.get_parameter('calibration_require_us_agreement').value),
@@ -610,14 +645,17 @@ class StartupCalibrationNode(Node):
                            'motion_seconds': 35. if self.get_parameter('calibration_round_trip').value else MOTION_SECONDS,
                            'motion_distance_m': MOTION_LIMIT,
                            'round_trip_target_m': float(self.get_parameter('calibration_distance_m').value)},
-                'settings_applied': self.phase == 'ready' and self.round_trip is not None and self.round_trip.done}
+                'settings_applied': self.phase == 'ready' and self.settings_applied()}
 
     def publish(self):
         self.last_report = time.monotonic()
-        scales = self.round_trip.scales if self.phase == 'ready' and self.round_trip and self.round_trip.done else [1., 1.]
-        self.scale_pub.publish(Float32MultiArray(data=scales))
+        packet = self.profile_packet()
+        self.profile_sequence += 1
+        self.profile_revision = packet['revision']
+        self.profile_pub.publish(String(data=json.dumps(packet, allow_nan=False)))
+        self.scale_pub.publish(Float32MultiArray(data=packet['linear_gains']))
         self.status_pub.publish(String(data=json.dumps(self.report(), allow_nan=False)))
-        self.ready_pub.publish(Bool(data=self.phase == 'ready' and self.runtime_ready))
+        self.ready_pub.publish(Bool(data=self.phase == 'ready' and self.runtime_ready and self.settings_applied()))
 
     def finish(self, passed, message, phase=None):
         self.zero()
@@ -628,7 +666,7 @@ class StartupCalibrationNode(Node):
         self.motion_start = None
         try:
             if passed and self.round_trip is not None and self.round_trip.done:
-                certificate = make_certificate(self.certificate_configuration(), self.motion)
+                certificate = make_certificate(self.certificate_configuration(), self.motion, self.rotation_report(), self.trial_geometry_revision)
                 self.write_json(self.certificate_path(), certificate)
             self.persist()
         except (OSError, ValueError) as exc:

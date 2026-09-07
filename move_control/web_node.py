@@ -401,6 +401,8 @@ class WebNode(Node):
         self.create_subscription(Bool, '/estop/state', self.on_estop, latched)
         self.create_subscription(Bool, '/calibration/ready', self.on_calibration_ready, latched)
         self.create_subscription(String, '/calibration/status', self.on_calibration_status, 10)
+        self.create_subscription(String, '/safety/profile', self.on_safety_profile, latched)
+        self.create_subscription(String, '/safety/decision', self.on_safety_decision, 10)
         self.create_subscription(Bool, '/robot/ok', self.on_ok, 10)
         self.create_subscription(String, '/robot/health', self.on_health, 10)
         self.create_subscription(Twist, '/cmd_vel', self.on_vel, 10)
@@ -548,6 +550,36 @@ class WebNode(Node):
         with LOCK:
             STATE['calibration_ready'] = bool(msg.data)
             STATE['calibration_received'] = time.monotonic()
+
+    def on_safety_profile(self, msg):
+        try:
+            profile = json.loads(msg.data)
+            if not isinstance(profile, dict):
+                raise ValueError('Invalid effective profile')
+            effective = profile['effective']
+            if profile.get('valid') is not True or not all(
+                    math.isfinite(effective[key]) and effective[key] > 0 for key in ('stop', 'clear', 'radius')):
+                raise ValueError('Invalid effective limits')
+        except (ValueError, TypeError, KeyError):
+            with LOCK:
+                STATE['safety_profile'] = {'valid': False}
+            return
+        with LOCK:
+            STATE['safety_profile'] = profile
+            STATE['safety_profile_received'] = time.monotonic()
+            STATE[K_LIMITS] = {**STATE.get(K_LIMITS, {}),
+                               **{key: effective[key] for key in ('stop', 'clear', 'radius')}}
+
+    def on_safety_decision(self, msg):
+        try:
+            value = json.loads(msg.data)
+            if not isinstance(value, dict):
+                return
+        except (ValueError, TypeError):
+            return
+        with LOCK:
+            STATE['safety_decision'] = value
+            STATE['safety_decision_received'] = time.monotonic()
 
     def on_calibration_status(self, msg):
         try:
@@ -725,6 +757,10 @@ def _handler(node, html, api):
                     STATE['motion_limits_fresh'] = 0 <= time.monotonic()-STATE.get('motion_limits_received', -1e9) <= .75
                     if time.monotonic() - STATE.get('calibration_received', -1e9) > 3.0:
                         STATE['calibration_ready'] = False
+                    if time.monotonic() - STATE.get('safety_profile_received', -1e9) > 1.5:
+                        STATE['safety_profile'] = {'valid': False, 'reason': 'stale'}
+                    if time.monotonic() - STATE.get('safety_decision_received', -1e9) > 1.5:
+                        STATE['safety_decision'] = None
                     body = json.dumps({**STATE, 'runtime_id': RUNTIME_ID}).encode()
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')

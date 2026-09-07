@@ -31,6 +31,7 @@ from tf2_ros import TransformListener
 
 from .planning import GoalBrain, OccupancyMap, parse_goal_cmd
 from .sensing.localization import lease_ready
+from .sensing.pose import planar_pose
 
 
 def grid_clearance(distance, resolution):
@@ -103,10 +104,14 @@ class GoalNode(Node):
         self.tf_listener = TransformListener(self.tf, self)
         self.map_obj = None
         self._map_received = None
+        self._map_source = None
+        self._map_source_age = 0.
         self._map_reset_ns = 0
         self._n_options = 0  # last published /goal/options marker count
         self.last_executable_goal = None
         self.last_executable_exit = None
+        self.navigation_feedback_received = None
+        self.create_subscription(String, "/wander/state", self.on_navigation_feedback, 10)
         self.ox = self.oy = 0.0
         self.have_odom = False
         self._hist = []  # (t, x, y) odom ring for the effective speed
@@ -164,6 +169,16 @@ class GoalNode(Node):
         stamp_ns = msg.header.stamp.sec * 1000000000 + msg.header.stamp.nanosec
         if self._map_reset_ns and stamp_ns <= self._map_reset_ns:
             return  # An old queued map cannot repopulate a reset session.
+        source = stamp_ns * 1e-9
+        source_age = 0.
+        if not self.get_parameter('static_map').value:
+            source_age = self.get_clock().now().nanoseconds * 1e-9 - source
+            if source <= 0. or not -.1 <= source_age <= float(self.get_parameter('map_timeout').value):
+                self.map_obj = None
+                self._clear_route('waiting for fresh map source')
+                return
+            if self._map_source is not None and source <= self._map_source:
+                return  # Replayed source data cannot renew dynamic map evidence.
         if (msg.header.frame_id != 'map' or msg.info.width <= 0 or
                 msg.info.height <= 0 or not math.isfinite(msg.info.resolution) or
                 msg.info.resolution <= 0 or
@@ -178,6 +193,7 @@ class GoalNode(Node):
             return
         self.map_obj = OccupancyMap.from_msg(msg)
         self._map_received = time.monotonic()
+        self._map_source, self._map_source_age = source, max(0., source_age)
 
     def on_localization(self, msg):
         try:
@@ -215,6 +231,9 @@ class GoalNode(Node):
                 d = math.hypot(h[-1][1] - _x, h[-1][2] - _y)
                 return d / dt if dt > 0.2 else 0.0
         return 0.0
+
+    def on_navigation_feedback(self, msg):
+        self.navigation_feedback_received = time.monotonic() if msg.data.startswith("route_") else None
 
     def on_arrival(self, msg):
         if self.mode not in ('explore', 'coverage') or self.map_obj is None:
@@ -257,6 +276,8 @@ class GoalNode(Node):
             self.brain.reset()
             self.map_obj = None
             self._map_received = None
+            self._map_source = None
+            self._map_source_age = 0.
             self._map_reset_ns = self.get_clock().now().nanoseconds
             self._clear_route('map reset; stopped')
             return
@@ -297,7 +318,8 @@ class GoalNode(Node):
                    (t.header.stamp.sec * 1000000000 + t.header.stamp.nanosec)) / 1e9
             if age < -0.5 or age > float(self.get_parameter('pose_timeout').value):
                 return (None, None), 'stale-tf'
-            if not math.isfinite(tr.x) or not math.isfinite(tr.y):
+            q = t.transform.rotation
+            if planar_pose(tr.x, tr.y, (q.x, q.y, q.z, q.w)) is None:
                 return (None, None), 'invalid-tf'
             return (float(tr.x), float(tr.y)), 'tf'
         except Exception:
@@ -312,7 +334,7 @@ class GoalNode(Node):
         m = self.map_obj
         if (m is None or self._map_received is None or
                 (not self.get_parameter('static_map').value and
-                 time.monotonic() - self._map_received >
+                 time.monotonic() - self._map_received + self._map_source_age >
                  float(self.get_parameter('map_timeout').value))):
             self._clear_route('waiting for fresh map')
             return
@@ -336,6 +358,8 @@ class GoalNode(Node):
                 abs(profile['map_resolution_m']-m.res) < 1e-6):
             self.brain.clear_m = self.brain.retry_clear_m = profile['preferred_clearance_m']
             self.brain.start_escape_clear_m = profile['minimum_clearance_m']
+        seen = self.navigation_feedback_received
+        self.brain.execution_feedback = seen is not None and 0 <= time.monotonic() - seen <= 1.
         goal, route, status = self.brain.plan(m, (x, y))
         if self.mode == 'manual' and self.brain._manual is None:
             self.mode = 'stop'

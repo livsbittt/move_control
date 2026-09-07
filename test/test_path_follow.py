@@ -5,6 +5,20 @@ from move_control.control.path_follow import ProgressGuard, follow_path
 
 
 class PathFollowTest(unittest.TestCase):
+    def test_localization_hold_freezes_instead_of_replenishing_push_budget(self):
+        guard = ProgressGuard(timeout=8)
+        guard.check(0., (0., 0., 0.), True)
+        guard.pause(3., True)
+        guard.pause(100., False)
+        self.assertFalse(guard.check(100., (0., 0., 0.), True))
+        self.assertTrue(guard.check(105., (0., 0., 0.), True))
+
+    def test_small_repeated_oscillation_is_not_endless_progress(self):
+        guard = ProgressGuard(timeout=8)
+        for i in range(20):
+            guard.check(i, (.006*(i % 2), 0, .06*(i % 2)), True)
+        self.assertTrue(guard.stalled)
+
     def command(self, route=None, pose=(0, 0, 0), **kwargs):
         args = dict(route_age=0.1, tf_age=0.1)
         args.update(kwargs)

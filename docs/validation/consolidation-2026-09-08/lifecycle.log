@@ -1,0 +1,17 @@
+[WARN] [1788810916.910908587] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788810916.911008688] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1788810916.976685128] [localization_lifecycle_manager]: Creating
+[INFO] [1788810916.992123636] [localization_lifecycle_manager]: [34m[1mCreating and initializing lifecycle service clients[0m[0m
+[INFO] [1788810917.336525571] [localization_lifecycle_manager]: [34m[1mStarting managed nodes bringup...[0m[0m
+[INFO] [1788810917.336837839] [localization_lifecycle_manager]: [34m[1mConfiguring map_server[0m[0m
+[INFO] [1788810917.465588976] [localization_lifecycle_manager]: [34m[1mConfiguring amcl[0m[0m
+[INFO] [1788810917.651876065] [localization_lifecycle_manager]: [34m[1mActivating map_server[0m[0m
+[INFO] [1788810917.931437290] [localization_lifecycle_manager]: Server map_server connected with bond.
+[INFO] [1788810917.931569591] [localization_lifecycle_manager]: [34m[1mActivating amcl[0m[0m
+[INFO] [1788810918.081230099] [localization_lifecycle_manager]: Server amcl connected with bond.
+[INFO] [1788810918.082225825] [localization_lifecycle_manager]: [34m[1mManaged nodes are active[0m[0m
+[INFO] [1788810918.082526312] [localization_lifecycle_manager]: [34m[1mCreating bond timer...[0m[0m
+[INFO] [1788810992.387758590] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[INFO] [1788810992.388089302] [localization_lifecycle_manager]: Running Nav2 LifecycleManager rcl preshutdown (localization_lifecycle_manager)
+[INFO] [1788810992.388201393] [localization_lifecycle_manager]: [34m[1mTerminating bond timer...[0m[0m
+[INFO] [1788810992.470084833] [localization_lifecycle_manager]: Destroying localization_lifecycle_manager

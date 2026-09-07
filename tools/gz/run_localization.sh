@@ -53,7 +53,7 @@ start monitor env LOCALIZATION_COMPONENT=monitor python3 tools/gz/localization_r
   --ros-args -p use_sim_time:=true -p robot_radius:=0.105 --params-file config/localization.yaml
 start safety env LOCALIZATION_COMPONENT=safety python3 tools/gz/localization_rig.py \
   --ros-args -p use_sim_time:=true -p localization_required:=true -p start_estopped:=false \
-  -p robot_radius:=0.105 -p lidar_yaw_offset:=0.0
+  -p robot_radius:=0.105 -p lidar_yaw_offset:=0.0 -p imu_angular_velocity_unit:=rad_s
 start goal env LOCALIZATION_COMPONENT=goal python3 tools/gz/localization_rig.py \
   --ros-args -p use_sim_time:=true -p localization_required:=true -p static_map:=true
 start rig python3 tools/gz/localization_rig.py --ros-args -p use_sim_time:=true

@@ -52,6 +52,15 @@ class ProgressGuard:
         self.anchor = None
         self.since = None
         self.stalled = False
+        self.paused_since = None
+
+    def pause(self, now, paused):
+        if paused and self.paused_since is None:
+            self.paused_since = now
+        elif not paused and self.paused_since is not None:
+            if self.since is not None:
+                self.since += max(0., now-self.paused_since)
+            self.paused_since = None
 
     def check(self, now, pose, moving):
         if self.stalled:
@@ -66,8 +75,11 @@ class ProgressGuard:
         distance = math.hypot(pose[0] - self.anchor[0], pose[1] - self.anchor[1])
         angle = pose[2] - self.anchor[2]
         angle = abs(math.atan2(math.sin(angle), math.cos(angle)))
-        if distance >= .005 or angle >= .05:
-            self.anchor, self.since = pose, now
-        elif now - self.since >= self.timeout:
-            self.stalled = True
+        # Judge net displacement over a whole window. Resetting on every
+        # tiny excursion lets a repeated back-and-forth motion live forever.
+        if now - self.since >= self.timeout:
+            if distance >= .005 or angle >= .05:
+                self.anchor, self.since = pose, now
+            else:
+                self.stalled = True
         return self.stalled
