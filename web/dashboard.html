@@ -79,10 +79,10 @@ main { flex:1; min-height:0; display:grid; gap:0;
 .hint:empty { display:none; }
 
 /* ---- 감지: dial --------------------------------------------------------- */
-.dialwrap { position:relative; }
-#scan { display:block; width:100%; height:auto; }
-.dialnote { position:absolute; left:0; right:0; bottom:2px; text-align:center;
-            font-size:11px; color:var(--muted); }
+.dialwrap { display:flex; flex-direction:column; align-items:center; }
+#scan { display:block; width:100%; max-width:262px; height:auto; }
+.dialnote { margin-top:2px; text-align:center; font-size:11px;
+            color:var(--muted); }
 /* ---- 감지: clearance gauges --------------------------------------------- */
 .gauge { display:grid; grid-template-columns:66px minmax(0,1fr) 58px;
          align-items:center; gap:9px; padding:3px 0; }
@@ -115,7 +115,7 @@ main { flex:1; min-height:0; display:grid; gap:0;
 .flag.ok  { color:var(--ink-2); border-color:var(--border); }
 .flag.lost{ color:var(--warn); border-color:rgba(250,178,25,0.45); }
 /* ---- 감지: camera ------------------------------------------------------- */
-.camframe { position:relative; border-radius:8px; overflow:hidden;
+.camframe { position:relative; max-width:340px; border-radius:8px; overflow:hidden;
             background:var(--unk); border:1px solid var(--rule); }
 #camimg { width:100%; display:block; }
 #camimg.old { opacity:0.42; filter:saturate(0.4); }
@@ -228,7 +228,7 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
 @media (max-width: 1279px) {
   main { grid-template-columns:minmax(0,1fr) 322px;
          grid-template-areas:"observe act" "sense act";
-         grid-template-rows:minmax(320px,1fr) auto; }
+         grid-template-rows:minmax(54vh,1fr) auto; }
   .sense { border-right:0; border-top:1px solid var(--rule); overflow:visible; }
   .sense .rbody { flex-direction:row; flex-wrap:wrap; align-items:flex-start; }
   .sense .block { flex:1 1 240px; }
@@ -266,6 +266,7 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
       <span class="gloss">로봇이 재는 값</span></div>
     <div class="rbody">
       <div class="block">
+        <h3>라이다</h3>
         <div class="dialwrap">
           <canvas id="scan" width="416" height="416" role="img"
                   aria-label="라이다 극좌표 뷰, 위쪽이 로봇 정면"></canvas>
@@ -555,7 +556,7 @@ async function mappingAction(action) {
   }
 }
 // ---- map view --------------------------------------------------------------
-// world metres -> cells: u = (x-ox)/res, v = h-1-(y-oy)/res (row 0 = top)
+// world metres -> cells: u = (x-ox)/res, v = h-(y-oy)/res (row 0 = top)
 // cells -> device px:    X = A.x + u*S, S = k*z (k = base fit, z = user zoom)
 // A is the screen position of cell (0,0); pan/zoom move A, meta changes are
 // absorbed by re-anchoring the world point at the canvas center.
@@ -623,7 +624,7 @@ function syncView() {
     S.view.z = z;
     if (world && z > 1) {                  // re-anchor the center point
       const u = (world[0] - S.view.ox) / S.view.res;
-      const v = S.view.h - 1 - (world[1] - S.view.oy) / S.view.res;
+      const v = S.view.h - (world[1] - S.view.oy) / S.view.res;
       S.view.A.x = W / 2 - u * Sc();
       S.view.A.y = H / 2 - v * Sc();
     }
@@ -631,18 +632,18 @@ function syncView() {
   }
   const V = S.view;
   V.wc = [ V.ox + (W / 2 - V.A.x) / Sc() * V.res,
-           V.oy + (V.h - 1 - (H / 2 - V.A.y) / Sc()) * V.res ];
+           V.oy + (V.h - (H / 2 - V.A.y) / Sc()) * V.res ];
 }
 function w2c(x, y) {
   const V = S.view;
   return [ V.A.x + ((x - V.ox) / V.res) * Sc(),
-           V.A.y + (V.h - 1 - (y - V.oy) / V.res) * Sc() ];
+           V.A.y + (V.h - (y - V.oy) / V.res) * Sc() ];
 }
 function c2w(X, Y) {
   [X, Y] = screenPoint(X, Y, true);
   const V = S.view;
   return [ V.ox + ((X - V.A.x) / Sc()) * V.res,
-           V.oy + (V.h - 1 - (Y - V.A.y) / Sc()) * V.res ];
+           V.oy + (V.h - (Y - V.A.y) / Sc()) * V.res ];
 }
 function requestDraw() {
   if (!S.raf) S.raf = requestAnimationFrame(() => { S.raf = 0; draw(S.data); });
@@ -761,12 +762,20 @@ function draw(s) {
 // Nose up. Rings every 10 cm, safety's stop distance drawn as a no-go annulus,
 // and the chassis drawn at true scale inside it — so the picture and the
 // gauges below are visibly the same measurement.
-const NOSE = Math.PI + 10 * Math.PI / 180;   // lidar mount: nose = scan 190deg
 function wrapPi(a) { return Math.atan2(Math.sin(a), Math.cos(a)); }
+// The nose bearing comes from the base<-scan TF that web_node resolves, the
+// same one safety uses. Without it the scan frame is unknown, so refuse to
+// guess a mount angle: every bearing would be wrong by the same amount.
+function noseYaw(sc) {
+  const n = sc && sc.nose_yaw;
+  return (typeof n === 'number' && isFinite(n)) ? n : null;
+}
 function bucket(sc, lo, hi) {
+  const nose = noseYaw(sc);
+  if (nose == null) return null;
   let m = null;
   for (let i = 0; i < sc.rs.length; i++) {
-    const deg = wrapPi(sc.amin + i * sc.inc - NOSE) * 180 / Math.PI;
+    const deg = wrapPi(sc.amin + i * sc.inc - nose) * 180 / Math.PI;
     if (deg < lo || deg > hi) continue;
     const r = sc.rs[i];
     if (r > sc.rmin && r < sc.rmax && (m == null || r < m)) m = r;
@@ -781,13 +790,14 @@ function drawScan(s) {
   const W = dialCv.width, H = dialCv.height;
   if (!W || !H) return;
   const sc = s.scan;
+  const nose = noseYaw(sc);
   const cx = W / 2, cy = H / 2, R = W / 2 - 14;
   const lim = LIM();
   const view = Math.max(0.25, Math.min(sc ? sc.rmax : lim.open_max,
                                        lim.open_max));
   const k = R / view;
   scv.clearRect(0, 0, W, H);
-  scv.fillStyle = 'rgba(255,255,255,0.035)';
+  scv.fillStyle = 'rgba(255,255,255,0.028)';
   WEDGES.forEach(([lo, hi]) => {
     scv.beginPath(); scv.moveTo(cx, cy);
     for (let d = lo; d <= hi; d += 2) {
@@ -800,26 +810,34 @@ function drawScan(s) {
   for (let d = 0.1; d < view - 0.001; d += 0.1) {
     scv.beginPath(); scv.arc(cx, cy, d * k, 0, 7); scv.stroke();
   }
-  // inside this annulus safety halts the robot
-  scv.fillStyle = 'rgba(208,59,59,0.10)';
-  scv.beginPath(); scv.arc(cx, cy, lim.stop * k, 0, 7); scv.fill();
-  scv.strokeStyle = 'rgba(208,59,59,0.5)';
+  if (nose != null && sc.rs && sc.rs.length) {
+    // One closed silhouette of the space the robot is standing in, then the
+    // hits on top. A fan of per-beam rays just fills the middle with haze.
+    const pts = [];
+    for (let i = 0; i < sc.rs.length; i++) {
+      const r = sc.rs[i];
+      const ok = r > sc.rmin && r < sc.rmax;
+      const th = wrapPi(sc.amin + i * sc.inc - nose);
+      const d = ok ? Math.min(r, view) : view;   // no return = open, not near
+      pts.push([cx - d * k * Math.sin(th), cy - d * k * Math.cos(th), ok, r]);
+    }
+    scv.beginPath();
+    pts.forEach((p, i) => i ? scv.lineTo(p[0], p[1]) : scv.moveTo(p[0], p[1]));
+    scv.closePath();
+    scv.fillStyle = 'rgba(57,135,229,0.10)';
+    scv.strokeStyle = 'rgba(57,135,229,0.30)'; scv.lineWidth = 1;
+    scv.fill(); scv.stroke();
+    pts.forEach(([px, py, ok, r]) => {
+      if (!ok) return;
+      scv.fillStyle = r < lim.stop ? T.crit : (r < lim.clear ? T.warn : T.route);
+      scv.beginPath(); scv.arc(px, py, 2.6, 0, 7); scv.fill();
+    });
+  }
+  // the line safety halts at — a boundary, so a ring rather than a disc
+  scv.strokeStyle = 'rgba(208,59,59,0.75)'; scv.lineWidth = 1.2;
   scv.setLineDash([4, 4]);
   scv.beginPath(); scv.arc(cx, cy, lim.stop * k, 0, 7); scv.stroke();
   scv.setLineDash([]);
-  if (sc && sc.rs && sc.rs.length) {
-    for (let i = 0; i < sc.rs.length; i++) {
-      const r = sc.rs[i];
-      if (!(r > sc.rmin && r < sc.rmax)) continue;
-      const th = wrapPi(sc.amin + i * sc.inc - NOSE);
-      const d = Math.min(r, view);
-      const px = cx - d * k * Math.sin(th), py = cy - d * k * Math.cos(th);
-      scv.strokeStyle = 'rgba(57,135,229,0.13)'; scv.lineWidth = 1.5;
-      scv.beginPath(); scv.moveTo(cx, cy); scv.lineTo(px, py); scv.stroke();
-      scv.fillStyle = r < lim.stop ? T.crit : (r < lim.clear ? T.warn : T.route);
-      scv.beginPath(); scv.arc(px, py, 3.0, 0, 7); scv.fill();
-    }
-  }
   // chassis at true scale, nose marker on its rim
   const body = lim.radius * k;
   scv.fillStyle = 'rgba(255,255,255,0.07)';
@@ -835,9 +853,11 @@ function drawScan(s) {
   scv.fillStyle = T.muted; scv.font = '11px system-ui, sans-serif';
   scv.textAlign = 'right';
   scv.fillText(Math.round(view * 100) + ' cm', W - 4, cy - 5);
-  setTxt('dialnote', (sc && sc.rs && sc.rs.length) ?
-    '정면 위 · 점선 안쪽은 정지 거리 ' + Math.round(lim.stop * 100) + ' cm' :
-    '라이다 대기');
+  setTxt('dialnote',
+    s.scan_reason === 'missing_mount_tf' ? '라이다 장착 TF 없음 — 방향 계산 불가' :
+    (nose != null && sc.rs && sc.rs.length) ?
+      '정면 위 · 점선 안쪽은 정지 거리 ' + Math.round(lim.stop * 100) + ' cm' :
+      '라이다 대기');
 }
 // ---- 감지: clearance gauges -------------------------------------------------
 // Every channel is a distance the robot is about to run out of, so each gets
@@ -918,7 +938,7 @@ function flagHtml(f, v) {
 }
 function renderSensors(s) {
   const v = Object.assign({}, s.sensors || {});
-  if (s.scan) {   // no safety node (sim rig): fall back to raw scan buckets
+  if (s.scan) {   // no safety node (sim rig): read the raw scan sectors
     if (v.F == null) v.F = bucket(s.scan, -10, 10);
     if (v.L == null) v.L = bucket(s.scan, 45, 135);
     if (v.R == null) v.R = bucket(s.scan, -135, -45);
