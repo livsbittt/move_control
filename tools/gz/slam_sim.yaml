@@ -22,8 +22,7 @@ slam_toolbox:
     minimum_travel_heading: 0.08
     transform_timeout: 0.5
     stack_size_to_use: 40000000
-    # Scan matching corrects wheel-odom slip (the sim robot slides during
-    # turn-in-place phases); it stays on now that the sim robot actually
-    # rolls — it only corrupted maps when the old SDF ground on its belly.
-    use_scan_matching: true
+    # Ground-truth /odom now bridges from the OdometryPublisher, so the
+    # matcher only adds noise: scan matching off, map == odom == world.
+    use_scan_matching: false
     minimum_time_interval: 0.2

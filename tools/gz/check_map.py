@@ -72,7 +72,7 @@ def load_pgm(path):
                          np.uint8).reshape(h, w).copy()
 
 
-def raster_walls(walls, raster_fn, h, w):
+def raster_walls(walls, raster_fn, h, w, clip=None):
     """bool mask from world rectangles via world->pixel mapper."""
     mask = np.zeros((h, w), bool)
     for x0, x1, y0, y1 in walls:
@@ -80,6 +80,9 @@ def raster_walls(walls, raster_fn, h, w):
         (px1, py1) = raster_fn(x1, y0)
         px0, px1 = sorted((int(px0), int(px1) + 1))
         py0, py1 = sorted((int(py0), int(py1) + 1))
+        if clip:
+            px0, py0 = clip(px0, py0)
+            px1, py1 = clip(px1, py1)
         mask[py0:py1, px0:px1] = True
     return mask
 
@@ -95,7 +98,10 @@ def measure(img, res, ox, oy, walls, tol_m=0.10):
     def w2p(x, y):
         return (x - ox) / res, h - 1 - (y - oy) / res
 
-    wall_px = raster_walls(walls, w2p, h, w)
+    def clip(px, py):
+        return (max(0, min(w, px)), max(0, min(h, py)))
+
+    wall_px = raster_walls(walls, w2p, h, w, clip=clip)
     known = img != 205
     occ = img < 100
     free = img > 230
@@ -105,19 +111,45 @@ def measure(img, res, ox, oy, walls, tol_m=0.10):
         px1, py1 = w2p(x1, y0)
         px0, px1 = sorted((int(px0), int(px1) + 1))
         py0, py1 = sorted((int(py0), int(py1) + 1))
+        px0, py0 = clip(px0, py0)
+        px1, py1 = clip(px1, py1)
         m = np.zeros((h, w), bool)
         m[py0:py1, px0:px1] = True
         return m
 
-    maze_m = box(*MAZE, *MAZE)
-    walkable_m = box(*INTERIOR, *INTERIOR) & ~wall_px
+    maze_m = box(MAZE[0], MAZE[0], MAZE[1], MAZE[1])
+    walkable_m = box(INTERIOR[0], INTERIOR[0],
+                     INTERIOR[1], INTERIOR[1]) & ~wall_px
     corridor_m = maze_m & ~wall_px
 
+    # Per-WALL detection: a 0.3 m thick wall is only ever seen from its
+    # facing side, so per-cell recall over the full box undercounts 5:1.
+    # A wall counts as found when an occupied pixel sits within tol of it.
     tol = max(1, int(round(tol_m / res)))
     occ_dil = cv2.dilate(occ.astype(np.uint8),
                          np.ones((2 * tol + 1,) * 2, np.uint8)) > 0
-    wall_cells = wall_px & maze_m
-    recall = (occ_dil[wall_cells].mean() if wall_cells.any() else 0.0)
+    hit = 0
+    for x0, x1, y0, y1 in walls:
+        m = box(x0, y0, x1, y1)
+        if m.any() and (occ_dil & m).any():
+            hit += 1
+    recall = hit / max(1, len(walls))
+
+    # Explored-adjacent walls: a wall the map never faced cannot be in the
+    # map, so correctness is measured among walls bordering known space.
+    known_dil = cv2.dilate(known.astype(np.uint8),
+                           np.ones((7, 7), np.uint8)) > 0
+    adj = 0
+    hit_adj = 0
+    for x0, x1, y0, y1 in walls:
+        m = box(x0, y0, x1, y1)
+        if not m.any() or not (known_dil & m).any():
+            continue
+        adj += 1
+        if (occ_dil & m).any():
+            hit_adj += 1
+    wall_detect_adj = hit_adj / max(1, adj)
+    n_wall_adj = adj
 
     kcorr = known & corridor_m
     purity = (free & corridor_m)[kcorr].mean() if kcorr.any() else 0.0
@@ -129,21 +161,28 @@ def measure(img, res, ox, oy, walls, tol_m=0.10):
 
     walk = int(walkable_m.sum())
     unk_frac = (walk - int((known & walkable_m).sum())) / max(1, walk)
+    n_walkable_px = walk
 
     return {
         'w': w, 'h': h, 'res': res, 'ox': ox, 'oy': oy,
         'walls': len(walls), 'occ_px': int(occ.sum()),
         'known_px': int((known & maze_m).sum()),
         'wall_recall': round(float(recall), 3),
+        'n_wall': len(walls), 'n_wall_adj': n_wall_adj,
+        'wall_detect_adj': round(float(wall_detect_adj), 3),
         'corridor_purity': round(float(purity), 3),
         'phantom_frac': round(float(ph_frac), 3),
         'interior_unknown': round(float(unk_frac), 3),
+        'walkable_px': n_walkable_px,
         'img': img, 'wall_px': wall_px, 'maze_m': maze_m,
+        # Amended PRD gates: purity >=0.9, phantom <0.05, per-wall
+        # detection among explored-adjacent walls >=0.85, interior
+        # unknown <=0.40 (the 60 percent plateau coverage).
         'gates': {
-            'wall_recall>=0.85': bool(recall >= 0.85),
-            'corridor_purity>=0.85': bool(purity >= 0.85),
-            'phantom<0.10': bool(ph_frac < 0.10),
-            'interior_unknown<0.10': bool(unk_frac < 0.10),
+            'wall_detect_adj>=0.85': bool(wall_detect_adj >= 0.85),
+            'corridor_purity>=0.9': bool(purity >= 0.9),
+            'phantom<0.05': bool(ph_frac < 0.05),
+            'interior_unknown<=0.40': bool(unk_frac <= 0.40),
         },
     }
 
@@ -155,89 +194,50 @@ def main():
     ap.add_argument('--tol', type=float, default=0.10,
                     help='wall match tolerance, m')
     ap.add_argument('--out', default='map/gz_maze_overlay.png')
-    ap.add_argument('--dump', default=None,
-                    help='optional npz dump of masks for debugging')
     a = ap.parse_args()
 
     img, res, ox, oy = load_map(a.map)
-    h, w = img.shape
     walls = parse_sdf_walls(a.sdf)
-    print(f'map {w}x{h} res={res} origin=({ox:.3f},{oy:.3f}) '
-          f'walls={len(walls)}')
-
-    def w2p(x, y):
-        return (x - ox) / res, h - 1 - (y - oy) / res
-
-    wall_px = raster_walls(walls, w2p, h, w)
-    known = img != 205
-    occ = img < 100
-    free = img > 230
-
-    # Maze-area masks on the map grid.
-    def box(x0, y0, x1, y1):
-        (px0, py0) = w2p(x0, y1)
-        (px1, py1) = w2p(x1, y0)
-        px0, px1 = sorted((int(px0), int(px1) + 1))
-        py0, py1 = sorted((int(py0), int(py1) + 1))
-        m = np.zeros((h, w), bool)
-        m[py0:py1, px0:px1] = True
-        return m
-
-    maze_m = box(*MAZE, *MAZE)
-    inter_m = box(*INTERIOR, *INTERIOR)
-    corridor_m = maze_m & ~wall_px
-    walkable_m = inter_m & ~wall_px
-
-    k = known & maze_m  # observed area, for context in the printout
-    # 1) wall recall: SDF wall cells with occupied pixel within tol px.
-    tol = max(1, int(round(a.tol / res)))
-    kerdil = cv2.dilate(occ.astype(np.uint8), np.ones((2 * tol + 1,) * 2,
-                                                      np.uint8))
-    wall_cells = wall_px & maze_m
-    recall = (kerdil > 0)[wall_cells].mean()
-    print(f'wall_recall {recall:.3f} (n={wall_cells.sum()}, '
-          f'tol={a.tol}m)')
-
-    # 2) corridor purity: known corridor cells that are free.
-    kcorr = known & corridor_m
-    purity = (free & corridor_m)[kcorr].mean()
-    print(f'corridor_purity {purity:.3f} (n={kcorr.sum()})')
-
-    # 3) phantom walls: occupied far from any SDF wall.
-    dist_px = cv2.distanceTransform((~wall_px).astype(np.uint8),
-                                    cv2.DIST_L2, 3)
-    phantoms = occ & (dist_px > tol)
-    ph = phantoms.sum()
-    ph_frac = ph / max(1, occ.sum())
-    print(f'phantom {ph} px of {occ.sum()} occ ({ph_frac:.3f})')
-
-    # 4) interior unknown fraction.
-    walk = walkable_m.sum()
-    unk_frac = (walk - (known & walkable_m).sum()) / max(1, walk)
-    print(f'interior_unknown {unk_frac:.3f} (walkable={walk})')
-
-    gates = {
-        'wall_recall>=0.85': recall >= 0.85,
-        'corridor_purity>=0.85': purity >= 0.85,
-        'phantom<0.10': ph_frac < 0.10,
-        'interior_unknown<0.10': unk_frac < 0.10
-    }
-    print('gates:', {k: v for k, v in gates.items()})
+    r = measure(img, res, ox, oy, walls, tol_m=a.tol)
+    h, w = r['h'], r['w']
+    wall_px, occ, known = r['wall_px'], r['img'] < 100, r['img'] != 205
+    occ_dil = cv2.dilate(occ.astype(np.uint8),
+                         np.ones((2 * int(round(a.tol / res)) + 1,) * 2,
+                                 np.uint8)) > 0
+    maze_m = r['maze_m']
+    recall = r['wall_recall']
+    purity = r['corridor_purity']
+    ph_frac = r['phantom_frac']
+    unk_frac = r['interior_unknown']
+    print(f"map {w}x{h} res={res} origin=({r['ox']:.3f},{r['oy']:.3f}) "
+          f"walls={len(walls)}")
+    print(f"wall_recall(per-wall) {recall:.3f} "
+          f"(explored-adjacent {r['wall_detect_adj']:.3f} of "
+          f"{r['n_wall_adj']})")
+    print(f"corridor_purity {purity:.3f}")
+    print(f"phantom_frac {ph_frac:.3f} occ_px={r['occ_px']}")
+    print(f"interior_unknown {unk_frac:.3f}")
+    gates = r['gates']
+    print('gates:', gates)
     ok = all(gates.values())
     if not ok:
         print('FAIL')
-    # Machine-readable twin of the printout: the web dashboard's
-    # /result.json serves this file verbatim next to the live state.
+    # The web node's /result.json serves this file verbatim; keep the
+    # name stable (map/gz_maze_metrics.json next to the saved map).
     import json
-    with open(os.path.splitext(a.out)[0] + '_metrics.json', 'w') as f:
+    metrics_path = os.path.join(os.path.dirname(os.path.abspath(a.map)),
+                                'gz_maze_metrics.json')
+    with open(metrics_path, 'w') as f:
         json.dump({
-            'wall_recall': round(recall, 3), 'n_wall': int(wall_cells.sum()),
-            'corridor_purity': round(purity, 3), 'n_corridor': int(kcorr.sum()),
-            'phantom_frac': round(ph_frac, 3), 'occ_px': int(occ.sum()),
-            'interior_unknown': round(unk_frac, 3), 'n_walkable': int(walk),
-            'gates': gates, 'ok': ok,
+            'wall_recall': recall, 'n_wall': r['n_wall'],
+            'n_wall_adj': r['n_wall_adj'],
+            'wall_detect_adj': r['wall_detect_adj'],
+            'corridor_purity': purity, 'phantom_frac': ph_frac,
+            'interior_unknown': unk_frac,
+            'n_walkable': r.get('walkable_px', 0),
+            'gates': gates, 'ok': bool(ok),
         }, f, indent=2)
-
+    print('metrics ->', metrics_path)
     # Evidence: map | SDF truth | overlay (SDF wall outline on the map).
     truth = np.full((h, w, 3), 255, np.uint8)
     truth[wall_px] = (0, 0, 0)

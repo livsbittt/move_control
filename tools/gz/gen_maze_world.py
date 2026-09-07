@@ -63,10 +63,12 @@ def wheel(parent, name, y):
     lnk = sub(parent, 'link', name=name)
     leaf(lnk, 'pose', f'-0.04 {y} 0.028 -1.5707 0 0')
     ine = sub(lnk, 'inertial')
-    leaf(ine, 'mass', 0.03)
+    # Heavier wheels integrate stably at the 5 ms step (the 0.03 kg /
+    # 1e-5 inertia pair was the crawl's root cause on this box).
+    leaf(ine, 'mass', 0.1)
     i = sub(ine, 'inertia')
     for a in ('ixx', 'iyy', 'izz'):
-        leaf(i, a, 1e-5)
+        leaf(i, a, 1e-4)
     for a in ('ixy', 'ixz', 'iyz'):
         leaf(i, a, 0.0)
     # Rolling cylinder collision — a box collision slides on the ground, so
@@ -77,7 +79,11 @@ def wheel(parent, name, y):
     cyl = sub(colg, 'cylinder')
     leaf(cyl, 'radius', 0.028)
     leaf(cyl, 'length', 0.02)
-    v = geom_box(lnk, 'vis', 'visual', 0, 0, 0, 0.02, 0.028, 0.028, vis=True)
+    # One <geometry> per visual (SDF allows exactly one): the wheel renders
+    # as the same cylinder as its collision — geom_box() had attached a
+    # <geometry><box> and a second <geometry><cylinder> was appended to the
+    # same <visual>; libsdformat warns and drops one of the two.
+    v = sub(lnk, 'visual', name='vis')
     geo = sub(v, 'geometry')
     cyl = sub(geo, 'cylinder')
     leaf(cyl, 'radius', 0.028)
@@ -91,11 +97,21 @@ def wheel(parent, name, y):
     cont = sub(surf, 'contact')
     ode_c = sub(cont, 'ode')
     leaf(ode_c, 'kp', 1e7)
+    leaf(ode_c, 'kd', 1.0)
     leaf(ode_c, 'max_vel', 0.1)
     fric = sub(surf, 'friction')
     ode = sub(fric, 'ode')
-    leaf(ode, 'mu', 200)
-    leaf(ode, 'mu2', 200)
+    # mu1 2.0 (longitudinal), mu2 1.0 (lateral slip): a diff robot
+    # SKID-steers — turning in place requires lateral wheel slip, and
+    # mu2 200 pins the robot (the pinky rig's own mu1=mu2=200 has the
+    # same freeze). mu1 is 2, not the pinky 200, because with mu1 200 a
+    # wall-pressed robot had traction to CLIMB the wall into a nose-up
+    # turtle (-90 deg pitch, measured here); mu 2 still grips the ground
+    # 2x harder than its 0.9 but stalls against wall pushes instead of
+    # climbing. Odometry is ground truth (OdometryPublisher), so low
+    # wheel grip costs nothing there.
+    leaf(ode, 'mu', 2.0)
+    leaf(ode, 'mu2', 1.0)
     return lnk
 
 
@@ -108,7 +124,9 @@ def build():
     # embedded 5-7 cm into walls, pinning the robot (pinky's working maze
     # world runs type="ode" too).
     ph = sub(w, 'physics', name='1ms', type='ode')
-    leaf(ph, 'max_step_size', 0.001)
+    # 5 ms step: at 1 ms the 1e-5 kg m2 wheel inertia integrated badly on
+    # this box (robot capped at 1-2 cm/s whatever the friction recipe).
+    leaf(ph, 'max_step_size', 0.005)
     leaf(ph, 'real_time_factor', 1.0)
 
     # NOTE: no PosePublisher here — it aborts the gz-sim10 server when it
@@ -129,8 +147,15 @@ def build():
     g = sub(w, 'model', name='ground')
     leaf(g, 'static', 'true')
     gl = sub(g, 'link', name='link')
-    geom_box(gl, 'col', 'collision', arena / 2, arena / 2, -0.05,
-             arena + 1, arena + 1, 0.1)
+    gc = geom_box(gl, 'col', 'collision', arena / 2, arena / 2, -0.05,
+                  arena + 1, arena + 1, 0.1)
+    gs = sub(gc, 'surface')
+    gf = sub(gs, 'friction')
+    go = sub(gf, 'ode')
+    # The pinky maze world sets explicit ground friction; leaving it off
+    # leaves the ODE default to interact with the wheel mu unpredictably.
+    leaf(go, 'mu', 0.9)
+    leaf(go, 'mu2', 0.9)
     geom_box(gl, 'vis', 'visual', arena / 2, arena / 2, -0.05,
              arena + 1, arena + 1, 0.1, vis=True)
 
@@ -145,17 +170,35 @@ def build():
     leaf(r, 'pose', f'{1.5 * CELL} {1.5 * CELL} 0.07 0 0 0')
     base = sub(r, 'link', name='base')
     ine = sub(base, 'inertial')
+    # CG between the axle (x=-0.04) and the rear skid (x=-0.0575): nose-up
+    # rotation is blocked by the skid contact, nose-down by the wheels, so
+    # the robot is statically stable in pitch for the first time. (The old
+    # CG-at-axle layout was pitch-neutral — any wall press rotated it; CG
+    # 2.5 cm behind the axle made it a wheelbarrow and tipped BACKWARD.)
+    leaf(ine, 'pose', '-0.055 0 0.04 0 0 0')
     leaf(ine, 'mass', 0.6)
     ii = sub(ine, 'inertia')
     for a in ('ixx', 'iyy', 'izz'):
         leaf(ii, a, 0.001)
     for a in ('ixy', 'ixz', 'iyz'):
         leaf(ii, a, 0.0)
-    # Chassis lifted: centered on the link origin it hung 2 mm into the
-    # ground at wheel contact, so the robot rested on its belly, wheels
-    # spinning in the air — odom moved, the robot never did.
-    geom_box(base, 'col', 'collision', 0, 0, 0.05, 0.16, 0.12, 0.06)
-    vis = geom_box(base, 'vis', 'visual', 0, 0, 0.05, 0.16, 0.12, 0.06, vis=True)
+    # Chassis sits LOW (bottom 1 cm over ground; wall contact ~axle height)
+    # plus a REAR SKID: the -90 deg nose-up turtle pivots about the wheel
+    # contact, and nose-up rotation drives the skid INTO the ground, which
+    # blocks it geometrically. CG moves (CG at the axle, then 2.5 cm behind
+    # it — which made it WORSE: CG behind the contact is a wheelbarrow, the
+    # nose-up rotation just gets easier) cannot fix this; unlimited-effort
+    # joint velocity control out-torques any CG offset. The old caster box
+    # blew up ODE's collision space (AABB assertion crash) — this skid is
+    # 1.5 cm tall and sits behind the axle; boots verified on this rig.
+    # Also shrunk from 16x12 cm: that box wedged diagonally in the 30 cm
+    # corridors. The rig tests the planning stack, not chassis fidelity.
+    geom_box(base, 'col', 'collision', 0, 0, 0.04, 0.14, 0.10, 0.06)
+    vis = geom_box(base, 'vis', 'visual', 0, 0, 0.04, 0.14, 0.10, 0.06, vis=True)
+    geom_box(base, 'skid_col', 'collision',
+             -0.065, 0, 0.0075, 0.015, 0.06, 0.015)
+    geom_box(base, 'skid_vis', 'visual',
+             -0.065, 0, 0.0075, 0.015, 0.06, 0.015, vis=True)
     mat = sub(vis, 'material')
     amb = sub(mat, 'ambient')
     amb.text = '0.2 0.4 1 1'
@@ -186,27 +229,10 @@ def build():
 
     wheel(r, 'wheel_left', 0.082)
     wheel(r, 'wheel_right', -0.082)
-    ca = sub(r, 'link', name='caster')
-    # Caster 5 mm above the wheel plane: level with it, the frictionless
-    # caster took the robot's weight and the wheels just spun (physical
-    # speed ~10 cm/min while odom counted full hops).
-    leaf(ca, 'pose', f'0.06 0 {0.012 + 0.005} 0 0 0')
-    ine = sub(ca, 'inertial')
-    leaf(ine, 'mass', 0.02)
-    ci = sub(ine, 'inertia')
-    for a in ('ixx', 'iyy', 'izz'):
-        leaf(ci, a, 1e-6)
-    for a in ('ixy', 'ixz', 'iyz'):
-        leaf(ci, a, 0.0)
-    cc = geom_box(ca, 'col', 'collision', 0, 0, 0, 0.024, 0.024, 0.024)
-    surf = sub(cc, 'surface')
-    cont = sub(surf, 'contact')
-    ode_c = sub(cont, 'ode')
-    leaf(ode_c, 'kp', 1e7)
-    fric = sub(surf, 'friction')
-    ode = sub(fric, 'ode')
-    leaf(ode, 'mu', 0.0)
-    leaf(ode, 'mu2', 0.0)
+    # Wheel joints: revolute about +y, NO limit element (ODE treats a
+    # missing limit as unlimited; a ±1e16 limit strained the LCP at
+    # spawn — AABB assertion crash in collision_space killed the physics
+    # thread and the lidar with it on ~half the boots).
     for jname, child in (('j_left', 'wheel_left'),
                          ('j_right', 'wheel_right')):
         j = sub(r, 'joint', name=jname, type='revolute')
@@ -214,9 +240,12 @@ def build():
         leaf(j, 'child', child)
         ax = sub(j, 'axis')
         leaf(ax, 'xyz', '0 1 0')
-        lim = sub(ax, 'limit')
-        leaf(lim, 'lower', -1e16)
-        leaf(lim, 'upper', 1e16)
+        # NO limit element at all: SDF has no explicit unlimited value
+        # (effort -1 reads literally and clamps the wheels dead).
+    # DiffDrive + ground-truth odometry. NOTE on the crawl investigation:
+    # wheel-physics capped the robot at 1-2 cm/s regardless of friction
+    # recipe (even the pinky rig crawls on this machine); the fix that
+    # finally worked is the physics step + wheel inertia, see wheel().
     dd = sub(r, 'plugin', filename='gz-sim-diff-drive-system',
              name='gz::sim::systems::DiffDrive')
     for t in ('left_joint', 'right_joint'):
@@ -224,11 +253,18 @@ def build():
     leaf(dd, 'wheel_separation', 0.164)
     leaf(dd, 'wheel_radius', 0.028)
     leaf(dd, 'odom_publish_frequency', 20)
-    leaf(dd, 'tf_topic', '/model/pinky/tf')
-    leaf(dd, 'odom_topic', '/model/pinky/odometry')
+    leaf(dd, 'odom_topic', 'odometry_diff')
     leaf(dd, 'frame_id', 'odom')
     leaf(dd, 'child_frame_id', 'base_link')
-    leaf(dd, 'max_linear_acceleration', 0.5)
+    # NO min/max_velocity here: those are JOINT rad/s clamps — the pinky
+    # rig's 1.0 clamps its wheels to 1.0 rad/s = 2.8 cm/s, its own crawl.
+    # max_linear_acceleration alone keeps the start gentle.
+    # Ground-truth 2D odometry: /odom == gz truth, no wheel slip.
+    op = sub(r, 'plugin', filename='gz-sim-odometry-publisher-system',
+             name='gz::sim::systems::OdometryPublisher')
+    leaf(op, 'dimensions', 2)
+    leaf(op, 'odom_topic', 'odometry_gt')
+    leaf(op, 'odom_publish_frequency', 20)
     return ET.tostring(sdf, encoding='unicode')
 
 

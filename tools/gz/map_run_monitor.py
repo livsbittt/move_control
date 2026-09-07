@@ -52,6 +52,7 @@ class Mon(Node):
         self.map = None          # (res, ox, oy, h, w, arr)
         self.known = -1
         self.known_t = self.t0
+        self.last_trail_t = self.t0
         self.last_save = 0.0
         self.last_beat = 0.0
         self.create_subscription(
@@ -67,8 +68,10 @@ class Mon(Node):
         arr = np.array(msg.data, dtype=np.int16).reshape(h, w)
         self.map = (msg.info.resolution, msg.info.origin.position.x,
                     msg.info.origin.position.y, h, w, arr)
-        self.known = int((arr >= 0).sum())
-        self.known_t = time.monotonic()
+        k = int((arr >= 0).sum())
+        if k != self.known:  # slam republishes /map every update tick
+            self.known = k
+            self.known_t = time.monotonic()
 
     def on_odom(self, msg):
         p = msg.pose.pose.position
@@ -76,8 +79,13 @@ class Mon(Node):
             d = ((p.x - self.pose[0]) ** 2 + (p.y - self.pose[1]) ** 2) ** .5
             if d < 1.0:  # teleport = TF reset, not travel
                 self.path_m += d
-            if d > 0.02:
+            now = time.monotonic()
+            if d > 0.02 or now - self.last_trail_t > 2.0:
+                # Displacement gates never fire at rig speeds: crawl is
+                # mm/msg at 20 Hz. Time-sample every 2 s so the trail shows
+                # where the robot SPENT time (stall spots included).
                 self.trail.append((p.x, p.y))
+                self.last_trail_t = now
         self.pose = (p.x, p.y)
 
     def on_goal(self, msg):
@@ -126,7 +134,9 @@ class Mon(Node):
         if t - self.last_save >= SAVE_EVERY:
             self.last_save = t
             self.render(os.path.join(self.out, 'map_live.png'))
-        done = self.state == 'coverage done'
+        # goal_node appends ' eta=.. v=.. pose~..' to the status — prefix
+        # match only (an exact match never fired).
+        done = self.state.startswith('coverage done')
         if done:
             if self.done_t is None:
                 self.done_t = t
