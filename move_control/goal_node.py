@@ -83,6 +83,9 @@ class GoalNode(Node):
             Odometry, self.get_parameter('odom_topic').value, self.on_odom, 10)
         self.create_subscription(String, '/goal/cmd', self.on_cmd, 10)
         self.goal_pub = self.create_publisher(PoseStamped, '/goal_point', 10)
+        self.manual_result_pub = self.create_publisher(String, '/goal/manual_result', 10)
+        self.manual_started_ns = None
+        self.manual_target = None
         self.route_pub = self.create_publisher(Path, '/route', 10)
         self.state_pub = self.create_publisher(String, '/goal_node/state', 10)
         self.options_pub = self.create_publisher(MarkerArray, '/goal/options', 10)
@@ -192,7 +195,8 @@ class GoalNode(Node):
         if cmd == 'replan':
             if self.mode == 'stop':
                 return
-            self.brain.avoid_goal(self.last_executable_goal)
+            if self.mode != 'manual':
+                self.brain.avoid_goal(self.last_executable_goal)
             self.brain.avoid_route_exit(self.last_executable_exit)
             self.last_executable_goal = None
             self._clear_route('replanning: failed target excluded; seeking alternative')
@@ -215,7 +219,10 @@ class GoalNode(Node):
             return
         xy = parse_goal_cmd(cmd)
         if xy is not None:
-            self.mode = 'explore'
+            self.mode = 'manual'
+            self.brain.mode = 'manual'
+            self.manual_started_ns = self.get_clock().now().nanoseconds
+            self.manual_target = list(xy)
             self.brain.set_manual(*xy)
             self._clear_route('manual goal waiting for route')
             self.get_logger().info(
@@ -272,6 +279,13 @@ class GoalNode(Node):
             self.brain.clear_m = self.brain.retry_clear_m = profile['preferred_clearance_m']
             self.brain.start_escape_clear_m = profile['minimum_clearance_m']
         goal, route, status = self.brain.plan(m, (x, y))
+        if self.mode == 'manual' and self.brain._manual is None:
+            self.mode = 'stop'
+            self._clear_route(status)
+            self.manual_result_pub.publish(String(data=json.dumps({
+                'started_ns': self.manual_started_ns, 'status': status,
+                'target': self.manual_target})))
+            return
         if self.get_parameter('debug').value:
             self.get_logger().info(
                 f'plan covered={len(self.brain.covered)} '

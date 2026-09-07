@@ -587,3 +587,68 @@ class PlannerBlockedStartRegression(unittest.TestCase):
         goal, route, status = brain.plan(m, pose)
         self.assertIsNotNone(route, status)
         self.assertTrue(all(m.inflate(.08/m.res).is_free(*c) for c in route['cells']))
+
+
+class NarrowFrontierRouteRegression(unittest.TestCase):
+    def test_wide_start_can_reach_frontier_through_minimum_clearance_corridor(self):
+        m = OccupancyMap(40, 25, .02, fill=OCC)
+        for r in range(1, 24):
+            for c in range(1, 39):
+                m.set_cell(c, r, FREE)
+        # Divider doorway is open at the explicit hard radius, closed at preferred.
+        for r in range(1, 24):
+            if not 8 <= r <= 16:
+                m.set_cell(20, r, OCC)
+        for r in range(1, 24):
+            m.set_cell(38, r, UNKNOWN)
+        pose = m.grid_to_world(10, 12)
+        brain = GoalBrain(min_size=3, clear_m=.12, retry_clear_m=.12,
+                          start_escape_clear_m=.08)
+        self.assertTrue(m.inflate(.12/m.res).is_free(*m.world_to_grid(*pose)))
+        goal, route, status = brain.plan(m, pose)
+        self.assertIsNotNone(route, status)
+        self.assertTrue(status.startswith('explore'), status)
+        self.assertGreater(goal[0], m.grid_to_world(20, 12)[0])
+        self.assertEqual(route['clearance_m'], .08)
+        self.assertTrue(all(m.inflate(.08/m.res).is_free(*c) for c in route['cells']))
+
+
+class ManualOnlyRegression(unittest.TestCase):
+    def test_expiry_never_selects_autonomous_target(self):
+        m = OccupancyMap(20, 20, .02, fill=FREE)
+        brain = GoalBrain(clear_m=.02, manual_ttl_plans=1)
+        brain.mode = 'manual'
+        brain.set_manual(.3, .3)
+        brain.plan(m, (.1, .1))
+        goal, route, status = brain.plan(m, (.1, .1))
+        self.assertIsNone(route)
+        self.assertEqual(status, 'manual goal expired')
+        goal, route, status = brain.plan(m, (.1, .1))
+        self.assertIsNone(route)
+        self.assertEqual(status, 'manual goal finished')
+
+    def test_reached_goal_does_not_resume_exploration_on_next_tick(self):
+        m = OccupancyMap(20, 20, .02, fill=FREE)
+        brain = GoalBrain(clear_m=.02)
+        brain.mode = 'manual'
+        brain.set_manual(.1, .1)
+        self.assertEqual(brain.plan(m, (.1, .1))[2], 'manual goal reached')
+        self.assertIsNone(brain.plan(m, (.1, .1))[1])
+
+
+class NarrowCoverageRouteRegression(unittest.TestCase):
+    def test_coverage_does_not_finish_before_reachable_narrow_room(self):
+        m = OccupancyMap(40, 25, .02, fill=OCC)
+        for r in range(1, 24):
+            for c in range(1, 39):
+                m.set_cell(c, r, FREE)
+        for r in range(1, 24):
+            if not 8 <= r <= 16:
+                m.set_cell(20, r, OCC)
+        brain = GoalBrain(clear_m=.12, retry_clear_m=.12, start_escape_clear_m=.08)
+        brain.mode = 'coverage'
+        brain.covered = {c for c in m.free_cells() if c[0] <= 20}
+        goal, route, status = brain.plan(m, m.grid_to_world(10, 12))
+        self.assertIsNotNone(route, status)
+        self.assertGreater(goal[0], m.grid_to_world(20, 12)[0])
+        self.assertEqual(route['clearance_m'], .08)

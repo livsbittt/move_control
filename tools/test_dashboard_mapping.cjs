@@ -32,9 +32,26 @@ function dashboard() {
   const html = fs.readFileSync(path.join(__dirname, '../web/dashboard.html'), 'utf8');
   const source = html.match(/<script>([\s\S]*?)<\/script>/)[1];
   vm.runInContext(source.replace(/\}\)\(\);\s*$/, 
-    'globalThis.mappingTest = {S, renderMapping, renderNavigation, mappingAction, loadMap, bucket, saveMapImage};})();'), context);
+    'globalThis.mappingTest = {S, renderMapping, renderNavigation, mappingAction, loadMap, bucket, saveMapImage, sendPin};})();'), context);
   return {context, elements, images, ...context.mappingTest};
 }
+
+test('manual pin sends only a goal and reports rejected commands', async () => {
+  const d = dashboard();
+  await new Promise(resolve => setImmediate(resolve));
+  d.S.pin = {x:.2,y:.1};
+  d.S.data = {calibration_ready:true,calibration:{ready:true},estop:false};
+  const calls=[];
+  d.context.fetch=async (url,options) => {calls.push([url,options.body]);return {ok:false,json:async()=>({error:'not ready'})};};
+  await d.sendPin();
+  assert.equal(calls.length,1);
+  assert.match(calls[0][0],/\/goal$/);
+  assert.equal(calls[0][1],'0.200,0.100');
+  assert.equal(d.elements.get('calibrationerror').textContent,'not ready');
+  d.S.data.estop=true;
+  await d.sendPin();
+  assert.equal(calls.length,1);
+});
 
 test('unavailable SLAM disables controls; resume only enabled while paused', () => {
   const d = dashboard();

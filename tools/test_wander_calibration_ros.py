@@ -1,4 +1,5 @@
 import time
+import json
 import unittest
 from unittest.mock import Mock
 
@@ -41,7 +42,7 @@ class CalibrationGateTest(unittest.TestCase):
         self.node.destroy_node()
 
     def test_start_and_map_modes_cannot_bypass_initial_calibration(self):
-        for command in ('start', 'explore', 'coverage'):
+        for command in ('start', 'explore', 'coverage', 'manual:0.2,0.1'):
             self.node.on_cmd(String(data=command))
             self.assertFalse(self.node.enabled)
         self.node.on_enable(Bool(data=True))
@@ -66,6 +67,41 @@ class CalibrationGateTest(unittest.TestCase):
         self.assertEqual(self.node.navigation_mode, 'coverage')
         self.node.on_cmd(String(data='stop'))
         self.assertFalse(self.node.enabled)
+
+    def test_manual_start_orders_cancel_before_coordinates_without_explore(self):
+        self.node.on_calibration(Bool(data=True))
+        self.node.estop = False
+        self.node.navigation_mode = 'coverage'
+        self.node.navigation_goal_pub = Mock()
+        self.node.on_cmd(String(data='manual:0.2,0.1'))
+        self.assertTrue(self.node.enabled)
+        self.assertEqual(self.node.navigation_mode, 'manual')
+        self.assertEqual([c.args[0].data for c in
+                          self.node.navigation_goal_pub.publish.call_args_list],
+                         ['stop', '0.200,0.100'])
+
+    def test_manual_start_rejected_while_estopped(self):
+        self.node.on_calibration(Bool(data=True))
+        self.node.estop = True
+        self.node.on_cmd(String(data='manual:0.2,0.1'))
+        self.assertFalse(self.node.enabled)
+
+    def test_manual_terminal_rejects_old_transaction_then_stops_current(self):
+        self.node.on_calibration(Bool(data=True))
+        self.node.estop = False
+        self.node.on_cmd(String(data='manual:0.2,0.1'))
+        result = {'started_ns': self.node.navigation_started_ns - 1,
+                  'target': [.2, .1], 'status': 'manual goal reached'}
+        self.node._on_manual_result(String(data=json.dumps(result)))
+        self.assertTrue(self.node.enabled)
+        result['started_ns'] = self.node.navigation_started_ns
+        result['target'] = [.3, .1]
+        self.node._on_manual_result(String(data=json.dumps(result)))
+        self.assertTrue(self.node.enabled)
+        result['target'] = [.2, .1]
+        self.node._on_manual_result(String(data=json.dumps(result)))
+        self.assertFalse(self.node.enabled)
+        self.assertIsNone(self.node.navigation_mode)
 
     def test_front_wall_allows_route_alignment_but_estop_still_halts_every_axis(self):
         self.node.on_calibration(Bool(data=True))

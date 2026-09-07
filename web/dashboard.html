@@ -515,8 +515,11 @@ async function post(path, body) {
     if (!response.ok) {
       const result = await response.json();
       setTxt('calibrationerror', result.error || '명령을 실행할 수 없습니다.');
+      return false;
     }
+    return true;
   } catch (e) { setTxt('calibrationerror', '로봇 연결을 확인해 주세요.'); }
+  return false;
 }
 function calibrationReady(s) {
   return !!s && s.calibration_ready === true && !!s.calibration && s.calibration.ready === true;
@@ -1272,11 +1275,17 @@ function updatePin() {
   $('pinclear').style.display = has ? '' : 'none';
   draw(S.data);
 }
-function sendPin() {
+async function sendPin() {
   if (!S.pin) return;
-  api.goal(S.pin.x.toFixed(3) + ',' + S.pin.y.toFixed(3));
+  if (!calibrationReady(S.data) || S.data.estop !== false) {
+    setTxt('calibrationerror', '보정 완료와 비상정지 해제 후 지점 이동을 시작할 수 있습니다.');
+    return;
+  }
   const b = $('pinsend');
-  b.textContent = '보냄';
+  b.disabled = true;
+  const ok = await api.goal(S.pin.x.toFixed(3) + ',' + S.pin.y.toFixed(3));
+  b.textContent = ok ? '목표 전송됨' : '전송 실패';
+  b.disabled = false;
   setTimeout(() => { b.textContent = '이 지점으로'; }, 1200);
 }
 function clearPin() { S.pin = null; updatePin(); }

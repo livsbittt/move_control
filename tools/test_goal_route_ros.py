@@ -50,6 +50,23 @@ class GoalRouteTest(unittest.TestCase):
         self.node.stop()
         self.assert_empty_route()
 
+    def test_manual_replan_retains_target_and_completion_stops_planner(self):
+        self.node.manual_result_pub = Mock()
+        self.known_map()
+        self.node.pose = Mock(return_value=((.5, .5), 'tf'))
+        self.node.on_cmd(String(data='0.7,0.5'))
+        self.assertEqual(self.node.mode, 'manual')
+        self.node.on_cmd(String(data='replan'))
+        self.assertIsNotNone(self.node.brain._manual)
+        self.node.pose = Mock(return_value=(self.node.brain._manual, 'tf'))
+        self.node.plan()
+        self.assertEqual(self.node.mode, 'stop')
+        self.assert_empty_route()
+        result = json.loads(self.node.manual_result_pub.publish.call_args.args[0].data)
+        self.assertEqual(result['target'], [.7, .5])
+        self.assertEqual(result['started_ns'], self.node.manual_started_ns)
+        self.assertIn('manual goal reached', result['status'])
+
     def test_environment_profile_applies_only_when_ready_fresh_and_same_map_resolution(self):
         from move_control.control.navigation_calibration import environment_profile
         p = environment_profile(.076, .05, [(.14,.13,None,None)]*30)

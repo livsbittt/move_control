@@ -1,5 +1,6 @@
 """Subject: map route execution through wander's existing safety-gated output."""
 import math
+import json
 
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Path
@@ -18,6 +19,7 @@ class Navigator:
         self.declare_parameter('route_tf_timeout', 1.0)
         self.declare_parameter('route_lookahead', .06)
         self.navigation_mode = None
+        self.navigation_manual_target = None
         self.navigation_route = []
         self.navigation_received = None
         self.navigation_stamp = None
@@ -27,27 +29,53 @@ class Navigator:
         self.navigation_listener = TransformListener(self.navigation_tf, self)
         self.navigation_goal_pub = self.create_publisher(String, '/goal/cmd', 10)
         self.create_subscription(Path, '/route', self._on_navigation_route, 10)
+        self.create_subscription(String, '/goal/manual_result', self._on_manual_result, 10)
 
     def _cancel_navigation(self):
         if self.navigation_mode:
             self.navigation_goal_pub.publish(String(data='stop'))
         self.navigation_mode = None
+        self.navigation_manual_target = None
         self.navigation_route = []
         self.navigation_received = None
         self.navigation_stamp = None
         self.navigation_progress.reset()
         self.navigation_recovery.reset()
 
-    def _start_navigation(self, mode):
+    def _start_navigation(self, mode, goal_command=None):
         self._cancel_navigation()
         self.navigation_mode = mode
         self._recovery_budget = None
         self.stop_reason = None
         self.navigation_started = self.now().nanoseconds * 1e-9
+        self.navigation_started_ns = self.now().nanoseconds
+        self.navigation_manual_target = (
+            [float(v) for v in goal_command.split(',')] if mode == 'manual' else None)
         self.enabled = True
         self.state = 'wait'
-        self.navigation_goal_pub.publish(String(data=mode))
+        self.navigation_goal_pub.publish(String(data=goal_command or mode))
         self._publish(Twist(), f'route_{mode}:no_route')
+
+    def _on_manual_result(self, msg):
+        if self.navigation_mode != 'manual':
+            return
+        try:
+            result = json.loads(msg.data)
+            started = result['started_ns']
+            if (not isinstance(started, int) or isinstance(started, bool)
+                    or started < self.navigation_started_ns
+                    or started > self.now().nanoseconds
+                    or result['target'] != self.navigation_manual_target):
+                return
+            status = result['status']
+            if not isinstance(status, str) or not status.endswith((
+                    'manual goal reached', 'manual goal finished',
+                    'manual goal expired', 'manual goal unreachable, cleared')):
+                return
+        except (ValueError, TypeError, KeyError):
+            return
+        self._set_enabled(False)
+        self._publish(Twist(), 'route_manual:finished')
 
     def _on_navigation_route(self, msg):
         if not self.navigation_mode:

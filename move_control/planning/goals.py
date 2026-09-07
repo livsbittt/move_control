@@ -203,12 +203,16 @@ class GoalBrain:
         self._manual_n += 1
         if self._manual_n > self.manual_ttl_plans:
             self._manual = None
+            if self.mode == 'manual':
+                return None, None, 'manual goal expired'
             return None                      # expired -> normal planning
         if math.hypot(x - pose[0], y - pose[1]) < self.reach_tol:
             self._manual = None
             return None, None, 'manual goal reached'
         route = None
         margins = [self.clear_m]
+        if 0 < self.start_escape_clear_m < self.clear_m:
+            margins.append(self.start_escape_clear_m)
         if self.retry_unreachable_wp:
             margins.append(self.retry_clear_m)
         for cm in margins:
@@ -358,6 +362,8 @@ class GoalBrain:
             out = self._manual_plan(m, pose)
             if out is not None:
                 return out
+        if self.mode == 'manual':
+            return None, None, 'manual goal finished'
         # Wide-first latch: near the last stuck pose, plan with extra
         # clearance until the robot is clear of that obstacle pocket.
         wide = False
@@ -370,6 +376,11 @@ class GoalBrain:
         if self.mode == 'explore':
             clear_first = self.escape_clear_m if wide else self.clear_m
             clear_retry = self.clear_m if wide else self.retry_clear_m
+            if 0 < self.start_escape_clear_m < clear_retry:
+                # A wide start can lead into a narrow corridor later. The
+                # explicit footprint floor applies to the whole route, not
+                # only when the start cell already needs an escape.
+                clear_retry = self.start_escape_clear_m
             g = pick_goal(m, pose, min_size=self.min_size,
                           clear_m=clear_first,
                           retry_clear_m=clear_retry,
@@ -393,7 +404,10 @@ class GoalBrain:
                 self.mode = 'explore'
         cover_ring(self.covered, m, pose[0], pose[1],
                    radius_m=self.lane_width / 2)
-        coverage_grid = m.inflate(self.clear_m / m.res)
+        coverage_clear = self.clear_m
+        if 0 < self.start_escape_clear_m < coverage_clear:
+            coverage_clear = self.start_escape_clear_m
+        coverage_grid = m.inflate(coverage_clear / m.res)
         zz = ZigzagPlanner(coverage_grid, start=pose,
                            covered=self.covered | set(self._coverage_deferred),
                            lane_width=self.lane_width,
@@ -417,6 +431,8 @@ class GoalBrain:
         # target snapped back onto the robot must not stall every replan.
         for requested in wps[:16]:
             route = best_route(m, pose, requested, clear_m=self.clear_m)
+            if route is None and coverage_clear < self.clear_m:
+                route = best_route(m, pose, requested, clear_m=coverage_clear)
             if route is None and self.retry_unreachable_wp and \
                     self.retry_clear_m < self.clear_m:
                 route = best_route(m, pose, requested, clear_m=self.retry_clear_m)

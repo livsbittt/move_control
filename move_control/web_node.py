@@ -830,8 +830,11 @@ def _handler(node, html, api):
                 if xy is None or max(abs(xy[0]), abs(xy[1])) > GOAL_BOUND:
                     self.send_response(400)
                 else:
-                    node.goal_pub.publish(
-                        String(data=f'{xy[0]:.3f},{xy[1]:.3f}'))
+                    if not ready or not released:
+                        reject('Manual driving requires completed calibration and released emergency stop')
+                        return
+                    node.wander_pub.publish(
+                        String(data=f'manual:{xy[0]:.3f},{xy[1]:.3f}'))
                     self.send_response(200)
             else:
                 self.send_response(404)
