@@ -90,6 +90,36 @@ class StartupCalibrationTest(unittest.TestCase):
         self.assertTrue(all(call.args[0].linear.x == 0 for call in self.node.raw_pub.publish.call_args_list))
         self.assertFalse(self.node.ready_pub.publish.call_args.args[0].data)
 
+    def test_automatic_flow_waits_for_estop_release_then_completes_without_command(self):
+        from std_msgs.msg import Bool
+        for i in range(21):
+            self.refresh(96. + i * .2)
+        self.node.estop = True
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'waiting_motion')
+        self.assertFalse(any(c.args[0].linear.x for c in self.node.raw_pub.publish.call_args_list))
+        self.node.on_estop(Bool(data=False))
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'validating_motion')
+        self.refresh(100.6)
+        self.node.tick()
+        self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, .008)
+        self.refresh(104.7, moving=True)
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'ready')
+        self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
+        self.assertTrue(json.loads((Path(self.tmp.name) / 'calibration.json').read_text())['ready'])
+
+    def test_auto_motion_never_retries_after_abort_or_failure(self):
+        for final_phase in ('aborted', 'failed'):
+            self.node.finish(False, 'test', final_phase)
+            for i in range(21):
+                self.refresh(96. + i * .2)
+            self.node.estop = False
+            self.node.tick()
+            self.assertEqual(self.node.phase, final_phase)
+            self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
+
     def test_explicit_trial_is_bounded_stops_and_persists_only_after_agreement(self):
         self.arm()
         self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, .008)

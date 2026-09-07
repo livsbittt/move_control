@@ -1,4 +1,4 @@
-"""Stationary startup calibration, then explicitly requested safe motion validation."""
+"""Stationary startup checks followed by one bounded automatic motion validation."""
 import json
 import math
 import os
@@ -27,6 +27,7 @@ class StartupCalibrationNode(Node):
         super().__init__('startup_calibration_node', parameter_overrides=parameter_overrides or [])
         self.declare_parameter('lidar_yaw_offset', NOSE_YAW)
         self.declare_parameter('imu_angular_velocity_unit', 'rad_s')
+        self.declare_parameter('calibration_auto_motion', True)
         self.declare_parameter('result_path', str(Path.home() / '.local/state/move_control/calibration.json'))
         latched = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL,
                              reliability=ReliabilityPolicy.RELIABLE)
@@ -222,8 +223,15 @@ class StartupCalibrationNode(Node):
             self.phase = 'waiting_motion' if valid else 'collecting'
             if valid:
                 self.baseline_values = self.baseline.statistics(now)
-            self.message = ('Stationary baseline passed; explicit motion validation required' if valid
-                            else 'Keep stationary; waiting for healthy stable sensors')
+            self.message = 'Keep stationary; waiting for healthy stable sensors'
+            if valid:
+                if self.get_parameter('calibration_auto_motion').value:
+                    reason = self.safe_motion(now)
+                    self.message = reason or 'Stationary checks passed; starting automatic motion validation'
+                    if reason is None:
+                        self.on_command(String(data='validate_motion'))
+                else:
+                    self.message = 'Stationary baseline passed; manual motion validation selected'
         elif self.phase == 'validating_motion':
             reason = self.safe_motion(now)
             if reason:
@@ -262,6 +270,7 @@ class StartupCalibrationNode(Node):
         lidar = self.baseline_values.get('lidar', {}).get('mean', [])
         us = self.baseline_values.get('us', {}).get('mean', [])
         return {'phase': self.phase, 'ready': self.phase == 'ready', 'message': self.message,
+                'auto_motion': bool(self.get_parameter('calibration_auto_motion').value),
                 'elapsed_s': round(time.monotonic() - self.started, 2),
                 'sensors': self.sensors, 'motion': self.motion, 'baseline': self.baseline_values,
                 'estimates': {'imu_gyro_bias_rad_s': imu[3:6], 'imu_gravity_mean_mps2': imu[6:9],

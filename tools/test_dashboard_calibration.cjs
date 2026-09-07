@@ -43,6 +43,10 @@ test('calibration gates reactive and map navigation; sensor detail stays visible
   assert.equal(d.elements.get('calibrationmotion').disabled,false);
   assert.match(d.elements.get('calibrationsensors').textContent,/TF180/);
   assert.equal(d.elements.get('calibrationprogress').value,1);
+  state.calibration.auto_motion=true;
+  d.renderCalibration(state);
+  assert.equal(d.elements.get('calibrationmotion').hidden,true);
+  assert.equal(d.elements.get('calibrationmotion').disabled,true);
   state.calibration.ready=true;
   state.calibration_ready=true;
   d.renderCalibration(state);
