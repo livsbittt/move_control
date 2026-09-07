@@ -12,3 +12,13 @@ goal_node:
     # 0.3 m sim corridors seal under clear_m 0.06; retry sealed coverage
     # waypoints on the raw map instead of burning them as covered.
     retry_unreachable_wp: true
+    # 2-cell route inflation (0.08 / 0.05 res): A* runs the corridor
+    # CENTER, 10 cm off each wall. The 1-cell default (0.06) drew routes
+    # 5-10 cm off the wall and the 14 cm chassis scraped them at mm/s —
+    # free-space speed is 0.4 m/s, in-corridor 3 mm/s, purely wall drag.
+    clear_m: 0.08
+    # Rig pace: at real sim speeds the robot covers 10-60 cm in a 6-plan
+    # window, so far goals got benched before reachable and the aim flipped
+    # every few seconds (measured: position ping-pongs, net ~0). 12 plans
+    # gives the approach time to show.
+    stall_plans: 12

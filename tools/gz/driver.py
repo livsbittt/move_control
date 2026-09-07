@@ -315,8 +315,9 @@ class Driver(Node):
                     if cap < cmd.linear.x:
                         cmd.linear.x = cap
                 # Lateral grind: commanded forward but odom displacement ~0
-                # for 3 s — the body is pressed even with a clear nose arc
-                # (the cmd-vs-2cm/s stall checks miss sub-threshold grinds).
+                # for 4 s — the body is pressed even with a clear nose arc
+                # (the cmd-vs-2cm/s stall checks miss sub-threshold grinds;
+                # measured crawls sit at 3-4 mm/s, so gate at 5 mm/s / 4 s).
                 if cmd.linear.x > 0.02 and self.have_odom:
                     if self.grind_t0 is None:
                         self.grind_t0 = t
@@ -325,7 +326,7 @@ class Driver(Node):
                         gdt = t - self.grind_t0
                         gmoved = math.hypot(self.x - self.grind_x,
                                             self.y - self.grind_y)
-                        if is_stuck_motion(gmoved, gdt, 0.05, 0.01, 3.0):
+                        if is_stuck_motion(gmoved, gdt, 0.05, 0.02, 4.0):
                             self.get_logger().warning(
                                 f'grind F={front:.2f} moved={gmoved:.3f}m '
                                 f'in {gdt:.1f}s — back out')
@@ -336,6 +337,15 @@ class Driver(Node):
                             self.grind_t0 = None  # progressing — re-arm
                 else:
                     self.grind_t0 = None
+                # Side-press cap: the driver never measured the flanks, and
+                # an angled side contact drags the robot to 3 mm/s with a
+                # CLEAR nose (measured: 22 cm/s free vs 3.1 cm/s angled into
+                # a corner). Cap speed by the worst of nose and flank arcs.
+                body = min(front if front is not None else math.inf,
+                           self._flank_min())
+                body_cap = guard_speed(body, 0.10, cmd.linear.x, hyst=0.05)
+                if body_cap < cmd.linear.x:
+                    cmd.linear.x = body_cap
                 if abs(cmd.angular.z) > 0.05 and front_block(
                         swing, self.guard_clear * 0.75):
                     # Rotation press: the corner swing arc is blocked — hold
@@ -389,6 +399,21 @@ class Driver(Node):
         if scan is None:
             return None
         return sector_min(scan, 0.0, math.radians(60.0))
+
+    def _flank_min(self):
+        """Min range over the side arcs (±90 deg, ±30 deg each).
+
+        The chassis half-width is 5 cm; a flank reading under ~10 cm means
+        the body is riding a wall. Nothing measured the flanks before — an
+        angled side contact dragged the robot to 3 mm/s with a clear nose
+        (measured 22 cm/s free vs 3.1 cm/s into a corner).
+        """
+        scan = self.scan
+        if scan is None:
+            return None
+        left = sector_min(scan, math.radians(90.0), math.radians(30.0))
+        right = sector_min(scan, math.radians(-90.0), math.radians(30.0))
+        return min(left, right)
 
     def _open_side_sign(self):
         """Turn sign toward the wider side arc (±90 deg), 0 = no call.
