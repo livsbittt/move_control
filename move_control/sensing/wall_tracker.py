@@ -118,11 +118,37 @@ class WallTracker:
         self.stable = 0
         self.locked = False
         self.pose_anchor = self.mount_anchor = None
+        self.observed_pose = self.observed_time = None
         self.diagnostic = {'status': 'collecting', 'reason': 'No associated wall'}
 
-    def update(self, scan, nose, locked=False, pose=None, mount=None):
+    def update(self, scan, nose, locked=False, pose=None, mount=None, now=None):
         self.locked = self.locked or bool(locked)
         compensation = None
+        prediction = None
+        if now is not None:
+            if (not math.isfinite(now) or pose is None or mount is None
+                    or len(pose) != 3 or not all(math.isfinite(v) for v in pose)):
+                self.stable = 0
+                self.diagnostic = {'status': 'invalid', 'reason': 'Prediction requires finite time and pose'}
+                return math.inf
+            if self.wall is not None:
+                if self.observed_time is None or self.observed_pose is None or self.pose_anchor is None:
+                    self.stable = 0
+                    self.diagnostic = {'status': 'invalid', 'reason': 'Prediction history unavailable'}
+                    return math.inf
+                dt = now-self.observed_time
+                step = ((pose[0]-self.observed_pose[0])*math.cos(self.pose_anchor[2])
+                        +(pose[1]-self.observed_pose[1])*math.sin(self.pose_anchor[2]))
+                if not 0 < dt <= 1.2 or abs(step) > .014*min(dt,.2)+.003:
+                    self.stable = 0
+                    self.diagnostic = {'status': 'invalid', 'reason': 'Prediction pose step or interval implausible'}
+                    return math.inf
+                prediction = {'predicted_b': self.wall['intercept']-step,
+                              'forward_step_m': step, 'dt_s': dt}
+        elif self.observed_time is not None:
+            self.stable = 0
+            self.diagnostic = {'status': 'invalid', 'reason': 'Prediction time missing'}
+            return math.inf
         if pose is not None or mount is not None or self.pose_anchor is not None:
             if (pose is None or mount is None or len(pose) != 3 or len(mount) != 2
                     or not all(math.isfinite(v) for v in (*pose, *mount))):
@@ -144,12 +170,14 @@ class WallTracker:
         if candidates and pose is not None and self.pose_anchor is None:
             self.pose_anchor, self.mount_anchor = tuple(pose), tuple(mount)
         matches = []
+        reference_b = prediction['predicted_b'] if prediction is not None else (
+            self.wall['intercept'] if self.wall is not None else None)
         if self.wall is not None:
             for wall in candidates:
                 overlap = min(wall['hi'], self.wall['hi'])-max(wall['lo'], self.wall['lo'])
                 width = min(wall['hi']-wall['lo'], self.wall['hi']-self.wall['lo'])
                 if (overlap >= .5*width and abs(wall['slope']-self.anchor['slope']) <= .12
-                        and abs(wall['intercept']-self.wall['intercept']) <= .012
+                        and abs(wall['intercept']-reference_b) <= .012
                         and abs(wall['intercept']-self.anchor['intercept']) <= .06):
                     matches.append(wall)
         if len(matches) > 1:
@@ -162,7 +190,7 @@ class WallTracker:
                 abs(x-wall['slope']*y-wall['intercept'])/math.hypot(1., wall['slope']) <= .003
                 for wall in matches for _, y, x in merged['_points'])
             if equivalent and (abs(merged['slope']-self.anchor['slope']) <= .12
-                    and abs(merged['intercept']-self.wall['intercept']) <= .012
+                    and abs(merged['intercept']-reference_b) <= .012
                     and abs(merged['intercept']-self.anchor['intercept']) <= .06):
                 merged['fragments'] = len(matches)
                 matches = [merged]
@@ -178,14 +206,21 @@ class WallTracker:
             self.wall = max(candidates, key=lambda w: (w['hi']-w['lo'], w['rays']))
             self.anchor = dict(self.wall)
             self.stable = 1
+            prediction = None
         else:
             self.wall = self.anchor = None
             self.stable = 0
+        if self.wall is not None and now is not None:
+            self.observed_pose, self.observed_time = tuple(pose), now
+        elif self.wall is None:
+            self.observed_pose = self.observed_time = None
         if self.wall is None or self.stable < 3:
             self.diagnostic = {'status': 'collecting', 'reason': 'Waiting for three associated scans'}
             return math.inf
         public_wall = {key: value for key, value in self.wall.items() if not key.startswith('_')}
         self.diagnostic = {'status': 'ok', 'locked': self.locked, **public_wall,
+                           'prediction': None if prediction is None else {
+                               **prediction, 'innovation_m': self.wall['intercept']-prediction['predicted_b']},
                            'compensation': None if compensation is None else {
                                'yaw_rad': compensation[0], 'lateral_m': compensation[1],
                                'mount_m': list(compensation[2]), 'forward_odom_used': False}}

@@ -41,6 +41,45 @@ def world_wall(pose, mount=(-.017, 0.)):
 
 
 class WallTrackerTest(unittest.TestCase):
+    def test_prediction_never_replaces_lidar_distance_with_wrong_forward_odom(self):
+        tracker = WallTracker()
+        for i in range(3):
+            origin = tracker.update(world_wall((0.,0.,0.)), math.pi,
+                pose=(0.,0.,0.), mount=(-.017,0.), now=i*.1)
+        for i in range(1,31):
+            x=i*.001
+            value=tracker.update(world_wall((x,0.,0.)), math.pi, locked=True,
+                pose=(x*1.2,0.,0.), mount=(-.017,0.), now=.2+i*.1)
+            self.assertAlmostEqual(origin-value,x,delta=.001)
+        self.assertAlmostEqual(tracker.diagnostic['prediction']['innovation_m'],.0002,delta=.0001)
+
+    def test_prediction_rejects_pose_jump_and_missing_or_invalid_time(self):
+        for bad_pose,bad_now in [((.02,0.,0.),.3),((0.,0.,0.),None),
+                                  ((0.,0.,0.),.2),((0.,0.,0.),float('nan'))]:
+            tracker=WallTracker()
+            for i in range(3):
+                tracker.update(world_wall((0.,0.,0.)),math.pi,
+                    pose=(0.,0.,0.),mount=(-.017,0.),now=i*.1)
+            self.assertTrue(math.isinf(tracker.update(world_wall((0.,0.,0.)),math.pi,locked=True,
+                pose=bad_pose,mount=(-.017,0.),now=bad_now)))
+
+    def test_prediction_reacquisition_does_not_double_count_missing_frames(self):
+        tracker=WallTracker()
+        for i in range(3):
+            origin=tracker.update(world_wall((0.,0.,0.)),math.pi,
+                pose=(0.,0.,0.),mount=(-.017,0.),now=i*.1)
+        missing=world_wall((.001,0.,0.));missing.ranges=[math.inf]*720
+        self.assertTrue(math.isinf(tracker.update(missing,math.pi,locked=True,
+            pose=(.001,0.,0.),mount=(-.017,0.),now=.3)))
+        self.assertEqual(tracker.observed_time,.2)
+        for stamp in (.4,.5):
+            self.assertTrue(math.isinf(tracker.update(world_wall((.001,0.,0.)),math.pi,locked=True,
+                pose=(.001,0.,0.),mount=(-.017,0.),now=stamp)))
+        value=tracker.update(world_wall((.001,0.,0.)),math.pi,locked=True,
+            pose=(.001,0.,0.),mount=(-.017,0.),now=.6)
+        self.assertAlmostEqual(origin-value,.001,delta=.0001)
+        self.assertEqual(tracker.diagnostic['prediction']['forward_step_m'],0.)
+
     def test_captured_frame5_single_boundary_residual_is_excluded(self):
         # Compact replay of the measured frame5 residual pattern (mm):
         # 36 supporting returns and one 4.46mm endpoint, not a wall cluster.

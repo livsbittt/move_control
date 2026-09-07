@@ -525,7 +525,7 @@ function renderCalibration(s) {
   const phase = calibration && calibration.phase;
   const names = {lidar:'LiDAR', odom:'이동 거리', ir:'바닥 IR', imu:'자세 IMU', us:'초음파', camera:'카메라', tf:'센서 위치', map:'지도', map_tf:'지도 내 위치'};
   const states = {collecting:'수집 중', ok:'정상', stale:'수신 지연', unstable:'불안정', invalid:'확인 필요'};
-  const phases = {collecting:'정지 센서 확인 중', waiting_motion:'정지 확인 완료 · 이동 검증 대기', validating_motion:'저속 이동 검증 중', ready:'교정 완료 · 주행 가능', failed:'교정 실패', aborted:'교정 중단'};
+  const phases = {collecting:'정지 센서 확인 중', waiting_motion:'정지 확인 완료 · 이동 검증 대기', validating_motion:'저속 이동 검증 중', ready:'교정 완료 · 주행 가능', sensor_hold:'보정 유지 · 센서 재확인 중', failed:'교정 실패', aborted:'교정 중단'};
   const sensors = calibration && calibration.sensors || {};
   let count = 0;
   const lines = Object.keys(names).map(key => {
@@ -554,7 +554,7 @@ function renderCalibration(s) {
     lines.push('로봇 반경 ' + (env.body_radius_m*100).toFixed(1) + 'cm · 최소 중심 여유 ' + (env.minimum_clearance_m*100).toFixed(1) + 'cm · 선호 여유 ' + (env.preferred_clearance_m*100).toFixed(1) + 'cm');
     if (env.map_lidar_mismatch) lines.push('지도와 LiDAR 벽 거리 차이 있음 · 환경 여유를 줄여 차이를 보상하지 않습니다');
   }
-  setTxt('calibrationsummary', '센서 검사 ' + count + '/9 · ' + (phase === 'ready' ? '왕복 검증 및 저장 완료' : phase === 'validating_motion' ? '왕복 검증 중 — 앞뒤 공간을 비워 주세요' : phase === 'waiting_motion' ? '비상정지 해제 및 안전 조건 대기' : phase === 'failed' || phase === 'aborted' ? '정지됨 · 원인 확인 후 재시작하세요' : '검사 중'));
+  setTxt('calibrationsummary', '센서 검사 ' + count + '/9 · ' + (phase === 'sensor_hold' ? '저장된 보정 유지 · 해당 센서 정상 수신 후 자동 복구' : phase === 'ready' ? '왕복 검증 및 저장 완료' : phase === 'validating_motion' ? '왕복 검증 중 — 앞뒤 공간을 비워 주세요' : phase === 'waiting_motion' ? '비상정지 해제 및 안전 조건 대기' : phase === 'failed' || phase === 'aborted' ? '정지됨 · 원인 확인 후 재시작하세요' : '검사 중'));
   if (calibration && calibration.motion && calibration.motion.stage) {
     const m = calibration.motion;
     lines.push('왕복 ' + m.cycle + '/2 · 목표 ' + (m.target_m * 100).toFixed(1) + 'cm · ' + ({outbound:'전진 중',settle_out:'전진 거리 확인',returning:'출발점으로 복귀 중',settle_home:m.done ? '복귀 확인 완료' : '복귀 오차 확인'}[m.stage] || m.stage));
@@ -650,7 +650,10 @@ function renderNavigation(s) {
     setTxt('navready', '좁은 통로 · 로봇 크기와 최소 여유를 확인한 경로로 탐색합니다');
     return;
   }
-  setTxt('navready', reason || (!calibrationReady(s) ? '자동 보정을 완료해 주세요' : '') || '준비됨 · 모드를 고르면 주행합니다');
+  const calibrationWait = s && s.calibration && s.calibration.calibration_verified === true
+    ? '보정 유지 · 센서 재확인 중' + (s.calibration.message ? ' · ' + s.calibration.message : '')
+    : '자동 보정을 완료해 주세요';
+  setTxt('navready', reason || (!calibrationReady(s) ? calibrationWait : '') || '준비됨 · 모드를 고르면 주행합니다');
 }
 async function mappingAction(action) {
   if (S.mappingBusy || $(action === 'reset' ? 'mapreset' : 'mapresume').disabled) return;

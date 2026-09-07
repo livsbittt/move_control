@@ -4,6 +4,29 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
+test('sensor hold retains calibration but disables modes until runtime recovery', () => {
+  const d = dashboard();
+  const state = {estop:false,map:[1],map_control:{paused:false},pose_available:true,
+    calibration_ready:false,calibration:{phase:'sensor_hold',ready:false,
+      calibration_verified:true,settings_applied:true,message:'lidar: awaiting fresh scan'}};
+  d.renderCalibration(state);
+  d.renderNavigation(state);
+  assert.match(d.elements.get('calibrationstatus').textContent,/보정 유지 · 센서 재확인 중/);
+  assert.match(d.elements.get('calibrationsummary').textContent,/저장된 보정 유지/);
+  assert.match(d.elements.get('navready').textContent,/lidar: awaiting fresh scan/);
+  assert.doesNotMatch(d.elements.get('navready').textContent,/자동 보정을 완료/);
+  for (const id of ['wanderstart','navexplore','navcoverage']) assert.equal(d.elements.get(id).disabled,true);
+  const before = d.requests.length;
+  state.calibration_ready=true;
+  state.calibration.ready=true;
+  state.calibration.phase='ready';
+  state.calibration.message='';
+  d.renderCalibration(state);
+  d.renderNavigation(state);
+  for (const id of ['wanderstart','navexplore','navcoverage']) assert.equal(d.elements.get(id).disabled,false);
+  assert.equal(d.requests.length,before, 'Health recovery must not submit a mode command');
+});
+
 test('calibration displays runtime directional space and selected stroke', () => {
   const d = dashboard();
   d.renderCalibration({calibration:{phase:'waiting_motion',motion_clearance:{

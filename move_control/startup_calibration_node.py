@@ -83,11 +83,14 @@ class StartupCalibrationNode(Node):
         self.range_filters = {name: CalibrationRangeFilter() for name in ('lidar', 'us')}
         self.wall_tracker = WallTracker()
         self.raw_ranges = {}
+        self.us_source_valid = False
         self.phase, self.message = 'collecting', 'Keep robot stationary on safe level floor'
         self.started = time.monotonic()
         self.motion_start = None
         self.precision_pause_started = None
         self.precision_pause_total = 0.
+        self.runtime_ready = True
+        self.runtime_healthy_since = None
         self.selected_target = None
         self.motion_clearance = {}
         self.round_trip = None
@@ -152,7 +155,8 @@ class StartupCalibrationNode(Node):
         elif valid and pose is not None:
             p = transform.transform.translation
             precision = self.wall_tracker.update(msg, self.lidar_nose,
-                locked=self.phase == 'validating_motion', pose=pose[:3], mount=(p.x, p.y))
+                locked=self.phase == 'validating_motion', pose=pose[:3], mount=(p.x, p.y),
+                now=time.monotonic())
         else:
             precision = math.inf
         self.add_range('lidar', precision, valid and math.isfinite(precision))
@@ -196,7 +200,8 @@ class StartupCalibrationNode(Node):
 
     def on_us(self, msg):
         maximum = min(msg.max_range, float(self.get_parameter('calibration_us_max_range').value))
-        self.add_range('us', msg.range, self.stamped(msg) and max(.02, msg.min_range) < msg.range < maximum)
+        self.us_source_valid = self.stamped(msg)
+        self.add_range('us', msg.range, self.us_source_valid and max(.02, msg.min_range) < msg.range < maximum)
 
     def on_imu(self, msg):
         a, g, q = msg.linear_acceleration, msg.angular_velocity, msg.orientation
@@ -375,13 +380,51 @@ class StartupCalibrationNode(Node):
     def snapshot(self):
         return {name: self.baseline.latest(name) for name in ('odom', 'lidar', 'us', 'map_tf')}
 
+    def runtime_health(self, now):
+        """Current availability, never stationary motion/variance criteria."""
+        result = {}
+        for name, rows in self.baseline.samples.items():
+            fresh = bool(rows) and 0 <= now-rows[-1][0] <= (5. if name == 'map' else 1.)
+            valid = bool(rows) and rows[-1][2]
+            advisory_echo = name == 'us' and not self.get_parameter('calibration_require_us_agreement').value
+            eligible = fresh and (valid or (advisory_echo and self.us_source_valid))
+            detail = 'Live sensor data valid; stationary limits do not apply during driving'
+            if not fresh:
+                detail = 'Waiting for fresh sensor data; saved calibration retained'
+            elif not valid:
+                detail = ('Ultrasonic source timestamp invalid; saved calibration retained'
+                          if advisory_echo and not self.us_source_valid else
+                          'Ultrasonic echo unavailable; LiDAR clearance remains authoritative'
+                          if advisory_echo else 'Invalid sensor data; saved calibration retained')
+            result[name] = dict(ok=fresh and valid, eligible=eligible,
+                status='ok' if fresh and valid else 'advisory' if eligible else 'stale' if not fresh else 'invalid',
+                samples=len(rows), detail=detail)
+        return result
+
     def tick(self):
         self.read_tf()
         # TF collection timestamps its own samples; evaluate freshness after it.
         now = time.monotonic()
-        if self.phase == 'ready' and not self.baseline.fresh(now):
-            self.sensors = self.baseline.report(now)
-            self.finish(False, 'Calibration readiness revoked: sensor or map became stale/invalid')
+        if self.phase == 'ready':
+            previously_ready = self.runtime_ready
+            self.sensors = self.runtime_health(now)
+            missing = [name for name, item in self.sensors.items() if not item['eligible']]
+            if missing:
+                self.zero()
+                if self.runtime_ready:
+                    self.wander_pub.publish(String(data='stop'))
+                self.runtime_ready = False
+                self.runtime_healthy_since = None
+                self.message = 'Saved calibration retained; rechecking sensors: ' + ', '.join(missing)
+            elif not self.runtime_ready:
+                self.zero()
+                if self.runtime_healthy_since is None:
+                    self.runtime_healthy_since = now
+                if now-self.runtime_healthy_since >= 1.:
+                    self.runtime_ready = True
+                    self.message = 'Saved calibration retained; sensor checks recovered'
+            if previously_ready != self.runtime_ready or now-self.last_report >= .5:
+                self.publish()
             return
         if self.phase in ('collecting', 'waiting_motion'):
             self.sensors = self.baseline.report(now)
@@ -416,12 +459,16 @@ class StartupCalibrationNode(Node):
             if reason:
                 if reason.startswith('Sensor data became stale or invalid') and self.pause_precision(now):
                     return
+                if self.precision_pause_started is not None:
+                    elapsed = now-self.precision_pause_started
+                    if elapsed > 1. or self.precision_pause_total+elapsed > 2.:
+                        reason = self.precision_timeout_message(elapsed)
                 self.finish(False, reason)
                 return
             if self.precision_pause_started is not None:
                 elapsed = now-self.precision_pause_started
                 if elapsed > 1. or self.precision_pause_total+elapsed > 2.:
-                    self.finish(False, 'Precision LiDAR reacquisition time exceeded')
+                    self.finish(False, self.precision_timeout_message(elapsed))
                     return
                 self.precision_pause_total += elapsed
                 self.precision_pause_started = None
@@ -475,11 +522,17 @@ class StartupCalibrationNode(Node):
         if now - self.last_report >= .5:
             self.publish()
 
+    def precision_timeout_message(self, elapsed):
+        return ('Precision LiDAR reacquisition time exceeded: '
+                f'episode={elapsed:.2f}/1.00s, total={self.precision_pause_total+elapsed:.2f}/2.00s')
+
     def report(self):
         imu = self.baseline_values.get('imu', {}).get('mean', [])
         lidar = self.baseline_values.get('lidar', {}).get('mean', [])
         us = self.baseline_values.get('us', {}).get('mean', [])
-        return {'phase': self.phase, 'ready': self.phase == 'ready', 'message': self.message,
+        return {'phase': 'sensor_hold' if self.phase == 'ready' and not self.runtime_ready else self.phase,
+                'ready': self.phase == 'ready' and self.runtime_ready,
+                'calibration_verified': self.phase == 'ready', 'message': self.message,
                 'auto_motion': bool(self.get_parameter('calibration_auto_motion').value),
                 'us_precision_required': bool(self.get_parameter('calibration_require_us_agreement').value),
                 'elapsed_s': round(time.monotonic() - self.started, 2),
@@ -501,11 +554,13 @@ class StartupCalibrationNode(Node):
         scales = self.round_trip.scales if self.phase == 'ready' and self.round_trip and self.round_trip.done else [1., 1.]
         self.scale_pub.publish(Float32MultiArray(data=scales))
         self.status_pub.publish(String(data=json.dumps(self.report(), allow_nan=False)))
-        self.ready_pub.publish(Bool(data=self.phase == 'ready'))
+        self.ready_pub.publish(Bool(data=self.phase == 'ready' and self.runtime_ready))
 
     def finish(self, passed, message, phase=None):
         self.zero()
         self.phase = phase or ('ready' if passed else 'failed')
+        self.runtime_ready = bool(passed)
+        self.runtime_healthy_since = None
         self.message = message
         self.motion_start = None
         try:

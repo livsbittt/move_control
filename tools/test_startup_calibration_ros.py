@@ -10,7 +10,7 @@ import rclpy
 from rclpy.parameter import Parameter
 from std_msgs.msg import String
 from geometry_msgs.msg import TransformStamped
-from sensor_msgs.msg import LaserScan, Imu
+from sensor_msgs.msg import LaserScan, Imu, Range
 
 from move_control.startup_calibration_node import StartupCalibrationNode
 from move_control.control.calibration import StationaryBaseline
@@ -48,6 +48,7 @@ class StartupCalibrationTest(unittest.TestCase):
         self.node.safety_limits = (when, dict(front_m=.65, rear_m=.65,
             front_stop_m=.12, rear_stop_m=.091, us_stop_m=.02))
         self.node.raw_ranges = {'lidar': (when,.65,True), 'us': (when,.65,True)}
+        self.node.us_source_valid = True
         for name, value in VALUES.items():
             if moving and name in ('odom', 'lidar', 'us', 'map_tf'):
                 value = {'odom': (.03, 0., 0., 0.), 'lidar': (.62,), 'us': (.62,), 'map_tf': (.03, 0., 0.)}[name]
@@ -301,14 +302,53 @@ class StartupCalibrationTest(unittest.TestCase):
         self.assertIsNotNone(self.node.safe_motion(100.))
         self.assertLess(self.node.motion_clearance['target_m'], .02)
 
-    def test_ready_is_revoked_when_required_map_or_sensor_disappears(self):
+    def test_sensor_loss_holds_driving_but_recovers_without_recalibration(self):
         self.arm()
         self.refresh(104.7, moving=True)
         self.node.tick()
+        self.node.round_trip = Mock(done=True, scales=[1.1, .95])
+        self.node.scale_pub = Mock()
         self.now.return_value = 111.
         self.node.tick()
-        self.assertEqual(self.node.phase, 'failed')
+        self.assertEqual(self.node.phase, 'ready')
+        self.assertEqual(self.node.report()['phase'], 'sensor_hold')
+        self.assertTrue(self.node.report()['calibration_verified'])
+        self.assertTrue(self.node.report()['settings_applied'])
+        self.assertAlmostEqual(self.node.scale_pub.publish.call_args.args[0].data[0], 1.1, places=6)
         self.assertFalse(self.node.ready_pub.publish.call_args.args[0].data)
+        self.refresh(112., moving=True)
+        self.node.tick()
+        self.assertFalse(self.node.report()['ready'])
+        self.refresh(113.1, moving=True)
+        self.node.tick()
+        self.assertTrue(self.node.report()['ready'])
+        self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
+
+    def test_driving_motion_and_optional_ultrasonic_echo_do_not_erase_calibration(self):
+        self.refresh(100., moving=True)
+        self.node.phase = 'ready'
+        self.node.runtime_ready = True
+        self.node.set_parameters([Parameter('calibration_require_us_agreement', value=False)])
+        self.node.baseline.add('us', (math.inf,), 100., False)
+        self.node.tick()
+        self.assertTrue(self.node.report()['ready'])
+        self.assertEqual(self.node.sensors['us']['status'], 'advisory')
+        self.node.baseline.add('imu', (math.nan,), 100., False)
+        self.node.tick()
+        self.assertFalse(self.node.report()['ready'])
+        self.assertTrue(self.node.report()['calibration_verified'])
+
+    def test_optional_echo_cannot_bypass_ultrasonic_source_timestamp(self):
+        self.refresh(100.)
+        self.node.phase = 'ready'
+        self.node.set_parameters([Parameter('calibration_require_us_agreement', value=False)])
+        msg = Range()
+        msg.max_range = 3.
+        msg.range = 1.
+        self.node.on_us(msg)  # Zero source stamp is stale despite a fresh callback.
+        self.node.tick()
+        self.assertFalse(self.node.report()['ready'])
+        self.assertTrue(self.node.report()['calibration_verified'])
 
     def test_lidar_nose_uses_actual_tf_instead_of_legacy_parameter(self):
         self.refresh(100.)
@@ -327,9 +367,11 @@ class StartupCalibrationTest(unittest.TestCase):
         for index in range(350, 371):
             ranges[index] = .65 / math.cos((index-360)*scan.angle_increment)
         scan.ranges = ranges
-        for _ in range(3):
+        for i in range(3):
+            self.now.return_value = 100. + i * .05
             self.node.on_scan(scan)
         self.assertAlmostEqual(self.node.lidar_nose, math.pi)
+        self.assertEqual(self.node.wall_tracker.diagnostic['status'], 'ok')
         self.assertAlmostEqual(self.node.baseline.latest('lidar')[0], .65, places=5)
 
     def test_ready_scan_health_does_not_require_calibration_wall(self):
