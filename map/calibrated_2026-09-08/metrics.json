@@ -1,0 +1,45 @@
+{
+  "w": 196,
+  "h": 196,
+  "res": 0.019999999552965164,
+  "ox": -0.004088528213696818,
+  "oy": -0.003914492218705545,
+  "walls": 48,
+  "occ_px": 2110,
+  "known_px": 17938,
+  "wall_recall": 1.0,
+  "n_wall": 48,
+  "n_wall_adj": 48,
+  "wall_detect_adj": 1.0,
+  "corridor_purity": 0.966,
+  "phantom_frac": 0.0,
+  "interior_unknown": 0.0,
+  "walkable_px": 15808,
+  "gates": {
+    "wall_detect_adj>=0.85": true,
+    "corridor_purity>=0.9": true,
+    "phantom<0.05": true,
+    "interior_unknown<=0.40": true
+  },
+  "map_raster_complete": true,
+  "sim_s": 2780.2,
+  "motion": {
+    "path_m": 8.579575829573646,
+    "min_center_wall_m": 0.12294655841606349,
+    "max_linear_mps": 0.014000000413857926,
+    "samples": 19258,
+    "first_source_s": 1817.45,
+    "last_source_s": 2780.3
+  },
+  "calibration_status_ready": true,
+  "sampled_clearance_ok": true,
+  "raster_and_sampled_clearance_ok": true,
+  "valid_until_sim_s": 2782.2,
+  "run_id": "calmap227-25284",
+  "snapshot": "snapshots/ac58757aa6db403ebaca0ade8ff4f774",
+  "sha256": {
+    "map.pgm": "649f70f43f01e693468430d5740928a69f74ba0ddc0505f3827e7fa0f810f25d",
+    "map.yaml": "416224849ed42477e0f1d38b72451e456d485d4ffad23461418623bb10eeb866",
+    "map_grid.npz": "8908d5c564c0de477687bf80b81dcc4437a3ad77c0721c6700e6b37a344390d8"
+  }
+}

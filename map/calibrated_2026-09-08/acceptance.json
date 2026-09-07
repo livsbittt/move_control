@@ -1,0 +1,26 @@
+{
+    "mapping_complete":  true,
+    "run_id":  "calmap227-25284",
+    "scope":  "Gazebo velocity-plant algorithm integration with virtual auxiliary sensors",
+    "source_revision":  "cdbb3d0",
+    "incremental_navigation_reload":  true,
+    "map_capture_sim_s":  2780.2,
+    "coherent_profile_capture_sim_s":  2807.965,
+    "interior_unknown_fraction_rounded":  0.0,
+    "corridor_purity":  0.966,
+    "wall_object_detection":  1.0,
+    "phantom_fraction":  0.0,
+    "full_run_sampled_motion":  {
+                                    "path_m":  22.718999240675497,
+                                    "min_center_wall_m":  0.12071076627779236,
+                                    "max_linear_mps":  0.014000000413857926
+                                },
+    "robot_radius_m":  0.105,
+    "physical_robot_verified":  false,
+    "wheel_drivetrain_verified":  false,
+    "map_sha256":  {
+                       "map.pgm":  "649f70f43f01e693468430d5740928a69f74ba0ddc0505f3827e7fa0f810f25d",
+                       "map.yaml":  "416224849ed42477e0f1d38b72451e456d485d4ffad23461418623bb10eeb866",
+                       "map_grid.npz":  "8908d5c564c0de477687bf80b81dcc4437a3ad77c0721c6700e6b37a344390d8"
+                   }
+}

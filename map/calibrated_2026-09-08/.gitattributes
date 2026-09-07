@@ -1,0 +1,2 @@
+# Preserve the captured bytes so recorded snapshot hashes survive checkout.
+* -text

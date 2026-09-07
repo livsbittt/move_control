@@ -1,0 +1,544 @@
+{
+  "applied": {
+    "schema_version": 1,
+    "applied": true,
+    "revision": "e15efaf3834c79a2",
+    "session": "5a08545b729640258508abeaa2007fe4",
+    "sequence": 5245,
+    "reason": "applied",
+    "last_good_revision": "e15efaf3834c79a2"
+  },
+  "geometry": {
+    "schema_version": 1,
+    "revision": "7066bd6277c3aa3f",
+    "source": "validated_configuration",
+    "commissioned": false,
+    "limits_frame": "lidar_origin",
+    "geometry_frame": "base_link",
+    "effective": {
+      "radius": 0.105,
+      "stop": 0.14,
+      "clear": 0.16,
+      "turn_clear": 0.11499999999999999,
+      "half_width_deg": 45.0,
+      "max_linear": 0.014,
+      "max_angular": 0.1,
+      "lidar_yaw_rad": 0.0,
+      "linear_sign": 1.0,
+      "imu_unit": "rad_s",
+      "lidar_x_m": 0.0,
+      "lidar_y_m": 0.0
+    },
+    "unverified": [
+      "physical_geometry",
+      "stopping_response",
+      "rotational_response"
+    ],
+    "valid": true,
+    "error": null
+  },
+  "status": {
+    "phase": "ready",
+    "ready": true,
+    "message": "Translation and bilateral rotation verified",
+    "auto_motion": true,
+    "us_precision_required": false,
+    "elapsed_s": 2716.93,
+    "sensors": {
+      "lidar": {
+        "ok": true,
+        "status": "ok",
+        "samples": 32,
+        "detail": "range=0.452m span=0.000m central90_span=0.000m drift=0.000m"
+      },
+      "odom": {
+        "ok": true,
+        "status": "ok",
+        "samples": 62,
+        "detail": "drift=0.0000m yaw=0.0deg"
+      },
+      "ir": {
+        "ok": true,
+        "status": "ok",
+        "samples": 62,
+        "detail": "IR baselines=2000,2100,2200"
+      },
+      "imu": {
+        "ok": true,
+        "status": "ok",
+        "samples": 62,
+        "detail": "gravity=9.81m/s2 gyro=0.000rad/s"
+      },
+      "us": {
+        "ok": true,
+        "status": "ok",
+        "samples": 32,
+        "detail": "range=0.453m span=0.000m central90_span=0.000m drift=0.000m; obstacle guard only, not precision motion reference"
+      },
+      "camera": {
+        "ok": true,
+        "status": "ok",
+        "samples": 62,
+        "detail": "brightness=120.0 contrast=49.0"
+      },
+      "tf": {
+        "ok": true,
+        "status": "ok",
+        "samples": 63,
+        "detail": "nose alignment error=0.0deg TF nose=0.0deg"
+      },
+      "map": {
+        "ok": true,
+        "status": "ok",
+        "samples": 6,
+        "detail": "known cells=1726, resolution=0.020m"
+      },
+      "map_tf": {
+        "ok": true,
+        "status": "ok",
+        "samples": 60,
+        "detail": "drift=0.0000m yaw=0.0deg"
+      }
+    },
+    "motion": {
+      "stage": "settle_home",
+      "cycle": 2,
+      "target_m": 0.03,
+      "forward_scale": 1.0174975381335505,
+      "reverse_scale": 1.0187998718334361,
+      "legs": [
+        {
+          "cycle": 0,
+          "direction": "forward",
+          "measured_m": 0.032235950231552124,
+          "odom_m": 0.032879999999824945,
+          "commanded_m": 0.03279999999999994,
+          "home_error_m": 0.032235950231552124,
+          "evidence": {
+            "forward_m": 0.032879999999824945,
+            "lateral_m": -3.4330177589581012e-15,
+            "distance_m": 0.032879999999824945,
+            "yaw_drift_rad": -3.3306690738754696e-16,
+            "lidar_delta_m": 0.032235950231552124,
+            "us_delta_m": 0.03234297037124634,
+            "map_forward_m": 0.0328799999998254,
+            "map_lateral_m": -3.449497631979881e-15,
+            "map_yaw_drift_rad": -4.996003610813204e-16
+          }
+        },
+        {
+          "cycle": 0,
+          "direction": "reverse",
+          "measured_m": 0.03407931327819824,
+          "odom_m": 0.03475999999981493,
+          "commanded_m": 0.03471999999999989,
+          "home_error_m": -0.0018433630466461182,
+          "evidence": {
+            "forward_m": -0.03475999999981493,
+            "lateral_m": 3.617765809149631e-15,
+            "distance_m": 0.03475999999981494,
+            "yaw_drift_rad": 0.0,
+            "lidar_delta_m": -0.03407931327819824,
+            "us_delta_m": -0.03419238328933716,
+            "map_forward_m": -0.03475999999981494,
+            "map_lateral_m": 3.608224830031759e-15,
+            "map_yaw_drift_rad": 0.0
+          }
+        },
+        {
+          "cycle": 1,
+          "direction": "forward",
+          "measured_m": 0.03359830379486084,
+          "odom_m": 0.03426931708433326,
+          "commanded_m": 0.034594916296540705,
+          "home_error_m": 0.03175494074821472,
+          "evidence": {
+            "forward_m": 0.03426931708433326,
+            "lateral_m": 2.1375262670986217e-14,
+            "distance_m": 0.03426931708433326,
+            "yaw_drift_rad": 0.0,
+            "lidar_delta_m": 0.03359830379486084,
+            "us_delta_m": 0.03370979428291321,
+            "map_forward_m": 0.03426931708433326,
+            "map_lateral_m": 2.138480365010409e-14,
+            "map_yaw_drift_rad": 0.0
+          }
+        },
+        {
+          "cycle": 1,
+          "direction": "reverse",
+          "measured_m": 0.03316164016723633,
+          "odom_m": 0.03382415574484854,
+          "commanded_m": 0.03382415574487,
+          "home_error_m": -0.0014066994190216064,
+          "evidence": {
+            "forward_m": -0.03382415574484854,
+            "lateral_m": -1.6175429051745738e-14,
+            "distance_m": 0.033824155744848546,
+            "yaw_drift_rad": 0.0,
+            "lidar_delta_m": -0.03316164016723633,
+            "us_delta_m": -0.033271729946136475,
+            "map_forward_m": -0.03382415574484854,
+            "map_lateral_m": -1.618497003086361e-14,
+            "map_yaw_drift_rad": 0.0
+          }
+        }
+      ],
+      "done": true,
+      "error": null
+    },
+    "baseline": {
+      "lidar": {
+        "samples": 32,
+        "span_s": 3.0749999999999886,
+        "mean": [
+          0.45153379440307617
+        ],
+        "std": [
+          0.0
+        ]
+      },
+      "odom": {
+        "samples": 62,
+        "span_s": 3.049999999999997,
+        "mean": [
+          2.548744173404605,
+          0.5999997689708084,
+          -0.20130000285747476,
+          0.0
+        ],
+        "std": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "ir": {
+        "samples": 62,
+        "span_s": 3.0450000000000017,
+        "mean": [
+          2000.0,
+          2100.0,
+          2200.0
+        ],
+        "std": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "imu": {
+        "samples": 62,
+        "span_s": 3.049999999999997,
+        "mean": [
+          9.81,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          9.81,
+          0.0,
+          0.0
+        ],
+        "std": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "us": {
+        "samples": 32,
+        "span_s": 3.0799999999999983,
+        "mean": [
+          0.45303213596343994
+        ],
+        "std": [
+          0.0
+        ]
+      },
+      "camera": {
+        "samples": 62,
+        "span_s": 3.0450000000000017,
+        "mean": [
+          120.0,
+          48.98979485566356
+        ],
+        "std": [
+          0.0,
+          0.0
+        ]
+      },
+      "tf": {
+        "samples": 63,
+        "span_s": 3.0999999999999943,
+        "mean": [
+          0.0,
+          0.0
+        ],
+        "std": [
+          0.0,
+          0.0
+        ]
+      },
+      "map": {
+        "samples": 6,
+        "span_s": 2.385000000000005,
+        "mean": [
+          1726.0,
+          0.019999999552965164
+        ],
+        "std": [
+          0.0,
+          0.0
+        ]
+      },
+      "map_tf": {
+        "samples": 60,
+        "span_s": 3.0999999999999943,
+        "mean": [
+          2.548744173404605,
+          0.5999997689708084,
+          -0.20130000285747487
+        ],
+        "std": [
+          0.0,
+          0.0,
+          0.0
+        ]
+      }
+    },
+    "observations": {
+      "lidar": {
+        "generation": 27169,
+        "valid": true,
+        "status": "valid",
+        "clock": "source_and_receive",
+        "age_s": 0.13500000000021828
+      },
+      "us": {
+        "generation": 27169,
+        "valid": true,
+        "status": "valid",
+        "clock": "source_and_receive",
+        "age_s": 0.13500000000021828
+      },
+      "odom": {
+        "generation": 54314,
+        "valid": true,
+        "status": "valid",
+        "clock": "source_and_receive",
+        "age_s": 0.03500000000030923
+      },
+      "map_tf": {
+        "generation": 43562,
+        "valid": true,
+        "status": "valid",
+        "clock": "source_and_receive",
+        "age_s": 0.03500000000030923
+      },
+      "imu": {
+        "generation": 54310,
+        "valid": true,
+        "status": "valid",
+        "clock": "source_and_receive",
+        "age_s": 0.03500000000030923
+      },
+      "camera": {
+        "generation": 54094,
+        "valid": true,
+        "status": "valid",
+        "clock": "source_and_receive",
+        "age_s": 0.03500000000030923
+      },
+      "map": {
+        "generation": 3212,
+        "valid": true,
+        "status": "valid",
+        "clock": "source_and_receive",
+        "age_s": 0.6350000000002183
+      }
+    },
+    "gate_evidence_remaining_s": 0.21499999999969077,
+    "rotation": {
+      "done": true,
+      "error": null,
+      "legs": [
+        {
+          "direction": 1,
+          "measured_rad": 0.18325957003980875,
+          "commanded_rad": 0.1836000000000002,
+          "ratio": 1.0018576381037974
+        },
+        {
+          "direction": -1,
+          "measured_rad": 0.18325957003980875,
+          "commanded_rad": 0.1829999999999999,
+          "ratio": 0.9985835935348291
+        },
+        {
+          "direction": -1,
+          "measured_rad": 0.18325957003980875,
+          "commanded_rad": 0.18299999999999994,
+          "ratio": 0.9985835935348292
+        },
+        {
+          "direction": 1,
+          "measured_rad": 0.18325957003980875,
+          "commanded_rad": 0.17999999999999924,
+          "ratio": 0.9822133706899921
+        },
+        {
+          "direction": 1,
+          "measured_rad": 0.18325957003980875,
+          "commanded_rad": 0.18451860381782204,
+          "ratio": 1.00687022117175
+        },
+        {
+          "direction": -1,
+          "measured_rad": 0.1745329238474369,
+          "commanded_rad": 0.1767492960556639,
+          "ratio": 1.0126988774345198
+        },
+        {
+          "direction": -1,
+          "measured_rad": 0.1919862162321806,
+          "commanded_rad": 0.18903187425614304,
+          "ratio": 0.984611697474861
+        },
+        {
+          "direction": 1,
+          "measured_rad": 0.1745329238474369,
+          "commanded_rad": 0.17856639079144096,
+          "ratio": 1.0231100634487154
+        }
+      ],
+      "angular_gains": [
+        0.9920355043968947,
+        0.9985835935348291
+      ],
+      "max_angular_rad_s": 0.06,
+      "geometry_commissioned": false
+    },
+    "rotation_required": true,
+    "estimates": {
+      "imu_gyro_bias_rad_s": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "imu_gravity_mean_mps2": [
+        0.0,
+        0.0,
+        9.81
+      ],
+      "imu_roll_pitch_baseline_rad": [
+        0.0,
+        0.0
+      ],
+      "lidar_us_range_difference_m": -0.0014983415603637695
+    },
+    "recorded_unix_s": 1788804819.7889757,
+    "limits": {
+      "motion_speed_mps": 0.008,
+      "motion_seconds": 35.0,
+      "motion_distance_m": 0.04,
+      "round_trip_target_m": 0.03
+    },
+    "settings_applied": true,
+    "profile_revision": "e15efaf3834c79a2"
+  },
+  "profile": {
+    "schema_version": 1,
+    "session": "5a08545b729640258508abeaa2007fe4",
+    "sequence": 5245,
+    "issued_s": 2807.4350000000004,
+    "ttl_s": 1.5,
+    "enabled": true,
+    "linear_gains": [
+      1.0174975381335505,
+      1.0187998718334361
+    ],
+    "max_linear_mps": 0.014,
+    "geometry_revision": "7066bd6277c3aa3f",
+    "rotation": {
+      "done": true,
+      "error": null,
+      "legs": [
+        {
+          "direction": 1,
+          "measured_rad": 0.18325957003980875,
+          "commanded_rad": 0.1836000000000002,
+          "ratio": 1.0018576381037974
+        },
+        {
+          "direction": -1,
+          "measured_rad": 0.18325957003980875,
+          "commanded_rad": 0.1829999999999999,
+          "ratio": 0.9985835935348291
+        },
+        {
+          "direction": -1,
+          "measured_rad": 0.18325957003980875,
+          "commanded_rad": 0.18299999999999994,
+          "ratio": 0.9985835935348292
+        },
+        {
+          "direction": 1,
+          "measured_rad": 0.18325957003980875,
+          "commanded_rad": 0.17999999999999924,
+          "ratio": 0.9822133706899921
+        },
+        {
+          "direction": 1,
+          "measured_rad": 0.18325957003980875,
+          "commanded_rad": 0.18451860381782204,
+          "ratio": 1.00687022117175
+        },
+        {
+          "direction": -1,
+          "measured_rad": 0.1745329238474369,
+          "commanded_rad": 0.1767492960556639,
+          "ratio": 1.0126988774345198
+        },
+        {
+          "direction": -1,
+          "measured_rad": 0.1919862162321806,
+          "commanded_rad": 0.18903187425614304,
+          "ratio": 0.984611697474861
+        },
+        {
+          "direction": 1,
+          "measured_rad": 0.1745329238474369,
+          "commanded_rad": 0.17856639079144096,
+          "ratio": 1.0231100634487154
+        }
+      ],
+      "angular_gains": [
+        0.9920355043968947,
+        0.9985835935348291
+      ],
+      "max_angular_rad_s": 0.06,
+      "geometry_commissioned": false
+    },
+    "domain": "low_speed_straight",
+    "physical_commissioned": false,
+    "revision": "e15efaf3834c79a2"
+  },
+  "motor_publishers": [
+    "safety_node"
+  ],
+  "run_id": "calmap227-25284",
+  "sim_s": 2807.965
+}
