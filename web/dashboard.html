@@ -419,6 +419,7 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
         <h3>매핑</h3>
         <p class="hint" id="mappingstatus" role="status">매핑 상태 확인 중…</p>
         <div class="btnrow">
+          <button type="button" id="mapsave" disabled>지도 PNG 저장</button>
           <button type="button" class="danger" id="mapreset" disabled>지도 초기화</button>
           <button type="button" id="mapresume" disabled>매핑 재개</button>
         </div>
@@ -620,6 +621,7 @@ function renderMapping(control) {
   const ready = !!control && control.available;
   const busy = S.mappingBusy || !!(control && control.busy);
   $('mapreset').disabled = !ready || busy;
+  $('mapsave').disabled = !ready || busy || !S.data.map || !S.img.im || S.img.gen !== S.data.map[5];
   $('mapresume').disabled = !ready || busy || control.paused !== true;
   setTxt('mappingstatus', busy ? '처리 중…' : !ready ? 'SLAM 연결 대기' :
     control.paused === true ? '지도 수집 일시정지' :
@@ -679,6 +681,27 @@ async function mappingAction(action) {
     S.mappingBusy = false;
     renderMapping(S.data.map_control);
   }
+}
+async function saveMapImage() {
+  if ($('mapsave').disabled || S.mappingBusy) return;
+  const epoch = S.mapEpoch, gen = S.data.map[5];
+  const current = () => !S.mappingBusy && S.mapEpoch === epoch && S.data.map && S.data.map[5] === gen;
+  setTxt('mappingerror', '');
+  try {
+    // Download the native occupancy raster, not the zoomed canvas (which
+    // contains overlays and may be tainted by the separate backend port).
+    const response = await fetch(API + '/map.png?g=' + gen, {cache:'no-store'});
+    if (!response.ok) throw new Error('지도 PNG를 가져오지 못했습니다.');
+    const blob = await response.blob();
+    if (!current()) throw new Error('지도가 변경되었습니다. 새 지도에서 다시 저장해 주세요.');
+    if (blob.type !== 'image/png' || !blob.size) throw new Error('유효한 지도 PNG가 없습니다.');
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'pinky-map-' + new Date().toISOString().replace(/[:.]/g, '-') + '.png';
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  } catch (error) { setTxt('mappingerror', error.message || '지도 저장에 실패했습니다.'); }
 }
 // ---- map view --------------------------------------------------------------
 // world metres -> cells: u = (x-ox)/res, v = h-(y-oy)/res (row 0 = top)
@@ -1370,6 +1393,7 @@ document.querySelectorAll('[data-view]').forEach(b =>
 $('pinsend').addEventListener('click', sendPin);
 $('pinclear').addEventListener('click', clearPin);
 $('mapreset').addEventListener('click', () => mappingAction('reset'));
+$('mapsave').addEventListener('click', saveMapImage);
 $('mapresume').addEventListener('click', () => mappingAction('resume'));
 function fit() {
   const dpr = window.devicePixelRatio || 1;
@@ -1386,7 +1410,7 @@ function loadMap(gen) {
   const image = new Image();
   image.onload = () => {
     if (epoch !== S.mapEpoch || !S.data.map || S.data.map[5] !== gen) return;
-    S.img.gen = gen; S.img.im = image; draw(S.data);
+    S.img.gen = gen; S.img.im = image; draw(S.data); renderMapping(S.data.map_control);
   };
   image.src = API + '/map.png?g=' + gen;
 }
