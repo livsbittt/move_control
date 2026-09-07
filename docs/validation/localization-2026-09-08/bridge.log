@@ -1,0 +1,8 @@
+[WARN] [1788809173.020056636] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788809173.020138922] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1788809173.357005750] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/lidar/scan (gz.msgs.LaserScan) -> /lidar/scan (sensor_msgs/msg/LaserScan)] (Lazy 0)
+[INFO] [1788809173.424537692] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/odometry_gt (gz.msgs.Odometry) -> /odometry_gt (nav_msgs/msg/Odometry)] (Lazy 0)
+[INFO] [1788809173.446784643] [ros_gz_bridge]: Creating ROS->GZ Bridge: [/model/pinky/cmd_vel (geometry_msgs/msg/Twist) -> /model/pinky/cmd_vel (gz.msgs.Twist)] (Lazy 0)
+[INFO] [1788809173.582271170] [ros_gz_bridge]: Creating GZ->ROS Bridge: [/clock (gz.msgs.Clock) -> /clock (rosgraph_msgs/msg/Clock)] (Lazy 0)
+[INFO] [1788809174.032570528] [ros_gz_bridge]: Passing message from ROS geometry_msgs/msg/Twist to Gazebo gz.msgs.Twist (showing msg only once per type)
+[INFO] [1788809258.744171487] [rclcpp]: signal_handler(SIGINT/SIGTERM)

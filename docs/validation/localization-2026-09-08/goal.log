@@ -1,0 +1,5 @@
+[WARN] [1788809173.778839304] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788809173.778923168] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1788809174.298161478] [goal_node]: goal_node ready | mode=stop min_size=6
+[INFO] [1788809190.064811374] [goal_node]: manual goal -> (2.55, 0.45)
+[INFO] [1788809257.064144410] [goal_node]: mode -> stop

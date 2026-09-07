@@ -3,12 +3,16 @@ import math
 
 from geometry_msgs.msg import Twist
 from rclpy.parameter import Parameter
+from ..sensing.localization import lease_ready
 
 
 class Gate:
 
     def on_cmd(self, msg: Twist):
-        if self.estop:
+        if (self.estop or (self.get_parameter('localization_required').value and
+                not lease_ready(self.localization_status, self.now().nanoseconds * 1e-9))):
+            self.last_cmd = Twist()
+            self.last_cmd_time = None
             self._publish_zero()
             return
         self.last_cmd = msg

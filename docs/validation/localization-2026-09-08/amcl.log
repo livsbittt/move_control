@@ -1,0 +1,137 @@
+[WARN] [1788809172.152757319] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788809172.152906827] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1788809172.367265040] [amcl]: 
+	amcl lifecycle node launched. 
+	Waiting on external lifecycle transitions to activate
+	See https://design.ros2.org/articles/node_lifecycle.html for more information.
+[INFO] [1788809172.380505890] [amcl]: Creating
+[INFO] [1788809172.591978115] [amcl]: Configuring
+[INFO] [1788809172.592180171] [amcl]: initTransforms
+[INFO] [1788809172.626635484] [amcl]: initPubSub
+[INFO] [1788809172.650301013] [amcl]: Subscribed to map topic.
+[INFO] [1788809172.673556392] [amcl]: Received a 166 X 166 map @ 0.020 m/pix
+[INFO] [1788809172.783029633] [amcl]: Activating
+[INFO] [1788809172.783140771] [amcl]: Creating bond (amcl) to lifecycle manager.
+[INFO] [1788809176.863058651] [amcl]: Requesting no-motion update
+[INFO] [1788809176.920770406] [amcl]: createLaserObject
+[WARN] [1788809177.237643859] [amcl]: AMCL cannot publish a pose or update the transform. Please set the initial pose...
+[INFO] [1788809177.528287432] [amcl]: Requesting no-motion update
+[INFO] [1788809177.713115180] [amcl]: Message Filter dropping message: frame 'pinky/base/lidar' at time 4.400 for reason 'the timestamp on the message is earlier than all the data in the transform cache'
+[INFO] [1788809178.099900347] [amcl]: Initializing with uniform distribution
+[INFO] [1788809178.135335110] [amcl]: Global initialisation done!
+[INFO] [1788809178.308668638] [amcl]: Requesting no-motion update
+[INFO] [1788809178.821147866] [amcl]: Requesting no-motion update
+[INFO] [1788809179.570335499] [amcl]: Requesting no-motion update
+[INFO] [1788809180.376597408] [amcl]: Requesting no-motion update
+[INFO] [1788809181.179826761] [amcl]: Requesting no-motion update
+[INFO] [1788809181.924273555] [amcl]: Requesting no-motion update
+[INFO] [1788809182.740603358] [amcl]: Requesting no-motion update
+[INFO] [1788809183.435811404] [amcl]: Requesting no-motion update
+[INFO] [1788809183.984452218] [amcl]: Requesting no-motion update
+[INFO] [1788809184.589279270] [amcl]: Requesting no-motion update
+[INFO] [1788809185.208663013] [amcl]: Requesting no-motion update
+[INFO] [1788809186.032885683] [amcl]: Requesting no-motion update
+[INFO] [1788809186.752144495] [amcl]: Requesting no-motion update
+[INFO] [1788809187.636936512] [amcl]: Requesting no-motion update
+[INFO] [1788809188.276412599] [amcl]: Requesting no-motion update
+[INFO] [1788809188.345514124] [amcl]: initialPoseReceived
+[WARN] [1788809188.345842070] [amcl]: Failed to transform initial pose in time (Lookup would require extrapolation into the future.  Requested time 12.905000 but the latest data is at time 12.900000, when looking up transform from frame [base_link] to frame [odom])
+[INFO] [1788809188.345883502] [amcl]: Setting pose (12.905000): 2.556 0.606 -0.000
+[INFO] [1788809188.924990946] [amcl]: Requesting no-motion update
+[INFO] [1788809189.578954019] [amcl]: Requesting no-motion update
+[INFO] [1788809190.117863412] [amcl]: Requesting no-motion update
+[INFO] [1788809190.640964894] [amcl]: Requesting no-motion update
+[INFO] [1788809191.342794805] [amcl]: Requesting no-motion update
+[INFO] [1788809191.914746069] [amcl]: Requesting no-motion update
+[INFO] [1788809193.199428665] [amcl]: Requesting no-motion update
+[INFO] [1788809194.019605643] [amcl]: Requesting no-motion update
+[INFO] [1788809194.677175113] [amcl]: Requesting no-motion update
+[INFO] [1788809195.405408076] [amcl]: Requesting no-motion update
+[INFO] [1788809195.997871571] [amcl]: Requesting no-motion update
+[INFO] [1788809196.612478262] [amcl]: Requesting no-motion update
+[INFO] [1788809197.432335842] [amcl]: Requesting no-motion update
+[INFO] [1788809198.057250623] [amcl]: Requesting no-motion update
+[INFO] [1788809198.780603839] [amcl]: Requesting no-motion update
+[INFO] [1788809199.799909300] [amcl]: Requesting no-motion update
+[INFO] [1788809200.720946905] [amcl]: Requesting no-motion update
+[INFO] [1788809201.435977195] [amcl]: Requesting no-motion update
+[INFO] [1788809202.151148868] [amcl]: Requesting no-motion update
+[INFO] [1788809202.926343687] [amcl]: Requesting no-motion update
+[INFO] [1788809203.679346849] [amcl]: Requesting no-motion update
+[INFO] [1788809204.307362932] [amcl]: Initializing with uniform distribution
+[INFO] [1788809204.395195535] [amcl]: Global initialisation done!
+[INFO] [1788809204.512122894] [amcl]: Requesting no-motion update
+[INFO] [1788809205.243833348] [amcl]: Requesting no-motion update
+[INFO] [1788809206.072211775] [amcl]: Requesting no-motion update
+[INFO] [1788809206.640554292] [amcl]: Requesting no-motion update
+[INFO] [1788809207.309068981] [amcl]: Requesting no-motion update
+[INFO] [1788809207.858083070] [amcl]: Requesting no-motion update
+[INFO] [1788809208.463984971] [amcl]: Requesting no-motion update
+[INFO] [1788809209.148194013] [amcl]: Requesting no-motion update
+[INFO] [1788809209.864706723] [amcl]: Requesting no-motion update
+[INFO] [1788809211.021947489] [amcl]: Requesting no-motion update
+[INFO] [1788809212.277522531] [amcl]: Requesting no-motion update
+[INFO] [1788809213.550815376] [amcl]: Requesting no-motion update
+[INFO] [1788809214.920233142] [amcl]: Requesting no-motion update
+[INFO] [1788809215.814834359] [amcl]: Requesting no-motion update
+[INFO] [1788809216.490268818] [amcl]: Requesting no-motion update
+[INFO] [1788809217.405389688] [amcl]: Requesting no-motion update
+[INFO] [1788809218.544156821] [amcl]: Requesting no-motion update
+[INFO] [1788809219.517113005] [amcl]: Requesting no-motion update
+[INFO] [1788809220.348936924] [amcl]: Requesting no-motion update
+[INFO] [1788809221.071358766] [amcl]: Requesting no-motion update
+[INFO] [1788809221.797765352] [amcl]: Requesting no-motion update
+[INFO] [1788809222.395553923] [amcl]: initialPoseReceived
+[WARN] [1788809222.395865023] [amcl]: Failed to transform initial pose in time (Lookup would require extrapolation into the future.  Requested time 35.615000 but the latest data is at time 35.600000, when looking up transform from frame [base_link] to frame [odom])
+[INFO] [1788809222.395925535] [amcl]: Setting pose (35.615000): 0.456 3.456 1.571
+[INFO] [1788809222.525347285] [amcl]: Requesting no-motion update
+[INFO] [1788809223.432889385] [amcl]: Requesting no-motion update
+[INFO] [1788809224.272168253] [amcl]: Requesting no-motion update
+[INFO] [1788809224.984467570] [amcl]: Requesting no-motion update
+[INFO] [1788809225.819901010] [amcl]: Requesting no-motion update
+[INFO] [1788809226.856682263] [amcl]: Requesting no-motion update
+[INFO] [1788809227.476505477] [amcl]: Requesting no-motion update
+[INFO] [1788809228.169479660] [amcl]: Requesting no-motion update
+[INFO] [1788809228.783240058] [amcl]: Requesting no-motion update
+[INFO] [1788809229.488804480] [amcl]: Requesting no-motion update
+[INFO] [1788809230.141049234] [amcl]: Requesting no-motion update
+[INFO] [1788809230.937403672] [amcl]: Requesting no-motion update
+[INFO] [1788809231.764505082] [amcl]: Requesting no-motion update
+[INFO] [1788809232.525131770] [amcl]: Requesting no-motion update
+[INFO] [1788809232.766134069] [amcl]: Initializing with uniform distribution
+[INFO] [1788809232.804315872] [amcl]: Global initialisation done!
+[INFO] [1788809233.190936587] [amcl]: Requesting no-motion update
+[INFO] [1788809234.095531286] [amcl]: Requesting no-motion update
+[INFO] [1788809235.082856268] [amcl]: Requesting no-motion update
+[INFO] [1788809236.245307940] [amcl]: Requesting no-motion update
+[INFO] [1788809237.367109301] [amcl]: Requesting no-motion update
+[INFO] [1788809238.186105763] [amcl]: Requesting no-motion update
+[INFO] [1788809238.879294333] [amcl]: Requesting no-motion update
+[INFO] [1788809239.707893448] [amcl]: Requesting no-motion update
+[INFO] [1788809240.375120554] [amcl]: Requesting no-motion update
+[INFO] [1788809241.040119320] [amcl]: Requesting no-motion update
+[INFO] [1788809241.646860396] [amcl]: Requesting no-motion update
+[INFO] [1788809242.686692829] [amcl]: Requesting no-motion update
+[INFO] [1788809243.541858471] [amcl]: Requesting no-motion update
+[INFO] [1788809244.260448250] [amcl]: Requesting no-motion update
+[INFO] [1788809245.258636055] [amcl]: Requesting no-motion update
+[INFO] [1788809246.159044774] [amcl]: Requesting no-motion update
+[INFO] [1788809246.962452173] [amcl]: Requesting no-motion update
+[INFO] [1788809247.078828334] [amcl]: initialPoseReceived
+[WARN] [1788809247.079056256] [amcl]: Failed to transform initial pose in time (Lookup would require extrapolation into the future.  Requested time 51.825000 but the latest data is at time 51.800000, when looking up transform from frame [base_link] to frame [odom])
+[INFO] [1788809247.079083635] [amcl]: Setting pose (51.825000): 0.456 3.456 -1.571
+[INFO] [1788809247.888358613] [amcl]: Requesting no-motion update
+[INFO] [1788809248.563109206] [amcl]: Requesting no-motion update
+[INFO] [1788809249.385133198] [amcl]: Requesting no-motion update
+[INFO] [1788809253.514650803] [amcl]: Requesting no-motion update
+[INFO] [1788809254.388988704] [amcl]: Requesting no-motion update
+[INFO] [1788809255.360174227] [amcl]: Requesting no-motion update
+[INFO] [1788809256.139767839] [amcl]: Requesting no-motion update
+[INFO] [1788809256.896699429] [amcl]: Requesting no-motion update
+[INFO] [1788809258.744768188] [rclcpp]: signal_handler(SIGINT/SIGTERM)
+[INFO] [1788809258.744865670] [amcl]: Running Nav2 LifecycleNode rcl preshutdown (amcl)
+[INFO] [1788809258.744948136] [amcl]: Deactivating
+[INFO] [1788809258.744979154] [amcl]: Destroying bond (amcl) to lifecycle manager.
+[INFO] [1788809258.758380779] [amcl]: Cleaning up
+[INFO] [1788809258.785567698] [amcl]: Destroying bond (amcl) to lifecycle manager.
+[INFO] [1788809258.819158235] [amcl]: Destroying

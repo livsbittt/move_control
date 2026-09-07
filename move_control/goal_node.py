@@ -24,12 +24,13 @@ from geometry_msgs.msg import Point, PoseStamped
 from nav_msgs.msg import Odometry, OccupancyGrid, Path
 from visualization_msgs.msg import Marker, MarkerArray
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import qos_profile_sensor_data, QoSProfile, DurabilityPolicy
 from std_msgs.msg import Float32, String
 from tf2_ros import Buffer as TfBuffer
 from tf2_ros import TransformListener
 
 from .planning import GoalBrain, OccupancyMap, parse_goal_cmd
+from .sensing.localization import lease_ready
 
 
 def grid_clearance(distance, resolution):
@@ -46,6 +47,11 @@ class GoalNode(Node):
         self.declare_parameter('rate', 1.0)
         self.declare_parameter('mode', 'stop')
         self.declare_parameter('map_timeout', 10.0)
+        self.declare_parameter('static_map', False)
+        self.declare_parameter('localization_required', False)
+        self.localization_status = None
+        self.localization_was_ready = False
+        self.create_subscription(String, '/localization/status', self.on_localization, 10)
         self.declare_parameter('pose_timeout', 1.0)
         self.declare_parameter('min_size', 6)
         self.declare_parameter('clear_m', 0.12)
@@ -78,7 +84,8 @@ class GoalNode(Node):
         self.declare_parameter('debug', False)
         self.create_subscription(
             OccupancyGrid, self.get_parameter('map_topic').value,
-            self.on_map, qos_profile_sensor_data)
+            self.on_map, QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL)
+            if self.get_parameter('static_map').value else qos_profile_sensor_data)
         self.create_subscription(
             Odometry, self.get_parameter('odom_topic').value, self.on_odom, 10)
         self.create_subscription(String, '/goal/cmd', self.on_cmd, 10)
@@ -172,6 +179,23 @@ class GoalNode(Node):
         self.map_obj = OccupancyMap.from_msg(msg)
         self._map_received = time.monotonic()
 
+    def on_localization(self, msg):
+        try:
+            self.localization_status = json.loads(msg.data)
+        except (ValueError, TypeError):
+            self.localization_status = None
+        if not self.get_parameter('localization_required').value:
+            return
+        ready = lease_ready(self.localization_status, self.get_clock().now().nanoseconds * 1e-9)
+        if not ready:
+            self._clear_route('localization uncertain; route revoked')
+        elif not self.localization_was_ready:
+            # Losing pose is not evidence that the destination is unreachable.
+            self.brain.restart_recovery()
+            self.last_executable_goal = self.last_executable_exit = None
+            self.plan()
+        self.localization_was_ready = ready
+
     def on_odom(self, msg):
         p = msg.pose.pose.position
         self.ox, self.oy = p.x, p.y
@@ -261,6 +285,9 @@ class GoalNode(Node):
 
     def pose(self):
         """Only a fresh map->base transform authorizes map-frame routes."""
+        if (self.get_parameter('localization_required').value and not lease_ready(
+                self.localization_status, self.get_clock().now().nanoseconds * 1e-9)):
+            return (None, None), 'localization-uncertain'
         try:
             t = self.tf.lookup_transform(
                 'map', 'base_link', rclpy.time.Time(),
@@ -284,12 +311,15 @@ class GoalNode(Node):
             return
         m = self.map_obj
         if (m is None or self._map_received is None or
-                time.monotonic() - self._map_received >
-                float(self.get_parameter('map_timeout').value)):
+                (not self.get_parameter('static_map').value and
+                 time.monotonic() - self._map_received >
+                 float(self.get_parameter('map_timeout').value))):
             self._clear_route('waiting for fresh map')
             return
         (x, y), src = self.pose()
         if x is None:
+            if src == 'localization-uncertain':
+                self.localization_was_ready = False
             self._clear_route(f'waiting pose={src}')
             return
         # Generic grid A* rounds cell radii for compatibility with offline

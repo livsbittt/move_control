@@ -7,7 +7,8 @@ import os
 
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import LogInfo, RegisterEventHandler, TimerAction
+from launch.actions import DeclareLaunchArgument, LogInfo, RegisterEventHandler, TimerAction
+from launch.substitutions import LaunchConfiguration
 from launch.event_handlers import OnProcessExit
 from launch_ros.actions import Node
 
@@ -44,6 +45,7 @@ def generate_launch_description():
             os.path.join(mc, 'safety.yaml'),
             os.path.join(mc, 'cliff_calib.yaml'),
             os.path.join(mc, 'auto_calib.yaml'),
+            {'localization_required': LaunchConfiguration('localization_required')},
         ],
         respawn=True,
         respawn_delay=1.0,
@@ -91,6 +93,7 @@ def generate_launch_description():
         )
     )
     return LaunchDescription([
+        DeclareLaunchArgument('localization_required', default_value='false'),
         LogInfo(msg='robot.launch: imu+camera, then safety, wander, lcd+web+watch'),
         imu,
         camera,

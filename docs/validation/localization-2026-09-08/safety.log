@@ -1,0 +1,31 @@
+[WARN] [1788809172.925986926] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788809172.926058124] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1788809174.023843292] [safety_node]: safety_node ready | lidar_stop=0.12m us_stop=0.02m linear_sign=1 cam_wall=0 cam_block=0 cliff_mode=low th=800 lidar_yaw=0deg radius=10.5cm filt=5/1.5Hz | E-STOP /estop Bool or /estop/cmd stop|release
+[WARN] [1788809174.030077860] [safety_node]: no IR — cliff unknown
+[WARN] [1788809174.031324670] [safety_node]: no lidar — motion disabled until scan
+[WARN] [1788809176.034555690] [safety_node]: no IR — cliff unknown
+[WARN] [1788809176.037191602] [safety_node]: no lidar — motion disabled until scan
+[INFO] [1788809177.343913286] [safety_node]: auto map corridor=60cm → map=40cm open_max=50cm
+[WARN] [1788809250.826735923] [safety_node]: no lidar — motion disabled until scan
+[WARN] [1788809252.860792480] [safety_node]: no lidar — motion disabled until scan
+[WARN] [1788809257.973937526] [safety_node]: no lidar — motion disabled until scan
+[WARN] [1788809258.153333040] [safety_node]: no IR — cliff unknown
+Traceback (most recent call last):
+  File "/tmp/localization228-source/tools/gz/localization_rig.py", line 280, in <module>
+    main()
+  File "/tmp/localization228-source/tools/gz/localization_rig.py", line 267, in main
+    rclpy.spin_once(node, timeout_sec=.1)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/__init__.py", line 226, in spin_once
+    executor.spin_once(timeout_sec=timeout_sec)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 926, in spin_once
+    self._spin_once_impl(timeout_sec)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 757, in _wait_for_ready_callbacks
+    wait_set = _rclpy.WaitSet(
+               ^^^^^^^^^^^^^^^
+rclpy._rclpy_pybind11.RCLError: failed to initialize wait set: the given context is not valid, either rcl_init() was not called or rcl_shutdown() was called., at ./src/rcl/wait.c:130

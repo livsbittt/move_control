@@ -15,6 +15,7 @@ from std_msgs.msg import Bool, Float32, String, UInt16MultiArray, Float32MultiAr
 from ..sensing.filt import IrMedian, MedianLp
 from ..sensing.body import URDF_RADIUS, use_radius
 from ..sensing.lidar import NOSE_YAW
+from ..sensing.localization import lease_ready
 from ..control.lidar_guard import lidar_blocked, lidar_can_rotate
 from .bumper import Bumper
 from .gate import Gate
@@ -29,6 +30,9 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.declare_parameter('cmd_in', '/cmd_vel_raw')
         self.declare_parameter('cmd_out', '/cmd_vel')
         self.declare_parameter('start_estopped', True)
+        self.declare_parameter('localization_required', False)
+        self.localization_status = None
+        self.create_subscription(String, '/localization/status', self.on_localization, 10)
         # Verified Pinky mesh envelope; only straight commands <=14mm/s use it.
         self.declare_parameter('footprint_guard_enabled', False)
         self.declare_parameter('scan_topic', '/scan')
@@ -386,6 +390,14 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         if self.estop:
             return
 
+        if (self.get_parameter('localization_required').value and
+                not lease_ready(self.localization_status, self.now().nanoseconds * 1e-9)):
+            self._publish_zero()
+            # Commands issued against a lost pose cannot be replayed on recovery.
+            self.last_cmd = Twist()
+            self.last_cmd_time = None
+            return
+
         if pickup:
             self._publish_zero()
             return
@@ -423,6 +435,18 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
 
     def on_drive_ready(self, msg):
         self.drive_ready = bool(msg.data)
+
+    def on_localization(self, msg):
+        try:
+            self.localization_status = json.loads(msg.data)
+        except (ValueError, TypeError):
+            self.localization_status = None
+        if (self.get_parameter('localization_required').value and
+                not lease_ready(self.localization_status, self.now().nanoseconds * 1e-9)):
+            # Loss and recovery callbacks can both precede the next timer tick.
+            self.last_cmd = Twist()
+            self.last_cmd_time = None
+            self._publish_zero()
 
     def corrected_drive_speed(self, speed):
         # A short low-speed trial does not calibrate the entire motor curve.

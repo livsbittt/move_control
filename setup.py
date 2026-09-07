@@ -33,6 +33,7 @@ setup(
             'camera_detect_node = move_control.camera_detect_node:main',
             'watch_node = move_control.watch_node:main',
             'goal_node = move_control.goal_node:main',
+            'localization_node = move_control.localization_node:main',
             'web_node = move_control.web_node:main',
         ],
     },

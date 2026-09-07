@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "cmd_vel_publishers": [
+    "safety_node"
+  ],
+  "route_messages": 19,
+  "translation": {
+    "recovery_sim_s": 14.720000000000002,
+    "position_error_m": 0.004068142677818276,
+    "yaw_error_deg": 0.1167847624453022,
+    "detection_sim_s": 0.5700000000000003,
+    "stop_sim_s": 0.5700000000000003,
+    "max_output_while_lost_after_1s": 0.0
+  },
+  "rotation": {
+    "recovery_sim_s": 12.455000000000005,
+    "position_error_m": 0.002826943412492264,
+    "yaw_error_deg": 0.25215058933469653,
+    "detection_sim_s": 0.4750000000000014,
+    "stop_sim_s": 0.4750000000000014,
+    "max_output_while_lost_after_1s": 0.0
+  },
+  "scan_restore_sim_s": 2.1600000000000037,
+  "odom_max_step_m": 0.0020000000000000018,
+  "tracking_max_position_error_m": 0.0063232372062578535,
+  "tracking_max_yaw_error_deg": 0.813368559407303,
+  "initial_position_error_m": 0.0016269830797648037,
+  "initial_yaw_error_deg": 0.05744148061026151,
+  "initial_acquisition_sim_s": 9.925,
+  "saved_map_hashes_unchanged": true
+}
