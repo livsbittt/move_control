@@ -5,7 +5,8 @@ from unittest import mock
 
 from move_control.planning import (FREE, OCC, UNKNOWN, GoalBrain,
                                    OccupancyMap, ZigzagPlanner, best_route,
-                                   frontier_points, pick_goal)
+                                   frontier, frontier_points,
+                                   parse_goal_cmd, pick_goal)
 
 
 class RoomCase(unittest.TestCase):
@@ -122,6 +123,24 @@ class AstarTest(RoomCase):
         self.assertIsNotNone(r)
         self.assertEqual(r['cells'][-1], (2, 2))
 
+    def test_route_length_matches_polyline(self):
+        # Review finding: the appended raw-goal leg (goal inside the
+        # inflation ring, snapped out by nearest_free) was missing from
+        # 'length': pick_goal scores size/length and the brain's probe gate
+        # benches on route['length'] >= 0.05, so a real 5 cm route read as
+        # 0.0 and got benched. Length must equal the polyline of points.
+        m = self.known_room()
+        r = best_route(m, (0.125, 0.125), (0.075, 0.125))
+        self.assertIsNotNone(r)
+        # The goal cell is 1 off the west wall, inside the clear_m ring:
+        # nearest_free snapped it and the raw cell was appended — the route
+        # must end at the RAW cell and the length must include that leg.
+        self.assertEqual(r['cells'][-1], m.world_to_grid(0.075, 0.125))
+        pl = sum(math.hypot(b[0] - a[0], b[1] - a[1])
+                 for a, b in zip(r['points'], r['points'][1:]))
+        self.assertAlmostEqual(r['length'], pl, places=6)
+        self.assertAlmostEqual(r['length'], 0.05, places=6)
+
     def test_three_cell_gap_passes(self):
         # 15 cm gap survives clear_m 0.05 (2*0.05 + 1 cell = robot diameter).
         m = self.gap_room()
@@ -174,10 +193,53 @@ class FrontierTest(RoomCase):
         self.assertLess(c, 6, g)  # winner is on the near side of the wall
         opts = g['options']
         self.assertGreaterEqual(len(opts), 2)
-        self.assertGreaterEqual(opts[0]['score'], opts[1]['score'])
+        # Chosen first (marker 0 = the published goal), then alternatives by
+        # score: the chosen frontier's raw-pass twin scores higher (zero-
+        # clearance route), and that is fine — marker 0 is the chosen route.
+        self.assertEqual(opts[0]['clear_m'], g['clear_m'])
+        self.assertEqual((opts[0]['x'], opts[0]['y']), (g['x'], g['y']))
+        self.assertGreaterEqual(opts[1]['score'], opts[2]['score'])
         self.assertLessEqual(len(opts), 3)
         # The winner is NOT the biggest candidate — the ratio decided.
         self.assertLess(opts[0]['size'], max(o['size'] for o in opts))
+
+    def test_pick_goal_options_chosen_first(self):
+        # Review finding: options were sorted by score ACROSS passes, so a
+        # raw-clearance pass candidate (shorter route -> higher score) sat
+        # at index 0 while the published goal was the safe-pass winner:
+        # marker 0 on /goal/options showed a route never chosen.
+        m = self.wall_col(
+            self.room(w=13, h=7, pockets=((1, 4, 1, 5), (8, 2, 9, 3))),
+            4, (1, 2, 4, 5))
+        start = self.START
+        real = frontier.best_route
+
+        def routes(mm, s, goal, clear_m=0.06):
+            r = real(mm, s, goal, clear_m=clear_m)
+            if r is None:
+                return None
+            if clear_m == 0.0:
+                # Zero clearance takes the shortest line: model it as the
+                # same route shorter (x0.85 — kept above min_route_m so the
+                # raw twin still qualifies) so a raw-pass candidate
+                # provably outscores the safe winner.
+                return {**r, 'length': r['length'] * 0.85}
+            return r
+
+        with mock.patch.object(frontier, 'best_route',
+                               side_effect=routes):
+            g = pick_goal(m, start, min_size=2, retry_clear_m=0.0)
+        self.assertIsNotNone(g)
+        opts = g['options']
+        self.assertGreaterEqual(len(opts), 3)
+        # options[0] IS the chosen goal: same point, same clearance pass.
+        self.assertEqual(opts[0]['clear_m'], 0.06)
+        self.assertEqual((opts[0]['x'], opts[0]['y']), (g['x'], g['y']))
+        # A raw-pass candidate with a STRICTLY higher score sits behind the
+        # chosen goal, and the alternatives are score-ordered.
+        self.assertEqual(opts[1]['clear_m'], 0.0)
+        self.assertGreater(opts[1]['score'], opts[0]['score'])
+        self.assertGreaterEqual(opts[1]['score'], opts[2]['score'])
 
 
 class ZigzagTest(RoomCase):
@@ -423,3 +485,70 @@ class GoalBrainTest(RoomCase):
             g, _r, s = brain.plan(m, self.START)
         self.assertIsNotNone(g)
         self.assertTrue(s.startswith('probe'), s)
+
+
+class ManualGoalTest(RoomCase):
+    """Dashboard click-to-send: latched external goal in the brain."""
+
+    def setUp(self):
+        self.brain = GoalBrain(min_size=2)
+        self.m = self.room()
+
+    def test_parse_goal_cmd(self):
+        self.assertEqual(parse_goal_cmd('1.5,2.0'), (1.5, 2.0))
+        self.assertEqual(parse_goal_cmd('1 2'), (1.0, 2.0))
+        self.assertIsNone(parse_goal_cmd('explore'))
+        self.assertIsNone(parse_goal_cmd('nan,1'))
+        self.assertIsNone(parse_goal_cmd('1,inf'))
+        self.assertIsNone(parse_goal_cmd('1,2,3'))
+        self.assertIsNone(parse_goal_cmd(''))
+
+    def test_manual_goal_wins_over_explore(self):
+        self.brain.set_manual(*self.EAST)
+        goal, route, status = self.brain.plan(self.m, self.START)
+        self.assertTrue(status.startswith('manual goal='))
+        self.assertEqual(goal, self.EAST)
+        self.assertIsNotNone(route)
+
+    def test_manual_cleared_on_arrival(self):
+        self.brain.set_manual(*self.START)
+        goal, route, status = self.brain.plan(self.m, self.START)
+        self.assertEqual(status, 'manual goal reached')
+        self.assertIsNone(goal)
+        self.assertIsNone(self.brain._manual)
+        goal, route, status = self.brain.plan(self.m, self.START)
+        self.assertTrue(status.startswith('explore'))
+
+    def test_manual_cleared_by_verb(self):
+        self.brain.set_manual(*self.EAST)
+        self.brain.clear_manual()
+        goal, route, status = self.brain.plan(self.m, self.START)
+        self.assertTrue(status.startswith('explore'))
+
+    def test_manual_unreachable_cleared_after_stall(self):
+        brain = GoalBrain(min_size=2, stall_plans=2)
+        brain.set_manual(*self.EAST)
+        # best_route snaps to nearest free cells, so no fixture goal is
+        # unroutable — mock the router to exercise the unreachable branch.
+        with mock.patch('move_control.planning.goals.best_route',
+                        return_value=None):
+            for _ in range(2):
+                goal, route, status = brain.plan(self.m, self.START)
+                self.assertIn('unreachable', status)
+        goal, route, status = brain.plan(self.m, self.START)
+        self.assertIsNone(brain._manual)
+        self.assertTrue(status.startswith('explore'))
+
+    def test_manual_ttl_expiry(self):
+        brain = GoalBrain(min_size=2, manual_ttl_plans=2)
+        brain.set_manual(*self.EAST)
+        for _ in range(2):
+            goal, route, status = brain.plan(self.m, self.START)
+            self.assertTrue(status.startswith('manual goal='))
+        goal, route, status = brain.plan(self.m, self.START)
+        self.assertIsNone(brain._manual)
+        self.assertTrue(status.startswith('explore'))
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -45,7 +45,12 @@ def frontier_points(m, min_size=6):
         if snap is None:
             continue
         x, y = m.grid_to_world(*snap)
-        out.append({'cell': snap, 'x': x, 'y': y, 'size': len(comp)})
+        # cells: the full boundary cluster — the watchdog benches the whole
+        # cluster, not just the snapped cell (re-snapping picks a neighbour
+        # cell of the same unreachable cluster next plan and the bench
+        # churned inside it forever).
+        out.append({'cell': snap, 'x': x, 'y': y, 'size': len(comp),
+                    'cells': comp})
     out.sort(key=lambda f: f['size'], reverse=True)
     return out
 
@@ -82,6 +87,12 @@ def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
             route = best_route(m, start, (f['x'], f['y']), clear_m=cm)
             if not route or route['length'] < min_route_m:
                 continue
+            # NOTE: f['cells'] (the whole frontier cluster) is deliberately
+            # NOT forwarded to the watchdog: measured on the isolated rig,
+            # whole-cluster benching + the goal latch mass-benches every
+            # cluster and latch-chases one unreachable goal — the map froze
+            # at 383 known cells at minute 7 (run 6) vs 1771 with the
+            # single-cell bench (run 2). Keep the single-cell bench.
             cand = {'kind': 'frontier', 'x': f['x'], 'y': f['y'],
                     'size': f['size'], 'route': route, 'clear_m': cm,
                     'score': f['size'] / max(route['length'], 1e-6)}
@@ -98,7 +109,11 @@ def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
     best = best_safe if best_safe is not None else best_raw
     if best is None:
         return None
-    options.sort(key=lambda o: o['score'], reverse=True)
+    # Chosen first, then alternatives by score. A cross-pass score sort put
+    # a raw-clearance candidate (shorter route -> higher score) at index 0
+    # while the published goal was the safe-pass winner: marker 0 on
+    # /goal/options showed a wall-hugging route the brain never chose.
+    options.sort(key=lambda o: (o is not best, -o['score']))
     best = dict(best)
     best['options'] = options[:max(1, int(max_options))]
     return best

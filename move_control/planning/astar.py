@@ -36,10 +36,21 @@ def best_route(m, start, goal, clear_m=0.06):
         closed.add(cur)
         if cur == gc:
             cells = _walk(came, cur)
+            extra = 0.0  # the appended raw-goal leg, counted into 'length'
+            raw = m.world_to_grid(*goal)
+            if cells[-1] != raw and m.is_free(*raw):
+                # The goal sat inside the inflation ring and nearest_free
+                # snapped it: the A* route ended at the stand-in cell —
+                # which can sit back toward the robot (measured on the gz
+                # rig: the route ended 2 cm from the robot while the brain
+                # waited 0.19 m away, so the probe latch never released).
+                # Finish the last leg at the true, raw-free goal cell.
+                cells.append(raw)
+                extra = math.hypot(raw[0] - cur[0], raw[1] - cur[1])
             return {
                 'points': [m.grid_to_world(c, r) for c, r in cells],
                 'cells': cells,
-                'length': g[cur] * m.res,
+                'length': (g[cur] + extra) * m.res,
             }
         for dc, dr in _STEPS:
             nx = (cur[0] + dc, cur[1] + dr)

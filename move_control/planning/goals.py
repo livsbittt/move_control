@@ -14,6 +14,20 @@ from .frontier import pick_goal
 from .zigzag import ZigzagPlanner, cover_ring
 
 
+def parse_goal_cmd(text):
+    """'x,y' or 'x y' -> (x, y) world metres; None when not coordinates.
+
+    The dashboard's send button lands here over /goal/cmd; verbs still take
+    the old path. Non-finite floats are rejected (float('nan') parses!).
+    """
+    try:
+        a, b = str(text).replace(',', ' ').split()
+        x, y = float(a), float(b)
+    except ValueError:
+        return None
+    return (x, y) if (math.isfinite(x) and math.isfinite(y)) else None
+
+
 class GoalBrain:
     """Decide the next point to go. Owns mode + covered set, not the map."""
 
@@ -22,7 +36,7 @@ class GoalBrain:
                  max_options=3, stall_plans=6, progress_m=0.03,
                  stall_min_dist=0.15, blacklist_plans=20,
                  escape_clear_m=0.08, probe_when_done=False,
-                 retry_unreachable_wp=False):
+                 retry_unreachable_wp=False, manual_ttl_plans=120):
         self.max_options = max(1, int(max_options))
         # Wide-first escape: after a stall, routes are planned with this
         # clearance (2-cell inflation seals 15 cm gaps) until the robot has
@@ -41,6 +55,16 @@ class GoalBrain:
         # far corners forever.
         self._probe = None
         self._probe_deadline = 0
+        # Probe stall bench (see _probe_goal): drive-at-but-unreachable
+        # probes get benched after stall_plans plans without approach.
+        self._probe_n = 0
+        self._probe_first = self._probe_best = math.inf
+        # Latched external (dashboard) goal: set_manual wins over explore/
+        # coverage until reached, unreachable for stall_plans plans, TTL
+        # expiry, or a mode verb clears it. Same shape as the probe latch.
+        self.manual_ttl_plans = max(1, int(manual_ttl_plans))
+        self._manual = None
+        self._manual_n = 0
         # Stall watchdog: if the robot gets nowhere for this many plan calls,
         # bench that frontier and take the next-best option.
         self.stall_plans = max(2, int(stall_plans))
@@ -82,6 +106,12 @@ class GoalBrain:
                 or self._first - self._best >= self.progress_m):
             return g, ''
         self._blacklist[cell] = self._plan_n + self.blacklist_plans
+        # Bench the WHOLE cluster: a single-cell bench churned inside the
+        # same unreachable frontier — re-snapping picked a neighbour cell
+        # of the same cluster next plan (measured: 600 s grinding one
+        # size-15 cluster while the map froze).
+        for cc in g.get('cells', ()):
+            self._blacklist[cc] = self._plan_n + self.blacklist_plans
         tried = self._n
         self._target = None
         self._wide_cell = (pose[0], pose[1])  # escape wide from here
@@ -106,35 +136,85 @@ class GoalBrain:
                      if exp <= self._plan_n]:
             del self._blacklist[cell]
 
+    def set_manual(self, x, y):
+        """Latch an external goal; replaces any previous one."""
+        self._manual = (float(x), float(y))
+        self._manual_n = 0
+
+    def clear_manual(self):
+        self._manual = None
+
+    def _manual_plan(self, m, pose):
+        """Route to the latched external goal. Mirrors _probe_goal: same
+        sealed-corridor route retry, same stall_plans bench for a
+        drive-at-but-unreachable point."""
+        x, y = self._manual
+        self._manual_n += 1
+        if self._manual_n > self.manual_ttl_plans:
+            self._manual = None
+            return None                      # expired -> normal planning
+        if math.hypot(x - pose[0], y - pose[1]) < self.reach_tol:
+            self._manual = None
+            return None, None, 'manual goal reached'
+        route = None
+        for cm in (self.clear_m, 0.0):
+            route = best_route(m, pose, (x, y), clear_m=cm)
+            if route:
+                break
+        if route is None:
+            if self._manual_n >= self.stall_plans:
+                self._manual = None
+                return None, None, 'manual goal unreachable, cleared'
+            return None, None,                 f'manual goal unreachable ({self._manual_n}/{self.stall_plans})'
+        self.last_options = []
+        return (x, y), route, \
+            f'manual goal=({x:.2f},{y:.2f}) route={route["length"]:.2f}m'
+
     def _probe_goal(self, m, pose, zz):
         """Coverage-done probe: one latched farthest-cell target.
 
         Returns (goal, route, status); goal None -> caller falls through
-        to 'coverage done'. The latch holds one target until it is reached
-        (within reach_tol) or the map takes the cell back; a target with
-        no route at either clearance rests the probe for blacklist_plans
-        plan calls — the driver's wiggle keeps SLAM scanning while the map
-        may grow back an option.
+        to 'coverage done'. The latch holds one target until it is
+        reached, the map takes the cell back, circling sweeps it, or a
+        rolling stall_plans-plan window shows no approach — bench that
+        cell (into covered, so re-picks skip it) and take the next
+        farthest. Without the bench the robot circled one cell for 8
+        min with the map frozen (measured on the gz rig).
         """
+        d = math.hypot(self._probe[0] - pose[0],
+                       self._probe[1] - pose[1]) if self._probe else None
         if self._probe is not None:
-            if math.hypot(self._probe[0] - pose[0],
-                          self._probe[1] - pose[1]) < self.reach_tol:
-                self._probe = None  # reached: next farthest is >= walk_min away
-            elif not m.is_free(*m.world_to_grid(*self._probe)):
+            cell = m.world_to_grid(*self._probe)
+            if d < self.reach_tol:
+                self._probe = None  # reached
+            elif not m.is_free(*cell):
                 self._probe = None  # noisy SLAM took the cell back
+            elif cell in self.covered:
+                self._probe = None  # circling it swept the cell
+            elif d < self._probe_best:
+                self._probe_best = d
+            self._probe_n += 1
+            if self._probe is not None and self._probe_n >= self.stall_plans:
+                if self._probe_first - self._probe_best < self.progress_m:
+                    self.covered.add(cell)
+                    self._probe = None  # bench: no approach in the window
+                self._probe_n = 0
+                self._probe_first = self._probe_best = d
         if self._probe is None:
             self._probe = zz.probe_point(pose, covered=self.covered)
+            self._probe_n = 0
+            self._probe_first = self._probe_best = \
+                math.hypot(self._probe[0] - pose[0],
+                           self._probe[1] - pose[1]) if self._probe \
+                else math.inf
         if self._probe is None:
             return None, None, ''  # nothing reachable >= walk_min yet
-        # Tiny pockets seal under inflation; fall back to the raw map so
-        # the robot can at least leave the pocket.
         for cm in (self.clear_m, 0.0):
             route = best_route(m, pose, self._probe, clear_m=cm)
             if route and route['length'] >= 0.05:
                 return self._probe, route, (
                     f'probe goal=({self._probe[0]:.2f},{self._probe[1]:.2f}) '
                     f'route={route["length"]:.2f}m')
-        # Dead at both clearances (SLAM repainted): drop latch, rest probe.
         self._probe = None
         self._probe_deadline = self._plan_n + self.blacklist_plans
         return None, None, ''
@@ -147,6 +227,12 @@ class GoalBrain:
         """
         self._plan_n += 1
         self._gc_blacklist()
+        # External (dashboard) goal wins while valid; _manual_plan clears it
+        # on expiry/unreachable and returns None -> fall through normally.
+        if self._manual is not None:
+            out = self._manual_plan(m, pose)
+            if out is not None:
+                return out
         # Wide-first latch: near the last stuck pose, plan with extra
         # clearance until the robot is clear of that obstacle pocket.
         wide = False

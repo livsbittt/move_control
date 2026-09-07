@@ -11,8 +11,8 @@ from .gridmap import (FREE, OCC, OCC_THRESH, UNKNOWN, OccupancyMap,
 from .astar import best_route
 from .frontier import frontier_points, pick_goal
 from .zigzag import ZigzagPlanner, cover_ring
-from .goals import GoalBrain
+from .goals import GoalBrain, parse_goal_cmd
 
-__all__ = ['GoalBrain', 'OccupancyMap', 'FREE', 'OCC', 'OCC_THRESH',
+__all__ = ['GoalBrain', 'parse_goal_cmd', 'OccupancyMap', 'FREE', 'OCC', 'OCC_THRESH',
            'UNKNOWN', 'best_route', 'cover_ring', 'frontier_points',
            'nearest_free', 'pick_goal', 'ZigzagPlanner']
