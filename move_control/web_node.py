@@ -169,7 +169,7 @@ class MapControl:
                 if response.result != Reset.Response.RESULT_SUCCESS:
                     raise RuntimeError('SLAM rejected map reset')
                 self.node.goal_pub.publish(String(data='reset'))
-                self.node.calibration_pub.publish(String(data='retry'))
+                self.node.calibration_pub.publish(String(data='sensor_check'))
                 self.map_after_ns = self.node.get_clock().now().nanoseconds
                 with LOCK:
                     for key in (K_MAP, K_GOAL, K_ROUTE, K_OPTIONS, K_TRAIL, K_PREV,

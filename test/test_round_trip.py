@@ -49,6 +49,15 @@ def test_explicit_zero_pause_does_not_integrate_motion_while_waiting():
     assert trip.error is None
 
 
+def test_zero_pause_still_obeys_leg_and_total_deadlines():
+    trip = RoundTrip(0., snapshot(0.))
+    assert trip.pause(7.1) == 0.
+    assert 'leg' in trip.error
+    trip = RoundTrip(0., snapshot(0.))
+    assert trip.pause(35.1) == 0.
+    assert 'total' in trip.error
+
+
 def test_failed_gain_preserves_measurements_without_relaxing_bounds():
     trip = RoundTrip(0., snapshot(0.))
     trip.stage = 'settle_out'

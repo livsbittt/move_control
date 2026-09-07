@@ -127,7 +127,7 @@ def motion_evidence(start, current):
     forward = dx * math.cos(yaw0) + dy * math.sin(yaw0)
     lateral = -dx * math.sin(yaw0) + dy * math.cos(yaw0)
     lidar_delta = start['lidar'][0] - current['lidar'][0]
-    us_delta = start['us'][0] - current['us'][0]
+    us_delta = start['us'][0] - current['us'][0] if start.get('us') and current.get('us') else None
     mx0, my0, myaw0 = start['map_tf'][:3]
     mx, my, myaw = current['map_tf'][:3]
     mdx, mdy = mx - mx0, my - my0
@@ -145,7 +145,7 @@ def motion_result(evidence, require_us=True):
         'forward_response': .008 <= forward <= .045,
         'straight_response': abs(evidence['lateral_m']) <= .015 and abs(evidence['yaw_drift_rad']) <= .12,
         'lidar_agrees': evidence['lidar_delta_m'] >= .004 and abs(evidence['lidar_delta_m'] - forward) <= tolerance,
-        'us_agrees': evidence['us_delta_m'] >= .004 and abs(evidence['us_delta_m'] - forward) <= tolerance,
+        'us_agrees': evidence['us_delta_m'] is not None and evidence['us_delta_m'] >= .004 and abs(evidence['us_delta_m'] - forward) <= tolerance,
         'map_pose_agrees': (evidence['map_forward_m'] >= .004 and
                            abs(evidence['map_forward_m'] - forward) <= .02 and
                            abs(evidence['map_lateral_m'] - evidence['lateral_m']) <= .02 and

@@ -29,6 +29,10 @@ class RoundTrip:
 
     def pause(self, now):
         """Account the last issued command, then hold zero without fake travel."""
+        if now-self.started > 35.:
+            return self.fail('Round-trip total timeout')
+        if not self.stage.startswith('settle') and now-self.leg_started > 7.:
+            return self.fail('Round-trip leg stalled or timed out')
         dt = now - self.last_time
         if dt < 0 or dt > .5:
             return self.fail('Round-trip control updates interrupted')

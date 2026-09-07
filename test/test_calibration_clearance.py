@@ -8,6 +8,17 @@ def limits(front=.183):
                 us_stop_m=.02,us_m=.3)
 
 
+def test_optional_missing_echo_is_not_fake_distance_or_permission_past_lidar():
+    d = limits()
+    d.update(us_optional=True, us_m=None)
+    result = motion_clearance(d, .03)
+    assert result['reason'] is None and result['available_us_m'] is None
+    d['front_m'] = .13
+    assert motion_clearance(d, .03)['reason']
+    d.update(front_m=.183, us_optional=False)
+    assert motion_clearance(d, .03)['reason']
+
+
 def test_verified_body_travel_replaces_unrelated_diagonal_range():
     d = limits(.09)
     d.update(translation_mode=True, forward_travel_m=.04, reverse_travel_m=.02,

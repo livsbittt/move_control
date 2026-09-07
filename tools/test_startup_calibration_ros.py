@@ -16,6 +16,8 @@ from move_control.startup_calibration_node import StartupCalibrationNode
 from move_control.control.calibration import StationaryBaseline
 from move_control.control.round_trip import RoundTrip
 from test.test_calibration import VALUES
+from test.test_calibration_certificate import complete_motion
+from move_control.control.calibration_certificate import make_certificate
 
 
 class StartupCalibrationTest(unittest.TestCase):
@@ -77,6 +79,41 @@ class StartupCalibrationTest(unittest.TestCase):
         self.assertIn('stale or invalid', self.node.message)
         self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
 
+    def test_certificate_restores_only_after_fresh_health_and_explicit_retry_invalidates(self):
+        motion = complete_motion()
+        self.node.write_json(self.node.certificate_path(),
+            make_certificate(self.node.certificate_configuration(), motion))
+        self.node.restore_certificate()
+        self.assertTrue(self.node.report()['calibration_verified'])
+        self.assertFalse(self.node.report()['ready'])
+        self.assertEqual(self.node.round_trip.scales[0], motion['forward_scale'])
+        self.refresh(100.)
+        self.node.tick()
+        self.refresh(101.1)
+        self.node.tick()
+        self.assertTrue(self.node.report()['ready'])
+        self.node.on_command(String(data='sensor_check'))
+        self.assertFalse(self.node.report()['ready'])
+        self.assertTrue(self.node.certificate_path().exists())
+        self.node.on_command(String(data='retry'))
+        self.assertFalse(self.node.certificate_path().exists())
+        self.assertEqual(self.node.phase, 'collecting')
+
+    def test_optional_echo_absence_allows_lidar_evidence_but_stale_source_does_not(self):
+        self.node.set_parameters([Parameter('calibration_require_us_agreement', value=False)])
+        self.arm()
+        self.refresh(100.7)
+        self.node.baseline.add('us', (math.inf,), 100.7, False)
+        self.node.raw_ranges['us'] = (100.7, .97, False)
+        self.assertIsNone(self.node.safe_motion(100.7))
+        self.assertIsNone(self.node.motion_clearance['available_us_m'])
+        self.node.us_source_valid = False
+        self.assertIsNotNone(self.node.safe_motion(100.7))
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'failed')
+        self.assertIn('stale or invalid', self.node.message)
+        self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
+
     def test_precision_pause_holds_zero_then_resumes_on_fresh_wall(self):
         self.arm()
         self.node.motion_start = (100.6, self.node.snapshot())
@@ -84,12 +121,23 @@ class StartupCalibrationTest(unittest.TestCase):
         self.node.wall_tracker.diagnostic = {'reason': 'Tracked wall missing or ambiguous'}
         self.node.baseline.add('lidar', (math.inf,), 100.6, False)
         self.node.tick()
-        self.assertEqual(self.node.phase, 'validating_motion')
+        self.assertEqual(self.node.phase, 'validating_motion', self.node.message)
         self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
         self.refresh(100.8)
         self.node.tick()
         self.assertGreater(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
         self.assertAlmostEqual(self.node.precision_pause_total, .2)
+
+    def test_short_reacquisition_does_not_fail_due_to_prior_accumulated_pauses(self):
+        self.arm()
+        self.node.motion_start = (100.6, self.node.snapshot())
+        self.node.round_trip = RoundTrip(100.6, self.node.snapshot())
+        self.node.precision_pause_total = 2.05
+        self.node.wall_tracker.diagnostic = {'reason': 'Tracked wall missing or ambiguous'}
+        self.node.baseline.add('lidar', (math.inf,), 100.6, False)
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'validating_motion')
+        self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
 
     def test_precision_pause_cannot_hide_real_hazard_or_wait_indefinitely(self):
         self.arm()
