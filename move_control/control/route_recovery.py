@@ -15,12 +15,22 @@ class RouteRecovery:
         self.failed_goal = None
         self.failed_exit = None
         self.heading_target = self.heading_best = None
+        self.hold_since = None
         self.attempts = 0
         self.waiting = self.exhausted = False
 
     def update(self, now, pose, reason, goal, route_stamp, safe, route_exit=None):
         if not safe or pose is None:
+            if self.hold_since is None:
+                self.hold_since = now
             return 'safety_hold'
+        if self.hold_since is not None:
+            duration = max(0., now-self.hold_since)
+            if self.progress_since is not None:
+                self.progress_since += duration
+            if self.blocked_since is not None:
+                self.blocked_since += duration
+            self.hold_since = None
         if self.exhausted:
             return 'exhausted'
         xy = tuple(pose[:2])

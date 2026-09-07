@@ -5,6 +5,15 @@ from move_control.control.safety_profile import SafetyProfile, bounded_command
 
 
 class ProfileTest(unittest.TestCase):
+    def test_measured_mount_translation_sets_clearance_and_profile_identity(self):
+        centered = SafetyProfile.build(radius=.105, lidar_x_m=0., lidar_y_m=0.)
+        offset = SafetyProfile.build(radius=.105, lidar_x_m=-.017, lidar_y_m=0.)
+        self.assertAlmostEqual(centered.turn_clear, .115)
+        self.assertAlmostEqual(offset.turn_clear, .132)
+        self.assertNotEqual(centered.revision, offset.revision)
+        with self.assertRaises(ValueError):
+            SafetyProfile.build(lidar_x_m=float('nan'))
+
     def test_configured_values_below_bootstrap_defaults_are_preserved(self):
         profile = SafetyProfile.build(stop=.115, clear=.13)
         self.assertEqual(profile.stop, .115)

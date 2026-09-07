@@ -34,10 +34,30 @@ class GoalRouteTest(unittest.TestCase):
     def known_map(self):
         msg = OccupancyGrid()
         msg.header.frame_id = 'map'
+        msg.header.stamp = self.node.get_clock().now().to_msg()
         msg.info.resolution = .05
         msg.info.width = msg.info.height = 20
         msg.data = [0] * 400
         self.node.on_map(msg)
+        return msg
+
+    def test_replayed_map_does_not_renew_source_deadline(self):
+        msg = self.known_map()
+        received = self.node._map_received
+        self.node.on_map(msg)
+        self.assertEqual(self.node._map_received, received)
+        msg.header.stamp.sec -= 30
+        self.node.on_map(msg)
+        self.assertIsNone(self.node.map_obj)
+        self.assert_empty_route()
+
+    def test_fresh_invalid_tf_quaternion_cannot_authorize_route(self):
+        transform = TransformStamped()
+        transform.transform.rotation.w = 0.
+        transform.header.stamp = self.node.get_clock().now().to_msg()
+        self.node.tf.lookup_transform.side_effect = None
+        self.node.tf.lookup_transform.return_value = transform
+        self.assertEqual(self.node.pose(), ((None, None), 'invalid-tf'))
 
     def test_default_stop_and_explicit_stop_revoke_route_immediately(self):
         self.assertEqual(self.node.mode, 'stop')

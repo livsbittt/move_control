@@ -94,6 +94,18 @@ class StartupCalibrationTest(unittest.TestCase):
             self.node.on_imu(msg)
             self.assertEqual(self.node.baseline.latest('imu') is not None, valid)
 
+    def test_runtime_map_delay_preserves_motion_profile_but_sensor_failure_revokes_it(self):
+        self.refresh(100.)
+        self.node.phase = 'ready'
+        for name in ('map', 'map_tf'):
+            self.node.observations.add(name, 100., valid=False)
+            self.node.baseline.add(name, (0.,), 100., valid=False)
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'ready')
+        self.node.baseline.add('imu', (0.,), 100., valid=False)
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'failed')
+
     def test_driver_degree_units_are_converted_without_hiding_real_rotation(self):
         msg = Imu()
         msg.header.stamp = self.node.get_clock().now().to_msg()

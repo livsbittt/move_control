@@ -9,6 +9,7 @@ from std_msgs.msg import String
 from ..control.safety_profile import SafetyProfile
 from ..control.calibration_profile import ProfileLease
 from ..sensing.observation import Observations
+from ..sensing.body import LIDAR_X
 
 
 class Evidence:
@@ -58,6 +59,7 @@ class Evidence:
 
     def refresh_profile(self):
         try:
+            mount = getattr(self, 'lidar_mount_xy', (LIDAR_X, 0.)) if self.get_parameter('lidar_use_tf').value else (LIDAR_X, 0.)
             self.profile = SafetyProfile.build(
                 radius=float(self.get_parameter('robot_radius').value),
                 stop=float(self.get_parameter('stop_distance').value),
@@ -69,6 +71,7 @@ class Evidence:
                 max_angular=float(self.get_parameter('safety_max_angular').value),
                 lidar_yaw_rad=self.lidar_yaw if self.get_parameter('lidar_use_tf').value else float(self.get_parameter('lidar_yaw_offset').value),
                 linear_sign=float(self.get_parameter('cmd_linear_sign').value),
+                lidar_x_m=mount[0], lidar_y_m=mount[1],
                 imu_unit=self.get_parameter('imu_angular_velocity_unit').value)
             self.profile_valid, self.profile_error = True, None
         except ValueError as error:

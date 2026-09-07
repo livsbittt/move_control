@@ -52,6 +52,15 @@ class ProgressGuard:
         self.anchor = None
         self.since = None
         self.stalled = False
+        self.paused_since = None
+
+    def pause(self, now, paused):
+        if paused and self.paused_since is None:
+            self.paused_since = now
+        elif not paused and self.paused_since is not None:
+            if self.since is not None:
+                self.since += max(0., now-self.paused_since)
+            self.paused_since = None
 
     def check(self, now, pose, moving):
         if self.stalled:

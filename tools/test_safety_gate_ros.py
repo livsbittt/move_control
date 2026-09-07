@@ -6,7 +6,7 @@ import unittest
 from unittest.mock import Mock
 
 import rclpy
-from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Twist, TransformStamped
 from sensor_msgs.msg import LaserScan, Range
 from rclpy.parameter import Parameter
 from std_msgs.msg import Bool, Float32MultiArray, String
@@ -48,6 +48,74 @@ class SafetyGateTest(unittest.TestCase):
         self.node.on_cmd(command)
         self.assertEqual(self.node.last_cmd.linear.x, 0.)
         self.assertIsNone(self.node.last_cmd_time)
+
+    def test_centered_mount_keeps_validated_distances_and_invalidates_old_lease(self):
+        self.node.lidar_mount_xy = (0., 0.)
+        self.node.set_parameters([Parameter('stop_distance', value=.10),
+                                  Parameter('clear_distance', value=.115)])
+        self.node._refresh_distances()
+        self.assertTrue(self.node.profile_valid)
+        self.assertEqual(self.node.stop_d, .10)
+        self.assertEqual(self.node.clear_d, .115)
+        packet = make_profile('mount-session', 1, self.node.now().nanoseconds*1e-9,
+                              True, [1., 1.], self.node.profile.revision)
+        self.node.on_calibration_profile(String(data=json.dumps(packet)))
+        self.assertIsNotNone(self.node.calibration_lease.active)
+        self.node.lidar_mount_xy = (-.017, 0.)
+        self.node._refresh_distances()
+        self.assertFalse(self.node.profile_valid)
+        self.assertIsNone(self.node.calibration_lease.active)
+
+    def test_valid_mount_change_revokes_lease_and_disabled_tf_restores_urdf(self):
+        self.node._refresh_distances()
+        original = self.node.profile.revision
+        packet = make_profile('valid-mount', 1, self.node.now().nanoseconds*1e-9,
+                              True, [1., 1.], original)
+        self.node.on_calibration_profile(String(data=json.dumps(packet)))
+        self.node.lidar_mount_xy = (0., 0.)
+        self.node._refresh_distances()
+        self.assertTrue(self.node.profile_valid)
+        self.assertNotEqual(self.node.profile.revision, original)
+        self.assertIsNone(self.node.calibration_lease.active)
+        self.node.set_parameters([Parameter('lidar_use_tf', value=False)])
+        self.node._refresh_distances()
+        self.assertEqual(self.node.profile.revision, original)
+
+    def test_invalid_mount_translation_stops_final_motor_output(self):
+        for offset in (float('nan'), float('inf'), .2):
+            self.healthy()
+            self.node.lidar_mount_xy = (offset, 0.)
+            command = Twist()
+            command.linear.x = .008
+            self.node.on_cmd(command)
+            self.node.tick()
+            output = self.node.pub.publish.call_args.args[0]
+            self.assertEqual((output.linear.x, output.angular.z), (0., 0.))
+            self.assertEqual(self.node.last_decision['reason'], 'invalid_profile')
+
+    def test_lost_mount_tf_cannot_reuse_previous_centered_mount_to_authorize_motion(self):
+        self.healthy()
+        mount = TransformStamped()
+        mount.transform.rotation.w = 1.
+        self.node.lidar_tf = Mock()
+        self.node.lidar_tf.lookup_transform.return_value = mount
+        scan = LaserScan()
+        scan.header.frame_id = 'laser'
+        scan.header.stamp = self.node.now().to_msg()
+        scan.angle_increment = math.pi/360
+        scan.range_min, scan.range_max = .05, 40.
+        scan.ranges = [.3]*720
+        self.node.on_scan(scan)
+        self.assertEqual(self.node.lidar_mount_xy, (0., 0.))
+        self.node.lidar_tf.lookup_transform.side_effect = ValueError('Missing mount TF')
+        scan.header.stamp = self.node.now().to_msg()
+        self.node.on_scan(scan)
+        command = Twist()
+        command.linear.x = .008
+        self.node.on_cmd(command)
+        self.node.tick()
+        self.assertEqual(self.node.pub.publish.call_args.args[0].linear.x, 0.)
+        self.assertEqual(self.node.last_decision['reason'], 'lidar_unavailable')
 
     def test_final_limits_apply_to_every_request_and_preserve_curve(self):
         self.healthy()

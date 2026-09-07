@@ -29,6 +29,7 @@ from tf2_ros import Buffer as TfBuffer
 from tf2_ros import TransformListener
 
 from .planning import GoalBrain, OccupancyMap, parse_goal_cmd
+from .sensing.pose import planar_pose
 
 
 def grid_clearance(distance, resolution):
@@ -84,6 +85,8 @@ class GoalNode(Node):
         self.tf_listener = TransformListener(self.tf, self)
         self.map_obj = None
         self._map_received = None
+        self._map_source = None
+        self._map_source_age = 0.
         self._map_reset_ns = 0
         self._n_options = 0  # last published /goal/options marker count
         self.last_executable_goal = None
@@ -126,6 +129,14 @@ class GoalNode(Node):
         stamp_ns = msg.header.stamp.sec * 1000000000 + msg.header.stamp.nanosec
         if self._map_reset_ns and stamp_ns <= self._map_reset_ns:
             return  # An old queued map cannot repopulate a reset session.
+        source = stamp_ns*1e-9
+        source_age = self.get_clock().now().nanoseconds*1e-9-source
+        if source <= 0. or not -.1 <= source_age <= float(self.get_parameter('map_timeout').value):
+            self.map_obj = None
+            self._clear_route('waiting for fresh map source')
+            return
+        if self._map_source is not None and source <= self._map_source:
+            return  # Replayed source data is not a fresh map observation.
         if (msg.header.frame_id != 'map' or msg.info.width <= 0 or
                 msg.info.height <= 0 or not math.isfinite(msg.info.resolution) or
                 msg.info.resolution <= 0 or
@@ -140,6 +151,7 @@ class GoalNode(Node):
             return
         self.map_obj = OccupancyMap.from_msg(msg)
         self._map_received = time.monotonic()
+        self._map_source, self._map_source_age = source, max(0., source_age)
 
     def on_odom(self, msg):
         p = msg.pose.pose.position
@@ -213,7 +225,9 @@ class GoalNode(Node):
                    (t.header.stamp.sec * 1000000000 + t.header.stamp.nanosec)) / 1e9
             if age < -0.5 or age > float(self.get_parameter('pose_timeout').value):
                 return (None, None), 'stale-tf'
-            if not math.isfinite(tr.x) or not math.isfinite(tr.y):
+            q = t.transform.rotation
+            pose = planar_pose(tr.x, tr.y, (q.x, q.y, q.z, q.w))
+            if pose is None:
                 return (None, None), 'invalid-tf'
             return (float(tr.x), float(tr.y)), 'tf'
         except Exception:
@@ -227,7 +241,7 @@ class GoalNode(Node):
             return
         m = self.map_obj
         if (m is None or self._map_received is None or
-                time.monotonic() - self._map_received >
+                time.monotonic() - self._map_received + self._map_source_age >
                 float(self.get_parameter('map_timeout').value)):
             self._clear_route('waiting for fresh map')
             return

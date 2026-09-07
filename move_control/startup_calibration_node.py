@@ -184,10 +184,11 @@ class StartupCalibrationNode(Node, CalibrationRotation):
             self.add(name, (0.,), False)
         return accepted
 
-    def evidence_fresh(self, now):
-        return (self.baseline.fresh(now) and all(self.observations.fresh(name, now,
+    def evidence_fresh(self, now, require_map=True):
+        exclude = () if require_map else ('map', 'map_tf')
+        return (self.baseline.fresh(now, exclude=exclude) and all(self.observations.fresh(name, now,
                 max_age=5. if name == 'map' else 1.)
-                for name in ('lidar', 'odom', 'map', 'us', 'imu', 'camera', 'map_tf')))
+                for name in ('lidar', 'odom', 'map', 'us', 'imu', 'camera', 'map_tf') if name not in exclude))
 
     def geometry_fresh(self, now):
         return (self.geometry_revision is not None and self.geometry_received is not None and
@@ -373,7 +374,11 @@ class StartupCalibrationNode(Node, CalibrationRotation):
         if self.phase == 'validating_rotation':
             self.tick_rotation(now)
             return
-        if self.phase == 'ready' and (not self.evidence_fresh(now) or not self.geometry_fresh(now)):
+        # Map/TF availability gates the route executor on every tick. Losing
+        # localization after verification does not change motor response or
+        # mount geometry; keep the profile so fresh localization can resume
+        # the route. Trials still require map evidence throughout.
+        if self.phase == 'ready' and (not self.evidence_fresh(now, require_map=False) or not self.geometry_fresh(now)):
             self.sensors = self.baseline.report(now)
             self.finish(False, 'Calibration readiness revoked: sensor or map became stale/invalid')
             return

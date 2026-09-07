@@ -405,7 +405,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
         if not lidar_can_rotate(
                 (self.lidar_front, self.lidar_rear, self.lidar_left,
                  self.lidar_right, self.lidar_rear_left, self.lidar_rear_right),
-                self.robot_r, lidar_ok):
+                self.robot_r, lidar_ok, clearance_limit=self.profile.turn_clear):
             cmd.angular.z = 0.0
         # A changed twist follows a different path. Ask the caller to replan
         # instead of silently converting a curved request into straight/spin.

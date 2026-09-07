@@ -44,9 +44,9 @@ class StationaryBaseline:
                                                    for col, mean in zip(columns, means)]}
         return result
 
-    def fresh(self, now):
+    def fresh(self, now, exclude=()):
         return all(rows and rows[-1][2] and 0 <= now - rows[-1][0] <= (5. if name == 'map' else FRESH_SECONDS)
-                   for name, rows in self.samples.items())
+                   for name, rows in self.samples.items() if name not in exclude)
 
     def report(self, now):
         result = {}

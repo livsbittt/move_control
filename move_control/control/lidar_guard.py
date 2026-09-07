@@ -26,9 +26,11 @@ def lidar_blocked(raw, filtered, was_blocked, stop, clear, fresh):
     return was_blocked
 
 
-def lidar_can_rotate(ranges, radius, fresh):
+def lidar_can_rotate(ranges, radius, fresh, clearance_limit=None):
     # The body sweeps its circumradius when spinning. Unknown flank/rear
     # space is not permission to swing a corner into a wall.
-    limit = use_radius(radius) + abs(LIDAR_X) + 0.010
+    limit = use_radius(radius) + abs(LIDAR_X) + 0.010 if clearance_limit is None else clearance_limit
+    if not math.isfinite(limit) or limit < use_radius(radius)+.010:
+        return False
     return fresh and bool(ranges) and all(
         math.isfinite(value) and value > limit for value in ranges)

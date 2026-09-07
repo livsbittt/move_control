@@ -10,6 +10,7 @@ from tf2_ros import Buffer, TransformException, TransformListener
 from ..control.path_follow import ProgressGuard, follow_path
 from ..control.recover import hazard_action
 from ..control.route_recovery import RouteRecovery
+from ..sensing.pose import planar_pose
 
 
 class Navigator:
@@ -66,8 +67,7 @@ class Navigator:
         try:
             tf = self.navigation_tf.lookup_transform('map', 'base_link', Time())
             t, q = tf.transform.translation, tf.transform.rotation
-            pose = (t.x, t.y, math.atan2(2 * (q.w*q.z + q.x*q.y),
-                                        1 - 2 * (q.y*q.y + q.z*q.z)))
+            pose = planar_pose(t.x, t.y, (q.x, q.y, q.z, q.w))
             tf_age = now - (tf.header.stamp.sec + tf.header.stamp.nanosec * 1e-9)
         except TransformException:
             pass
@@ -88,10 +88,12 @@ class Navigator:
         if (self.blocked or self._on_wall()) and v > 0:
             v = 0.0
             reason = 'turn_away' if w else 'front_blocked'
+        localization_ok = pose is not None and 0 <= tf_age <= float(self.get_parameter('route_tf_timeout').value)
+        self.navigation_progress.pause(now, not localization_ok)
         if self.navigation_progress.check(now, pose, bool(v or w)):
             v, w, reason = 0.0, 0.0, 'stalled_restart_required'
         recoverable = (not hazard and not self.estop and not self.pickup and self._ir_ready()
-                       and 0 <= tf_age <= float(self.get_parameter('route_tf_timeout').value))
+                       and localization_ok)
         exit_point = None
         if pose is not None and self.navigation_route:
             exit_point = next((point for point in self.navigation_route

@@ -10,7 +10,6 @@ from tf2_ros import TransformException
 from ..sensing.body import ignore_m, use_radius
 from ..sensing.lidar import find_frontiers, is_robot_scan, opening_max, sector_range, wrap_pi
 from ..control.route import line_route
-from ..control.lidar_guard import lidar_limits
 from ..sensing.lidar_mount import nose_from_quaternion
 
 
@@ -60,6 +59,7 @@ class Bumper:
                     'base_link', msg.header.frame_id, Time.from_msg(msg.header.stamp))
                 q = tf.transform.rotation
                 self.lidar_yaw = nose_from_quaternion(q.x, q.y, q.z, q.w)
+                self.lidar_mount_xy = (tf.transform.translation.x, tf.transform.translation.y)
                 self.lidar_yaw_source = 'tf:' + msg.header.frame_id
             except (TransformException, ValueError) as error:
                 self.observe('lidar', valid=False)
@@ -179,8 +179,6 @@ class Bumper:
             self.lidar_yaw = float(self.get_parameter('lidar_yaw_offset').value)
         if self.has_parameter('robot_radius'):
             self.robot_r = self.profile.radius
-        self.stop_d, self.clear_d = lidar_limits(
-            self.stop_d, self.clear_d, self.robot_r)
         # The 8-degree centre cone missed corners in the chassis path.
         self.half_w = max(math.pi / 4, self.half_w)
         fc = float(self.get_parameter('filt_hz').value)
