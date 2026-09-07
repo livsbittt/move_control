@@ -20,7 +20,7 @@ from ..control.recover import (
 
 class Motion:
 
-    def _allow_recovery(self):
+    def _allow_recovery(self, exhausted_reason='recovery_limit'):
         budget = getattr(self, '_recovery_budget', None)
         if budget is None:
             budget = self._recovery_budget = RecoveryBudget()
@@ -28,9 +28,51 @@ class Motion:
             return True
         self.get_logger().error('recovery limit: no progress in this area; operator restart required')
         self._set_enabled(False)
-        self.stop_reason = 'recovery_limit'
-        self._announce('stop:recovery_limit')
+        self.stop_reason = exhausted_reason
+        self._announce('stop:' + exhausted_reason)
         return False
+
+    def _escape_rotation_stalled(self):
+        """A blocked spin must seek room once, then exhaust the shared budget."""
+        if not getattr(self, '_odom_fresh', lambda: False)():
+            self._set_enabled(False)
+            self.stop_reason = 'escape_odometry_stale'
+            self._publish(Twist(), 'stop:escape_odometry_stale')
+            return True
+        now = self.now().nanoseconds * 1e-9
+        watch = getattr(self, '_escape_rotation_watch', None)
+        if watch is None:
+            self._escape_rotation_watch = (now, self.odom_yaw)
+            return False
+        angle = abs(wrap_pi(self.odom_yaw-watch[1]))
+        if angle >= .05:
+            self._escape_rotation_watch = (now, self.odom_yaw)
+            return False
+        # Legacy escape flips reset t0; they are not measured progress.
+        if now-watch[0] < 8.:
+            return False
+        if not self._allow_recovery('escape_rotation_exhausted'):
+            return True
+        self._escape_rotation_watch = None
+        budget = self._recovery_budget
+        if getattr(self, '_escape_space_budget', None) is not budget:
+            self._escape_space_budget = budget
+            self._escape_space_used = False
+        if self._exit.target is not None:
+            self._exit.bench(self.odom_x, self.odom_y, self._exit.target)
+        if not self._escape_space_used and self._can_reverse() and self._backup_limit() >= .01:
+            self._escape_space_used = True
+            self._from_stuck = True
+            self._escape_backup_cap = .03
+            self._start_backup()
+        else:
+            # Do not relatch the same unreachable exit on the opposite retry.
+            self.turn_sign = -self.turn_sign
+            self._exit.target = None
+            self._mark_pose()
+            self.t0 = self.now()
+            self._publish(Twist(), 'escape_retry_opposite')
+        return True
 
     def _line_wz(self) -> float:
         """Hold a straight line toward route_yaw. No circling."""
@@ -101,12 +143,12 @@ class Motion:
         if self.blocked:
             return True
         if not self._finite(self.front_range):
-            return self.cam_block
+            return False
         far = self._far_side()
         if far is None:
-            return self.cam_block
+            return False
         f = max(self.front_range, 1e-4)
-        return far / f >= self.open_ratio or self.cam_block
+        return far / f >= self.open_ratio
 
     def _escape_can_adjust(self) -> bool:
         if not bool(self.get_parameter('auto_escape').value):
@@ -294,6 +336,7 @@ class Motion:
         self._start_escape()
 
     def _tick_forward(self):
+        self._escape_rotation_watch = None
         self._note_motion()
         if self._from_stuck_now() and self._traveled() >= STUCK_CLEAR_M:
             self._clear_stuck()
@@ -331,6 +374,7 @@ class Motion:
         self._publish(cmd, 'forward')
 
     def _tick_turn(self):
+        self._escape_rotation_watch = None
         act = hazard_action(
             self.tilt, self.cliff, self.seen_forward, self._can_reverse()
         )
@@ -371,10 +415,15 @@ class Motion:
 
     def _tick_escape(self):
         """Rotate in place toward the farthest lidar gap until it is in front."""
+        if self.estop or self.pickup or not self._ir_ready():
+            self._publish(Twist(), 'escape_safety_hold')
+            return
         if hazard_action(
             self.tilt, self.cliff, self.seen_forward, self._can_reverse()
         ) == 'backup':
             self._start_backup()
+            return
+        if self._escape_rotation_stalled():
             return
         self._look_accum()
         if not self._from_stuck_now() and self._try_turn_backup('escape objects close'):

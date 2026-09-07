@@ -16,6 +16,7 @@ The robot is not driven from here; wander/control stay in charge of motors
 (via the safety gate). /goal/cmd stop immediately revokes the published route.
 """
 import math
+import json
 import time
 
 import rclpy
@@ -49,6 +50,12 @@ class GoalNode(Node):
         self.declare_parameter('min_size', 6)
         self.declare_parameter('clear_m', 0.12)
         self.declare_parameter('retry_clear_m', 0.12)
+        self.declare_parameter('start_escape_clear_m', 0.0)
+        self.declare_parameter('start_escape_distance_m', .08)
+        self.declare_parameter('robot_radius', .076)
+        self.navigation_profile = None
+        self.navigation_profile_received = None
+        self.create_subscription(String, '/calibration/status', self.on_calibration_profile, 10)
         self.declare_parameter('lane_width', 0.12)
         self.declare_parameter('lane_step', 0.20)
         self.declare_parameter('reach_tol', 0.05)
@@ -75,7 +82,12 @@ class GoalNode(Node):
         self.create_subscription(
             Odometry, self.get_parameter('odom_topic').value, self.on_odom, 10)
         self.create_subscription(String, '/goal/cmd', self.on_cmd, 10)
+        self.create_subscription(String, '/goal/arrival', self.on_arrival, 10)
+        self.issued_routes = []
         self.goal_pub = self.create_publisher(PoseStamped, '/goal_point', 10)
+        self.manual_result_pub = self.create_publisher(String, '/goal/manual_result', 10)
+        self.manual_started_ns = None
+        self.manual_target = None
         self.route_pub = self.create_publisher(Path, '/route', 10)
         self.state_pub = self.create_publisher(String, '/goal_node/state', 10)
         self.options_pub = self.create_publisher(MarkerArray, '/goal/options', 10)
@@ -86,6 +98,8 @@ class GoalNode(Node):
         self._map_received = None
         self._map_reset_ns = 0
         self._n_options = 0  # last published /goal/options marker count
+        self.last_executable_goal = None
+        self.last_executable_exit = None
         self.ox = self.oy = 0.0
         self.have_odom = False
         self._hist = []  # (t, x, y) odom ring for the effective speed
@@ -93,6 +107,8 @@ class GoalNode(Node):
         if self.mode not in ('explore', 'coverage', 'stop'):
             self.mode = 'stop'
         self.brain = GoalBrain(
+            start_escape_clear_m=float(self.get_parameter('start_escape_clear_m').value),
+            start_escape_distance_m=float(self.get_parameter('start_escape_distance_m').value),
             min_size=int(self.get_parameter('min_size').value),
             clear_m=float(self.get_parameter('clear_m').value),
             retry_clear_m=float(self.get_parameter('retry_clear_m').value),
@@ -116,6 +132,25 @@ class GoalNode(Node):
             f'goal_node ready | mode={self.mode} '
             f'min_size={self.brain.min_size}')
 
+
+    def on_calibration_profile(self, msg):
+        self.navigation_profile = None
+        try:
+            status = json.loads(msg.data)
+            p = status.get('navigation_profile')
+            radius = float(self.get_parameter('robot_radius').value)
+            if not status.get('ready') or not isinstance(p, dict):
+                return
+            values = [p[k] for k in ('body_radius_m','map_resolution_m','minimum_clearance_m','preferred_clearance_m')]
+            if (not all(math.isfinite(v) for v in values) or abs(values[0]-radius) > .001 or
+                    not .001 <= values[1] <= .1 or
+                    not radius+.01+values[1]/2-1e-6 <= values[2] <= radius+.05 or
+                    not values[2] <= values[3] <= values[2]+.031):
+                return
+            self.navigation_profile = p
+            self.navigation_profile_received = time.monotonic()
+        except (ValueError, TypeError, KeyError):
+            pass
 
     def on_map(self, msg):
         # Keep the latest map as a planner object; planning reads it at 1 Hz.
@@ -157,8 +192,42 @@ class GoalNode(Node):
                 return d / dt if dt > 0.2 else 0.0
         return 0.0
 
+    def on_arrival(self, msg):
+        if self.mode not in ('explore', 'coverage') or self.map_obj is None:
+            return
+        try:
+            event = json.loads(msg.data)
+            stamp, target = event['route_stamp_ns'], event['target']
+            if (not isinstance(stamp, int) or isinstance(stamp, bool)
+                    or not isinstance(target, list) or len(target) != 2
+                    or not all(isinstance(v, (int, float)) and math.isfinite(v) for v in target)):
+                return
+            if not any(t == stamp and tuple(target) == xy for t, xy in self.issued_routes):
+                return
+            if (self.last_executable_goal is None or
+                    math.dist(target, self.last_executable_goal) > .005):
+                return
+            pose, _ = self.pose()
+            if pose[0] is None or math.dist(pose, target) > .04:
+                return
+        except (ValueError, KeyError, TypeError):
+            return
+        self.brain.complete_goal(self.map_obj, pose, target)
+        self._clear_route('goal reached; selecting next target')
+        self.plan()
+
     def on_cmd(self, msg):
         cmd = msg.data.strip().lower()
+        if cmd == 'replan':
+            if self.mode == 'stop':
+                return
+            if self.mode != 'manual':
+                self.brain.avoid_goal(self.last_executable_goal)
+            self.brain.avoid_route_exit(self.last_executable_exit)
+            self.last_executable_goal = None
+            self._clear_route('replanning: failed target excluded; seeking alternative')
+            self.plan()
+            return
         if cmd == 'reset':
             self.mode = 'stop'
             self.brain.reset()
@@ -168,6 +237,8 @@ class GoalNode(Node):
             self._clear_route('map reset; stopped')
             return
         if cmd in ('explore', 'coverage', 'stop'):
+            if cmd != 'stop':
+                self.brain.restart_recovery()
             self.mode = cmd
             self.brain.mode = 'explore' if cmd == 'stop' else cmd
             self.brain.clear_manual()
@@ -176,7 +247,10 @@ class GoalNode(Node):
             return
         xy = parse_goal_cmd(cmd)
         if xy is not None:
-            self.mode = 'explore'
+            self.mode = 'manual'
+            self.brain.mode = 'manual'
+            self.manual_started_ns = self.get_clock().now().nanoseconds
+            self.manual_target = list(xy)
             self.brain.set_manual(*xy)
             self._clear_route('manual goal waiting for route')
             self.get_logger().info(
@@ -225,7 +299,21 @@ class GoalNode(Node):
             float(self.get_parameter('retry_clear_m').value), m.res))
         self.brain.escape_clear_m = max(self.brain.clear_m, grid_clearance(
             float(self.get_parameter('escape_clear_m').value), m.res))
+        self.brain.start_escape_clear_m = float(self.get_parameter('start_escape_clear_m').value)
+        profile = self.navigation_profile
+        if (profile is not None and self.navigation_profile_received is not None and
+                time.monotonic()-self.navigation_profile_received <= 3. and
+                abs(profile['map_resolution_m']-m.res) < 1e-6):
+            self.brain.clear_m = self.brain.retry_clear_m = profile['preferred_clearance_m']
+            self.brain.start_escape_clear_m = profile['minimum_clearance_m']
         goal, route, status = self.brain.plan(m, (x, y))
+        if self.mode == 'manual' and self.brain._manual is None:
+            self.mode = 'stop'
+            self._clear_route(status)
+            self.manual_result_pub.publish(String(data=json.dumps({
+                'started_ns': self.manual_started_ns, 'status': status,
+                'target': self.manual_target})))
+            return
         if self.get_parameter('debug').value:
             self.get_logger().info(
                 f'plan covered={len(self.brain.covered)} '
@@ -239,6 +327,7 @@ class GoalNode(Node):
 
     def _clear_route(self, status=None):
         """Revoke old routes immediately; silence is not a stop command."""
+        self.issued_routes.clear()
         path = Path()
         path.header.frame_id = 'map'
         path.header.stamp = self.get_clock().now().to_msg()
@@ -305,7 +394,12 @@ class GoalNode(Node):
         self.options_pub.publish(arr)
 
     def _pub_goal(self, x, y, route):
+        self.last_executable_goal = (x,y)
+        points = route['points']
+        self.last_executable_exit = next((p for p in points if math.dist(p, points[0]) >= .06), points[-1])
         stamp = self.get_clock().now().to_msg()
+        self.issued_routes.append((stamp.sec*1000000000+stamp.nanosec, (x, y)))
+        self.issued_routes = self.issued_routes[-8:]
         gp = PoseStamped()
         gp.header.frame_id = 'map'
         gp.header.stamp = stamp

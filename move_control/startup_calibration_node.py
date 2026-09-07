@@ -5,6 +5,8 @@ import os
 from pathlib import Path
 import tempfile
 import time
+import socket
+from types import SimpleNamespace
 
 import numpy as np
 import rclpy
@@ -21,7 +23,12 @@ from .control.calibration import (StationaryBaseline, MOTION_SPEED, MOTION_SECON
 from .sensing.lidar import NOSE_YAW, is_robot_scan, sector_range
 from .sensing.lidar_mount import nose_from_quaternion
 from .sensing.range_filter import CalibrationRangeFilter
+from .sensing.wall_tracker import WallTracker
 from .control.round_trip import RoundTrip
+from .control.calibration_certificate import make_certificate, validate_certificate
+from .control.calibration_clearance import motion_clearance
+from .control.navigation_calibration import environment_profile, map_ray
+from .planning import OccupancyMap
 
 
 class StartupCalibrationNode(Node):
@@ -34,6 +41,7 @@ class StartupCalibrationNode(Node):
         self.declare_parameter('calibration_us_max_range', 3.0)
         self.declare_parameter('calibration_round_trip', False)
         self.declare_parameter('calibration_distance_m', .03)
+        self.declare_parameter('robot_radius', .076)
         self.declare_parameter('result_path', str(Path.home() / '.local/state/move_control/calibration.json'))
         latched = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL,
                              reliability=ReliabilityPolicy.RELIABLE)
@@ -53,11 +61,12 @@ class StartupCalibrationNode(Node):
         self.create_subscription(Imu, '/imu_raw', self.on_imu, 10)
         self.create_subscription(Image, '/camera/front', self.on_camera, qos_profile_sensor_data)
         self.hazards = {}
+        self.safety_limits = (0., {})
+        self.create_subscription(String, '/safety/motion_limits', self.on_motion_limits, 10)
         self.rear_clear = (0., False)
         self.create_subscription(Bool, '/safety/can_reverse',
             lambda msg: setattr(self, 'rear_clear', (time.monotonic(), msg.data)), 10)
-        for topic in ('/safety/blocked', '/safety/cliff', '/safety/tilt', '/safety/pickup',
-                      '/camera/blocked', '/camera/cliff'):
+        for topic in ('/safety/blocked', '/safety/cliff', '/safety/tilt', '/safety/pickup'):
             self.create_subscription(Bool, topic,
                 lambda msg, key=topic: self.hazards.__setitem__(key, (time.monotonic(), msg.data)), 10)
         self.tf = Buffer()
@@ -67,21 +76,35 @@ class StartupCalibrationNode(Node):
         self.estop = None
         self.wander_state = ('', 0.)
         self.reset()
+        self.restore_certificate()
         self.timer = self.create_timer(.05, self.tick)
 
-    def reset(self):
+    def reset(self, invalidate_certificate=False):
+        if invalidate_certificate:
+            self.certificate_path().unlink(missing_ok=True)
         self.zero()
         self.wander_pub.publish(String(data='stop'))
         self.baseline = StationaryBaseline(
             require_us_stable=bool(self.get_parameter('calibration_require_us_agreement').value))
         self.range_filters = {name: CalibrationRangeFilter() for name in ('lidar', 'us')}
+        self.wall_tracker = WallTracker()
         self.raw_ranges = {}
+        self.us_source_valid = False
         self.phase, self.message = 'collecting', 'Keep robot stationary on safe level floor'
         self.started = time.monotonic()
         self.motion_start = None
+        self.precision_pause_started = None
+        self.precision_pause_total = 0.
+        self.runtime_ready = True
+        self.runtime_healthy_since = None
+        self.selected_target = None
+        self.motion_clearance = {}
         self.round_trip = None
         self.motion = None
         self.baseline_values = {}
+        self.environment_samples = []
+        self.environment_map = None
+        self.navigation_profile = None
         self.requested = None
         self.sensors = self.baseline.report(self.started)
         self.last_report = 0.
@@ -127,7 +150,40 @@ class StartupCalibrationNode(Node):
             valid = False
         distance = sector_range(msg, self.lidar_nose,
                                 math.radians(12), pctl=.1) if valid else math.inf
-        self.add_range('lidar', distance, valid)
+        pose = self.baseline.latest('odom')
+        odom_rows = self.baseline.samples['odom']
+        if not odom_rows or not 0 <= time.monotonic()-odom_rows[-1][0] <= .2:
+            pose = None
+        if self.phase == 'ready':
+            # A navigation turn may leave the calibration wall entirely.
+            # Runtime sensor health uses actual scan returns, not a wall fit.
+            precision = distance
+        elif valid and pose is not None:
+            p = transform.transform.translation
+            precision = self.wall_tracker.update(msg, self.lidar_nose,
+                locked=self.phase == 'validating_motion', pose=pose[:3], mount=(p.x, p.y),
+                now=time.monotonic())
+        else:
+            precision = math.inf
+        self.add_range('lidar', precision, valid and math.isfinite(precision))
+        # Braking still observes the original raw cone; the fitted wall only
+        # supplies measurement evidence and cannot hide a closer obstacle.
+        self.raw_ranges['lidar'] = (time.monotonic(), distance, valid and math.isfinite(distance))
+        if valid and self.phase in ('collecting', 'waiting_motion'):
+            left = sector_range(msg, self.lidar_nose+math.pi/2, math.radians(8), pctl=.5)
+            right = sector_range(msg, self.lidar_nose-math.pi/2, math.radians(8), pctl=.5)
+            mapped = [None, None]
+            try:
+                t = self.tf.lookup_transform('map', msg.header.frame_id, rclpy.time.Time())
+                q, p = t.transform.rotation, t.transform.translation
+                yaw = math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z))
+                if self.environment_map is not None:
+                    mapped = [map_ray(self.environment_map, (p.x,p.y), yaw+self.lidar_nose+side*math.pi/2)
+                              for side in (1,-1)]
+            except Exception:
+                pass
+            self.environment_samples.append((time.monotonic(), (left,right,*mapped)))
+            self.environment_samples = self.environment_samples[-50:]
 
     def on_odom(self, msg):
         p, q, v = msg.pose.pose.position, msg.pose.pose.orientation, msg.twist.twist.linear
@@ -140,6 +196,8 @@ class StartupCalibrationNode(Node):
         valid = (msg.header.frame_id == 'map' and msg.info.width > 0 and msg.info.height > 0 and
                  len(msg.data) == msg.info.width * msg.info.height and msg.info.resolution > 0)
         self.add('map', (known, msg.info.resolution), valid and self.stamped(msg, 5.))
+        if valid:
+            self.environment_map = OccupancyMap.from_msg(msg)
 
     def on_ir(self, msg):
         values = tuple(msg.data[:3])
@@ -148,7 +206,8 @@ class StartupCalibrationNode(Node):
 
     def on_us(self, msg):
         maximum = min(msg.max_range, float(self.get_parameter('calibration_us_max_range').value))
-        self.add_range('us', msg.range, self.stamped(msg) and max(.02, msg.min_range) < msg.range < maximum)
+        self.us_source_valid = self.stamped(msg)
+        self.add_range('us', msg.range, self.us_source_valid and max(.02, msg.min_range) < msg.range < maximum)
 
     def on_imu(self, msg):
         a, g, q = msg.linear_acceleration, msg.angular_velocity, msg.orientation
@@ -161,10 +220,12 @@ class StartupCalibrationNode(Node):
         gx, gy, gz = g.x * scale, g.y * scale, g.z * scale
         gyro = math.sqrt(gx*gx+gy*gy+gz*gz)
         tilt = max(abs(roll), abs(pitch))
+        # Stationary gyro limits qualify calibration, not normal route turns.
+        # Runtime tilt, timestamps, finite values and gravity remain required.
         self.add('imu', (gravity, gyro, tilt,
                          gx, gy, gz, a.x, a.y, a.z, roll, pitch),
                  unit in ('rad_s', 'deg_s') and self.stamped(msg) and .9 <= norm <= 1.1 and 8 <= gravity <= 11.5 and
-                 gyro < .15 and tilt < math.radians(20))
+                 (self.phase == 'ready' or gyro < .15) and tilt < math.radians(20))
 
     def on_camera(self, msg):
         pixels = np.frombuffer(bytes(msg.data), np.uint8)
@@ -197,40 +258,183 @@ class StartupCalibrationNode(Node):
         except Exception:
             self.add('map_tf', (0., 0., 0.), False)
 
+    def on_motion_limits(self, msg):
+        try:
+            data = json.loads(msg.data)
+            self.safety_limits = (time.monotonic(), data if isinstance(data, dict) else {})
+        except (ValueError, TypeError):
+            self.safety_limits = (0., {})
+
     def safe_motion(self, now):
+        stamp, limits = self.safety_limits
+        if not 0 <= now-stamp <= .75:
+            self.motion_clearance = {'reason': 'Missing fresh safety motion limits', 'target_m': None}
+            return self.motion_clearance['reason']
+        limits = dict(limits)
+        lidar_raw = self.raw_ranges.get('lidar', (0., 0., False))
+        if isinstance(limits.get('front_m'), (int, float)) and lidar_raw[2]:
+            limits['front_m'] = min(limits['front_m'], lidar_raw[1])
+        if (limits.get('translation_mode') is True and lidar_raw[2] and
+                isinstance(limits.get('front_stop_m'), (int, float)) and
+                lidar_raw[1] <= limits['front_stop_m']):
+            self.motion_clearance = {'reason': 'Raw nose range inside chassis stop clearance', 'target_m': None}
+            return self.motion_clearance['reason']
+        us_raw = self.raw_ranges.get('us', (0., 0., False))
+        optional_us = not self.get_parameter('calibration_require_us_agreement').value
+        limits['us_optional'] = optional_us
+        limits['us_m'] = us_raw[1] if us_raw[2] else None
+        forward = 0.
+        if self.motion_start is not None:
+            current = self.snapshot()
+            if not self.precision_sensors_fresh(now) or any(value is None for key, value in current.items() if key != 'us' or not optional_us):
+                return self.sensor_failure(now)
+            forward = motion_evidence(self.motion_start[1], current)['lidar_delta_m']
+        round_trip = bool(self.get_parameter('calibration_round_trip').value)
+        requested = float(self.get_parameter('calibration_distance_m').value) if round_trip else MOTION_LIMIT
+        self.motion_clearance = motion_clearance(limits, requested,
+            target=self.selected_target, forward=forward, round_trip=round_trip)
+        if self.motion_clearance['reason']:
+            return self.motion_clearance['reason']
         if self.estop is not False:
             return 'Emergency stop must be explicitly released'
         if self.get_parameter('calibration_round_trip').value:
             stamp, clear = self.rear_clear
             if not clear or now - stamp > .75:
                 return 'Round-trip requires fresh rear clearance for safe return'
-        if not self.baseline.fresh(now):
-            return 'Sensor data became stale or invalid'
-        for stamp, distance, valid in self.raw_ranges.values():
-            if not valid or now - stamp > 1. or distance < .20:
+        if not self.precision_sensors_fresh(now):
+            return self.sensor_failure(now)
+        for name in ('lidar', 'us'):
+            stamp, distance, valid = self.raw_ranges.get(name, (0., 0., False))
+            if name == 'us' and optional_us and self.us_source_valid and 0 <= now-stamp <= 1.:
+                continue
+            if not valid or not 0 <= now - stamp <= 1. or distance <= 0.:
                 return 'Raw range unsafe or stale; filtered values cannot authorize motion'
-        if len(self.hazards) != 6 or any(now - t > .75 or active for t, active in self.hazards.values()):
-            return 'Safety/camera hazard or missing fresh safety state'
-        if min(self.baseline.latest('lidar')[0], self.baseline.latest('us')[0]) < .20:
-            return 'Need at least 20 cm clear range for motion validation'
+        required = ('/safety/blocked', '/safety/cliff', '/safety/tilt', '/safety/pickup')
+        if any(key not in self.hazards or now - self.hazards[key][0] > .75
+               or self.hazards[key][1] for key in required):
+            return 'Safety hazard or missing fresh safety state'
         return None
+
+    def precision_sensors_fresh(self, now):
+        return all(item['eligible'] for item in self.runtime_health(now).values())
+
+    def stationary_report(self, now):
+        result = self.baseline.report(now)
+        if not self.get_parameter('calibration_require_us_agreement').value:
+            result['us'] = self.runtime_health(now)['us']
+        return result
+
+    def sensor_failure(self, now):
+        failures = []
+        for name, rows in self.baseline.samples.items():
+            if not rows or not rows[-1][2] or not 0 <= now-rows[-1][0] <= (5. if name == 'map' else 1.):
+                detail = 'no sample' if not rows else f'valid={rows[-1][2]}, age={now-rows[-1][0]:.3f}s'
+                if name == 'lidar':
+                    detail += ', wall=' + str(self.wall_tracker.diagnostic)
+                failures.append(name + ': ' + detail)
+        return 'Sensor data became stale or invalid: ' + '; '.join(failures)
+
+    def pause_precision(self, now):
+        # An ambiguous measurement is never permission to coast. Only this
+        # precision channel may wait; raw braking and all other sensors remain
+        # mandatory. Keep the same locked wall and bound the stationary wait.
+        if self.estop is not False or self.motion_start is None or self.round_trip is None:
+            return False
+        if self.wall_tracker.diagnostic.get('reason') not in (
+                'Tracked wall missing or ambiguous', 'Waiting for three associated scans'):
+            return False
+        for name, item in self.runtime_health(now).items():
+            if name != 'lidar' and not item['eligible']:
+                return False
+        odom_rows = self.baseline.samples['odom']
+        if not odom_rows or not 0 <= now-odom_rows[-1][0] <= .2:
+            return False
+        stamp, limits = self.safety_limits
+        if not 0 <= now-stamp <= .75:
+            return False
+        for name, stop_key in (('lidar', 'front_stop_m'), ('us', 'us_stop_m')):
+            stamp, distance, valid = self.raw_ranges.get(name, (0., 0., False))
+            if (name == 'us' and not valid and self.us_source_valid and 0 <= now-stamp <= .2
+                    and not self.get_parameter('calibration_require_us_agreement').value):
+                continue
+            stop = limits.get(stop_key)
+            if not valid or not 0 <= now-stamp <= .2 or not isinstance(stop, (float, int)) or distance <= stop:
+                return False
+        if any(key not in self.hazards or not 0 <= now-self.hazards[key][0] <= .75 or self.hazards[key][1]
+               for key in ('/safety/blocked', '/safety/cliff', '/safety/tilt', '/safety/pickup')):
+            return False
+        if self.precision_pause_started is None:
+            self.precision_pause_started = now
+        elapsed = now-self.precision_pause_started
+        if elapsed > 1.:
+            return False
+        self.zero()
+        self.round_trip.pause(now)
+        if self.round_trip.error:
+            return False
+        self.message = 'Precision LiDAR paused at zero speed; reacquiring the same wall (maximum 1s)'
+        self.publish()
+        return True
+
+    def certificate_path(self):
+        return Path(str(self.get_parameter('result_path').value)).expanduser().with_suffix('.certificate.json')
+
+    def certificate_configuration(self):
+        keys = ('robot_radius', 'lidar_yaw_offset', 'imu_angular_velocity_unit',
+                'calibration_round_trip', 'calibration_distance_m', 'calibration_us_max_range',
+                'calibration_require_us_agreement')
+        try:
+            machine_id = Path('/etc/machine-id').read_text().strip()
+        except OSError:
+            machine_id = socket.gethostname()
+        return {'robot_host': socket.gethostname(), 'machine_id': machine_id,
+                **{key: self.get_parameter(key).value for key in keys}}
+
+    def restore_certificate(self):
+        try:
+            saved = json.loads(self.certificate_path().read_text())
+            motion = validate_certificate(saved, self.certificate_configuration())
+        except (OSError, ValueError, TypeError):
+            return
+        if motion is None:
+            return
+        self.motion = motion
+        self.round_trip = SimpleNamespace(done=True, scales=[motion['forward_scale'], motion['reverse_scale']])
+        self.phase = 'ready'
+        self.runtime_ready = False
+        self.runtime_healthy_since = None
+        self.message = 'Saved calibration restored; checking current sensors without motion'
+        self.publish()
+        return True
 
     def on_command(self, msg):
         command = msg.data.strip().lower()
         if command == 'abort':
             self.finish(False, 'Calibration aborted', 'aborted')
         elif command == 'retry':
-            self.reset()
+            self.reset(invalidate_certificate=True)
+        elif command == 'sensor_check' and self.phase == 'ready':
+            self.zero()
+            self.wander_pub.publish(String(data='stop'))
+            self.runtime_ready = False
+            self.runtime_healthy_since = None
+            self.message = 'Saved calibration retained; checking current sensors without motion'
+            self.publish()
         elif command == 'validate_motion':
             now = time.monotonic()
-            self.sensors = self.baseline.report(now)
+            self.sensors = self.stationary_report(now)
             reason = self.safe_motion(now)
-            if self.phase != 'waiting_motion' or not all(s['ok'] for s in self.sensors.values()) or reason:
+            if self.phase != 'waiting_motion' or not all(s.get('eligible', s['ok']) for s in self.sensors.values()) or reason:
                 self.message = reason or 'A fresh stable stationary baseline is required first'
                 self.publish()
                 return
             self.wander_pub.publish(String(data='stop'))
+            self.selected_target = self.motion_clearance['target_m']
             self.baseline_values = self.baseline.statistics(now)
+            if self.environment_map is not None:
+                self.navigation_profile = environment_profile(
+                    float(self.get_parameter('robot_radius').value), self.environment_map.res,
+                    [row for stamp,row in self.environment_samples if now-stamp <= 5.])
             self.phase, self.message = 'validating_motion', 'Waiting for wander stop before bounded forward validation'
             self.requested = now
             self.publish()
@@ -238,20 +442,71 @@ class StartupCalibrationNode(Node):
     def snapshot(self):
         return {name: self.baseline.latest(name) for name in ('odom', 'lidar', 'us', 'map_tf')}
 
+    def runtime_health(self, now):
+        """Current availability, never stationary motion/variance criteria."""
+        result = {}
+        for name, rows in self.baseline.samples.items():
+            fresh = bool(rows) and 0 <= now-rows[-1][0] <= (5. if name == 'map' else 1.)
+            valid = bool(rows) and rows[-1][2]
+            advisory_echo = name == 'us' and not self.get_parameter('calibration_require_us_agreement').value
+            eligible = fresh and (valid or (advisory_echo and self.us_source_valid))
+            detail = 'Live sensor data valid; stationary limits do not apply during driving'
+            if not fresh:
+                detail = 'Waiting for fresh sensor data; saved calibration retained'
+            elif not valid:
+                detail = ('Ultrasonic source timestamp invalid; saved calibration retained'
+                          if advisory_echo and not self.us_source_valid else
+                          'Ultrasonic echo unavailable; LiDAR clearance remains authoritative'
+                          if advisory_echo else 'Invalid sensor data; saved calibration retained')
+            result[name] = dict(ok=fresh and valid, eligible=eligible,
+                status='ok' if fresh and valid else 'advisory' if eligible else 'stale' if not fresh else 'invalid',
+                samples=len(rows), detail=detail)
+        return result
+
     def tick(self):
         self.read_tf()
         # TF collection timestamps its own samples; evaluate freshness after it.
         now = time.monotonic()
-        if self.phase == 'ready' and not self.baseline.fresh(now):
-            self.sensors = self.baseline.report(now)
-            self.finish(False, 'Calibration readiness revoked: sensor or map became stale/invalid')
+        if self.phase == 'ready':
+            previously_ready = self.runtime_ready
+            self.sensors = self.runtime_health(now)
+            missing = [name for name, item in self.sensors.items() if not item['eligible']]
+            if missing:
+                self.zero()
+                if self.runtime_ready:
+                    self.wander_pub.publish(String(data='stop'))
+                self.runtime_ready = False
+                self.runtime_healthy_since = None
+                self.message = 'Saved calibration retained; rechecking sensors: ' + ', '.join(missing)
+            elif not self.runtime_ready:
+                self.zero()
+                if self.runtime_healthy_since is None:
+                    self.runtime_healthy_since = now
+                if now-self.runtime_healthy_since >= 1.:
+                    self.runtime_ready = True
+                    self.message = 'Saved calibration retained; sensor checks recovered'
+            if previously_ready != self.runtime_ready or now-self.last_report >= .5:
+                self.publish()
             return
         if self.phase in ('collecting', 'waiting_motion'):
-            self.sensors = self.baseline.report(now)
-            valid = all(sensor['ok'] for sensor in self.sensors.values())
+            self.sensors = self.stationary_report(now)
+            # Display current clearance even while sensor qualification waits.
+            # This only calculates evidence; it does not authorize movement.
+            self.safe_motion(now)
+            for name in ('lidar', 'us'):
+                stamp, distance, valid_range = self.raw_ranges.get(name, (0., math.inf, False))
+                shown = f'{distance:.3f}m' if math.isfinite(distance) else 'no return'
+                self.sensors[name]['detail'] += f'; raw={shown} valid={valid_range} age={max(0., now-stamp):.2f}s'
+                if name == 'lidar':
+                    self.sensors[name]['detail'] += '; wall=' + str(self.wall_tracker.diagnostic)
+            valid = all(sensor.get('eligible', sensor['ok']) for sensor in self.sensors.values())
             self.phase = 'waiting_motion' if valid else 'collecting'
             if valid:
                 self.baseline_values = self.baseline.statistics(now)
+                if self.environment_map is not None:
+                    self.navigation_profile = environment_profile(
+                        float(self.get_parameter('robot_radius').value), self.environment_map.res,
+                        [row for stamp,row in self.environment_samples if now-stamp <= 5.])
             self.message = 'Keep stationary; waiting for healthy stable sensors'
             if valid:
                 if self.get_parameter('calibration_auto_motion').value:
@@ -264,8 +519,23 @@ class StartupCalibrationNode(Node):
         elif self.phase == 'validating_motion':
             reason = self.safe_motion(now)
             if reason:
+                if reason.startswith('Sensor data became stale or invalid') and self.pause_precision(now):
+                    return
+                if self.precision_pause_started is not None:
+                    elapsed = now-self.precision_pause_started
+                    if elapsed > 1.:
+                        reason = self.precision_timeout_message(elapsed)
                 self.finish(False, reason)
                 return
+            if self.precision_pause_started is not None:
+                elapsed = now-self.precision_pause_started
+                if elapsed > 1.:
+                    self.finish(False, self.precision_timeout_message(elapsed))
+                    return
+                self.precision_pause_total += elapsed
+                self.precision_pause_started = None
+                if self.round_trip is not None:
+                    self.round_trip.pause(now)
             state, seen = self.wander_state
             if not state.startswith('stop') or seen < self.requested or now - seen > .75:
                 self.zero()
@@ -279,7 +549,7 @@ class StartupCalibrationNode(Node):
                 self.motion_start = (now, self.snapshot())
                 if self.get_parameter('calibration_round_trip').value:
                     self.round_trip = RoundTrip(now, self.snapshot(),
-                        float(self.get_parameter('calibration_distance_m').value))
+                        self.selected_target)
             if self.round_trip is not None:
                 speed = self.round_trip.update(now, self.snapshot())
                 self.motion = self.round_trip.report()
@@ -302,7 +572,7 @@ class StartupCalibrationNode(Node):
                     abs(evidence['yaw_drift_rad']) > .15):
                 self.finish(False, 'Unexpected motion direction or yaw drift')
                 return
-            if now - self.motion_start[0] >= MOTION_SECONDS or evidence['distance_m'] >= MOTION_LIMIT:
+            if now - self.motion_start[0] >= MOTION_SECONDS or evidence['distance_m'] >= self.selected_target:
                 passed, checks = motion_result(evidence,
                     require_us=bool(self.get_parameter('calibration_require_us_agreement').value))
                 self.motion['checks'] = checks
@@ -314,15 +584,24 @@ class StartupCalibrationNode(Node):
         if now - self.last_report >= .5:
             self.publish()
 
+    def precision_timeout_message(self, elapsed):
+        return ('Precision LiDAR reacquisition time exceeded: '
+                f'episode={elapsed:.2f}/1.00s, paused_total={self.precision_pause_total+elapsed:.2f}s; '
+                'overall motion remains limited to 35s')
+
     def report(self):
         imu = self.baseline_values.get('imu', {}).get('mean', [])
         lidar = self.baseline_values.get('lidar', {}).get('mean', [])
         us = self.baseline_values.get('us', {}).get('mean', [])
-        return {'phase': self.phase, 'ready': self.phase == 'ready', 'message': self.message,
+        return {'phase': 'sensor_hold' if self.phase == 'ready' and not self.runtime_ready else self.phase,
+                'ready': self.phase == 'ready' and self.runtime_ready,
+                'calibration_verified': self.phase == 'ready', 'message': self.message,
                 'auto_motion': bool(self.get_parameter('calibration_auto_motion').value),
                 'us_precision_required': bool(self.get_parameter('calibration_require_us_agreement').value),
                 'elapsed_s': round(time.monotonic() - self.started, 2),
                 'sensors': self.sensors, 'motion': self.motion, 'baseline': self.baseline_values,
+                'navigation_profile': self.navigation_profile,
+                'motion_clearance': self.motion_clearance,
                 'estimates': {'imu_gyro_bias_rad_s': imu[3:6], 'imu_gravity_mean_mps2': imu[6:9],
                               'imu_roll_pitch_baseline_rad': imu[9:11],
                               'lidar_us_range_difference_m': lidar[0] - us[0] if lidar and us else None},
@@ -338,27 +617,36 @@ class StartupCalibrationNode(Node):
         scales = self.round_trip.scales if self.phase == 'ready' and self.round_trip and self.round_trip.done else [1., 1.]
         self.scale_pub.publish(Float32MultiArray(data=scales))
         self.status_pub.publish(String(data=json.dumps(self.report(), allow_nan=False)))
-        self.ready_pub.publish(Bool(data=self.phase == 'ready'))
+        self.ready_pub.publish(Bool(data=self.phase == 'ready' and self.runtime_ready))
 
     def finish(self, passed, message, phase=None):
         self.zero()
         self.phase = phase or ('ready' if passed else 'failed')
+        self.runtime_ready = bool(passed)
+        self.runtime_healthy_since = None
         self.message = message
         self.motion_start = None
         try:
+            if passed and self.round_trip is not None and self.round_trip.done:
+                certificate = make_certificate(self.certificate_configuration(), self.motion)
+                self.write_json(self.certificate_path(), certificate)
             self.persist()
         except (OSError, ValueError) as exc:
             self.phase, self.message = 'failed', f'Cannot persist calibration result: {exc}'
         self.publish()
 
     def persist(self):
+        path = Path(str(self.get_parameter('result_path').value)).expanduser()
+        self.write_json(path, self.report())
+
+    @staticmethod
+    def write_json(path, value):
         temporary = None
         try:
-            path = Path(str(self.get_parameter('result_path').value)).expanduser()
             path.parent.mkdir(parents=True, exist_ok=True)
             with tempfile.NamedTemporaryFile('w', dir=path.parent, delete=False) as stream:
                 temporary = stream.name
-                json.dump(self.report(), stream, allow_nan=False, indent=2)
+                json.dump(value, stream, allow_nan=False, indent=2)
                 stream.flush()
                 os.fsync(stream.fileno())
             os.replace(temporary, path)

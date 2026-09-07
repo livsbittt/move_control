@@ -32,20 +32,72 @@ function dashboard() {
   const html = fs.readFileSync(path.join(__dirname, '../web/dashboard.html'), 'utf8');
   const source = html.match(/<script>([\s\S]*?)<\/script>/)[1];
   vm.runInContext(source.replace(/\}\)\(\);\s*$/, 
-    'globalThis.mappingTest = {S, renderMapping, renderNavigation, mappingAction, loadMap, bucket};})();'), context);
+    'globalThis.mappingTest = {S, renderMapping, renderNavigation, mappingAction, loadMap, bucket, saveMapImage, sendPin};})();'), context);
   return {context, elements, images, ...context.mappingTest};
 }
+
+test('manual pin sends only a goal and reports rejected commands', async () => {
+  const d = dashboard();
+  await new Promise(resolve => setImmediate(resolve));
+  d.S.pin = {x:.2,y:.1};
+  d.S.data = {calibration_ready:true,calibration:{ready:true},estop:false};
+  const calls=[];
+  d.context.fetch=async (url,options) => {calls.push([url,options.body]);return {ok:false,json:async()=>({error:'not ready'})};};
+  await d.sendPin();
+  assert.equal(calls.length,1);
+  assert.match(calls[0][0],/\/goal$/);
+  assert.equal(calls[0][1],'0.200,0.100');
+  assert.equal(d.elements.get('calibrationerror').textContent,'not ready');
+  d.S.data.estop=true;
+  await d.sendPin();
+  assert.equal(calls.length,1);
+});
 
 test('unavailable SLAM disables controls; resume only enabled while paused', () => {
   const d = dashboard();
   d.renderMapping(null);
   assert.equal(d.elements.get('mapreset').disabled, true);
+  assert.equal(d.elements.get('mapsave').disabled, true);
   assert.equal(d.elements.get('mapresume').disabled, true);
   d.renderMapping({available: true, paused: false});
   assert.equal(d.elements.get('mapreset').disabled, false);
   assert.equal(d.elements.get('mapresume').disabled, true);
   d.renderMapping({available: true, paused: true});
   assert.equal(d.elements.get('mapresume').disabled, false);
+});
+
+test('map export downloads native map PNG and rejects a reset during fetch', async () => {
+  const d=dashboard();
+  await new Promise(resolve => setImmediate(resolve));
+  const downloads=[], blobs=[], urls=[];
+  d.context.document.createElement=() => {const a={click:() => downloads.push(a)};return a;};
+  d.context.URL={createObjectURL:b => {blobs.push(b);return 'blob:map';},revokeObjectURL:()=>{}};
+  d.S.mapEpoch=1;
+  d.S.data.map=[64,16,.02,0,0,7];
+  d.S.data.map_control={available:true,paused:false};
+  d.S.img={im:{},gen:7};
+  d.S.view.z=8;
+  const png={type:'image/png',size:123};
+  d.context.fetch=async url => {urls.push(url);return {ok:true,blob:async()=>png};};
+  d.renderMapping(d.S.data.map_control);
+  assert.equal(d.elements.get('mapsave').disabled,false);
+  await d.saveMapImage();
+  assert.match(urls[0],/\/map\.png\?g=7$/);
+  assert.equal(blobs[0],png);
+  assert.match(downloads[0].download,/^pinky-map-.*\.png$/);
+  d.context.fetch=async()=>{d.S.mapEpoch=2;return {ok:true,blob:async()=>png};};
+  await d.saveMapImage();
+  assert.equal(downloads.length,1);
+  d.S.runtimeId='before';
+  d.context.fetch=async url=>{assert.match(url,/session=before$/);d.S.runtimeId='after';return {ok:true,blob:async()=>png};};
+  await d.saveMapImage();
+  assert.equal(downloads.length,1);
+  d.S.mappingBusy=true;
+  d.renderMapping(d.S.data.map_control);
+  assert.equal(d.elements.get('mapsave').disabled,true);
+  d.S.mappingBusy=false;d.S.data.map=null;
+  d.renderMapping(d.S.data.map_control);
+  assert.equal(d.elements.get('mapsave').disabled,true);
 });
 
 test('canceling reset sends no request', async () => {

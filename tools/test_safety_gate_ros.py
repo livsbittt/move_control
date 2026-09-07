@@ -1,14 +1,55 @@
 """Local ROS safety-node tests. A dedicated domain never joins the robot."""
 import unittest
+import json
 from unittest.mock import Mock
 
 import rclpy
+from rclpy.parameter import Parameter
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool, Float32MultiArray
 from move_control.safety.node import SafetyNode
 
 
 class SafetyGateTest(unittest.TestCase):
+    def test_verified_translation_uses_body_clearance_but_turning_keeps_circle(self):
+        from rclpy.parameter import Parameter
+        self.node.set_parameters([Parameter('footprint_guard_enabled', value=True),
+                                  Parameter('lidar_use_tf', value=True)])
+        self.node.release_estop()
+        self.node.lidar_mount = (-.017, 0.)
+        self.node.translation_clearance = (.03, .03)
+        self.node.last_scan_time = self.node.now()
+        self.node.lidar_measurement_time = self.node.now()
+        for field in ('lidar_front', 'lidar_rear', 'lidar_left', 'lidar_right',
+                      'lidar_rear_left', 'lidar_rear_right'):
+            setattr(self.node, field, .1)
+        command = Twist()
+        command.linear.x = .008
+        self.node.on_cmd(command)
+        self.node.tick()
+        self.assertGreater(self.node.pub.publish.call_args.args[0].linear.x, 0.)
+        measured = self.node.lidar_measurement_time
+        self.node.lidar_measurement_time = None
+        self.node.tick()
+        self.assertEqual(self.node.pub.publish.call_args.args[0].linear.x, 0.)
+        self.node.lidar_measurement_time = measured
+        self.node.on_drive_scale(Float32MultiArray(data=[1.25, 1.25]))
+        self.node.on_drive_ready(Bool(data=True))
+        command.linear.x = .014
+        self.node.on_cmd(command)
+        self.node.tick()
+        self.assertEqual(self.node.pub.publish.call_args.args[0].linear.x, 0.)
+        command.linear.x = .008
+        self.node.on_cmd(command)
+        self.node.translation_clearance = (0., .03)
+        self.node.tick()
+        self.assertEqual(self.node.pub.publish.call_args.args[0].linear.x, 0.)
+        self.node.translation_clearance = (.03, .03)
+        command.angular.z = .1
+        self.node.on_cmd(command)
+        self.node.tick()
+        self.assertEqual(self.node.pub.publish.call_args.args[0].linear.x, 0.)
+
     @classmethod
     def setUpClass(cls):
         rclpy.init(domain_id=217)
@@ -79,3 +120,36 @@ class SafetyGateTest(unittest.TestCase):
         published = self.node.pub.publish.call_args.args[0]
         self.assertEqual(published.linear.x, 0.0)
         self.assertEqual(published.angular.z, 0.0)
+
+    def test_camera_observations_cannot_block_clear_lidar(self):
+        self.node.release_estop()
+        self.node.last_scan_time = self.node.now()
+        self.node.last_cam_time = self.node.now()
+        self.node.cam_block = self.node.cam_cliff = True
+        for field in ('lidar_front', 'lidar_rear', 'lidar_left', 'lidar_right',
+                      'lidar_rear_left', 'lidar_rear_right'):
+            setattr(self.node, field, .5)
+        command = Twist()
+        command.linear.x = .02
+        self.node.on_cmd(command)
+        self.node.tick()
+        self.assertFalse(self.node.block_pub.publish.call_args.args[0].data)
+        self.assertGreater(self.node.pub.publish.call_args.args[0].linear.x, 0.)
+
+    def test_tf_rear_limit_is_used_by_tick_and_reported_to_calibration(self):
+        self.node.set_parameters([Parameter('lidar_use_tf', value=True)])
+        self.node.lidar_mount = (-.017, 0.)
+        self.node.last_scan_time = self.node.now()
+        self.node.lidar_front = .5
+        self.node.lidar_rear = .117
+        self.node.can_rev_pub = Mock()
+        self.node.motion_limits_pub = Mock()
+        self.node.tick()
+        self.assertTrue(self.node.can_rev_pub.publish.call_args.args[0].data)
+        data = json.loads(self.node.motion_limits_pub.publish.call_args.args[0].data)
+        self.assertAlmostEqual(data['front_stop_m'], .12)
+        self.assertLess(data['rear_stop_m'], .1)
+        self.assertAlmostEqual(data['rear_m'], .117)
+        self.node.lidar_mount = None
+        self.node.tick()
+        self.assertFalse(self.node.can_rev_pub.publish.call_args.args[0].data)

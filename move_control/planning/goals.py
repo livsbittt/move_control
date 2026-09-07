@@ -10,7 +10,8 @@ and tools/explore_sim.py are thin drivers around this brain.
 import math
 
 from .astar import best_route
-from .frontier import pick_goal
+from .escape import start_escape
+from .frontier import pick_goal, _reachable_costs
 from .zigzag import ZigzagPlanner, cover_ring
 
 
@@ -36,7 +37,10 @@ class GoalBrain:
                  max_options=3, stall_plans=6, progress_m=0.03,
                  stall_min_dist=0.15, blacklist_plans=20,
                  escape_clear_m=0.08, probe_when_done=False,
-                 retry_unreachable_wp=False, manual_ttl_plans=120):
+                 retry_unreachable_wp=False, manual_ttl_plans=120,
+                 start_escape_clear_m=0.0, start_escape_distance_m=.08):
+        self.start_escape_clear_m = float(start_escape_clear_m)
+        self.start_escape_distance_m = float(start_escape_distance_m)
         self.max_options = max(1, int(max_options))
         # Wide-first escape: after a stall, routes are planned with this
         # clearance (2-cell inflation seals 15 cm gaps) until the robot has
@@ -88,10 +92,45 @@ class GoalBrain:
         self._n = 0
         self._coverage_deferred = {}
         self._map_lattice = None
+        self._completed_goals = []
+        self._failed_goals = []
+        self._failed_exits = []
+        self._route_tick = 0
+
+    def avoid_route_exit(self, point):
+        if point is not None and all(math.isfinite(v) for v in point):
+            self._failed_exits.append((tuple(point), self._route_tick+self.blacklist_plans))
+
+    def avoid_goal(self, goal):
+        if goal is not None and all(math.isfinite(v) for v in goal):
+            self._failed_goals.append((tuple(goal), self._plan_n+self.blacklist_plans))
+        self.clear_manual()
+        self._target = self._probe = None
+
+    def restart_recovery(self):
+        """An explicit new mode request starts a fresh attempt, retaining visits."""
+        self._failed_goals.clear()
+        self._failed_exits.clear()
+        self._blacklist.clear()
+        self._coverage_deferred.clear()
+        self._wide_cell = self._target = None
+        self._n = 0
+
+    def complete_goal(self, m, pose, goal):
+        """Successful arrival consumes a target, without a failure penalty."""
+        self._track_map_lattice(m)
+        self._completed_goals.append((tuple(goal), self._plan_n + self.blacklist_plans))
+        cover_ring(self.covered, m, pose[0], pose[1], radius_m=self.lane_width / 2)
+        self._target = self._probe = self._wide_cell = None
+        self._n = 0
+        self._failed_exits.clear()
 
     def reset(self):
         """Clear map-session memory without changing configured geometry."""
         self.covered.clear()
+        self._completed_goals.clear()
+        self._failed_goals.clear()
+        self._failed_exits.clear()
         self._coverage_deferred.clear()
         self._blacklist.clear()
         self.last_options = []
@@ -131,6 +170,9 @@ class GoalBrain:
             return g, ''
         self._n += 1
         self._best = min(self._best, dist)
+        if self._first-self._best >= self.progress_m:
+            self._first = self._best = dist
+            self._n = 0  # start a new window; early progress cannot excuse a later stall
         if (self._n < self.stall_plans or dist <= self.stall_min_dist
                 or self._first - self._best >= self.progress_m):
             return g, ''
@@ -181,12 +223,16 @@ class GoalBrain:
         self._manual_n += 1
         if self._manual_n > self.manual_ttl_plans:
             self._manual = None
+            if self.mode == 'manual':
+                return None, None, 'manual goal expired'
             return None                      # expired -> normal planning
         if math.hypot(x - pose[0], y - pose[1]) < self.reach_tol:
             self._manual = None
             return None, None, 'manual goal reached'
         route = None
         margins = [self.clear_m]
+        if 0 < self.start_escape_clear_m < self.clear_m:
+            margins.append(self.start_escape_clear_m)
         if self.retry_unreachable_wp:
             margins.append(self.retry_clear_m)
         for cm in margins:
@@ -258,23 +304,94 @@ class GoalBrain:
         return None, None, ''
 
     def plan(self, m, pose):
+        self._completed_goals = [(xy, expiry) for xy, expiry in self._completed_goals
+                                 if expiry > self._plan_n]
+        self._route_tick += 1
+        self._plan_n += 1
+        self._track_map_lattice(m)
+        self._gc_blacklist()
+        self._failed_goals = [(xy, expiry) for xy, expiry in self._failed_goals
+                              if expiry > self._plan_n]
+        self._failed_exits = [(xy, expiry) for xy, expiry in self._failed_exits if expiry > self._route_tick]
+        goal, route, status = self._plan_candidate(m, pose)
+        if route and self._failed_exits:
+            candidates = [(goal, route)] + [((opt['x'], opt['y']), opt['route']) for opt in self.last_options]
+            self.last_options = []
+            route = None
+            for candidate, original in candidates:
+                route = best_route(m, pose, candidate, clear_m=original.get('clearance_m', self.clear_m),
+                                   avoid_points=[xy for xy, _ in self._failed_exits])
+                if route:
+                    goal = route['points'][-1]
+                    break
+            if route is None:
+                return None, None, 'replanning: no route outside failed exits'
+            status = 'alternative exit: ' + status
+        return goal, route, status
+
+    def _plan_candidate(self, m, pose):
+        if not (m.ox <= pose[0] < m.ox + m.w*m.res and
+                m.oy <= pose[1] < m.oy + m.h*m.res):
+            self.last_options = []
+            return None, None, 'planning blocked: robot outside map'
+        start = m.world_to_grid(*pose)
+        if not m.is_free(*start):
+            self.last_options = []
+            reason = 'occupied' if m.cell(*start) >= 65 else 'unknown'
+            return None, None, f'planning idle: robot cell {reason}; check map alignment'
+        if m.is_free(*start) and not m.inflate(self.clear_m / m.res).is_free(*start):
+            route = start_escape(m, pose, self.clear_m, self.start_escape_clear_m,
+                                 self.start_escape_distance_m,
+                                 [xy for xy, expiry in self._failed_goals + self._completed_goals
+                                  if expiry > self._plan_n])
+            if route:
+                self.last_options = []
+                return route['points'][-1], route, 'escape: moving to preferred clearance'
+            minimum = self.start_escape_clear_m
+            if 0 < minimum < self.clear_m and m.inflate(minimum/m.res).is_free(*start):
+                # A long narrow corridor may have no nearby wide escape.
+                # Replan against the explicit hard footprint margin; never raw map.
+                preferred, retry = self.clear_m, self.retry_clear_m
+                self.clear_m = self.retry_clear_m = minimum
+                try:
+                    goal, route, status = self._plan(m, pose)
+                    return goal, route, 'narrow passage: ' + status
+                finally:
+                    self.clear_m, self.retry_clear_m = preferred, retry
+            self.last_options = []
+            return None, None, 'planning blocked: robot inside obstacle clearance'
+        return self._plan(m, pose)
+
+    def _plan(self, m, pose):
         """Next point to go: (goal_xy | None, route | None, status str).
 
         goal and route are None for transitional statuses (skipped waypoint,
         done) — the driver publishes nothing then.
         """
-        self._plan_n += 1
         self.last_options = []
         self._track_map_lattice(m)
         self._coverage_deferred = {c: expiry for c, expiry in self._coverage_deferred.items()
                                    if expiry > self._plan_n}
         self._gc_blacklist()
+        self._failed_goals = [(xy,expiry) for xy,expiry in self._failed_goals if expiry>self._plan_n]
+        failed = {cell for cell in m.free_cells() if any(
+            math.dist(m.grid_to_world(*cell),xy)<=.10 for xy,_ in self._failed_goals)}
+        completed = {cell for cell in m.free_cells() if any(
+            math.dist(m.grid_to_world(*cell), xy) <= self.reach_tol
+            for xy, _ in self._completed_goals)}
+        for cell in completed:
+            self._coverage_deferred[cell] = self._plan_n+1
+        for cell in failed:
+            self._coverage_deferred[cell] = self._plan_n+1
+            self._blacklist[cell] = max(self._blacklist.get(cell,0),self._plan_n+1)
         # External (dashboard) goal wins while valid; _manual_plan clears it
         # on expiry/unreachable and returns None -> fall through normally.
         if self._manual is not None:
             out = self._manual_plan(m, pose)
             if out is not None:
                 return out
+        if self.mode == 'manual':
+            return None, None, 'manual goal finished'
         # Wide-first latch: near the last stuck pose, plan with extra
         # clearance until the robot is clear of that obstacle pocket.
         wide = False
@@ -287,10 +404,15 @@ class GoalBrain:
         if self.mode == 'explore':
             clear_first = self.escape_clear_m if wide else self.clear_m
             clear_retry = self.clear_m if wide else self.retry_clear_m
+            if 0 < self.start_escape_clear_m < clear_retry:
+                # A wide start can lead into a narrow corridor later. The
+                # explicit footprint floor applies to the whole route, not
+                # only when the start cell already needs an escape.
+                clear_retry = self.start_escape_clear_m
             g = pick_goal(m, pose, min_size=self.min_size,
                           clear_m=clear_first,
                           retry_clear_m=clear_retry,
-                          exclude=set(self._blacklist))
+                          exclude=set(self._blacklist) | failed | completed)
             if g is not None:
                 g, prefix = self._watchdog(m, pose, g)
                 if g is None:
@@ -310,10 +432,15 @@ class GoalBrain:
                 self.mode = 'explore'
         cover_ring(self.covered, m, pose[0], pose[1],
                    radius_m=self.lane_width / 2)
-        zz = ZigzagPlanner(m, start=pose,
+        coverage_clear = self.clear_m
+        if 0 < self.start_escape_clear_m < coverage_clear:
+            coverage_clear = self.start_escape_clear_m
+        coverage_grid = m.inflate(coverage_clear / m.res)
+        zz = ZigzagPlanner(coverage_grid, start=pose,
                            covered=self.covered | set(self._coverage_deferred),
                            lane_width=self.lane_width,
-                           lane_step=self.lane_step)
+                           lane_step=self.lane_step,
+                           reachable=set(_reachable_costs(coverage_grid, pose)))
         if not zz.region:
             # Pose sits on unknown space (map still filling, or odom~map
             # drift): nothing is drivable yet. done would be a lie — the
@@ -332,6 +459,8 @@ class GoalBrain:
         # target snapped back onto the robot must not stall every replan.
         for requested in wps[:16]:
             route = best_route(m, pose, requested, clear_m=self.clear_m)
+            if route is None and coverage_clear < self.clear_m:
+                route = best_route(m, pose, requested, clear_m=coverage_clear)
             if route is None and self.retry_unreachable_wp and \
                     self.retry_clear_m < self.clear_m:
                 route = best_route(m, pose, requested, clear_m=self.retry_clear_m)

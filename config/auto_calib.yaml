@@ -10,6 +10,6 @@ safety_node:
     lidar_yaw_offset: 3.31612558
     robot_radius: 0.076
     camera_as_wall: false
-    camera_block_as_wall: true
+    camera_block_as_wall: false
     imu_roll0: 0.0
     imu_pitch0: 0.0

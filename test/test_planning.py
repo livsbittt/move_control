@@ -369,9 +369,9 @@ class GoalBrainTest(RoomCase):
         before = set(self.brain.covered)
         goal, route, status = self.brain.plan(m, self.START)
         self.assertIsNone(goal)
-        self.assertIn('deferred', status)
+        self.assertIn('coverage done', status)  # inaccessible lanes are not candidates
         self.assertEqual(self.brain.covered, before)
-        self.assertTrue(self.brain._coverage_deferred)
+        self.assertFalse(self.brain._coverage_deferred)
 
     def test_idle_not_done_on_unknown_map(self):
         # Regression: pose on unknown space (map still filling) must not
@@ -552,3 +552,142 @@ class ManualGoalTest(RoomCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class PlannerBlockedStartRegression(unittest.TestCase):
+    def test_failed_goal_expires_even_while_start_is_blocked(self):
+        m = OccupancyMap(20, 20, .02, fill=FREE)
+        m.set_cell(5, 5, OCC)
+        brain = GoalBrain(clear_m=.12, start_escape_clear_m=.096, blacklist_plans=3)
+        pose = m.grid_to_world(6, 5)
+        brain.avoid_goal(m.grid_to_world(12, 12))
+        for _ in range(3):
+            goal, route, status = brain.plan(m, pose)
+            self.assertIsNone(route)
+            self.assertIn('obstacle clearance', status)
+        self.assertEqual(brain._failed_goals, [])
+
+    def test_occupied_start_is_not_coverage_done_or_snapped(self):
+        m = OccupancyMap(20, 20, .02, fill=FREE)
+        m.set_cell(5, 5, OCC)
+        brain = GoalBrain(clear_m=.04)
+        goal, route, status = brain.plan(m, m.grid_to_world(5, 5))
+        self.assertIsNone(route)
+        self.assertIn('robot cell occupied', status)
+
+    def test_coverage_candidates_use_executable_clearance(self):
+        m = OccupancyMap(30, 20, .02, fill=FREE)
+        for c in range(m.w):
+            m.set_cell(c, 0, OCC); m.set_cell(c, m.h-1, OCC)
+        for r in range(m.h):
+            m.set_cell(0, r, OCC); m.set_cell(m.w-1, r, OCC)
+        brain = GoalBrain(clear_m=.08)
+        brain.mode = 'coverage'
+        pose = m.grid_to_world(10, 10)
+        goal, route, status = brain.plan(m, pose)
+        self.assertIsNotNone(route, status)
+        self.assertTrue(all(m.inflate(.08/m.res).is_free(*c) for c in route['cells']))
+
+
+class NarrowFrontierRouteRegression(unittest.TestCase):
+    def test_wide_start_can_reach_frontier_through_minimum_clearance_corridor(self):
+        m = OccupancyMap(40, 25, .02, fill=OCC)
+        for r in range(1, 24):
+            for c in range(1, 39):
+                m.set_cell(c, r, FREE)
+        # Divider doorway is open at the explicit hard radius, closed at preferred.
+        for r in range(1, 24):
+            if not 8 <= r <= 16:
+                m.set_cell(20, r, OCC)
+        for r in range(1, 24):
+            m.set_cell(38, r, UNKNOWN)
+        pose = m.grid_to_world(10, 12)
+        brain = GoalBrain(min_size=3, clear_m=.12, retry_clear_m=.12,
+                          start_escape_clear_m=.08)
+        self.assertTrue(m.inflate(.12/m.res).is_free(*m.world_to_grid(*pose)))
+        goal, route, status = brain.plan(m, pose)
+        self.assertIsNotNone(route, status)
+        self.assertTrue(status.startswith('explore'), status)
+        self.assertGreater(goal[0], m.grid_to_world(20, 12)[0])
+        self.assertEqual(route['clearance_m'], .08)
+        self.assertTrue(all(m.inflate(.08/m.res).is_free(*c) for c in route['cells']))
+
+
+class ManualOnlyRegression(unittest.TestCase):
+    def test_expiry_never_selects_autonomous_target(self):
+        m = OccupancyMap(20, 20, .02, fill=FREE)
+        brain = GoalBrain(clear_m=.02, manual_ttl_plans=1)
+        brain.mode = 'manual'
+        brain.set_manual(.3, .3)
+        brain.plan(m, (.1, .1))
+        goal, route, status = brain.plan(m, (.1, .1))
+        self.assertIsNone(route)
+        self.assertEqual(status, 'manual goal expired')
+        goal, route, status = brain.plan(m, (.1, .1))
+        self.assertIsNone(route)
+        self.assertEqual(status, 'manual goal finished')
+
+    def test_reached_goal_does_not_resume_exploration_on_next_tick(self):
+        m = OccupancyMap(20, 20, .02, fill=FREE)
+        brain = GoalBrain(clear_m=.02)
+        brain.mode = 'manual'
+        brain.set_manual(.1, .1)
+        self.assertEqual(brain.plan(m, (.1, .1))[2], 'manual goal reached')
+        self.assertIsNone(brain.plan(m, (.1, .1))[1])
+
+
+class NarrowCoverageRouteRegression(unittest.TestCase):
+    def test_coverage_does_not_finish_before_reachable_narrow_room(self):
+        m = OccupancyMap(40, 25, .02, fill=OCC)
+        for r in range(1, 24):
+            for c in range(1, 39):
+                m.set_cell(c, r, FREE)
+        for r in range(1, 24):
+            if not 8 <= r <= 16:
+                m.set_cell(20, r, OCC)
+        brain = GoalBrain(clear_m=.12, retry_clear_m=.12, start_escape_clear_m=.08)
+        brain.mode = 'coverage'
+        brain.covered = {c for c in m.free_cells() if c[0] <= 20}
+        goal, route, status = brain.plan(m, m.grid_to_world(10, 12))
+        self.assertIsNotNone(route, status)
+        self.assertGreater(goal[0], m.grid_to_world(20, 12)[0])
+        self.assertEqual(route['clearance_m'], .08)
+
+
+class ArrivalProgressionRegression(unittest.TestCase):
+    def test_coverage_arrival_selects_next_point_without_failure_blacklist(self):
+        m = OccupancyMap(30, 30, .02, fill=FREE)
+        brain = GoalBrain(clear_m=.04)
+        brain.mode = 'coverage'
+        goal, route, _ = brain.plan(m, (.3, .3))
+        self.assertIsNotNone(goal)
+        brain.complete_goal(m, goal, goal)
+        nxt, route, status = brain.plan(m, goal)
+        self.assertIsNotNone(nxt, status)
+        self.assertGreater(math.dist(goal, nxt), brain.reach_tol)
+        self.assertEqual(brain._failed_goals, [])
+        self.assertEqual(brain._failed_exits, [])
+        brain.reset()
+        self.assertEqual(brain._completed_goals, [])
+
+    def test_completed_frontier_neighborhood_excluded_on_immediate_replan(self):
+        m = OccupancyMap(30, 30, .02, fill=FREE)
+        for r in range(30):
+            m.set_cell(29, r, UNKNOWN)
+        brain = GoalBrain(clear_m=.02, min_size=3)
+        target, route, _ = brain.plan(m, (.2, .3))
+        brain.complete_goal(m, target, target)
+        with mock.patch('move_control.planning.goals.pick_goal', return_value=None) as pick:
+            brain.plan(m, target)
+            self.assertIn(m.world_to_grid(*target), pick.call_args.kwargs['exclude'])
+
+
+class RecoveryRestartRegression(unittest.TestCase):
+    def test_explicit_restart_discards_failed_exits_but_preserves_visits(self):
+        brain = GoalBrain()
+        brain.covered.add((2,3))
+        brain.avoid_route_exit((.2,.3));brain.avoid_goal((.4,.5))
+        brain.restart_recovery()
+        self.assertEqual(brain._failed_exits, [])
+        self.assertEqual(brain._failed_goals, [])
+        self.assertEqual(brain.covered, {(2,3)})

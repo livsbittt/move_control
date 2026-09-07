@@ -13,6 +13,7 @@ from std_msgs.msg import Bool, Float32, String, UInt16MultiArray
 from ..sensing.body import URDF_RADIUS
 from ..control.modes import pick_mode
 from ..control.recover import ExitSteer
+from ..planning.goals import parse_goal_cmd
 from .contact import Contact
 from .judge import Judge
 from .motion import Motion
@@ -146,6 +147,9 @@ class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
         self.create_subscription(Float32, '/safety/us_range', self.on_us, 10)
         self.create_subscription(Float32, '/safety/narrow', self.on_narrow, 10)
         self.create_subscription(String, '/wander/cmd', self.on_cmd, 10)
+        self.motion_limits = {}
+        self.motion_limits_received = None
+        self.create_subscription(String, '/safety/motion_limits', self.on_motion_limits, 10)
         self.create_subscription(Bool, '/wander/enable', self.on_enable, 10)
         self.create_subscription(
             Odometry, self.get_parameter('odom_topic').value, self.on_odom, 10
@@ -245,6 +249,11 @@ class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
             self._set_enabled(False)
         elif cmd in ('explore', 'coverage'):
             self._start_navigation(cmd)
+        elif cmd.startswith('manual:'):
+            xy = parse_goal_cmd(cmd.partition(':')[2])
+            if xy is None or self.estop:
+                return
+            self._start_navigation('manual', f'{xy[0]:.3f},{xy[1]:.3f}')
         elif cmd in ('start', 'go', 'wander', 'resume', 'on', 'forward'):
             was_navigation = self.navigation_mode is not None
             self._cancel_navigation()

@@ -1,5 +1,6 @@
 """Planner route revocation tests in an isolated local ROS domain."""
 import time
+import json
 import unittest
 from unittest.mock import Mock
 
@@ -49,6 +50,40 @@ class GoalRouteTest(unittest.TestCase):
         self.node.stop()
         self.assert_empty_route()
 
+    def test_manual_replan_retains_target_and_completion_stops_planner(self):
+        self.node.manual_result_pub = Mock()
+        self.known_map()
+        self.node.pose = Mock(return_value=((.5, .5), 'tf'))
+        self.node.on_cmd(String(data='0.7,0.5'))
+        self.assertEqual(self.node.mode, 'manual')
+        self.node.on_cmd(String(data='replan'))
+        self.assertIsNotNone(self.node.brain._manual)
+        self.node.pose = Mock(return_value=(self.node.brain._manual, 'tf'))
+        self.node.plan()
+        self.assertEqual(self.node.mode, 'stop')
+        self.assert_empty_route()
+        result = json.loads(self.node.manual_result_pub.publish.call_args.args[0].data)
+        self.assertEqual(result['target'], [.7, .5])
+        self.assertEqual(result['started_ns'], self.node.manual_started_ns)
+        self.assertIn('manual goal reached', result['status'])
+
+    def test_environment_profile_applies_only_when_ready_fresh_and_same_map_resolution(self):
+        from move_control.control.navigation_calibration import environment_profile
+        p = environment_profile(.076, .05, [(.14,.13,None,None)]*30)
+        self.node.on_calibration_profile(String(data=json.dumps({'ready':True,'navigation_profile':p})))
+        self.known_map()
+        self.node.pose = Mock(return_value=((.5,.5),'tf'))
+        self.node.brain.plan = Mock(return_value=(None,None,'test'))
+        self.node.mode = 'explore'
+        self.node.plan()
+        self.assertAlmostEqual(self.node.brain.clear_m,p['preferred_clearance_m'])
+        self.assertAlmostEqual(self.node.brain.start_escape_clear_m,p['minimum_clearance_m'])
+        self.node.navigation_profile_received -= 10
+        self.node.plan()
+        self.assertNotEqual(self.node.brain.start_escape_clear_m,p['minimum_clearance_m'])
+        self.node.on_calibration_profile(String(data=json.dumps({'ready':False,'navigation_profile':p})))
+        self.assertIsNone(self.node.navigation_profile)
+
     def test_missing_map_and_failed_tf_never_reuse_odom_coordinates(self):
         self.node.on_cmd(String(data='explore'))
         self.node.plan()
@@ -93,3 +128,36 @@ class GoalRouteTest(unittest.TestCase):
     def test_float32_grid_does_not_add_an_unnecessary_cell(self):
         self.assertAlmostEqual(grid_clearance(.12, .019999999552965164), .12)
         self.assertGreaterEqual(grid_clearance(.121, .019999999552965164), .139)
+
+
+    def test_arrival_accepts_issued_refresh_and_replans_once(self):
+        self.known_map()
+        self.node.on_cmd(String(data='coverage'))
+        self.node.pose = Mock(return_value=((.5, .5), 'tf'))
+        route = {'points':[(.4,.5),(.5,.5)]}
+        self.node._pub_goal(.5, .5, route)
+        stamp = self.node.issued_routes[-1][0]
+        self.node._pub_goal(.5, .5, route)  # arrival may be in flight during refresh
+        self.node.plan = Mock()
+        event = String(data=json.dumps({'route_stamp_ns':stamp, 'target':[.5,.5]}))
+        self.node.on_arrival(String(data=json.dumps({'route_stamp_ns':stamp-1,'target':[.5,.5]})))
+        self.node.plan.assert_not_called()
+        self.node.on_arrival(event)
+        self.node.plan.assert_called_once()
+        self.assertTrue(self.node.brain._completed_goals)
+        self.node.on_arrival(event)
+        self.node.plan.assert_called_once()
+
+    def test_arrival_rejects_distant_pose_and_manual_mode(self):
+        self.known_map()
+        self.node.on_cmd(String(data='coverage'))
+        self.node.pose = Mock(return_value=((.3, .5), 'tf'))
+        self.node._pub_goal(.5,.5,{'points':[(.3,.5),(.5,.5)]})
+        event = String(data=json.dumps({'route_stamp_ns':self.node.issued_routes[-1][0], 'target':[.5,.5]}))
+        self.node.plan = Mock()
+        self.node.on_arrival(event)
+        self.node.plan.assert_not_called()
+        self.node.pose = Mock(return_value=((.5,.5),'tf'))
+        self.node.mode = 'manual'
+        self.node.on_arrival(event)
+        self.node.plan.assert_not_called()

@@ -9,6 +9,8 @@
     calibration_required: true
     calibration_round_trip: true
     calibration_distance_m: 0.03
+    # Mesh-verified box, 10mm stand-off, straight <=14mm/s only; turn radius retained.
+    footprint_guard_enabled: true
     # Installed Pinky BNO055 driver publishes raw /16 values in degrees/s.
     imu_angular_velocity_unit: deg_s
     # Maze echoes vary 15 cm while stationary. Keep US as obstacle guard;

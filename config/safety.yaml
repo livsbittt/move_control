@@ -12,7 +12,7 @@ safety_node:
     sensor_timeout: 1.0
     camera_as_wall: false
     # Maze corners: camera obstacle = turn (not reverse). Cliff/drop stays off.
-    camera_block_as_wall: true
+    camera_block_as_wall: false
     imu_topic: /imu_raw
     tilt_deg: 20.0
     gyro_dps: 90.0

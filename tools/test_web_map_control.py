@@ -3,6 +3,7 @@ import http.client
 import http.server
 import json
 import threading
+import time
 import unittest
 from types import SimpleNamespace
 from unittest.mock import Mock, patch
@@ -161,6 +162,34 @@ class MapControlTest(unittest.TestCase):
             self.assertEqual(response.status, 503)
             self.assertFalse(json.loads(response.read())['ok'])
             client.close()
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+
+    def test_manual_goal_activates_follower_only_when_ready_and_released(self):
+        server = http.server.ThreadingHTTPServer(('127.0.0.1', 0),
+                                                 web.make_api_handler(self.node, b''))
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            for ready, released, expected in ((False, True, 409),
+                                               (True, False, 409),
+                                               (True, True, 200)):
+                web.STATE.update(calibration_ready=ready,
+                                 calibration_received=time.monotonic(),
+                                 calibration={'ready':ready})
+                web.STATE[web.K_ESTOP] = not released
+                client = http.client.HTTPConnection(*server.server_address)
+                client.request('POST', '/goal', body='0.2,0.1')
+                response = client.getresponse()
+                self.assertEqual(response.status, expected)
+                response.read()
+                client.close()
+            self.node.wander_pub.publish.assert_called_once()
+            self.assertEqual(self.node.wander_pub.publish.call_args.args[0].data,
+                             'manual:0.200,0.100')
+            self.node.goal_pub.publish.assert_not_called()
         finally:
             server.shutdown()
             server.server_close()

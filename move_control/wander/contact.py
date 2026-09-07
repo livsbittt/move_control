@@ -1,5 +1,6 @@
 """Subject: contact. WALL / BACK — bumper recover."""
 from geometry_msgs.msg import Twist
+import math
 
 from ..control.recover import backup_limit_m, hazard_action, wall_first_move
 
@@ -10,6 +11,14 @@ class Contact:
         """Rear lidar must show a path. No scan → no reverse."""
         if not self.rear_clear:
             return False
+        if getattr(self, '_motion_limits_fresh', lambda: False)():
+            limits = self.motion_limits
+            if limits.get('translation_mode') is True:
+                gap = limits.get('reverse_travel_m')
+                return isinstance(gap, (int, float)) and math.isfinite(gap) and gap > 0.
+            rear, stop = limits.get('rear_m'), limits.get('rear_stop_m')
+            return (isinstance(rear, (int, float)) and isinstance(stop, (int, float)) and
+                    math.isfinite(rear) and math.isfinite(stop) and 0 < stop < rear)
         stop = float(self.get_parameter('stop_front').value)
         if not self._finite(self.rear_range) or self.rear_range <= stop:
             return False
@@ -19,6 +28,15 @@ class Contact:
         """How far we may reverse: the free rear gap, not a 45% snippet."""
         stop = float(self.get_parameter('stop_front').value)
         cap = float(self.get_parameter('backup_max_m').value)
+        if getattr(self, '_motion_limits_fresh', lambda: False)():
+            limits = self.motion_limits
+            gap = limits.get('reverse_travel_m')
+            if limits.get('translation_mode') is not True:
+                rear, threshold = limits.get('rear_m'), limits.get('rear_stop_m')
+                gap = rear-threshold if isinstance(rear, (int, float)) and isinstance(threshold, (int, float)) else None
+            if isinstance(gap, (int, float)) and math.isfinite(gap):
+                return max(0., min(cap, gap))
+            return 0.
         rear = self.rear_range if self._finite(self.rear_range) else float('nan')
         return backup_limit_m(rear, stop=stop, cap=cap)
 
@@ -37,10 +55,16 @@ class Contact:
         return max(-wmax, min(wmax, -k * frac))
 
     def _back_cmd(self) -> Twist:
-        """Standard reverse command: back speed with tail steering."""
+        """Latch one reverse stroke; straight travel uses the chassis guard."""
+        self._wall_backed = True
+        self._escape_rotation_watch = None
+        self._backup_entry_limit = self._backup_limit()
+        cap = getattr(self, '_escape_backup_cap', None)
+        if cap is not None:
+            self._backup_entry_limit = min(self._backup_entry_limit, cap)
+            self._escape_backup_cap = None
         cmd = Twist()
         cmd.linear.x = -self._back_speed()
-        cmd.angular.z = self._rear_steer_wz()
         return cmd
 
     def _try_turn_backup(self, why: str) -> bool:
@@ -82,6 +106,12 @@ class Contact:
         if getattr(self, '_from_stuck', False):
             self._start_escape()  # latch the full-circle exit target here too
             return
+        if (not self.estop and not self.pickup and self._ir_ready() and
+                hazard_action(self.tilt, self.cliff, self.seen_forward, self._can_reverse()) == 'none' and
+                not self.blocked and not self._on_wall() and not self._front_pinched() and
+                self._route_aligned()):
+            self._resume_forward(use_line=True)
+            return
         self._enter('look')
         self._publish(Twist(), 'look')
 
@@ -95,10 +125,11 @@ class Contact:
             return
         cmd = Twist()
         cmd.linear.x = -self._back_speed()
-        cmd.angular.z = self._rear_steer_wz()
         elapsed = self.elapsed()
         traveled = self._traveled()
-        limit = self._backup_limit()
+        # Compare total displacement to the entry target, not a shrinking
+        # remaining gap (which used to stop at half the available stroke).
+        limit = getattr(self, '_backup_entry_limit', self._backup_limit())
         too_far = elapsed >= self.backup_max_sec or (
             self.have_odom and traveled >= limit
         )

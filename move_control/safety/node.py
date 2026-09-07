@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Safety ROS node. Subjects: bumper, hazard, gate."""
 import math
+import json
 import time
 
 import rclpy
@@ -28,6 +29,8 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.declare_parameter('cmd_in', '/cmd_vel_raw')
         self.declare_parameter('cmd_out', '/cmd_vel')
         self.declare_parameter('start_estopped', True)
+        # Verified Pinky mesh envelope; only straight commands <=14mm/s use it.
+        self.declare_parameter('footprint_guard_enabled', False)
         self.declare_parameter('scan_topic', '/scan')
         self.declare_parameter('us_topic', '/us_sensor/range')
         self.declare_parameter('ir_topic', '/ir_sensor/range')
@@ -47,7 +50,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.declare_parameter('cmd_linear_sign', 1.0)
         self.declare_parameter('auto_linear_sign', False)
         self.declare_parameter('camera_as_wall', False)
-        self.declare_parameter('camera_block_as_wall', True)
+        self.declare_parameter('camera_block_as_wall', False)
         self.declare_parameter('imu_topic', '/imu_raw')
         self.declare_parameter('tilt_deg', 20.0)
         self.declare_parameter('gyro_dps', 90.0)
@@ -123,6 +126,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.exit_yaw_pub = self.create_publisher(Float32, '/safety/exit_yaw', 10)
         self.exit_pub = self.create_publisher(Float32, '/safety/exit_range', 10)
         self.radius_pub = self.create_publisher(Float32, '/safety/robot_radius', 10)
+        self.motion_limits_pub = self.create_publisher(String, '/safety/motion_limits', 10)
         self.wander_cmd = self.create_publisher(String, '/wander/cmd', 10)
         self.calib_step = self.create_publisher(String, '/calib/step', 10)
         latched = QoSProfile(
@@ -294,13 +298,51 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.rear_pub.publish(Float32(data=float(rear_d if math.isfinite(rear_d) else -1.0)))
         if not lidar_ok:
             self.get_logger().warn('no lidar — motion disabled until scan', throttle_duration_sec=2.0)
+        previous_front, previous_rear = self.blocked, self.rear_blocked
         self.blocked = lidar_blocked(
             self.lidar_distance(), lidar_d, self.blocked,
             self.stop_d, self.clear_d, lidar_ok)
         self.rear_blocked = lidar_blocked(
             self.rear_distance(), rear_d, self.rear_blocked,
-            self.stop_d, self.clear_d, lidar_ok)
-        can_rev = lidar_ok and not self.rear_blocked and rear_d > self.stop_d
+            self.rear_stop_d, self.rear_clear_d, lidar_ok)
+        can_rev = lidar_ok and not self.rear_blocked and rear_d > self.rear_stop_d
+        travel = getattr(self, 'translation_clearance', None)
+        straight = (abs(self.corrected_drive_speed(self.last_cmd.linear.x)) <= .014 and
+                    abs(self.last_cmd.angular.z) < 1e-4)
+        footprint = bool(self.get_parameter('footprint_guard_enabled').value and
+                         lidar_ok and self.age(self.last_scan_time) <= .2 and
+                         -.05 <= self.age(getattr(self, 'lidar_measurement_time', None)) <= .2 and
+                         getattr(self, 'lidar_mount', None) is not None and
+                         travel is not None and straight and self.robot_r <= .083 and
+                         all(math.isfinite(v) and v > 0 for v in
+                             (self.lidar_front, self.lidar_rear, self.lidar_left,
+                              self.lidar_right, self.lidar_rear_left, self.lidar_rear_right)))
+        if footprint:
+            # Distances already exclude the verified box and 10mm stand-off.
+            self.blocked = lidar_blocked(travel[0], travel[0], previous_front, 0., .010, True)
+            self.rear_blocked = lidar_blocked(travel[1], travel[1], previous_rear, 0., .010, True)
+            can_rev = not self.rear_blocked
+        can_rotate = lidar_can_rotate(
+            (self.lidar_front, self.lidar_rear, self.lidar_left, self.lidar_right,
+             self.lidar_rear_left, self.lidar_rear_right),
+            max(self.robot_r, .083) if self.get_parameter('footprint_guard_enabled').value else self.robot_r,
+            lidar_ok, getattr(self, 'lidar_rotation_clearance', None))
+        self.motion_limits_pub.publish(String(data=json.dumps({
+            'can_rotate': can_rotate,
+            'front_stop_m': .043-self.lidar_mount[0]+.010 if footprint else self.stop_d,
+            'front_clear_m': .043-self.lidar_mount[0]+.020 if footprint else self.clear_d,
+            'rear_stop_m': .077+self.lidar_mount[0]+.010 if footprint else self.rear_stop_d,
+            'rear_clear_m': .077+self.lidar_mount[0]+.020 if footprint else self.rear_clear_d,
+            'translation_mode': footprint,
+            'rotation_radius_m': max(self.robot_r, .083) if self.get_parameter('footprint_guard_enabled').value else self.robot_r,
+            'footprint_half_width_m': .077 if footprint else None,
+            'forward_travel_m': travel[0] if footprint else None,
+            'reverse_travel_m': travel[1] if footprint else None,
+            'us_stop_m': self.us_stop,
+            'front_m': self.lidar_distance() if lidar_ok and math.isfinite(self.lidar_distance()) else None,
+            'rear_m': self.rear_distance() if lidar_ok and math.isfinite(self.rear_distance()) else None,
+            'mount_source': self.lidar_yaw_source,
+        }, allow_nan=False)))
         # Same value on both topics: /safety/can_reverse is a same-value alias
         # kept for the external LCD/web — one computation, like /safety/mode.
         self.rear_clear_pub.publish(Bool(data=can_rev))
@@ -319,21 +361,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
                 self.get_logger().info(f'wall clear us={us:.3f} m')
                 self.us_blocked = False
 
-        cam_ok = self.age(self.last_cam_time) < self.timeout
-        use_cam = bool(self.get_parameter('camera_as_wall').value)
-        use_cam_block = use_cam or bool(self.get_parameter('camera_block_as_wall').value)
-        cam_cliff = bool(self.cam_cliff) if cam_ok and use_cam else False
-        cam_block = bool(self.cam_block) if cam_ok and use_cam_block else False
-        if cam_block and not self._cam_block_logged:
-            self.get_logger().warn('camera obstacle / corner — turn, no reverse')
-            self._cam_block_logged = True
-        elif not cam_block:
-            self._cam_block_logged = False
-        if cam_cliff and not self._cam_cliff_logged:
-            self.get_logger().warn('camera drop ahead — treat as wall (turn, no reverse)')
-            self._cam_cliff_logged = True
-        elif not cam_cliff:
-            self._cam_cliff_logged = False
+        # RGB observations have no metric distance or motor authority.
 
         imu_ok = self.age(self.last_imu_time) < self.timeout
         tilt = bool(self.tilt) if imu_ok else False
@@ -351,8 +379,8 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.tilt_pub.publish(Bool(data=tilt))
         self.pickup_pub.publish(Bool(data=pickup))
 
-        # IR cliff = reverse. Lidar/US = bumper wall. Camera block = corner look-ahead (turn).
-        obstacle = self.blocked or self.us_blocked or cam_block or cam_cliff
+        # IR detects floor hazards; LiDAR/US provide physical range protection.
+        obstacle = self.blocked or self.us_blocked
         self.block_pub.publish(Bool(data=obstacle))
 
         if self.estop:
@@ -380,10 +408,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             cmd.linear.x = 0.0
         if cmd.linear.x < 0.0 and self.rear_blocked:
             cmd.linear.x = 0.0
-        if not lidar_can_rotate(
-                (self.lidar_front, self.lidar_rear, self.lidar_left,
-                 self.lidar_right, self.lidar_rear_left, self.lidar_rear_right),
-                self.robot_r, lidar_ok):
+        if not can_rotate:
             cmd.angular.z = 0.0
         if abs(cmd.linear.x) >= 0.004:
             self._auto_linear_sign(us, lidar_d, self.last_cmd.linear.x, self.last_cmd.angular.z)

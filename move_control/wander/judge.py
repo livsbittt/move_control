@@ -7,7 +7,6 @@ from ..control.recover import (
     frontier_gate,
     hazard_action,
     ratio_sign,
-    side_sign,
     wall_first_move,
 )
 
@@ -32,7 +31,6 @@ class Judge:
             self._samp_F.append(self.front_range)
             self._samp_F = self._samp_F[-40:]
         self._look_yaw += self.open_yaw
-        self._look_cam += self.cam_side
         if self._finite(self.rear_range):
             self._samp_rear = getattr(self, '_samp_rear', [])
             self._samp_rear.append(self.rear_range)
@@ -57,10 +55,6 @@ class Judge:
         fy = float(getattr(self, 'frontier_yaw', 0.0) or 0.0)
         if abs(fy) > math.radians(10.0):
             return 1.0 if fy > 0.0 else -1.0
-        if self.cam_block and self._look_n > 0:
-            s = side_sign(self._look_cam / self._look_n)
-            if s:
-                return s
         s = ratio_sign(self._median(self._samp_L), self._median(self._samp_R))
         if s:
             return s
@@ -94,7 +88,7 @@ class Judge:
             if self._need_space_to_turn(sign):
                 return 'backup', sign, 'space for turn'
             return 'escape', sign, 'wall spin'
-        if self.blocked or self.cam_block:
+        if self.blocked:
             if self._need_space_to_turn(sign):
                 return 'backup', sign, 'space for turn'
             return 'escape', sign, 'corner'
