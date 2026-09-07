@@ -34,6 +34,19 @@ jobs:
             echo "ok $f"
           done
 
+      # Windows checkouts have core.fileMode=false, so a script committed from
+      # a PC keeps mode 100644 and every direct invocation dies with exit 126 --
+      # here, and on the robot. Fix with: git update-index --chmod=+x <file>
+      - name: Require the executable bit
+        run: |
+          bad=0
+          for f in tools/ci/*.sh tools/deploy/*.sh; do
+            mode=$(git ls-files -s "$f" | cut -d' ' -f1)
+            [ "$mode" = 100755 ] || { echo "not executable ($mode): $f"; bad=1; }
+          done
+          [ "$bad" = 0 ] || { echo "fix: git update-index --chmod=+x <file>"; exit 1; }
+          echo "all scripts are 100755"
+
       # deploy.sh scp's these scripts to the robot verbatim. A CRLF sneaks in
       # whenever one is edited by a Windows tool, and the robot then fails with
       # a bare "bad interpreter" -- catch it here instead.
