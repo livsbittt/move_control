@@ -221,7 +221,8 @@ def render_png(msg, epoch=None):
     img = np.full((info.height, info.width, 3), (22, 22, 21), np.uint8)
     img[(arr >= 0) & (arr < 65)] = (35, 35, 34)      # free
     img[arr >= 65] = (225, 224, 217)                 # wall
-    ok, buf = cv2.imencode('.png', img)
+    # ROS rows increase northward; image rows increase downward, like w2c.
+    ok, buf = cv2.imencode('.png', img[::-1])
     if ok:
         with LOCK:
             if epoch is not None and epoch != STATE.get('map_control', {}).get('epoch', 0):
