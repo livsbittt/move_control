@@ -1,8 +1,10 @@
 """Local ROS safety-node tests. A dedicated domain never joins the robot."""
 import unittest
+import json
 from unittest.mock import Mock
 
 import rclpy
+from rclpy.parameter import Parameter
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool, Float32MultiArray
 from move_control.safety.node import SafetyNode
@@ -94,3 +96,21 @@ class SafetyGateTest(unittest.TestCase):
         self.node.tick()
         self.assertFalse(self.node.block_pub.publish.call_args.args[0].data)
         self.assertGreater(self.node.pub.publish.call_args.args[0].linear.x, 0.)
+
+    def test_tf_rear_limit_is_used_by_tick_and_reported_to_calibration(self):
+        self.node.set_parameters([Parameter('lidar_use_tf', value=True)])
+        self.node.lidar_mount = (-.017, 0.)
+        self.node.last_scan_time = self.node.now()
+        self.node.lidar_front = .5
+        self.node.lidar_rear = .117
+        self.node.can_rev_pub = Mock()
+        self.node.motion_limits_pub = Mock()
+        self.node.tick()
+        self.assertTrue(self.node.can_rev_pub.publish.call_args.args[0].data)
+        data = json.loads(self.node.motion_limits_pub.publish.call_args.args[0].data)
+        self.assertAlmostEqual(data['front_stop_m'], .12)
+        self.assertLess(data['rear_stop_m'], .1)
+        self.assertAlmostEqual(data['rear_m'], .117)
+        self.node.lidar_mount = None
+        self.node.tick()
+        self.assertFalse(self.node.can_rev_pub.publish.call_args.args[0].data)

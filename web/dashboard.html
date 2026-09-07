@@ -535,6 +535,13 @@ function renderCalibration(s) {
       ' · ' + (sensor.samples || 0) + '개 · ' + (sensor.detail || '') : '데이터 대기');
   });
   $('calibrationprogress').value = count;
+  const clearance = calibration && calibration.motion_clearance;
+  if (clearance) {
+    const cm = value => Number.isFinite(value) ? (value * 100).toFixed(1) + 'cm' : '미수신';
+    lines.push('왕복 공간 확인 (LiDAR 기준): 전방 ' + cm(clearance.available_front_m) + ' / 필요 ' + cm(clearance.required_front_m) + ' · 후방 ' + cm(clearance.available_rear_m) + ' / 필요 ' + cm(clearance.required_rear_m));
+    lines.push('이번 보정 이동 목표 ' + cm(clearance.target_m) + ' · 정지 기준: 전방 ' + cm(clearance.front_stop_m) + ' / 후방 ' + cm(clearance.rear_stop_m));
+    if (clearance.reason) lines.push('공간 확인: ' + clearance.reason);
+  }
   const env = calibration && calibration.navigation_profile;
   setTxt('calibrationenvironment', env ? '환경 보정 ' + (phase === 'ready' ? '적용' : '측정') + ' · 통로 ' + (env.corridor_width_m*100).toFixed(1) + 'cm · 몸체 바깥 최소 여유 ' + (env.uncertainty_margin_m*100).toFixed(1) + 'cm' + (env.map_lidar_mismatch ? ' · 지도/센서 거리 차이 확인 필요' : '') : '환경 여유 측정 대기 · 미측정 시 기본 여유 적용');
   if (env) {

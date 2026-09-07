@@ -22,6 +22,7 @@ from .sensing.lidar import NOSE_YAW, is_robot_scan, sector_range
 from .sensing.lidar_mount import nose_from_quaternion
 from .sensing.range_filter import CalibrationRangeFilter
 from .control.round_trip import RoundTrip
+from .control.calibration_clearance import motion_clearance
 from .control.navigation_calibration import environment_profile, map_ray
 from .planning import OccupancyMap
 
@@ -56,6 +57,8 @@ class StartupCalibrationNode(Node):
         self.create_subscription(Imu, '/imu_raw', self.on_imu, 10)
         self.create_subscription(Image, '/camera/front', self.on_camera, qos_profile_sensor_data)
         self.hazards = {}
+        self.safety_limits = (0., {})
+        self.create_subscription(String, '/safety/motion_limits', self.on_motion_limits, 10)
         self.rear_clear = (0., False)
         self.create_subscription(Bool, '/safety/can_reverse',
             lambda msg: setattr(self, 'rear_clear', (time.monotonic(), msg.data)), 10)
@@ -81,6 +84,8 @@ class StartupCalibrationNode(Node):
         self.phase, self.message = 'collecting', 'Keep robot stationary on safe level floor'
         self.started = time.monotonic()
         self.motion_start = None
+        self.selected_target = None
+        self.motion_clearance = {}
         self.round_trip = None
         self.motion = None
         self.baseline_values = {}
@@ -221,7 +226,33 @@ class StartupCalibrationNode(Node):
         except Exception:
             self.add('map_tf', (0., 0., 0.), False)
 
+    def on_motion_limits(self, msg):
+        try:
+            data = json.loads(msg.data)
+            self.safety_limits = (time.monotonic(), data if isinstance(data, dict) else {})
+        except (ValueError, TypeError):
+            self.safety_limits = (0., {})
+
     def safe_motion(self, now):
+        stamp, limits = self.safety_limits
+        if not 0 <= now-stamp <= .75:
+            self.motion_clearance = {'reason': 'Missing fresh safety motion limits', 'target_m': None}
+            return self.motion_clearance['reason']
+        limits = dict(limits)
+        lidar_raw = self.raw_ranges.get('lidar', (0., 0., False))
+        if isinstance(limits.get('front_m'), (int, float)) and lidar_raw[2]:
+            limits['front_m'] = min(limits['front_m'], lidar_raw[1])
+        us_raw = self.raw_ranges.get('us', (0., 0., False))
+        limits['us_m'] = us_raw[1]
+        forward = 0.
+        if self.motion_start is not None:
+            forward = motion_evidence(self.motion_start[1], self.snapshot())['lidar_delta_m']
+        round_trip = bool(self.get_parameter('calibration_round_trip').value)
+        requested = float(self.get_parameter('calibration_distance_m').value) if round_trip else MOTION_LIMIT
+        self.motion_clearance = motion_clearance(limits, requested,
+            target=self.selected_target, forward=forward, round_trip=round_trip)
+        if self.motion_clearance['reason']:
+            return self.motion_clearance['reason']
         if self.estop is not False:
             return 'Emergency stop must be explicitly released'
         if self.get_parameter('calibration_round_trip').value:
@@ -230,15 +261,14 @@ class StartupCalibrationNode(Node):
                 return 'Round-trip requires fresh rear clearance for safe return'
         if not self.baseline.fresh(now):
             return 'Sensor data became stale or invalid'
-        for stamp, distance, valid in self.raw_ranges.values():
-            if not valid or now - stamp > 1. or distance < .20:
+        for name in ('lidar', 'us'):
+            stamp, distance, valid = self.raw_ranges.get(name, (0., 0., False))
+            if not valid or not 0 <= now - stamp <= 1. or distance <= 0.:
                 return 'Raw range unsafe or stale; filtered values cannot authorize motion'
         required = ('/safety/blocked', '/safety/cliff', '/safety/tilt', '/safety/pickup')
         if any(key not in self.hazards or now - self.hazards[key][0] > .75
                or self.hazards[key][1] for key in required):
             return 'Safety hazard or missing fresh safety state'
-        if min(self.baseline.latest('lidar')[0], self.baseline.latest('us')[0]) < .20:
-            return 'Need at least 20 cm clear range for motion validation'
         return None
 
     def on_command(self, msg):
@@ -256,6 +286,7 @@ class StartupCalibrationNode(Node):
                 self.publish()
                 return
             self.wander_pub.publish(String(data='stop'))
+            self.selected_target = self.motion_clearance['target_m']
             self.baseline_values = self.baseline.statistics(now)
             if self.environment_map is not None:
                 self.navigation_profile = environment_profile(
@@ -313,7 +344,7 @@ class StartupCalibrationNode(Node):
                 self.motion_start = (now, self.snapshot())
                 if self.get_parameter('calibration_round_trip').value:
                     self.round_trip = RoundTrip(now, self.snapshot(),
-                        float(self.get_parameter('calibration_distance_m').value))
+                        self.selected_target)
             if self.round_trip is not None:
                 speed = self.round_trip.update(now, self.snapshot())
                 self.motion = self.round_trip.report()
@@ -336,7 +367,7 @@ class StartupCalibrationNode(Node):
                     abs(evidence['yaw_drift_rad']) > .15):
                 self.finish(False, 'Unexpected motion direction or yaw drift')
                 return
-            if now - self.motion_start[0] >= MOTION_SECONDS or evidence['distance_m'] >= MOTION_LIMIT:
+            if now - self.motion_start[0] >= MOTION_SECONDS or evidence['distance_m'] >= self.selected_target:
                 passed, checks = motion_result(evidence,
                     require_us=bool(self.get_parameter('calibration_require_us_agreement').value))
                 self.motion['checks'] = checks
@@ -358,6 +389,7 @@ class StartupCalibrationNode(Node):
                 'elapsed_s': round(time.monotonic() - self.started, 2),
                 'sensors': self.sensors, 'motion': self.motion, 'baseline': self.baseline_values,
                 'navigation_profile': self.navigation_profile,
+                'motion_clearance': self.motion_clearance,
                 'estimates': {'imu_gyro_bias_rad_s': imu[3:6], 'imu_gravity_mean_mps2': imu[6:9],
                               'imu_roll_pitch_baseline_rad': imu[9:11],
                               'lidar_us_range_difference_m': lidar[0] - us[0] if lidar and us else None},

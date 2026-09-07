@@ -10,7 +10,7 @@ from tf2_ros import TransformException
 from ..sensing.body import ignore_m, use_radius
 from ..sensing.lidar import find_frontiers, is_robot_scan, opening_max, sector_range, wrap_pi
 from ..control.route import line_route
-from ..control.lidar_guard import lidar_limits
+from ..control.lidar_guard import directional_lidar_limits
 from ..sensing.lidar_mount import nose_from_quaternion
 
 
@@ -63,8 +63,11 @@ class Bumper:
                 q = tf.transform.rotation
                 self.lidar_yaw = nose_from_quaternion(q.x, q.y, q.z, q.w)
                 self.lidar_yaw_source = 'tf:' + msg.header.frame_id
+                mount = tf.transform.translation
+                self.lidar_mount = (mount.x, mount.y)
             except (TransformException, ValueError) as error:
                 self.last_scan_time = None
+                self.lidar_mount = None
                 self.lidar_yaw_source = 'missing_tf'
                 self.get_logger().warn(f'drop scan without mount TF: {error}',
                                        throttle_duration_sec=5.0)
@@ -72,6 +75,7 @@ class Bumper:
         else:
             self.lidar_yaw = float(self.get_parameter('lidar_yaw_offset').value)
             self.lidar_yaw_source = 'parameter'
+            self.lidar_mount = None
         self._scan_ok += 1
         yaw = self.lidar_yaw
         lo = max(
@@ -187,10 +191,14 @@ class Bumper:
             self.lidar_yaw = float(self.get_parameter('lidar_yaw_offset').value)
         if self.has_parameter('robot_radius'):
             self.robot_r = use_radius(self.get_parameter('robot_radius').value)
-        self.stop_d, self.clear_d = lidar_limits(
-            self.stop_d, self.clear_d, self.robot_r)
         # The 8-degree centre cone missed corners in the chassis path.
         self.half_w = max(math.pi / 4, self.half_w)
+        front, rear = directional_lidar_limits(
+            self.stop_d, self.clear_d, self.robot_r,
+            getattr(self, 'lidar_mount', None) if self.get_parameter('lidar_use_tf').value else None,
+            self.half_w)
+        self.stop_d, self.clear_d = front
+        self.rear_stop_d, self.rear_clear_d = rear
         fc = float(self.get_parameter('filt_hz').value)
         for lp in self._lp.values():
             lp.set_cutoff(fc, 0.05)

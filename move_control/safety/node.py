@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Safety ROS node. Subjects: bumper, hazard, gate."""
 import math
+import json
 import time
 
 import rclpy
@@ -123,6 +124,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.exit_yaw_pub = self.create_publisher(Float32, '/safety/exit_yaw', 10)
         self.exit_pub = self.create_publisher(Float32, '/safety/exit_range', 10)
         self.radius_pub = self.create_publisher(Float32, '/safety/robot_radius', 10)
+        self.motion_limits_pub = self.create_publisher(String, '/safety/motion_limits', 10)
         self.wander_cmd = self.create_publisher(String, '/wander/cmd', 10)
         self.calib_step = self.create_publisher(String, '/calib/step', 10)
         latched = QoSProfile(
@@ -299,8 +301,16 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             self.stop_d, self.clear_d, lidar_ok)
         self.rear_blocked = lidar_blocked(
             self.rear_distance(), rear_d, self.rear_blocked,
-            self.stop_d, self.clear_d, lidar_ok)
-        can_rev = lidar_ok and not self.rear_blocked and rear_d > self.stop_d
+            self.rear_stop_d, self.rear_clear_d, lidar_ok)
+        can_rev = lidar_ok and not self.rear_blocked and rear_d > self.rear_stop_d
+        self.motion_limits_pub.publish(String(data=json.dumps({
+            'front_stop_m': self.stop_d, 'front_clear_m': self.clear_d,
+            'rear_stop_m': self.rear_stop_d, 'rear_clear_m': self.rear_clear_d,
+            'us_stop_m': self.us_stop,
+            'front_m': self.lidar_distance() if lidar_ok and math.isfinite(self.lidar_distance()) else None,
+            'rear_m': self.rear_distance() if lidar_ok and math.isfinite(self.rear_distance()) else None,
+            'mount_source': self.lidar_yaw_source,
+        }, allow_nan=False)))
         # Same value on both topics: /safety/can_reverse is a same-value alias
         # kept for the external LCD/web — one computation, like /safety/mode.
         self.rear_clear_pub.publish(Bool(data=can_rev))

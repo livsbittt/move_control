@@ -44,6 +44,9 @@ class StartupCalibrationTest(unittest.TestCase):
 
     def refresh(self, when, moving=False):
         self.now.return_value = when
+        self.node.safety_limits = (when, dict(front_m=.65, rear_m=.65,
+            front_stop_m=.12, rear_stop_m=.091, us_stop_m=.02))
+        self.node.raw_ranges = {'lidar': (when,.65,True), 'us': (when,.65,True)}
         for name, value in VALUES.items():
             if moving and name in ('odom', 'lidar', 'us', 'map_tf'):
                 value = {'odom': (.03, 0., 0., 0.), 'lidar': (.62,), 'us': (.62,), 'map_tf': (.03, 0., 0.)}[name]
@@ -229,6 +232,22 @@ class StartupCalibrationTest(unittest.TestCase):
         self.node.tick()
         self.assertEqual(self.node.phase, 'failed')
         self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
+
+    def test_actual_safety_clearance_allows_short_stroke_below_twenty_cm(self):
+        self.refresh(100.)
+        self.node.estop = False
+        self.node.safety_limits[1]['front_m'] = .16
+        self.assertIsNone(self.node.safe_motion(100.))
+        self.assertAlmostEqual(self.node.motion_clearance['target_m'], .032)
+        self.node.safety_limits = (98., self.node.safety_limits[1])
+        self.assertIn('fresh safety', self.node.safe_motion(100.))
+
+    def test_wide_corridor_jamb_blocks_even_when_precision_reference_is_far(self):
+        self.refresh(100.)
+        self.node.estop = False
+        self.node.safety_limits[1]['front_m'] = .135
+        self.assertIsNotNone(self.node.safe_motion(100.))
+        self.assertLess(self.node.motion_clearance['target_m'], .02)
 
     def test_ready_is_revoked_when_required_map_or_sensor_disappears(self):
         self.arm()

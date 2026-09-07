@@ -4,6 +4,18 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
+test('calibration displays runtime directional space and selected stroke', () => {
+  const d = dashboard();
+  d.renderCalibration({calibration:{phase:'waiting_motion',motion_clearance:{
+    available_front_m:.15,required_front_m:.145,available_rear_m:.117,
+    required_rear_m:.095,target_m:.02,front_stop_m:.111,rear_stop_m:.087
+  }}});
+  const text = d.elements.get('calibrationsensors').textContent;
+  assert.ok(text.includes('15.0cm / 필요 14.5cm'));
+  assert.ok(text.includes('11.7cm / 필요 9.5cm'));
+  assert.ok(text.includes('이동 목표 2.0cm'));
+});
+
 function dashboard() {
   const elements = new Map();
   const noop = () => {};
