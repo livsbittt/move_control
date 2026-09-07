@@ -1,0 +1,14 @@
+{
+  "elapsed_sim_s": 179.936,
+  "calibration_phase": "ready",
+  "calibration_ready": true,
+  "message": "Translation and bilateral rotation verified",
+  "map_received": true,
+  "mapping_complete": false,
+  "cmd_vel_publishers": [
+    "safety_node"
+  ],
+  "path_m": 0.6818507027317546,
+  "min_center_to_wall_m": 0.16383130257338077,
+  "known_cells": 4273
+}

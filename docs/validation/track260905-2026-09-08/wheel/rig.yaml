@@ -1,0 +1,11 @@
+/**:
+  ros__parameters:
+    calibration_auto_motion: true
+    calibration_us_max_range: 8.0
+    clear_distance: 0.16
+    imu_angular_velocity_unit: rad_s
+    lidar_yaw_offset: 0.0
+    result_path: /tmp/pinky-calmap227/calibration.json
+    robot_radius: 0.105
+    stop_distance: 0.14
+    use_sim_time: true

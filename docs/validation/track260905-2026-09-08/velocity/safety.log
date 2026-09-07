@@ -1,0 +1,22 @@
+[WARN] [1788811488.009098610] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788811488.009218687] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1788811489.033765335] [safety_node]: safety_node ready | lidar_stop=0.14m us_stop=0.02m linear_sign=1 cam_wall=0 cam_block=0 cliff_mode=low th=800 lidar_yaw=0deg radius=10.5cm filt=5/1.5Hz | E-STOP /estop Bool or /estop/cmd stop|release
+[WARN] [1788811489.151607670] [safety_node]: no lidar — motion disabled until scan
+[WARN] [1788811496.913625248] [safety_node]: E-STOP released — motors stay 0 until a new command
+[INFO] [1788811658.213500531] [safety_node]: auto map corridor=70cm → map=40cm open_max=50cm
+Traceback (most recent call last):
+  File "/tmp/track260905-source/tools/gz/calibration_mapping_rig.py", line 185, in <module>
+    main()
+  File "/tmp/track260905-source/tools/gz/calibration_mapping_rig.py", line 176, in main
+    executor.spin()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 359, in spin
+    self._spin_once_impl()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 785, in _wait_for_ready_callbacks
+    raise ExternalShutdownException()
+rclpy.executors.ExternalShutdownException

@@ -1,0 +1,6 @@
+image: track_map.pgm
+resolution: 0.019999999552965164
+origin: [-1.3491406925664944, -0.6283738320035426, 0.]
+negate: 0
+occupied_thresh: 0.65
+free_thresh: 0.196

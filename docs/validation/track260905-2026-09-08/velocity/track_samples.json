@@ -1,0 +1,5743 @@
+[
+  {
+    "sim_s": 1.362,
+    "calibration": null,
+    "goal": "",
+    "wander": "",
+    "pose": null,
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": null,
+    "message": null
+  },
+  {
+    "sim_s": 1.862,
+    "calibration": "collecting",
+    "goal": "",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 2.362,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 2.862,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 3.379,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 3.882,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 4.384,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 4.884,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 5.388,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 5.894,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 6.396000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 6.9,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 7.401000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 7.9030000000000005,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Waiting for wander stop before bounded forward validation"
+  },
+  {
+    "sim_s": 8.412,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Waiting for wander stop before bounded forward validation"
+  },
+  {
+    "sim_s": 8.918000000000001,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19658399999999565,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 9.424000000000001,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19258399999999165,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 9.925,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18858399999998765,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 10.426,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18458399999998365,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 10.926,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18058399999997965,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 11.426,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.17658399999997565,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 11.932,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.17258399999997165,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 12.433000000000002,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.16858399999996765,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 12.933000000000002,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.16848799999996755,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: settle_out"
+  },
+  {
+    "sim_s": 13.437000000000001,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.17055999999996962,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 13.937000000000001,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.17455999999997363,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 14.443000000000001,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.17855999999997763,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 14.950000000000001,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18255999999998163,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 15.455000000000002,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18655999999998563,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 15.958,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19095999999999003,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 16.46,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19495999999999403,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 16.96,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19895999999999803,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 17.463,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20190400000000097,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: settle_home"
+  },
+  {
+    "sim_s": 17.963,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20190400000000097,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008022243034476169,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 18.463,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19799716764221026,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008022243034476169,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 18.964000000000002,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19398604612497133,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008022243034476169,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 19.466,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1899749246077324,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008022243034476169,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 19.970000000000002,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18596380309049348,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008022243034476169,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 20.474,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18195268157325456,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008022243034476169,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 20.974,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.17794156005601564,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008022243034476169,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 21.476000000000003,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1739304385387767,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008022243034476169,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 21.981,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.16991931702153779,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008022243034476169,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 22.484,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.16779342261740116,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 22.986,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1684932460362731,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008043947343366609,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: settle_out"
+  },
+  {
+    "sim_s": 23.486,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.172515219707951,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008043947343366609,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 23.986,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1765371933796289,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008043947343366609,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 24.486,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18055916705130678,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008043947343366609,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 25.002000000000002,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18458114072298468,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008043947343366609,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 25.511000000000003,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18860311439466257,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008043947343366609,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 26.013,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19302728543350825,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008043947343366609,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 26.517000000000003,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19704925910518614,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008043947343366609,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 27.017000000000003,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20107123277686403,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008043947343366609,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 27.521,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188367145854297,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: settle_home"
+  },
+  {
+    "sim_s": 28.022000000000002,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188367145854297,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: settle_home"
+  },
+  {
+    "sim_s": 28.523000000000003,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188367145854297,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: settle_home"
+  },
+  {
+    "sim_s": 29.038,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188375500564704,
+      0.26999999894474547
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 29.540000000000003,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2018838539215959,
+      0.26999999495726373
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 30.046000000000003,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188395267342954,
+      0.2699999880045435
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 30.549000000000003,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188405117227762,
+      0.2699999780928407
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 31.05,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188414932949827,
+      0.2699999652310754
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 31.582,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188424705675667,
+      0.26999994943082284
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 32.114000000000004,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188427666722175,
+      0.2699999440472091
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 32.614000000000004,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188432461301803,
+      0.2699999354666016
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 33.119,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188442242691987,
+      0.26999992021191044
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 33.619,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188452065438053,
+      0.2699999078980597
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 34.120000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188461920700235,
+      0.269999898536132
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 34.620000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188471799609448,
+      0.26999989213455233
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 35.121,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2018848169327535,
+      0.26999988869908076
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 35.621,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.201884878308543,
+      0.26999988806013653
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 36.122,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.201884878308543,
+      0.26999988806013653
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 36.622,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188497294101698,
+      0.26999988931219643
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 37.124,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188507184761728,
+      0.26999989352519577
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 37.631,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188517058334213,
+      0.26999990070305196
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 38.131,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188526905933554,
+      0.2699999108393061
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 38.633,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2018853671869763,
+      0.2699999239248361
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 39.149,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2018854648779561,
+      0.2699999399478656
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 39.660000000000004,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188548552400884,
+      0.26999994372081737
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 40.160000000000004,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188552313265531,
+      0.2699999504945306
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 40.662,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188563070688656,
+      0.26999996740366
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 41.164,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.201885728938037,
+      0.2699999796880418
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 41.666000000000004,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188582749346295,
+      0.26999998902040323
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 42.168,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2018859262844712,
+      0.2699999953923458
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 42.668,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2018860252221564,
+      0.2699999987981361
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 43.169000000000004,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188607630216793,
+      0.2699999993942662
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 43.67,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2018860844077757,
+      0.2699999994161588
+    ],
+    "safe": [
+      0.0,
+      0.05995430414691736
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 44.172000000000004,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188618324430604,
+      0.26999999808013103
+    ],
+    "safe": [
+      0.0,
+      0.05995430414691736
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 44.672000000000004,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188628199638695,
+      0.26999999378230966
+    ],
+    "safe": [
+      0.0,
+      0.05995430414691736
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 45.173,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2018863805752829,
+      0.269999986526556
+    ],
+    "safe": [
+      0.0,
+      0.05995430414691736
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 45.673,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188647889241518,
+      0.2699999763193906
+    ],
+    "safe": [
+      0.0,
+      0.05995430414691736
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 46.173,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188657685943906,
+      0.26999996316998426
+    ],
+    "safe": [
+      0.0,
+      0.05995430414691736
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 46.673,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188667438832583,
+      0.2699999470901546
+    ],
+    "safe": [
+      0.0,
+      0.05995430414691736
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 47.175000000000004,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188668955764125,
+      0.26999994431837077
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 47.682,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188675402316222,
+      0.2699999330326192
+    ],
+    "safe": [
+      0.0,
+      -0.06060256497157272
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 48.187000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188685390857475,
+      0.2699999181057764
+    ],
+    "safe": [
+      0.0,
+      -0.06060256497157272
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 48.689,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188695420036842,
+      0.2699999062119784
+    ],
+    "safe": [
+      0.0,
+      -0.06060256497157272
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 49.190000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188705480646543,
+      0.26999989736214486
+    ],
+    "safe": [
+      0.0,
+      -0.06060256497157272
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 49.690000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188715563449966,
+      0.26999989156440185
+    ],
+    "safe": [
+      0.0,
+      -0.06060256497157272
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 50.191,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188725659190102,
+      0.2699998888240704
+    ],
+    "safe": [
+      0.0,
+      -0.06060256497157272
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 50.691,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2018872883044656,
+      0.26999988859482177
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 51.191,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188732668345713,
+      0.26999988872092456
+    ],
+    "safe": [
+      0.0,
+      -0.06060256497157272
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 51.691,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2018874276484866,
+      0.2699998911641086
+    ],
+    "safe": [
+      0.0,
+      -0.06060256497157272
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 52.192,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188752849314767,
+      0.26999989666507285
+    ],
+    "safe": [
+      0.0,
+      -0.06060256497157272
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 52.692,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2018876291248552,
+      0.26999990521876666
+    ],
+    "safe": [
+      0.0,
+      -0.06060256497157272
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 53.198,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188772945122,
+      0.26999991681733687
+    ],
+    "safe": [
+      0.0,
+      -0.06060256497157272
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 53.698,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188782938013228,
+      0.26999993145013534
+    ],
+    "safe": [
+      0.0,
+      -0.06060256497157272
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 54.198,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188790242179946,
+      0.2699999441138414
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 54.698,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188790242179946,
+      0.2699999441138414
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 55.199000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2018879885482768,
+      0.2699999588626545
+    ],
+    "safe": [
+      0.0,
+      0.05995430414691736
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 55.701,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2018880864078488,
+      0.26999997278920995
+    ],
+    "safe": [
+      0.0,
+      0.05995430414691736
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 56.203,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188818464086997,
+      0.2699999837763962
+    ],
+    "safe": [
+      0.0,
+      0.05995430414691736
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 56.705000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188829302317077,
+      0.2699999924556263
+    ],
+    "safe": [
+      0.0,
+      0.05995430414691736
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 57.211000000000006,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188839175281845,
+      0.2699999972411651
+    ],
+    "safe": [
+      0.0,
+      0.05995430414691736
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 57.715,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188849058154387,
+      0.2699999990653638
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 58.218,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188849236082146,
+      0.2699999990710534
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 58.718,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20188849236082146,
+      0.2699999990710534
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 59.218,
+    "calibration": "ready",
+    "goal": "explore waiting for route",
+    "wander": "route_explore:no_route",
+    "pose": [
+      -0.20188849236082146,
+      0.2699999990710534
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 59.731,
+    "calibration": "ready",
+    "goal": "explore waiting for route",
+    "wander": "route_explore:no_route",
+    "pose": [
+      -0.20188849236082146,
+      0.2699999990710534
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 60.233000000000004,
+    "calibration": "ready",
+    "goal": "explore waiting for route",
+    "wander": "route_explore:no_route",
+    "pose": [
+      -0.20188849236082146,
+      0.2699999990710534
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 60.733000000000004,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=2 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20188867931498417,
+      0.27000000278219677
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 61.236000000000004,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=2 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20188895376060145,
+      0.27000001977777016
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 61.737,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=2 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20188922701380774,
+      0.2700000504686673
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 62.24,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2018894983916135,
+      0.2700000947781776
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 62.742000000000004,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20188976721571517,
+      0.2700001525955504
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 63.243,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189003281419238,
+      0.27000022377627064
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 63.743,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189029452318738,
+      0.2700003081424248
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 64.24300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189055168856393,
+      0.2700004054831419
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 64.74300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2018908036675426,
+      0.27000051555512083
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 65.24300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189104983030737,
+      0.27000063808323754
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 65.75,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189128956157895,
+      0.2700007727612366
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 66.25,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2018915222621546,
+      0.2700009192524932
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 66.75500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2018917473504037,
+      0.27000107719085537
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 67.327,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189198548437604,
+      0.2700012636724809
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 67.831,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2018922130069425,
+      0.27000146296289007
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 68.333,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2018924100577465,
+      0.270001654744606
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 68.83500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189259727719738,
+      0.2700018561350808
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 69.336,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2018927741973443,
+      0.27000206663094284
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 69.837,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2018929403759787,
+      0.27000228570606205
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 70.33800000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189309539774059,
+      0.27000251281286397
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 70.839,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2018932388751561,
+      0.2700027473837002
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 71.34100000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2018933704496069,
+      0.27000298883226675
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 71.84100000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189348979222524,
+      0.2700032365550671
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 72.34100000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2018935966047162,
+      0.27000348993292306
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 72.845,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189369062010476,
+      0.27000374833252255
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 73.34700000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2018937716034011,
+      0.2700040111080002
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 73.848,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2018938393521892,
+      0.2700042776025551
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 74.349,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189389369713284,
+      0.2700045471500901
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 74.849,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189393450239768,
+      0.2700048190768748
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 75.357,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189396166599138,
+      0.27000509270323575
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 75.86200000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189397570980394,
+      0.2700053948388951
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 76.364,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189397404579154,
+      0.2700056698052149
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 76.86800000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189395864127027,
+      0.27000594434473324
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 77.37100000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189392953474408,
+      0.2700062177712435
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 77.87700000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189388679896347,
+      0.2700064894013208
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 78.37700000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189383054074594,
+      0.27000675855603284
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 78.909,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20189376090070715,
+      0.270007024562633
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 79.41600000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.20288994090477439,
+      0.26704475870724803
+    ],
+    "safe": [
+      0.013416194693584012,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 79.91600000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.20409040988595492,
+      0.26374727813368937
+    ],
+    "safe": [
+      0.013388520934578303,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 80.41600000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20611402746819668,
+      0.2590456715362454
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 80.91600000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20757093744135188,
+      0.2562068134888147
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 81.43,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20868162228722953,
+      0.2542795710556522
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 81.93100000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.79m alts=0 eta~56s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20868147598132417,
+      0.2542798038728083
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 82.43100000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.73m alts=0 eta~214s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.21097491941038016,
+      0.2510792287277639
+    ],
+    "safe": [
+      0.013794519393106023,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 82.932,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.73m alts=0 eta~214s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.2152150432093476,
+      0.24562788631104593
+    ],
+    "safe": [
+      0.013837609474836508,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 83.432,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.73m alts=0 eta~214s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.21973498924168502,
+      0.24038053876833027
+    ],
+    "safe": [
+      0.013871988793151121,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 83.932,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.73m alts=0 eta~214s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.22452018570615795,
+      0.2353565234932195
+    ],
+    "safe": [
+      0.013886201055534732,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 84.43400000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.73m alts=0 eta~86s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.22869874213386976,
+      0.23135368972278533
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 84.93400000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.73m alts=0 eta~86s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.22869853356032568,
+      0.23135386890515877
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 85.438,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.73m alts=0 eta~86s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2286983162920581,
+      0.2313540374392685
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 85.93900000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.73m alts=0 eta~86s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.22869809087212445,
+      0.23135419490386683
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 86.441,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.71m alts=0 eta~109s(odo) v=0.7cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.23172718823607288,
+      0.22939575088177894
+    ],
+    "safe": [
+      0.013772447475925684,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 86.941,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.71m alts=0 eta~109s(odo) v=0.7cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.23736952139184664,
+      0.22543492752535424
+    ],
+    "safe": [
+      0.013814242316874024,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 87.44300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.71m alts=0 eta~109s(odo) v=0.7cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.24282025324808476,
+      0.22118663166277322
+    ],
+    "safe": [
+      0.013835523956061658,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 87.94500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.71m alts=0 eta~109s(odo) v=0.7cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.24805736889083319,
+      0.21666652203024833
+    ],
+    "safe": [
+      0.013836014875332465,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 88.44500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.69m alts=0 eta~78s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2501370336753632,
+      0.2147396015498147
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 88.94500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.69m alts=0 eta~78s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.25013682392376674,
+      0.21473977935171001
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 89.44500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.69m alts=0 eta~78s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.25257195256194603,
+      0.2129288407553252
+    ],
+    "safe": [
+      0.01342995035864532,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 89.94600000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.69m alts=0 eta~78s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2564814945205916,
+      0.21019427996410947
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 90.44600000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.68m alts=0 eta~97s(odo) v=0.7cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2574336765185816,
+      0.2095943331272742
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 90.947,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.68m alts=0 eta~97s(odo) v=0.7cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.2604722487508338,
+      0.20740712949479392
+    ],
+    "safe": [
+      0.013422130002445744,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 91.46000000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.68m alts=0 eta~97s(odo) v=0.7cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.26428618479278176,
+      0.2044727997354984
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 91.96100000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.68m alts=0 eta~97s(odo) v=0.7cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.26825489545820536,
+      0.2010245412873708
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 92.46100000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.68m alts=0 eta~89s(odo) v=0.8cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.27086121968713406,
+      0.19845035854977558
+    ],
+    "safe": [
+      0.013375131477639558,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 92.96400000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.68m alts=0 eta~89s(odo) v=0.8cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.2719401242130397,
+      0.19729754418440626
+    ],
+    "safe": [
+      0.013434261133287342,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 93.46400000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.68m alts=0 eta~89s(odo) v=0.8cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2733640516079787,
+      0.1956737197158097
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 93.967,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.68m alts=0 eta~89s(odo) v=0.8cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2733638600621359,
+      0.19567391699590547
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 94.47,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.66m alts=0 eta~108s(odo) v=0.6cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.2747904629312472,
+      0.19439132964493658
+    ],
+    "safe": [
+      0.013428125549766858,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 94.977,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.66m alts=0 eta~108s(odo) v=0.6cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.27792210230422165,
+      0.1917009178858838
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 95.477,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.66m alts=0 eta~108s(odo) v=0.6cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.28122131084826174,
+      0.18917433546324613
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 95.97800000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.66m alts=0 eta~108s(odo) v=0.6cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.28334643242984214,
+      0.18772374997974337
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 96.47800000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.59m alts=0 eta~102s(odo) v=0.6cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2833461980308188,
+      0.18772389373767884
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 96.97800000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.59m alts=0 eta~102s(odo) v=0.6cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2833459567398308,
+      0.18772402560088597
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 97.485,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.59m alts=0 eta~102s(odo) v=0.6cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2833457091599802,
+      0.18772414523977535
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 97.98700000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.59m alts=0 eta~102s(odo) v=0.6cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2833454559100878,
+      0.18772425235531212
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 98.48700000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.59m alts=0 eta~198s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.28631665905144765,
+      0.18668362888743567
+    ],
+    "safe": [
+      0.013434187339035304,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 98.988,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.59m alts=0 eta~198s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.29275286414094737,
+      0.18469187053925262
+    ],
+    "safe": [
+      0.01352534560353804,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 99.488,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.59m alts=0 eta~198s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.2993217897444574,
+      0.18301371127412808
+    ],
+    "safe": [
+      0.01360738273258963,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 99.989,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.59m alts=0 eta~198s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.30601003241177055,
+      0.18165712896799785
+    ],
+    "safe": [
+      0.013712109104854915,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 100.49600000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.56m alts=0 eta~93s(odo) v=0.6cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.31280399009740606,
+      0.18062948749670152
+    ],
+    "safe": [
+      0.013786850212577587,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 100.99600000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.56m alts=0 eta~93s(odo) v=0.6cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.31967776627097594,
+      0.17993896345587448
+    ],
+    "safe": [
+      0.013859420652215257,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 101.49600000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.56m alts=0 eta~93s(odo) v=0.6cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.3266237710569831,
+      0.1795905168579042
+    ],
+    "safe": [
+      0.01394655754629585,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 101.997,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.56m alts=0 eta~93s(odo) v=0.6cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.33360591521201527,
+      0.17958309512124915
+    ],
+    "safe": [
+      0.01398721109822424,
+      -0.05984511522884386
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 102.504,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.52m alts=0 eta~50s(odo) v=1.0cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.3405978548433143,
+      0.17981549281095097
+    ],
+    "safe": [
+      0.013999698154363213,
+      -0.009193317247060228
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 103.009,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.52m alts=0 eta~50s(odo) v=1.0cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.34829021721832193,
+      0.1801569785809519
+    ],
+    "safe": [
+      0.013999969313846323,
+      -0.0029312328751358585
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 103.522,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.52m alts=0 eta~50s(odo) v=1.0cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.35528279826254516,
+      0.18047899932185452
+    ],
+    "safe": [
+      0.013999993209840326,
+      -0.0013788563602343373
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 104.022,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.52m alts=0 eta~50s(odo) v=1.0cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.3622751556524316,
+      0.18080255213787233
+    ],
+    "safe": [
+      0.013999219540941072,
+      0.014782779404361788
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 104.52300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.51m alts=0 eta~37s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.36926902694212804,
+      0.18108983873914647
+    ],
+    "safe": [
+      0.013999791737356694,
+      0.007636339745220422
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 105.02300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.51m alts=0 eta~37s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.3762641295149876,
+      0.18135020763623164
+    ],
+    "safe": [
+      0.013999959593735825,
+      0.0033635932291786294
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 105.52300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.51m alts=0 eta~37s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.38325972234069344,
+      0.18159448091497712
+    ],
+    "safe": [
+      0.01399945579117684,
+      0.012344207455561307
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 106.02300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.51m alts=0 eta~37s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.3902564144582363,
+      0.18180417302080865
+    ],
+    "safe": [
+      0.013999877088978862,
+      0.005866441534343014
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 106.524,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.52m alts=0 eta~37s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.3972538772275588,
+      0.18199127082439923
+    ],
+    "safe": [
+      0.013999975809192721,
+      0.0026025810244409086
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 107.025,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.52m alts=0 eta~37s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.4042516614146913,
+      0.182162989656585
+    ],
+    "safe": [
+      0.013999770596425994,
+      0.008014560258828319
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 107.52600000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.52m alts=0 eta~37s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.41125007770366434,
+      0.18230867296024603
+    ],
+    "safe": [
+      0.013999955975728968,
+      0.0035109546208328623
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 108.028,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.52m alts=0 eta~37s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.4182488319277272,
+      0.1824399431382145
+    ],
+    "safe": [
+      0.013999989426919426,
+      0.0017205995855301024
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 108.52900000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.50m alts=0 eta~36s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.4252477485320106,
+      0.18255950619828276
+    ],
+    "safe": [
+      0.013999916388711205,
+      0.004838510531693885
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 109.031,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.50m alts=0 eta~36s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.4322469860010479,
+      0.18266085405945792
+    ],
+    "safe": [
+      0.013999978228255598,
+      0.0024690261262989566
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 109.533,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.50m alts=0 eta~36s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.4392463763994436,
+      0.1827527385578418
+    ],
+    "safe": [
+      0.013999995678030648,
+      0.0011000688527267322
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 110.033,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.48m alts=0 eta~34s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.44624582942676083,
+      0.18284012497864247
+    ],
+    "safe": [
+      0.013999998815623797,
+      0.0005758692054121717
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 110.533,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.48m alts=0 eta~34s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.45324533555470364,
+      0.18292051902526527
+    ],
+    "safe": [
+      0.013999964035054479,
+      0.0031733561189509975
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 111.04100000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.48m alts=0 eta~34s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.46024499225556903,
+      0.18298852384914235
+    ],
+    "safe": [
+      0.013999987109810782,
+      0.0018998035517067357
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 111.54100000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.48m alts=0 eta~34s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.4672447193855075,
+      0.183050001638363
+    ],
+    "safe": [
+      0.01399999800090266,
+      0.0007481625952435954
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 112.04100000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.44m alts=0 eta~32s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.4742444736110006,
+      0.1831085859261158
+    ],
+    "safe": [
+      0.013999999506859031,
+      0.0003715904634709054
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 112.55000000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.44m alts=0 eta~32s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.48124424001599453,
+      0.18316575294437773
+    ],
+    "safe": [
+      0.013999999868894544,
+      0.0001915973071688448
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 113.05000000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.44m alts=0 eta~32s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.488244012439156,
+      0.18322219258161815
+    ],
+    "safe": [
+      0.013999999962621568,
+      0.00010230327903997248
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 113.561,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.44m alts=0 eta~32s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.4952437879943542,
+      0.18327824733333456
+    ],
+    "safe": [
+      0.014,
+      5.5598622474866715e-05
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 114.063,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.42m alts=0 eta~30s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5029435430853724,
+      0.18333966014994402
+    ],
+    "safe": [
+      0.014,
+      3.595536873068701e-05
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 114.563,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.42m alts=0 eta~30s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5098666503573833,
+      0.18339473955119404
+    ],
+    "safe": [
+      0.012674605139853096,
+      2.9453695687386985e-05
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 115.063,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.42m alts=0 eta~30s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5100818462501441,
+      0.18339645630028378
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 115.56500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.42m alts=0 eta~30s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5100815718648772,
+      0.18339647424386019
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 116.06500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.42m alts=0 eta~30s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5100812987193263,
+      0.18339650587855916
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 116.56500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.40m alts=0 eta~40s(odo) v=1.0cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5100810274962128,
+      0.18339655112531075
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 117.06500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.40m alts=0 eta~40s(odo) v=1.0cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5100807588734515,
+      0.18339660987102152
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 117.56800000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.40m alts=0 eta~40s(odo) v=1.0cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5100804935224594,
+      0.1833966819688576
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 118.06800000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.40m alts=0 eta~91s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5100802321064782,
+      0.18339676723861242
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 118.572,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.40m alts=0 eta~91s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5100799752789108,
+      0.1833968654671562
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 119.072,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.40m alts=0 eta~91s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5140736720404322,
+      0.18159411487052357
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 119.57300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.40m alts=0 eta~91s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5193630743567443,
+      0.17891900027147167
+    ],
+    "safe": [
+      0.013494147624435337,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 120.07300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.40m alts=0 eta~121s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5252525702261632,
+      0.17558328989528563
+    ],
+    "safe": [
+      0.013594557298435865,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 120.57300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.40m alts=0 eta~121s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5310088973810889,
+      0.17193146258895206
+    ],
+    "safe": [
+      0.013685417067758861,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 121.07300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.40m alts=0 eta~121s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.536611301648778,
+      0.16797124605749328
+    ],
+    "safe": [
+      0.013766595257098432,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 121.57300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.40m alts=0 eta~121s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5420386426730907,
+      0.16371255798858497
+    ],
+    "safe": [
+      0.013837842281167056,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 122.07300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.37m alts=0 eta~43s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5472712980501563,
+      0.15916629936738375
+    ],
+    "safe": [
+      0.013898643476612533,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 122.578,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.37m alts=0 eta~43s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5522831478414526,
+      0.1543518190894866
+    ],
+    "safe": [
+      0.013927303536907135,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 123.078,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.37m alts=0 eta~43s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5570638578991137,
+      0.14927623271989102
+    ],
+    "safe": [
+      0.01396861063476589,
+      0.09376731060518634
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 123.58200000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.37m alts=0 eta~43s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5616225503321126,
+      0.14397803441253268
+    ],
+    "safe": [
+      0.013990416316766457,
+      0.05180480207380613
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 124.08300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.34m alts=0 eta~26s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5660361321959267,
+      0.1385489828839427
+    ],
+    "safe": [
+      0.013996665772915404,
+      0.030555206478457816
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 124.58300000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.34m alts=0 eta~26s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5703627106054872,
+      0.13304777862989275
+    ],
+    "safe": [
+      0.013998462008703954,
+      0.02075199864707082
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 125.087,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.34m alts=0 eta~26s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5708517079091753,
+      0.1324175772298496
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 125.59200000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.34m alts=0 eta~26s(odo) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.570851554917408,
+      0.1324178057090947
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 126.09200000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.32m alts=0 eta~30s(odo) v=1.0cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5723649697158039,
+      0.12981265675622028
+    ],
+    "safe": [
+      0.013394273835923726,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 126.59200000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.32m alts=0 eta~30s(odo) v=1.0cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.57422294266462,
+      0.1263406342481108
+    ],
+    "safe": [
+      0.013414672608769851,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 127.09500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.32m alts=0 eta~30s(odo) v=1.0cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5757387628844295,
+      0.12321937013902393
+    ],
+    "safe": [
+      0.013379567610495595,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 127.59500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.32m alts=0 eta~30s(odo) v=1.0cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5770543369254619,
+      0.12012318305758707
+    ],
+    "safe": [
+      0.013393436582331292,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 128.097,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.32m alts=0 eta~40s(odo) v=0.8cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5779513021496006,
+      0.11769677223771213
+    ],
+    "safe": [
+      0.013386304650466122,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 128.597,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.32m alts=0 eta~40s(odo) v=0.8cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5787356464542702,
+      0.11514882056216315
+    ],
+    "safe": [
+      0.0134121764152871,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 129.09900000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.32m alts=0 eta~40s(odo) v=0.8cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5792647702500684,
+      0.11313786527786401
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 129.59900000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.32m alts=0 eta~40s(odo) v=0.8cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5797204713903862,
+      0.11090166606502057
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 130.1,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~64s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5797204075425801,
+      0.11090193352100546
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 130.601,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~64s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5797203304073406,
+      0.11090219745167976
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 131.106,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~64s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5797202401774637,
+      0.11090245719735414
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 131.606,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~64s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5797201370784759,
+      0.1109027121087999
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 132.106,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~113s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5797200091142707,
+      0.11090298616782206
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 132.608,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~113s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5797198933354724,
+      0.11090320489409729
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 133.119,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~113s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5797197533006866,
+      0.11090344153624221
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 133.62800000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~113s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5797195858185135,
+      0.11090369339514491
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 134.131,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~21s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5797194217531662,
+      0.11090391405734862
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 134.65300000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~21s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5797192468643457,
+      0.11090412624393216
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 135.15300000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~21s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.579719061589181,
+      0.11090432942453979
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 135.654,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~21s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5800311164098831,
+      0.11061184259672548
+    ],
+    "safe": [
+      0.013375059938184001,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 136.16,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~21s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5823849927062615,
+      0.10850377976095191
+    ],
+    "safe": [
+      0.013425509126227102,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 136.66,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~21s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5844912885932854,
+      0.10678187506566734
+    ],
+    "safe": [
+      0.013414000575573763,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 137.161,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~21s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.586196347381075,
+      0.10550304741780604
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 137.663,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.30m alts=0 eta~21s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5885512512657721,
+      0.10394259531142938
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 138.16400000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.28m alts=0 eta~122s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5885510233884099,
+      0.10394274919824924
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 138.667,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.28m alts=0 eta~122s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.588550803486969,
+      0.10394291428187212
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 139.17600000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.28m alts=0 eta~122s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5885505921110916,
+      0.10394309014967491
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 139.678,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.28m alts=0 eta~122s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5885503897891045,
+      0.1039432763620795
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 140.178,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.28m alts=0 eta~123s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5885501970267083,
+      0.10394347245365199
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 140.679,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.28m alts=0 eta~123s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5888618186903748,
+      0.10357621138849915
+    ],
+    "safe": [
+      0.013407191197594466,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 141.18,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.28m alts=0 eta~123s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5912431611453036,
+      0.10067818389906509
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 141.684,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.28m alts=0 eta~123s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5933295229792362,
+      0.09783756088738269
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 142.186,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.28m alts=0 eta~111s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5951489675018427,
+      0.09502344089319166
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 142.68800000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.28m alts=0 eta~111s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5961439195292905,
+      0.09324231720546997
+    ],
+    "safe": [
+      0.01341537639248244,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 143.18800000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.28m alts=0 eta~111s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5966185403622796,
+      0.09236968602333599
+    ],
+    "safe": [
+      0.01248142130723194,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 143.68800000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.28m alts=0 eta~111s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5971948105493734,
+      0.09116438543527038
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 144.18800000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~82s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5971946823221376,
+      0.09116462867799263
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 144.68800000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~82s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5971945420980828,
+      0.09116486520803403
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 145.18800000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~82s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5971943902276957,
+      0.09116509443419245
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 145.692,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~82s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5971942270905741,
+      0.09116531578352235
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 146.192,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~113s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.597194053094477,
+      0.0911655287027653
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 146.697,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~113s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.5971938686743028,
+      0.09116573265973424
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 147.197,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~113s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.597193674291005,
+      0.09116592714464286
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 147.699,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~113s(odo) v=0.2cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.5971934704304415,
+      0.09116611167138025
+    ],
+    "safe": [
+      0.013385225026789602,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 148.199,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~18s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.6006277207491026,
+      0.08833789605827967
+    ],
+    "safe": [
+      0.013408422156140692,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 148.70000000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~18s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.6026385794015695,
+      0.08682305316232218
+    ],
+    "safe": [
+      0.013419718553912666,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 149.20000000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~18s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.6049937112445911,
+      0.08521177543417191
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 149.70000000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~18s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.6067507059421045,
+      0.08416141813937827
+    ],
+    "safe": [
+      0.013411027019441286,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 150.20000000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~92s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6085485426880624,
+      0.08317221469316752
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 150.70100000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~92s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6085483008906305,
+      0.08317234562747804
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 151.205,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~92s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6096107963096153,
+      0.0826842862067251
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 151.705,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.26m alts=0 eta~92s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.609610524920922,
+      0.08268441974085292
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 152.205,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~79s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6096102849089008,
+      0.08268455391788392
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 152.70600000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~79s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6096100748714787,
+      0.08268468480025208
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 153.209,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~79s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6096098264852805,
+      0.08268485739075461
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 153.709,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~79s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6096096092195001,
+      0.08268502592807046
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 154.209,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~17s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6096094006486011,
+      0.08268520511352177
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 154.711,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~17s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6096092012939008,
+      0.08268539449923817
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 155.21200000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~17s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6096090116536833,
+      0.08268559361185422
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 155.71200000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~17s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.6103593802845867,
+      0.08177722295768661
+    ],
+    "safe": [
+      0.013423602207924054,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 156.214,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~17s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.6123728998986419,
+      0.07923464144649876
+    ],
+    "safe": [
+      0.01340515974814811,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 156.714,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~17s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.6140908666936675,
+      0.07685393909590622
+    ],
+    "safe": [
+      0.01338995191912903,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 157.214,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~17s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6155416182276259,
+      0.07461865466899278
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 157.714,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~17s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6171926700751645,
+      0.07168754536633655
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 158.214,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~88s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6176470545560715,
+      0.07072369873581076
+    ],
+    "safe": [
+      0.0118678105981797,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 158.715,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~88s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6179555922611311,
+      0.07005611751500783
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 159.215,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~88s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6179554607860523,
+      0.07005635901769858
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 159.723,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.24m alts=0 eta~88s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.617955317405179,
+      0.0700565936475584
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 160.22400000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.22m alts=0 eta~71s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6179551624768881,
+      0.07005682081813505
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 160.72400000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.22m alts=0 eta~71s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6179549963884206,
+      0.07005703996162042
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 161.227,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.22m alts=0 eta~71s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.617954819554912,
+      0.0700572505302699
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 161.727,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.22m alts=0 eta~71s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6179546324183537,
+      0.07005745199777143
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 162.227,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.22m alts=0 eta~15s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6179544354464871,
+      0.07005764386056117
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 162.73100000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.22m alts=0 eta~15s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6179542291316418,
+      0.07005782563908211
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 163.23100000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.22m alts=0 eta~15s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.620015287558907,
+      0.06846825673687525
+    ],
+    "safe": [
+      0.013383264578470376,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 163.73100000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.22m alts=0 eta~15s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.622661349331754,
+      0.0665906979312867
+    ],
+    "safe": [
+      0.013409866088895593,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 164.23100000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.22m alts=0 eta~15s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.6243988566541505,
+      0.06545304908882253
+    ],
+    "safe": [
+      0.013410324152717054,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 164.734,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.22m alts=0 eta~15s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.6263443459364826,
+      0.06429000512145733
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 165.24200000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.22m alts=0 eta~15s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6287336478004177,
+      0.06304426173665398
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 165.74200000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.22m alts=0 eta~15s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.630369760766289,
+      0.062324965594768654
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 166.247,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~67s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6303695121214615,
+      0.062325083004293506
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 166.74800000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~67s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6303692696554075,
+      0.06232521269414892
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 167.256,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~67s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6303690339741636,
+      0.062325354340177865
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 167.756,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~67s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6303687832637787,
+      0.06232552353677145
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 168.256,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~67s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6303685853040003,
+      0.06232567205559159
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 168.757,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~67s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6303683527375964,
+      0.06232586543618143
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 169.258,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~67s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.630368150825766,
+      0.06232605209324352
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 169.75900000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~67s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6303679584952373,
+      0.06232624860841833
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 170.25900000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~14s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6303677762267387,
+      0.062326454490520385
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 170.76100000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~14s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6331354666340486,
+      0.05880662998527886
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 171.26100000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~14s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6346257959750945,
+      0.05667696516980758
+    ],
+    "safe": [
+      0.013385218324328879,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 171.763,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~14s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.6357335712625908,
+      0.05495376002240497
+    ],
+    "safe": [
+      0.01339917423342805,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 172.263,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~14s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6370620222357524,
+      0.05262377231228547
+    ],
+    "safe": [
+      0.013398360112777539,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 172.763,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~14s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6375654942365151,
+      0.051692664528998615
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 173.27900000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~14s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6380896862947519,
+      0.0505437324694843
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 173.77900000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.20m alts=0 eta~14s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6380895616323996,
+      0.050543977558333314
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 174.28,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.18m alts=0 eta~63s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6380894248765054,
+      0.050544216110364186
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 174.781,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.18m alts=0 eta~63s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.638089276368888,
+      0.05054444752932128
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 175.28500000000003,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.18m alts=0 eta~63s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6380891164807383,
+      0.05054467123677744
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 175.78500000000003,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.18m alts=0 eta~63s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.638088945611695,
+      0.05054488667358066
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 176.28500000000003,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.18m alts=0 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6380887641888426,
+      0.050545093301251065
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 176.786,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.18m alts=0 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6380885726656405,
+      0.05054529060332714
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 177.28900000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.18m alts=0 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6380883715207991,
+      0.050545478086656534
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 177.78900000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.18m alts=0 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.6394409729348373,
+      0.04944775564013121
+    ],
+    "safe": [
+      0.013421858652663066,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 178.28900000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.18m alts=0 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.6425510510033704,
+      0.04709503559829798
+    ],
+    "safe": [
+      0.013400641957184488,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 178.793,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.18m alts=0 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.6441859380720758,
+      0.045952836770472925
+    ],
+    "safe": [
+      0.01341881495728039,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 179.294,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.18m alts=0 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.6459265469131873,
+      0.04484314799936675
+    ],
+    "safe": [
+      0.013394109118468582,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 179.794,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.18m alts=0 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.647839180800454,
+      0.043756775850784885
+    ],
+    "safe": [
+      0.01314021313111344,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 180.29500000000002,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.16m alts=0 eta~57s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6494356861417041,
+      0.0429525066694378
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 180.798,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.16m alts=0 eta~57s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.6494354447472468,
+      0.042952638343132434
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  },
+  {
+    "sim_s": 181.298,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.78,-0.03) score=120.8 size=95 route=0.16m alts=0 eta~57s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.649435210235412,
+      0.042952781916963806
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified"
+  }
+]

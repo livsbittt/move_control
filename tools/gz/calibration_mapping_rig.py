@@ -151,7 +151,7 @@ def main():
             return getattr(time, name)
     for name in ('move_control.safety.node', 'move_control.safety.evidence',
                  'move_control.safety.bumper', 'move_control.startup_calibration_node',
-                 'move_control.calibration_rotation', 'move_control.wander.node',
+                 'move_control.calibration_rotation', 'move_control.calibration_atomic', 'move_control.wander.node',
                  'move_control.wander.senses', 'move_control.wander.judge', 'move_control.goal_node'):
         importlib.import_module(name).time = SimulationTime()
     from move_control.safety.node import SafetyNode
