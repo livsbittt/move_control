@@ -161,10 +161,12 @@ class StartupCalibrationNode(Node):
         gx, gy, gz = g.x * scale, g.y * scale, g.z * scale
         gyro = math.sqrt(gx*gx+gy*gy+gz*gz)
         tilt = max(abs(roll), abs(pitch))
+        # Stationary gyro limits qualify calibration, not normal route turns.
+        # Runtime tilt, timestamps, finite values and gravity remain required.
         self.add('imu', (gravity, gyro, tilt,
                          gx, gy, gz, a.x, a.y, a.z, roll, pitch),
                  unit in ('rad_s', 'deg_s') and self.stamped(msg) and .9 <= norm <= 1.1 and 8 <= gravity <= 11.5 and
-                 gyro < .15 and tilt < math.radians(20))
+                 (self.phase == 'ready' or gyro < .15) and tilt < math.radians(20))
 
     def on_camera(self, msg):
         pixels = np.frombuffer(bytes(msg.data), np.uint8)

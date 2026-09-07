@@ -79,6 +79,29 @@ class StartupCalibrationTest(unittest.TestCase):
         self.node.on_imu(msg)
         self.assertIsNone(self.node.baseline.latest('imu'))
 
+    def test_verified_calibration_accepts_turning_but_rejects_tilt_and_invalid_imu(self):
+        msg = Imu()
+        msg.header.stamp = self.node.get_clock().now().to_msg()
+        msg.orientation.w = 1.
+        msg.linear_acceleration.z = 9.86
+        self.node.set_parameters([Parameter('imu_angular_velocity_unit', value='rad_s')])
+        msg.angular_velocity.z = .2
+        self.node.phase = 'ready'
+        self.node.on_imu(msg)
+        self.assertIsNotNone(self.node.baseline.latest('imu'))
+        self.node.phase = 'collecting'
+        self.node.on_imu(msg)
+        self.assertIsNone(self.node.baseline.latest('imu'))
+        self.node.phase = 'ready'
+        msg.orientation.x = math.sin(math.radians(30)/2)
+        msg.orientation.w = math.cos(math.radians(30)/2)
+        self.node.on_imu(msg)
+        self.assertIsNone(self.node.baseline.latest('imu'))
+        msg.orientation.x, msg.orientation.w = 0., 1.
+        msg.angular_velocity.z = float('nan')
+        self.node.on_imu(msg)
+        self.assertIsNone(self.node.baseline.latest('imu'))
+
     def test_boot_and_estopped_request_never_publish_positive_velocity(self):
         self.assertEqual(self.node.phase, 'collecting')
         saved = json.loads((Path(self.tmp.name) / 'calibration.json').read_text())
