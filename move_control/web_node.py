@@ -17,6 +17,7 @@ Backend API (all CORS *, JSON contract unchanged since v1):
   POST /estop        stop|release                 -> /estop/cmd
   POST /map/reset    stop commands + reset SLAM, paused; clear map caches
   POST /map/resume   resume SLAM measurements only (no motion commands)
+  POST /map/pause    stop autonomous navigation, pause SLAM and verify readback
   POST /teleop       {"x":..,"z":..} Twist on the resolved teleop topic.
                      'auto' resolution: safety alive -> /cmd_vel_raw (every
                      Twist passes the gate); sim rig (no safety, /cmd_vel has
@@ -47,7 +48,8 @@ from move_control.sensing.lidar_mount import nose_from_quaternion
 from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import PoseStamped, Twist
 from nav_msgs.msg import OccupancyGrid, Odometry, Path
-from sensor_msgs.msg import Image, LaserScan
+from sensor_msgs.msg import Image, LaserScan, BatteryState
+from move_control.sensing.battery import battery_values, battery_snapshot
 from std_msgs.msg import Bool, Float32, String
 from visualization_msgs.msg import MarkerArray
 from rcl_interfaces.srv import GetParameters
@@ -185,6 +187,16 @@ class MapControl:
                     STATE['map_control']['epoch'] += 1
                     STATE['map_control']['paused'] = True
                 message = 'Map reset; mapping paused and stop commands sent'
+            elif action == 'pause':
+                self.node.wander_pub.publish(String(data='stop'))
+                self.node.goal_pub.publish(String(data='stop'))
+                if not self.read_paused():
+                    response = self.call(self.pause, Pause.Request() if Pause else None)
+                    if not response.status:
+                        raise RuntimeError('SLAM rejected mapping pause')
+                    if not self.read_paused():
+                        raise RuntimeError('SLAM still reports mapping active')
+                message = 'Mapping paused; autonomous driving stopped; map retained'
             elif action == 'resume':
                 if self.read_paused():
                     response = self.call(self.pause, Pause.Request() if Pause else None)
@@ -266,6 +278,7 @@ def render_cam(msg):
             CAM_JPG['bytes'] = buf.tobytes()
             CAM_JPG['gen'] += 1
             CAM_JPG['t'] = now
+            STATE[K_CAM] = CAM_JPG['gen']
 
 
 # Sensor view: the safety-fused values wander actually consumes, plus the
@@ -334,10 +347,13 @@ class WebNode(Node):
         super().__init__('web_node')
         self.declare_parameter('port', 28161)
         self.declare_parameter('backend_port', 28162)
+        self.declare_parameter('battery_topic', '/battery_state')
+        self.battery_stamp_ns = None
+        self.create_subscription(BatteryState, str(self.get_parameter('battery_topic').value), self.on_battery, qos_profile_sensor_data)
         self.declare_parameter('teleop_topic', 'auto')
         self.declare_parameter('scan_step', 4)
         # Optional map-QA metrics JSON (check_map.py output) for the result
-        # panel; empty = repo map/gz_maze_metrics.json if present.
+        # panel; empty hides historical QA rather than implying live evidence.
         self.declare_parameter('metrics_file', '')
         for name, default in LIMIT_PARAMS:
             self.declare_parameter(name, default)
@@ -598,6 +614,7 @@ class WebNode(Node):
     def on_wander(self, msg):
         with LOCK:
             STATE[K_WANDER] = msg.data
+            STATE['wander_sequence'] = STATE.get('wander_sequence', 0)+1
 
     def on_gstate(self, msg):
         with LOCK:
@@ -610,6 +627,7 @@ class WebNode(Node):
     def on_estop(self, msg):
         with LOCK:
             STATE[K_ESTOP] = bool(msg.data)
+            STATE['estop_sequence'] = STATE.get('estop_sequence', 0)+1
 
     def on_ok(self, msg):
         with LOCK:
@@ -622,6 +640,19 @@ class WebNode(Node):
     def on_vel(self, msg):
         with LOCK:
             STATE[K_VEL] = [round(msg.linear.x, 3), round(msg.angular.z, 3)]
+
+    def on_battery(self, msg):
+        stamp = msg.header.stamp.sec*1_000_000_000 + msg.header.stamp.nanosec
+        age = (self.get_clock().now().nanoseconds-stamp)*1e-9
+        if stamp <= 0 or not -.1 <= age <= 5.:
+            return
+        if self.battery_stamp_ns is not None and stamp <= self.battery_stamp_ns:
+            return
+        self.battery_stamp_ns = stamp
+        value = battery_values(msg.percentage, msg.voltage, msg.current, msg.present, msg.power_supply_status)
+        with LOCK:
+            STATE['battery_sample'] = value
+            STATE['battery_received'] = time.monotonic()-max(0., age)
 
     def read_limits(self):
         """robot.yaml distances -> the JSON keys the page gauges use."""
@@ -645,9 +676,7 @@ class WebNode(Node):
         thread does not stat+parse a JSON file 12x a minute for nothing."""
         path = str(self.get_parameter('metrics_file').value)
         if not path:
-            path = os.path.join(
-                os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
-                'map', 'gz_maze_metrics.json')
+            return None
         try:
             mt = os.path.getmtime(path)
         except OSError:
@@ -754,6 +783,7 @@ def _handler(node, html, api):
                 return
             if path == '/state.json':
                 with LOCK:
+                    STATE['battery'] = battery_snapshot(STATE.get('battery_sample', {}), STATE.get('battery_received'), time.monotonic())
                     STATE['motion_limits_fresh'] = 0 <= time.monotonic()-STATE.get('motion_limits_received', -1e9) <= .75
                     if time.monotonic() - STATE.get('calibration_received', -1e9) > 3.0:
                         STATE['calibration_ready'] = False
@@ -837,7 +867,7 @@ def _handler(node, html, api):
                 self.send_response(200)
                 self.end_headers()
                 return
-            if self.path in ('/map/reset', '/map/resume'):
+            if self.path in ('/map/reset', '/map/resume', '/map/pause'):
                 status, result = node.map_control.execute(self.path.rsplit('/', 1)[1])
                 self.send_response(status)
                 self.send_header('Content-Type', 'application/json')

@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "page_errors": [],
+  "scope": "HTTP + ROS fixture, domain 231; no physical robot",
+  "checks": [
+    "battery live/unknown/stale",
+    "start/stop readback",
+    "estop/release readback",
+    "mapping pause/resume and service refusal",
+    "camera requests off/on and preference reload",
+    "mobile overflow",
+    "offline readiness removal"
+  ]
+}

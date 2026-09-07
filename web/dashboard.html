@@ -246,10 +246,62 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
   * { transition:none !important; }
 }
 </style>
+<style>
+/* Operations hierarchy: status first, map central, commands in the act region. */
+header { padding:14px 20px; gap:20px; }
+body { word-break:keep-all; overflow-wrap:anywhere; }
+.brand { font-size:17px; letter-spacing:-.03em; }
+.brand small { font-size:10px; color:var(--muted); letter-spacing:.12em; margin-left:4px; }
+.statusline { display:grid; grid-template-columns:1.1fr 1fr 1fr 1.4fr; background:var(--observe); border-bottom:1px solid var(--border); flex:none; }
+.statusitem { padding:14px 20px; border-right:1px solid var(--rule); min-width:0; }
+.statusitem label { display:block; color:var(--muted); font-size:11px; margin-bottom:5px; }
+.statusitem strong { display:block; color:var(--ink); font-size:20px; letter-spacing:-.025em; }
+.statusitem small { display:block; margin-top:3px; font-size:11px; color:var(--muted); }
+.battery-track { width:72px; height:4px; background:var(--track); margin-top:7px; border-radius:3px; overflow:hidden; }
+#batteryfill { height:100%; background:var(--ink-2); width:0; }
+main { grid-template-columns:250px minmax(0,1fr) 350px; }
+.rhead { padding-top:16px; padding-bottom:14px; }
+.rhead h2 { font-size:13px; }
+.rbody { gap:18px; }
+.act .block { border-radius:10px; padding:14px; }
+.block > h3 { font-size:13px; color:var(--ink); }
+button { min-height:38px; font-weight:550; }
+button:focus-visible, input:focus-visible, summary:focus-visible { outline:2px solid var(--route); outline-offset:3px; }
+.hint { line-height:1.6; }
+.estop .btnrow { display:inline-flex; width:calc(50% - 3px); margin-top:0; vertical-align:top; }
+.estop button { min-height:46px; }
+#mappingcard .btnrow { display:grid; grid-template-columns:1fr 1fr; }
+#mapsave { grid-column:1/-1; }
+.switchrow { display:flex; align-items:center; justify-content:space-between; gap:15px; padding:10px 0; border-top:1px solid var(--rule); }
+.switchrow span { display:block; font-size:12px; color:var(--ink); }
+.switchrow small { display:block; color:var(--muted); font-size:11px; margin-top:3px; }
+.switchrow input { appearance:none; width:38px; height:22px; flex:none; border-radius:12px; border:1px solid var(--border); background:var(--act-2); position:relative; cursor:pointer; }
+.switchrow input::after { content:''; position:absolute; width:14px; height:14px; left:3px; top:3px; border-radius:50%; background:var(--muted); transition:transform .15s; }
+.switchrow input:checked { background:var(--route); }
+.switchrow input:checked::after { transform:translateX(16px); background:white; }
+.switchrow input:disabled { opacity:.35; cursor:not-allowed; }
+.command-status { padding:10px 12px; margin:0; border-left:2px solid var(--route); background:var(--observe); font-size:12px; }
+.procedure { margin:8px 0; font-size:11px; color:var(--muted); }
+.procedure summary { cursor:pointer; padding:5px 0; }
+[hidden] { display:none !important; }
+@media(max-width:1279px) { main { grid-template-columns:minmax(0,1fr) 350px; } }
+@media(max-width:900px) {
+ header { padding:12px; flex-wrap:wrap; gap:8px; }
+ .chips { margin-left:0; gap:4px; }
+ .chip { font-size:10px; padding:2px 7px; }
+ .statusline { grid-template-columns:1fr 1fr; }
+ .statusitem { padding:10px 14px; border-bottom:1px solid var(--rule); }
+ .statusitem strong { font-size:17px; }
+ main { grid-template-columns:minmax(0,1fr); grid-template-areas:'observe' 'act' 'sense'; }
+ .observe .mapwrap { height:42vh; min-height:260px; }
+ .act { overflow:visible; }
+ .act .rbody { padding-bottom:24px; }
+}
+</style>
 </head>
 <body>
 <header>
-  <div class="brand"><span class="dot" id="live"></span> pinky console</div>
+  <div class="brand"><span class="dot" id="live"></span> pinky <small>ROBOT CONSOLE</small></div>
   <div class="chips">
     <span class="chip" id="modeChip">모드 <b id="mode">-</b></span>
     <span class="chip">주행 <b id="wander">-</b></span>
@@ -258,6 +310,12 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
     <span class="chip" title="watch_node /robot/health">진단 <b id="health">-</b></span>
   </div>
 </header>
+<div class="statusline" aria-label="로봇 상태 요약">
+  <div class="statusitem"><label>배터리</label><strong id="batteryvalue">정보 없음</strong><small id="batterydetail">배터리 측정 대기</small><div class="battery-track"><div id="batteryfill"></div></div></div>
+  <div class="statusitem"><label>자동 보정</label><strong id="overviewcal">확인 중</strong><small id="overviewcaldetail">실제 적용 상태 확인</small></div>
+  <div class="statusitem"><label>현재 위치</label><strong id="overviewpose">확인 중</strong><small>지도 기준 위치 추정</small></div>
+  <div class="statusitem"><label>현재 동작</label><strong id="overviewmotion">연결 대기</strong><small id="overviewreason">로봇 상태 수신 대기</small></div>
+</div>
 <main>
 
   <!-- ==================== 감지 ==================== -->
@@ -294,7 +352,8 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
         <div class="flags" id="camverdict" style="margin-top:7px"></div>
       </div>
       <div class="block" id="rescard" style="display:none">
-        <h3>매핑 품질</h3>
+        <h3>저장된 지도 검증</h3>
+        <p class="hint">지정한 검증 보고서 · 실시간 상태와 별개</p>
         <div id="resrows"></div>
       </div>
     </div>
@@ -362,7 +421,7 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
 
       <div class="block estop">
         <h3>비상정지</h3>
-        <p class="hint">걸어두면 safety가 모터를 0으로 붙잡습니다.</p>
+        <p class="hint">모터 출력을 정지합니다. 해제해도 자동 출발하지 않습니다.</p>
         <div class="btnrow">
           <button type="button" class="danger halt" data-post="/estop"
                   data-val="stop">정지</button>
@@ -371,6 +430,7 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
           <button type="button" data-post="/estop" data-val="release">해제</button>
         </div>
       </div>
+      <p id="commandstatus" class="command-status" role="status" aria-live="polite">명령 대기 · 시작은 직접 선택합니다</p>
 
     <div class="block" id="calibrationcard">
       <h3>자동 시작 보정</h3>
@@ -379,9 +439,9 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
       <p class="hint" id="calibrationsummary" aria-live="polite">센서 검사 대기</p>
       <p class="hint" id="calibrationenvironment" aria-live="polite">환경 여유 측정 대기</p>
       <details><summary>센서별 상세값</summary><pre class="hint" id="calibrationsensors" style="white-space:pre-wrap;overflow-wrap:anywhere">센서 데이터 대기</pre></details>
-      <p class="hint">센서 확인 → 3cm 전진·출발점 복귀 → 보정값 계산 → 보정값으로 왕복 재검증 → 저장까지 자동으로 진행합니다(최대 35초). 비상정지를 해제하기 전에 앞뒤 공간을 확보해 주세요. 실패·중단 시 즉시 정지하며, 다시 확인을 눌러야 재시작합니다.</p>
+      <details class="procedure"><summary>검증 절차와 주의사항</summary><p>센서 확인 → 공간에 맞춘 전후 왕복 → 좌우 회전 검증 → 보정값 적용 확인 순서로 진행합니다. 이동과 회전 공간을 확보하세요. 실패·중단 시 정지하며 재시작은 직접 선택합니다.</p></details>
       <div class="btnrow">
-        <button type="button" id="calibrationretry" data-calibration="retry">자동 보정 다시 시작</button>
+        <button type="button" id="calibrationretry" data-calibration="retry">보정 다시 시작</button>
         <button type="button" id="calibrationmotion" data-calibration="validate_motion" disabled>4초 저속 이동 검증</button>
         <button type="button" data-calibration="abort">검증 중단</button>
       </div>
@@ -395,9 +455,9 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
           <p class="hint" id="navready" role="status">지도와 위치 확인 중…</p>
           <div class="btnrow">
             <button type="button" id="navexplore" data-post="/wander"
-                    data-val="explore" disabled>미탐색 탐색</button>
+                    data-val="explore" disabled>자동 탐색</button>
             <button type="button" id="navcoverage" data-post="/wander"
-                    data-val="coverage" disabled>알려진 영역</button>
+                    data-val="coverage" disabled>영역 순회</button>
           </div>
         </div>
         <div class="sub">
@@ -418,6 +478,7 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
       <div class="block" id="mappingcard">
         <h3>매핑</h3>
         <p class="hint" id="mappingstatus" role="status">매핑 상태 확인 중…</p>
+        <label class="switchrow"><div><span>지도 수집</span><small>끄면 자동 주행 정지 · 지도는 유지</small></div><input id="mappingtoggle" type="checkbox" role="switch" aria-label="지도 수집" disabled></label>
         <div class="btnrow">
           <button type="button" id="mapsave" disabled>지도 PNG 저장</button>
           <button type="button" class="danger" id="mapreset" disabled>지도 초기화</button>
@@ -426,6 +487,12 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
         <p class="hint" style="margin:8px 0 0">초기화하면 주행을 정지하고 지도
           수집을 일시정지합니다. 다시 배치한 뒤 재개하세요.</p>
         <div class="mapping-error" id="mappingerror" role="alert"></div>
+      </div>
+
+      <div class="block" id="displaycard">
+        <h3>화면 설정</h3>
+        <label class="switchrow"><div><span>카메라 영상 표시</span><small>이 화면의 영상 수신 · 카메라 전원과 별개</small></div><input id="cameratoggle" type="checkbox" role="switch" aria-label="카메라 영상 표시" checked></label>
+        <p id="previewstatus" class="hint" role="status">영상 수신 대기</p>
       </div>
 
       <div class="block">
@@ -488,6 +555,7 @@ const T = { unk: '#161615', grid: '#2c2c2a', ink: '#ffffff',
             pin: '#d55181', muted: '#898781', ink2: '#c3c2b7' };
 // ---- state ----------------------------------------------------------------
 const S = {
+  previewEnabled: true, pendingCommand: null,
   data: {},
   img: { gen: -1, im: null, t: 0 },
   cam: { gen: -1, t: 0 },
@@ -511,18 +579,62 @@ async function getJson(path) {
 async function post(path, body) {
   if (path === '/wander' && body !== 'stop' && !calibrationReady(S.data)) return;
   try {
+    if (path === '/wander' || path === '/estop') {
+      S.pendingCommand = {path, body, until:Date.now()+5000, sequence:S.data[path === '/estop' ? 'estop_sequence' : 'wander_sequence'] || 0};
+      setTxt('commandstatus', '명령 전송 중 · 로봇 응답 확인');
+    }
     const response = await fetch(API + path, { method: 'POST', body: body });
     if (!response.ok) {
       const result = await response.json();
       setTxt('calibrationerror', result.error || '명령을 실행할 수 없습니다.');
+      S.pendingCommand = null;
+      setTxt('commandstatus', '명령 실패 · ' + (result.error || '로봇이 요청을 거부했습니다'));
       return false;
     }
     return true;
-  } catch (e) { setTxt('calibrationerror', '로봇 연결을 확인해 주세요.'); }
+  } catch (e) {
+    S.pendingCommand = null;
+    setTxt('commandstatus', '명령 실패 · 로봇 연결을 확인해 주세요');
+    setTxt('calibrationerror', '로봇 연결을 확인해 주세요.');
+  }
   return false;
 }
 function calibrationReady(s) {
   return !!s && s.calibration_ready === true && !!s.calibration && s.calibration.ready === true;
+}
+function renderOverview(s) {
+  const battery = s && s.battery;
+  const live = battery && battery.available === true;
+  setTxt('batteryvalue', live && Number.isFinite(battery.percent) ? Math.round(battery.percent) + '%' : '정보 없음');
+  const batteryStates = {charging:'충전 중',discharging:'사용 중',not_charging:'충전 안 함',full:'충전 완료',unknown:'충전 상태 미확인'};
+  const missing = {missing:'배터리 측정 대기',stale:'배터리 수신 지연',not_present:'배터리 연결 미확인',invalid:'유효한 측정값 없음'};
+  setTxt('batterydetail', live ? (Number.isFinite(battery.voltage) ? battery.voltage.toFixed(2)+' V · ' : '') + batteryStates[battery.status] : missing[battery && battery.reason] || '배터리 측정 대기');
+  $('batteryfill').style.width = live && Number.isFinite(battery.percent) ? Math.max(0,Math.min(100,battery.percent))+'%' : '0%';
+  setTxt('overviewcal', calibrationReady(s) ? '적용 완료' : s && s.calibration && s.calibration.phase === 'sensor_hold' ? '센서 재확인' : '준비 필요');
+  setTxt('overviewcaldetail', calibrationReady(s) ? '보정값 적용 확인됨' : '상세 원인은 조작 영역에서 확인');
+  setTxt('overviewpose', s && s.pose_available ? '위치 확인됨' : '위치 확인 대기');
+  const stopped = !s || !s.wander || s.wander.startsWith('stop') || s.wander === 'wait';
+  setTxt('overviewmotion', !s ? '연결 끊김' : s.estop ? '비상정지' : stopped ? '대기 중' : '주행 중');
+  setTxt('overviewreason', !s ? '로봇 연결을 확인하세요' : s.estop ? '해제 후 주행 모드를 선택하세요' : stopped ? '자동으로 출발하지 않습니다' : s.wander);
+  const pending = S.pendingCommand;
+  if (pending) {
+    const state = s && s.wander || '';
+    const fresh = s && s[pending.path === '/estop' ? 'estop_sequence' : 'wander_sequence'] > pending.sequence;
+    const applied = fresh && (pending.path === '/estop' ? s.estop === (pending.body === 'stop') :
+      pending.body === 'stop' ? state.startsWith('stop') :
+      pending.body === 'start' ? state === 'forward' || state === 'look' : state.startsWith('route_'+pending.body+':'));
+    if (applied) { S.pendingCommand = null; setTxt('commandstatus', '로봇 상태 반영 확인 · ' + (pending.path === '/estop' ? '비상정지 ' + (s.estop ? '설정' : '해제') : pending.body === 'stop' ? '주행 정지' : '주행 시작')); }
+    else if (Date.now() > pending.until) { S.pendingCommand = null; setTxt('commandstatus', '적용 확인 시간 초과 · 현재 로봇 상태를 확인하세요'); }
+  }
+  setTxt('previewstatus', !S.previewEnabled ? '영상 표시 꺼짐 · 영상 요청 중지됨' : S.cam.t && Date.now()-S.cam.t < CFG.cam_stale_ms ? '영상 수신 중' : '영상 수신 대기');
+}
+function togglePreview() {
+  S.previewEnabled = $('cameratoggle').checked;
+  try { localStorage.setItem('pinky.preview', S.previewEnabled ? 'on' : 'off'); } catch (_) {}
+  $('camcard').hidden = !S.previewEnabled;
+  if (!S.previewEnabled) { $('camimg').removeAttribute('src'); S.cam.t = 0; }
+  S.cam.gen = -1;
+  renderOverview(S.data);
 }
 function renderCalibration(s) {
   const calibration = s && s.calibration;
@@ -633,6 +745,8 @@ function renderMapping(control) {
   $('mapreset').disabled = !ready || busy;
   $('mapsave').disabled = !ready || busy || !S.data.map || !S.img.im || S.img.gen !== S.data.map[5];
   $('mapresume').disabled = !ready || busy || control.paused !== true;
+  $('mappingtoggle').checked = !!control && control.paused === false;
+  $('mappingtoggle').disabled = !ready || busy || typeof control.paused !== 'boolean';
   setTxt('mappingstatus', busy ? '처리 중…' : !ready ? 'SLAM 연결 대기' :
     control.paused === true ? '지도 수집 일시정지' :
     control.paused === false ? '지도 수집 중' : '매핑 상태 확인 중…');
@@ -668,7 +782,7 @@ function renderNavigation(s) {
   setTxt('navready', reason || (!calibrationReady(s) ? calibrationWait : '') || '준비됨 · 모드를 고르면 주행합니다');
 }
 async function mappingAction(action) {
-  if (S.mappingBusy || $(action === 'reset' ? 'mapreset' : 'mapresume').disabled) return;
+  if (S.mappingBusy || $(action === 'reset' ? 'mapreset' : action === 'pause' ? 'mappingtoggle' : 'mapresume').disabled) return;
   if (action === 'reset' && !window.confirm('현재 지도를 초기화하고 주행을 정지합니다. 계속할까요?')) return;
   S.mappingBusy = true;
   if (action === 'reset') { S.held.clear(); ksync(); }
@@ -1124,9 +1238,11 @@ function renderSensors(s) {
 }
 // ---- camera -----------------------------------------------------------------
 function loadCam(gen) {
+  if (!S.previewEnabled) return;
   S.cam.gen = gen;
   const im = $('camimg');
   im.onload = () => {
+    if (!S.previewEnabled) return;
     S.cam.t = Date.now();
     im.style.display = '';
     $('camnone').style.display = 'none';
@@ -1330,7 +1446,7 @@ const BIND = [
 ];
 async function poll() {
   const s = await getJson('/state.json');
-  if (!s) { $('live').classList.remove('live'); renderMapping(null); renderNavigation(null); renderCalibration(null); return; }
+  if (!s) { $('live').classList.remove('live'); renderMapping(null); renderNavigation(null); renderCalibration(null); renderOverview(null); return; }
   $('live').classList.add('live');
   S.lastOk = Date.now();
   S.data = s;
@@ -1346,6 +1462,7 @@ async function poll() {
   renderMapping(s.map_control);
   renderNavigation(s);
   renderCalibration(s);
+  renderOverview(s);
   BIND.forEach(([id, fn]) => setTxt(id, fn(s)));
   setCls('estopChip', 'crit', s.estop === true);
   setCls('modeChip', 'crit', s.mode === 'ESTOP');
@@ -1412,6 +1529,11 @@ $('pinclear').addEventListener('click', clearPin);
 $('mapreset').addEventListener('click', () => mappingAction('reset'));
 $('mapsave').addEventListener('click', saveMapImage);
 $('mapresume').addEventListener('click', () => mappingAction('resume'));
+$('mappingtoggle').addEventListener('change', () => mappingAction($('mappingtoggle').checked ? 'resume' : 'pause'));
+$('cameratoggle').addEventListener('change', togglePreview);
+try { S.previewEnabled = localStorage.getItem('pinky.preview') !== 'off'; } catch (_) {}
+$('cameratoggle').checked = S.previewEnabled;
+$('camcard').hidden = !S.previewEnabled;
 function fit() {
   const dpr = window.devicePixelRatio || 1;
   const r = wrap.getBoundingClientRect();

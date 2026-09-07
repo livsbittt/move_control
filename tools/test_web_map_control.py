@@ -97,6 +97,26 @@ class MapControlTest(unittest.TestCase):
         self.assertEqual(web.MAP_PNG['gen'], 11)
         self.assertEqual(web.STATE['map_control']['epoch'], 1)
 
+    def test_pause_preserves_map_stops_navigation_and_is_idempotent(self):
+        self.paused = False
+        web.STATE['map'] = [50, 30]
+        self.assertEqual(self.control.execute('pause')[0], 200)
+        self.assertEqual(self.control.execute('pause')[0], 200)
+        self.assertTrue(self.paused)
+        self.assertEqual(len(self.control.pause.calls), 1)
+        self.assertEqual(web.STATE['map'], [50, 30])
+        self.assertEqual(self.node.wander_pub.publish.call_args.args[0].data, 'stop')
+        self.assertEqual(self.node.goal_pub.publish.call_args.args[0].data, 'stop')
+        self.node.calibration_pub.publish.assert_not_called()
+
+    def test_pause_cannot_report_success_without_confirmed_readback(self):
+        self.paused = False
+        self.control.pause = Service(lambda req: Pause.Response(status=True))
+        status, result = self.control.execute('pause')
+        self.assertEqual(status, 409)
+        self.assertFalse(result['ok'])
+        self.assertIsNone(result['map_control']['paused'])
+
     def test_duplicate_resume_does_not_toggle_back_or_start_motors(self):
         self.assertEqual(self.control.execute('resume')[0], 200)
         self.assertEqual(self.control.execute('resume')[0], 200)
