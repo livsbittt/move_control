@@ -169,6 +169,7 @@ class MapControl:
                 if response.result != Reset.Response.RESULT_SUCCESS:
                     raise RuntimeError('SLAM rejected map reset')
                 self.node.goal_pub.publish(String(data='reset'))
+                self.node.calibration_pub.publish(String(data='retry'))
                 self.map_after_ns = self.node.get_clock().now().nanoseconds
                 with LOCK:
                     for key in (K_MAP, K_GOAL, K_ROUTE, K_OPTIONS, K_TRAIL, K_PREV,
@@ -543,6 +544,7 @@ class WebNode(Node):
     def on_calibration_ready(self, msg):
         with LOCK:
             STATE['calibration_ready'] = bool(msg.data)
+            STATE['calibration_received'] = time.monotonic()
 
     def on_calibration_status(self, msg):
         try:
@@ -706,6 +708,8 @@ def _handler(node, html, api):
                 return
             if path == '/state.json':
                 with LOCK:
+                    if time.monotonic() - STATE.get('calibration_received', -1e9) > 3.0:
+                        STATE['calibration_ready'] = False
                     body = json.dumps(STATE).encode()
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
@@ -749,7 +753,8 @@ def _handler(node, html, api):
                 self.wfile.write(json.dumps({'ok': False, 'error': reason}).encode())
 
             with LOCK:
-                ready = (STATE.get('calibration_ready') is True and
+                ready = (time.monotonic() - STATE.get('calibration_received', -1e9) <= 3.0 and
+                         STATE.get('calibration_ready') is True and
                          STATE.get('calibration', {}).get('ready') is True)
                 phase = STATE.get('calibration', {}).get('phase')
                 released = STATE.get(K_ESTOP) is False
@@ -783,6 +788,9 @@ def _handler(node, html, api):
                 if body in allowed:
                     if self.path == '/wander' and body != 'stop' and not ready:
                         reject('Startup calibration must pass before driving')
+                        return
+                    if self.path == '/wander' and body != 'stop' and not released:
+                        reject('Release emergency stop before selecting a driving mode')
                         return
                     getattr(node, attr).publish(String(data=body))
                     self.send_response(200)

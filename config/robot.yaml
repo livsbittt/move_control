@@ -6,6 +6,16 @@
   ros__parameters:
     # A safety restart must not silently release a physical emergency stop.
     start_estopped: true
+    calibration_required: true
+    calibration_round_trip: true
+    calibration_distance_m: 0.03
+    # Installed Pinky BNO055 driver publishes raw /16 values in degrees/s.
+    imu_angular_velocity_unit: deg_s
+    # Maze echoes vary 15 cm while stationary. Keep US as obstacle guard;
+    # precise motion agreement uses lidar, wheel odometry and map TF.
+    calibration_require_us_agreement: false
+    # Installed ADC conversion saturates near .9698 m despite max_range=3.
+    calibration_us_max_range: 0.95
     # Lidar-origin range: body radius 76mm + offset 17mm + stand-off 18mm.
     # Round the conservative 111mm floor upward; the C1 cannot see 18mm.
     stop_distance: 0.12

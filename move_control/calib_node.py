@@ -121,7 +121,6 @@ class CalibNode(Node):
 
         self.pub_status = self.create_publisher(String, '/calib/status', 10)
         self.pub_phase = self.create_publisher(String, '/calib/phase', 10)
-        self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
         self.raw_pub = self.create_publisher(Twist, '/cmd_vel_raw', 10)
         self.wander_cmd = self.create_publisher(String, '/wander/cmd', 10)
         self.create_subscription(
@@ -185,13 +184,11 @@ class CalibNode(Node):
 
     def _stop_motors(self):
         z = Twist()
-        self.cmd_pub.publish(z)
         self.raw_pub.publish(z)
 
     def _drive(self, vx: float):
         cmd = Twist()
         cmd.linear.x = float(vx)
-        self.cmd_pub.publish(cmd)
         self.raw_pub.publish(cmd)
 
     def on_odom(self, msg: Odometry):

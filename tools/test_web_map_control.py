@@ -37,7 +37,7 @@ class MapControlTest(unittest.TestCase):
         web.MAP_PNG.update(bytes=b'old', gen=10)
         self.paused = True
         self.node = SimpleNamespace(
-            wander_pub=Mock(), estop_pub=Mock(), goal_pub=Mock(),
+            wander_pub=Mock(), estop_pub=Mock(), goal_pub=Mock(), calibration_pub=Mock(),
             get_clock=lambda: SimpleNamespace(now=lambda: SimpleNamespace(nanoseconds=100)))
         self.control = web.MapControl.__new__(web.MapControl)
         self.control.node = self.node

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Safety ROS node. Subjects: bumper, hazard, gate."""
 import math
+import time
 
 import rclpy
 from geometry_msgs.msg import Twist
@@ -8,7 +9,7 @@ from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy, qos_profile_sensor_data
 from sensor_msgs.msg import Imu, LaserScan, Range
-from std_msgs.msg import Bool, Float32, String, UInt16MultiArray
+from std_msgs.msg import Bool, Float32, String, UInt16MultiArray, Float32MultiArray
 
 from ..sensing.filt import IrMedian, MedianLp
 from ..sensing.body import URDF_RADIUS, use_radius
@@ -130,6 +131,11 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             durability=DurabilityPolicy.TRANSIENT_LOCAL,
         )
         self.estop_pub = self.create_publisher(Bool, '/estop/state', latched)
+        self.drive_scales = [1., 1.]
+        self.drive_scale_time = 0.
+        self.drive_ready = False
+        self.create_subscription(Float32MultiArray, '/calibration/drive_scale', self.on_drive_scale, latched)
+        self.create_subscription(Bool, '/calibration/ready', self.on_drive_ready, latched)
         self.create_subscription(Twist, self.get_parameter('cmd_in').value, self.on_cmd, 10)
         self.create_subscription(Bool, '/estop', self.on_estop, latched)
         self.create_subscription(String, '/estop/cmd', self.on_estop_cmd, 10)
@@ -386,8 +392,27 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             self._sign_front0 = None
             self._sign_hits = 0
         # Apply after semantic halt: +raw means nose-forward.
+        cmd.linear.x = self.corrected_drive_speed(cmd.linear.x)
         cmd.linear.x *= self.cmd_linear_sign
         self.pub.publish(cmd)
+
+    def on_drive_ready(self, msg):
+        self.drive_ready = bool(msg.data)
+
+    def corrected_drive_speed(self, speed):
+        # A short low-speed trial does not calibrate the entire motor curve.
+        if abs(speed) <= .014 and self.drive_ready and time.monotonic() - self.drive_scale_time <= 1.5:
+            return speed * self.drive_scales[0 if speed >= 0 else 1]
+        return speed
+
+    def on_drive_scale(self, msg):
+        values = list(msg.data)
+        if len(values) == 2 and all(math.isfinite(v) and .75 <= v <= 1.25 for v in values):
+            self.drive_scales = values
+            self.drive_scale_time = time.monotonic()
+        else:
+            self.drive_scales = [1., 1.]
+            self.drive_scale_time = 0.
 
 
 def main():

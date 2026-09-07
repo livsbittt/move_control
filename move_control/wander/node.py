@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Wander ROS node. Subjects: senses, judge, contact, motion, idle."""
 import math
+import time
 
 import rclpy
 from geometry_msgs.msg import Twist
@@ -39,6 +40,9 @@ class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
         self.declare_parameter('warn_front', 0.11)
         self.declare_parameter('think_horizon', 0.50)
         self.declare_parameter('auto_start', False)
+        self.declare_parameter('calibration_required', False)
+        self.calibration_ready = False
+        self.calibration_received = None
         self.declare_parameter('pause_sec', 0.25)
         self.declare_parameter('look_sec', 0.40)
         self.declare_parameter('calc_sec', 0.20)
@@ -119,6 +123,7 @@ class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
         )
         self.estop = False
         self.create_subscription(Bool, '/estop/state', self.on_estop, latched)
+        self.create_subscription(Bool, '/calibration/ready', self.on_calibration, latched)
         self.create_subscription(Bool, '/safety/rear_clear', self.on_rear, 10)
         self.create_subscription(Float32, '/safety/min_range', self.on_front_range, 10)
         self.create_subscription(Float32, '/safety/rear_range', self.on_rear_range, 10)
@@ -232,6 +237,10 @@ class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
 
     def on_cmd(self, msg: String):
         cmd = msg.data.strip().lower()
+        if cmd not in ('stop', 'halt', 'off') and not self.calibration_ok():
+            self.stop_reason = 'calibration_required'
+            self._set_enabled(False)
+            return
         if cmd in ('stop', 'halt', 'off'):
             self._set_enabled(False)
         elif cmd in ('explore', 'coverage'):
@@ -246,6 +255,9 @@ class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
             self.get_logger().warn(f'unknown cmd {cmd!r} (use stop|start|explore|coverage)')
 
     def _set_enabled(self, enabled: bool):
+        if enabled and not self.calibration_ok():
+            self.stop_reason = 'calibration_required'
+            enabled = False
         if not enabled:
             self._cancel_navigation()
             self.enabled = False
@@ -261,6 +273,16 @@ class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
             return
         # Always start by going forward. Backup only after we have driven.
         self._enter('wait')
+
+    def calibration_ok(self):
+        if not self.get_parameter('calibration_required').value:
+            return True
+        return (self.calibration_ready and self.calibration_received is not None
+                and time.monotonic() - self.calibration_received <= 3.0)
+
+    def on_calibration(self, msg):
+        self.calibration_ready = bool(msg.data)
+        self.calibration_received = time.monotonic()
 
     def _enter(self, state: str):
         prev = self.state
@@ -396,6 +418,9 @@ class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
         self._publish(cmd, 'turn')
 
     def tick(self):
+        if self.enabled and not self.calibration_ok():
+            self._set_enabled(False)
+            self.stop_reason = 'calibration_required'
         self.vmax = float(self.get_parameter('vmax').value)
         self.vback = float(self.get_parameter('vback').value)
         self.wturn = float(self.get_parameter('wturn').value)
