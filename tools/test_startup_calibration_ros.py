@@ -77,6 +77,23 @@ class StartupCalibrationTest(unittest.TestCase):
         self.refresh(100.6)
         self.node.tick()
 
+    def test_verified_turn_preserves_calibration_but_invalid_imu_does_not(self):
+        msg = Imu()
+        msg.orientation.w = 1.
+        msg.linear_acceleration.z = 9.86
+        msg.angular_velocity.z = .2
+        self.node.set_parameters([Parameter('imu_angular_velocity_unit', value='rad_s')])
+        for phase, tilted, gyro, valid in (
+                ('ready', False, .2, True), ('collecting', False, .2, False),
+                ('ready', True, .2, False), ('ready', False, float('nan'), False)):
+            self.node.phase = phase
+            msg.header.stamp = self.node.get_clock().now().to_msg()
+            msg.orientation.x = math.sin(math.radians(30)/2) if tilted else 0.
+            msg.orientation.w = math.cos(math.radians(30)/2) if tilted else 1.
+            msg.angular_velocity.z = gyro
+            self.node.on_imu(msg)
+            self.assertEqual(self.node.baseline.latest('imu') is not None, valid)
+
     def test_driver_degree_units_are_converted_without_hiding_real_rotation(self):
         msg = Imu()
         msg.header.stamp = self.node.get_clock().now().to_msg()

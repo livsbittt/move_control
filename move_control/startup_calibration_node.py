@@ -267,10 +267,12 @@ class StartupCalibrationNode(Node, CalibrationRotation):
         gyro = math.sqrt(gx*gx+gy*gy+gz*gz)
         tilt = max(abs(roll), abs(pitch))
         self.rotation_imu_yaw = math.atan2(2*(q.w*q.z+q.x*q.y), 1-2*(q.y*q.y+q.z*q.z))
+        # Stationary gyro limits qualify calibration; route turns need only
+        # healthy finite IMU data. Tilt, gravity and source age still gate it.
         self.add('imu', (gravity, gyro, tilt,
                          gx, gy, gz, a.x, a.y, a.z, roll, pitch),
                  unit in ('rad_s', 'deg_s') and self.stamped(msg) and .9 <= norm <= 1.1 and 8 <= gravity <= 11.5 and
-                 gyro < .15 and tilt < math.radians(20))
+                 (self.phase == 'ready' or gyro < .15) and tilt < math.radians(20))
 
     def on_camera(self, msg):
         if not self.new_sample('camera', msg):
