@@ -276,7 +276,8 @@ class GoalBrain:
         start = m.world_to_grid(*pose)
         if m.is_free(*start) and not m.inflate(self.clear_m / m.res).is_free(*start):
             route = start_escape(m, pose, self.clear_m, self.start_escape_clear_m,
-                                 self.start_escape_distance_m)
+                                 self.start_escape_distance_m,
+                                 [xy for xy,expiry in self._failed_goals if expiry>self._plan_n])
             if route:
                 self.last_options = []
                 return route['points'][-1], route, 'escape: moving to preferred clearance'

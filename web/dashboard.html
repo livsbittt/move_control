@@ -284,6 +284,7 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
       </div>
       <div class="block" id="camcard" style="display:none">
         <h3>카메라</h3>
+        <p>영상은 물체 관찰용입니다. 거리는 LiDAR로 판단하며 영상만으로 주행을 차단하지 않습니다.</p>
         <div class="camframe">
           <img id="camimg" alt="전방 카메라 영상">
           <div class="camveil" id="camveil"></div>
@@ -1019,13 +1020,13 @@ const FLAGS = [
   { k: 'cliff',       ko: '낭떠러지',        topic: '/safety/cliff',     bad: true },
   { k: 'tilt',        ko: '기울어짐',        topic: '/safety/tilt',      bad: true },
   { k: 'pickup',      ko: '들림',            topic: '/safety/pickup',    bad: true },
-  { k: 'cam blocked', ko: '카메라 차단',     topic: '/camera/blocked',   bad: true },
-  { k: 'cam cliff',   ko: '카메라 낭떠러지', topic: '/camera/cliff',     bad: true },
+  { k: 'cam blocked', ko: '영상 물체 후보', topic: '/camera/blocked', observation: true },
+  { k: 'cam cliff',   ko: '영상 바닥 변화', topic: '/camera/cliff', observation: true },
   { k: 'rear clear',  ko: '후방 여유',       topic: '/safety/rear_clear' },
   { k: 'can reverse', ko: '후진 가능',       topic: '/safety/can_reverse' },
 ];
 function flagHtml(f, v) {
-  const cls = f.bad ? (v ? 'flag hit' : 'flag ok')
+  const cls = f.observation ? 'flag' : f.bad ? (v ? 'flag hit' : 'flag ok')
                     : (v ? 'flag ok' : 'flag lost');
   return '<span class="' + cls + '" title="' + f.topic + '">' +
          (f.bad && v ? '⚠ ' : '') + f.ko + '</span>';

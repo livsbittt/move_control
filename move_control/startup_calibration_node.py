@@ -59,8 +59,7 @@ class StartupCalibrationNode(Node):
         self.rear_clear = (0., False)
         self.create_subscription(Bool, '/safety/can_reverse',
             lambda msg: setattr(self, 'rear_clear', (time.monotonic(), msg.data)), 10)
-        for topic in ('/safety/blocked', '/safety/cliff', '/safety/tilt', '/safety/pickup',
-                      '/camera/blocked', '/camera/cliff'):
+        for topic in ('/safety/blocked', '/safety/cliff', '/safety/tilt', '/safety/pickup'):
             self.create_subscription(Bool, topic,
                 lambda msg, key=topic: self.hazards.__setitem__(key, (time.monotonic(), msg.data)), 10)
         self.tf = Buffer()
@@ -234,8 +233,10 @@ class StartupCalibrationNode(Node):
         for stamp, distance, valid in self.raw_ranges.values():
             if not valid or now - stamp > 1. or distance < .20:
                 return 'Raw range unsafe or stale; filtered values cannot authorize motion'
-        if len(self.hazards) != 6 or any(now - t > .75 or active for t, active in self.hazards.values()):
-            return 'Safety/camera hazard or missing fresh safety state'
+        required = ('/safety/blocked', '/safety/cliff', '/safety/tilt', '/safety/pickup')
+        if any(key not in self.hazards or now - self.hazards[key][0] > .75
+               or self.hazards[key][1] for key in required):
+            return 'Safety hazard or missing fresh safety state'
         if min(self.baseline.latest('lidar')[0], self.baseline.latest('us')[0]) < .20:
             return 'Need at least 20 cm clear range for motion validation'
         return None

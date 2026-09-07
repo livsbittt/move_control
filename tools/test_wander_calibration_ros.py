@@ -77,3 +77,26 @@ class CalibrationGateTest(unittest.TestCase):
         self.node._tick_navigation()
         cmd = self.node.pub.publish.call_args.args[0]
         self.assertEqual((cmd.linear.x,cmd.angular.z),(0.,0.))
+
+    def test_camera_observation_cannot_override_lidar_turn_or_forward_route(self):
+        self.node.cam_block = True
+        self.node.cam_side = -1.
+        self.node.left_range, self.node.right_range = .4, .1
+        self.assertEqual(self.node._pick_turn_sign(), 1.)
+        self.node.on_calibration(Bool(data=True))
+        self.node.on_cmd(String(data='explore'))
+        self.node._ir_ready = Mock(return_value=True)
+        self.node._on_wall = Mock(return_value=False)
+        self.node._can_reverse = Mock(return_value=True)
+        self.node.blocked = self.node.cliff = self.node.tilt = self.node.pickup = False
+        self.node.estop = False
+        t = TransformStamped()
+        t.header.stamp = self.node.now().to_msg()
+        t.transform.rotation.w = 1.
+        self.node.navigation_tf = Mock()
+        self.node.navigation_tf.lookup_transform.return_value = t
+        self.node.navigation_route = [(0.,0.),(.3,0.)]
+        self.node.navigation_received = self.node.navigation_stamp = self.node.now().nanoseconds*1e-9
+        self.node._tick_navigation()
+        cmd = self.node.pub.publish.call_args.args[0]
+        self.assertGreater(cmd.linear.x,0.)

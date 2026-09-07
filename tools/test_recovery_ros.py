@@ -28,7 +28,7 @@ class RecoveryIntegrationTest(unittest.TestCase):
             self.assertEqual(node.brain._failed_goals[0][0],(1.,2.))
         finally:node.destroy_node()
 
-    def test_stationary_camera_hold_requests_replan_and_only_new_goal_unlocks(self):
+    def test_stationary_range_hold_requests_replan_and_only_new_goal_unlocks(self):
         node=WanderNode()
         try:
             node.pub=Mock()
@@ -38,7 +38,7 @@ class RecoveryIntegrationTest(unittest.TestCase):
             node._ir_ready=Mock(return_value=True)
             node._on_wall=Mock(return_value=False)
             node._can_reverse=Mock(return_value=True)
-            node.cam_block=True
+            node.blocked=True
             node.estop=node.pickup=node.tilt=node.cliff=False
             node.navigation_tf=Mock()
             def tick(t,goal):

@@ -4,7 +4,7 @@ from collections import deque
 from .gridmap import OCC_THRESH
 
 
-def start_escape(m, pose, preferred_m, minimum_m, max_distance_m):
+def start_escape(m, pose, preferred_m, minimum_m, max_distance_m, excluded=()):
     if not 0 < minimum_m < preferred_m or max_distance_m <= 0:
         return None
     if not (m.ox <= pose[0] < m.ox+m.w*m.res and m.oy <= pose[1] < m.oy+m.h*m.res):
@@ -25,7 +25,8 @@ def start_escape(m, pose, preferred_m, minimum_m, max_distance_m):
     while queue:
         cell, path = queue.popleft()
         # The follower's 25mm arrival tolerance must not consume the escape.
-        if soft.is_free(*cell) and math.dist(pose, m.grid_to_world(*cell)) >= .04:
+        if (soft.is_free(*cell) and math.dist(pose, m.grid_to_world(*cell)) >= .04
+                and all(math.dist(m.grid_to_world(*cell),goal)>.10 for goal in excluded)):
             points = [tuple(pose)] + [m.grid_to_world(*p) for p in path]
             return {'points': points, 'cells': path, 'length': offset+(len(path)-1)*m.res}
         if len(path)-1 >= limit:

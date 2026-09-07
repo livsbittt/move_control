@@ -79,3 +79,18 @@ class SafetyGateTest(unittest.TestCase):
         published = self.node.pub.publish.call_args.args[0]
         self.assertEqual(published.linear.x, 0.0)
         self.assertEqual(published.angular.z, 0.0)
+
+    def test_camera_observations_cannot_block_clear_lidar(self):
+        self.node.release_estop()
+        self.node.last_scan_time = self.node.now()
+        self.node.last_cam_time = self.node.now()
+        self.node.cam_block = self.node.cam_cliff = True
+        for field in ('lidar_front', 'lidar_rear', 'lidar_left', 'lidar_right',
+                      'lidar_rear_left', 'lidar_rear_right'):
+            setattr(self.node, field, .5)
+        command = Twist()
+        command.linear.x = .02
+        self.node.on_cmd(command)
+        self.node.tick()
+        self.assertFalse(self.node.block_pub.publish.call_args.args[0].data)
+        self.assertGreater(self.node.pub.publish.call_args.args[0].linear.x, 0.)

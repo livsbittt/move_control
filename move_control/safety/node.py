@@ -47,7 +47,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.declare_parameter('cmd_linear_sign', 1.0)
         self.declare_parameter('auto_linear_sign', False)
         self.declare_parameter('camera_as_wall', False)
-        self.declare_parameter('camera_block_as_wall', True)
+        self.declare_parameter('camera_block_as_wall', False)
         self.declare_parameter('imu_topic', '/imu_raw')
         self.declare_parameter('tilt_deg', 20.0)
         self.declare_parameter('gyro_dps', 90.0)
@@ -319,21 +319,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
                 self.get_logger().info(f'wall clear us={us:.3f} m')
                 self.us_blocked = False
 
-        cam_ok = self.age(self.last_cam_time) < self.timeout
-        use_cam = bool(self.get_parameter('camera_as_wall').value)
-        use_cam_block = use_cam or bool(self.get_parameter('camera_block_as_wall').value)
-        cam_cliff = bool(self.cam_cliff) if cam_ok and use_cam else False
-        cam_block = bool(self.cam_block) if cam_ok and use_cam_block else False
-        if cam_block and not self._cam_block_logged:
-            self.get_logger().warn('camera obstacle / corner — turn, no reverse')
-            self._cam_block_logged = True
-        elif not cam_block:
-            self._cam_block_logged = False
-        if cam_cliff and not self._cam_cliff_logged:
-            self.get_logger().warn('camera drop ahead — treat as wall (turn, no reverse)')
-            self._cam_cliff_logged = True
-        elif not cam_cliff:
-            self._cam_cliff_logged = False
+        # RGB observations have no metric distance or motor authority.
 
         imu_ok = self.age(self.last_imu_time) < self.timeout
         tilt = bool(self.tilt) if imu_ok else False
@@ -351,8 +337,8 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.tilt_pub.publish(Bool(data=tilt))
         self.pickup_pub.publish(Bool(data=pickup))
 
-        # IR cliff = reverse. Lidar/US = bumper wall. Camera block = corner look-ahead (turn).
-        obstacle = self.blocked or self.us_blocked or cam_block or cam_cliff
+        # IR detects floor hazards; LiDAR/US provide physical range protection.
+        obstacle = self.blocked or self.us_blocked
         self.block_pub.publish(Bool(data=obstacle))
 
         if self.estop:

@@ -15,6 +15,7 @@ def classify_frame(
     mid_y1=0.62,
     void_frac=0.12,
     obst_frac=0.35,
+    allow_floor_update=True,
 ):
     """Return dict of flags and column scores. bgr is HxWx3 uint8 BGR."""
     import cv2
@@ -36,16 +37,24 @@ def classify_frame(
     inst = np.median(sample, axis=0)
     if floor_hsv is None:
         fh, fs, fv = (float(inst[0]), float(inst[1]), float(inst[2]))
-        new_floor = (fh, fs, fv)
+        new_floor = (fh, fs, fv) if allow_floor_update else None
     else:
-        a = 0.12
-        fh = (1 - a) * floor_hsv[0] + a * float(inst[0])
-        fs = (1 - a) * floor_hsv[1] + a * float(inst[1])
-        fv = (1 - a) * floor_hsv[2] + a * float(inst[2])
+        fh, fs, fv = map(float, floor_hsv)
+        ih, iss, iv = map(float, inst)
+        hue_delta = (ih - fh + 90.) % 180. - 90.
+        # A wall or blue tape filling the ROI must not become the floor.
+        # Gray pixels have unstable hue, so compare their saturation/value.
+        compatible = (abs(iss-fs) < 40. and abs(iv-fv) < floor_v_tol and
+                      ((iss <= 40. and fs <= 40.) or abs(hue_delta) < floor_h_tol))
+        if allow_floor_update and compatible:
+            a = 0.12
+            fh = (fh + a*hue_delta) % 180.
+            fs, fv = (1-a)*fs+a*iss, (1-a)*fv+a*iv
         new_floor = (fh, fs, fv)
 
     d_h = np.minimum(np.abs(h_ch - fh), 180.0 - np.abs(h_ch - fh))
-    floor = (d_h < floor_h_tol) & (np.abs(v_ch - fv) < floor_v_tol) & (v_ch > fv * 0.55)
+    same_color = (((s_ch <= 40.) & (fs <= 40.)) | (d_h < floor_h_tol)) & (np.abs(s_ch-fs) < 50.)
+    floor = same_color & (np.abs(v_ch - fv) < floor_v_tol) & (v_ch > fv * 0.55)
     # Blue maze tape can differ in hue while retaining 80% of floor
     # brightness. Hue alone is not missing-floor evidence: keep those
     # pixels as obstacle cues, and require the existing darkness ratio

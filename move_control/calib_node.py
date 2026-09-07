@@ -506,7 +506,7 @@ class CalibNode(Node):
                 f'IMU rest roll={extra["imu_roll0"]:.1f} pitch={extra["imu_pitch0"]:.1f} deg'
             )
         extra['camera_as_wall'] = False
-        extra['camera_block_as_wall'] = True
+        extra['camera_block_as_wall'] = False
         extra['stop_distance'] = 0.018
         extra['clear_distance'] = 0.028
         extra['us_stop_distance'] = 0.020
@@ -521,7 +521,7 @@ class CalibNode(Node):
             apply_params.append(('lidar_yaw_offset', float(NOSE_YAW)))
         apply_params.extend([
             ('camera_as_wall', False),
-            ('camera_block_as_wall', True),
+            ('camera_block_as_wall', False),
             ('stop_distance', 0.018),
             ('clear_distance', 0.028),
             ('us_stop_distance', 0.020),

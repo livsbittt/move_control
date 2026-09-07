@@ -101,12 +101,12 @@ class Motion:
         if self.blocked:
             return True
         if not self._finite(self.front_range):
-            return self.cam_block
+            return False
         far = self._far_side()
         if far is None:
-            return self.cam_block
+            return False
         f = max(self.front_range, 1e-4)
-        return far / f >= self.open_ratio or self.cam_block
+        return far / f >= self.open_ratio
 
     def _escape_can_adjust(self) -> bool:
         if not bool(self.get_parameter('auto_escape').value):

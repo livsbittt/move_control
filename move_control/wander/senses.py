@@ -12,7 +12,6 @@ from ..control.recover import (
     narrow_factor,
     need_space_to_turn,
     ratio_sign,
-    side_sign,
 )
 
 
@@ -171,10 +170,7 @@ class Senses:
         ) * math.radians(70.0)
 
     def _pick_turn_sign(self) -> float:
-        # Camera side only at a real corner (center obstacle), not corridor walls.
-        s = side_sign(self.cam_side) if self.cam_block else 0.0
-        if s:
-            return s
+        # Camera is observation-only; metric clearance chooses the turn.
         s = ratio_sign(self.left_range, self.right_range)
         if s:
             return s
@@ -213,7 +209,7 @@ class Senses:
         )
 
     def _aligned_to_open(self) -> bool:
-        if self.blocked or self.cam_block:
+        if self.blocked:
             return False
         if not self._finite(self.front_range):
             return False
@@ -239,12 +235,12 @@ class Senses:
         if self.blocked:
             return True
         if not self._finite(self.front_range):
-            return bool(self.cam_block)
+            return False
         if self.front_range > self.escape_front:
             return False
         near = self._near_side()
         if near is None:
-            return self.cam_block
+            return False
         return self.front_range <= near * self.pinch_ratio
 
     def _sensors_ready(self) -> bool:

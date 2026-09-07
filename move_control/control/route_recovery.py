@@ -13,10 +13,11 @@ class RouteRecovery:
         self.progress_since = self.blocked_since = None
         self.requested = None
         self.failed_goal = None
+        self.failed_exit = None
         self.attempts = 0
         self.waiting = self.exhausted = False
 
-    def update(self, now, pose, reason, goal, route_stamp, safe):
+    def update(self, now, pose, reason, goal, route_stamp, safe, route_exit=None):
         if not safe or pose is None:
             return 'safety_hold'
         if self.exhausted:
@@ -31,6 +32,8 @@ class RouteRecovery:
             self.budget_anchor, self.attempts = xy, 0
         if self.waiting:
             different = goal is not None and (self.failed_goal is None or math.dist(goal,self.failed_goal)>.08)
+            if route_exit is not None and self.failed_exit is not None:
+                different = math.dist(route_exit,self.failed_exit)>.05
             if different and route_stamp is not None and route_stamp > self.requested:
                 self.waiting = False
                 self.progress_since, self.blocked_since = now, None
@@ -55,4 +58,6 @@ class RouteRecovery:
         self.waiting, self.requested = True, now
         if goal is not None:
             self.failed_goal = goal
+        if route_exit is not None:
+            self.failed_exit = route_exit
         return 'replan'
