@@ -346,6 +346,40 @@ class GoalBrainTest(RoomCase):
         self.assertEqual(self.brain.mode, 'explore')
         self.assertTrue(status.startswith('explore'))
 
+    def test_active_exploration_finishes_viewpoint_despite_frontier_fragment_changes(self):
+        self.brain.execution_feedback = True
+        goal, _, _ = self.brain.plan(self.m, self.START)
+        # A scan fills small frontier fragments before the robot reaches its
+        # selected observation point. Replanning must not reverse its heading.
+        again, route, status = self.brain.plan(self.known, self.START)
+        self.assertEqual(again, goal)
+        self.assertTrue(status.startswith('explore'))
+        self.assertIsNotNone(route)
+        _, _, status = self.brain.plan(self.known, goal)
+        self.assertTrue(status.startswith('coverage'))
+
+    def test_execution_failure_releases_committed_exploration_viewpoint(self):
+        self.brain.execution_feedback = True
+        goal, _, _ = self.brain.plan(self.m, self.START)
+        self.brain.avoid_goal(goal)
+        again, _, _ = self.brain.plan(self.known, self.START)
+        self.assertNotEqual(again, goal)
+
+    def test_new_obstacle_releases_committed_viewpoint(self):
+        self.brain.execution_feedback = True
+        goal, _, _ = self.brain.plan(self.m, self.START)
+        self.known.set_cell(*self.known.world_to_grid(*goal), OCC)
+        again, _, _ = self.brain.plan(self.known, self.START)
+        self.assertNotEqual(again, goal)
+
+    def test_expired_executor_feedback_releases_viewpoint_latch(self):
+        self.brain.execution_feedback = True
+        goal, _, _ = self.brain.plan(self.m, self.START)
+        self.brain.execution_feedback = False
+        again, _, status = self.brain.plan(self.known, self.START)
+        self.assertTrue(status.startswith('coverage'))
+        self.assertNotEqual(again, goal)
+
     def test_sweeps_coverage_when_no_frontiers(self):
         # No frontier this tick -> the brain falls through to a coverage
         # waypoint for the sweep, while staying ready to explore again.
