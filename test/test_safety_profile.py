@@ -21,6 +21,9 @@ class ProfileTest(unittest.TestCase):
         self.assertNotEqual(a.revision, b.revision)
         with self.assertRaises(ValueError):
             SafetyProfile.build(radius=float('nan'))
+        self.assertNotEqual(a.revision, SafetyProfile.build(lidar_yaw_rad=math.pi).revision)
+        self.assertNotEqual(a.revision, SafetyProfile.build(linear_sign=-1.).revision)
+        self.assertNotEqual(a.revision, SafetyProfile.build(imu_unit='deg_s').revision)
 
     def test_post_gain_limits_preserve_curvature_and_reject_nan(self):
         self.assertEqual(bounded_command(float('nan'), .1, .014, .1), (0., 0., 'invalid_command'))

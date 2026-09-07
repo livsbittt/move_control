@@ -128,6 +128,7 @@ class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
         self.create_subscription(Float32, '/safety/min_range', self.on_front_range, 10)
         self.create_subscription(Float32, '/safety/rear_range', self.on_rear_range, 10)
         self.create_subscription(Float32, '/safety/left_range', self.on_left, 10)
+        self.create_subscription(String, '/safety/observation', self.on_observation, 10)
         self.create_subscription(Float32, '/safety/right_range', self.on_right, 10)
         self.create_subscription(Float32, '/safety/rear_left', self.on_rear_left, 10)
         self.create_subscription(Float32, '/safety/rear_right', self.on_rear_right, 10)

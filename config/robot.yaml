@@ -9,6 +9,7 @@
     calibration_required: true
     calibration_round_trip: true
     calibration_distance_m: 0.03
+    calibration_rotation: true
     # Independent bootstrap bounds cannot be overwritten by legacy calib keys.
     safety_stop_floor: 0.12
     safety_clear_floor: 0.14

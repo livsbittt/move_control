@@ -5,6 +5,12 @@ from move_control.control.path_follow import ProgressGuard, follow_path
 
 
 class PathFollowTest(unittest.TestCase):
+    def test_small_repeated_oscillation_is_not_endless_progress(self):
+        guard = ProgressGuard(timeout=8)
+        for i in range(20):
+            guard.check(i, (.006*(i % 2), 0, .06*(i % 2)), True)
+        self.assertTrue(guard.stalled)
+
     def command(self, route=None, pose=(0, 0, 0), **kwargs):
         args = dict(route_age=0.1, tf_age=0.1)
         args.update(kwargs)

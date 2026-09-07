@@ -16,22 +16,30 @@ class SafetyProfile:
     half_width_deg: float
     max_linear: float
     max_angular: float
+    lidar_yaw_rad: float
+    linear_sign: float
+    imu_unit: str
 
     @classmethod
     def build(cls, *, radius=URDF_RADIUS, stop=.12, clear=.14, half_width_deg=45.,
-              stop_floor=.12, clear_floor=.14, max_linear=.014, max_angular=.10):
-        values = (radius, stop, clear, half_width_deg, stop_floor, clear_floor, max_linear, max_angular)
+              stop_floor=.12, clear_floor=.14, max_linear=.014, max_angular=.10,
+              lidar_yaw_rad=math.radians(190), linear_sign=1., imu_unit='rad_s'):
+        values = (radius, stop, clear, half_width_deg, stop_floor, clear_floor, max_linear, max_angular,
+                  lidar_yaw_rad, linear_sign)
         if not all(math.isfinite(v) for v in values):
             raise ValueError('Non-finite safety profile')
         if not 0 < radius <= .15 or not 0 < max_linear <= .014 or not 0 < max_angular <= .10:
             raise ValueError('Profile exceeds nominal hardware envelope')
         if stop_floor < .12 or clear_floor < .14:
             raise ValueError('Bootstrap floors need commissioning before reduction')
+        if linear_sign not in (-1., 1.) or imu_unit not in ('rad_s', 'deg_s'):
+            raise ValueError('Invalid sensor or drive convention')
         radius = max(URDF_RADIUS, radius)
         stop = max(radius+abs(LIDAR_X)+.018, stop_floor, stop)
         clear = max(stop+.010, clear_floor, clear)
         half = max(45., min(90., half_width_deg))
-        return cls(radius, stop, clear, radius+abs(LIDAR_X)+.010, half, max_linear, max_angular)
+        return cls(radius, stop, clear, radius+abs(LIDAR_X)+.010, half, max_linear, max_angular,
+                   round(math.atan2(math.sin(lidar_yaw_rad), math.cos(lidar_yaw_rad)), 6), linear_sign, imu_unit)
 
     @property
     def revision(self):

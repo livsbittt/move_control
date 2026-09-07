@@ -16,6 +16,7 @@ from ..sensing.body import URDF_RADIUS, use_radius
 from ..sensing.lidar import NOSE_YAW
 from ..control.lidar_guard import lidar_blocked, lidar_can_rotate
 from ..control.safety_profile import bounded_command
+from ..control.space_speed import limit_for_space
 from .evidence import Evidence
 from .bumper import Bumper
 from .gate import Gate
@@ -423,9 +424,17 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
         # A straight trial provides no evidence for mixed-motion correction.
         if not cmd.angular.z:
             cmd.linear.x = self.corrected_drive_speed(cmd.linear.x)
+        elif not cmd.linear.x and abs(cmd.angular.z) <= .06:
+            gains = self.calibration_lease.angular_gains(time.monotonic())
+            cmd.angular.z *= gains[int(cmd.angular.z < 0)]
         cmd.linear.x, cmd.angular.z, reason = bounded_command(
             cmd.linear.x, cmd.angular.z, self.profile.max_linear, self.profile.max_angular)
-        if not (cmd.linear.x or cmd.angular.z) and (self.last_cmd.linear.x or self.last_cmd.angular.z):
+        cmd.linear.x, cmd.angular.z, space_reason = limit_for_space(
+            cmd.linear.x, cmd.angular.z,
+            (self.lidar_front, self.lidar_rear, self.lidar_left, self.lidar_right), self.profile)
+        if space_reason != 'allow':
+            reason = space_reason
+        if reason == 'allow' and not (cmd.linear.x or cmd.angular.z) and (self.last_cmd.linear.x or self.last_cmd.angular.z):
             reason = 'obstacle_or_hazard'
         self.record_decision(cmd.linear.x, cmd.angular.z, reason)
         cmd.linear.x *= self.cmd_linear_sign
@@ -436,8 +445,9 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
 
     def corrected_drive_speed(self, speed):
         # A short low-speed trial does not calibrate the entire motor curve.
-        if abs(speed) <= .014 and self.drive_ready and time.monotonic() - self.drive_scale_time <= 1.5:
-            return speed * self.drive_scales[0 if speed >= 0 else 1]
+        if abs(speed) <= .014:
+            gains = self.calibration_lease.gains(time.monotonic())
+            return speed * gains[0 if speed >= 0 else 1]
         return speed
 
     def on_drive_scale(self, msg):

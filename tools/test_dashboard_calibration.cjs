@@ -55,6 +55,18 @@ test('calibration gates reactive and map navigation; sensor detail stays visible
   assert.equal(d.elements.get('navexplore').disabled,false);
 });
 
+test('measurement completion waits for application and reports effective geometry', () => {
+  const d = dashboard();
+  const state = {estop:false, calibration_ready:false,
+    calibration:{phase:'ready', ready:false, sensors:{}, rotation:{done:true, legs:Array(8)}},
+    safety_profile:{valid:true, commissioned:false, effective:{stop:.15,radius:.09}}};
+  d.renderCalibration(state);
+  assert.match(d.elements.get('calibrationstatus').textContent,/적용 확인 대기/);
+  assert.match(d.elements.get('calibrationsensors').textContent,/15.0cm/);
+  assert.match(d.elements.get('calibrationsensors').textContent,/8\/8/);
+  assert.equal(d.elements.get('wanderstart').disabled,true);
+});
+
 test('motion validation cannot run while estopped or mapping paused', async () => {
   const d = dashboard();
   const state = {estop:true,map_control:{paused:false},calibration:{phase:'waiting_motion'}};

@@ -1,6 +1,8 @@
 """Subject: sensing. Read lidar/US/IR/camera/odom. No motion."""
 import math
 import random
+import json
+import time
 
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool, Float32, UInt16MultiArray
@@ -21,6 +23,28 @@ def yaw_from_quat(q) -> float:
 
 
 class Senses:
+
+    def on_observation(self, msg):
+        try:
+            packet = json.loads(msg.data)
+            lidar = packet['streams']['lidar']
+            age = self.get_clock().now().nanoseconds*1e-9 - packet['issued_s']
+            if (packet['schema_version'] != 1 or packet['frame'] != 'base_link' or
+                    packet['range_origin'] != 'lidar' or lidar['valid'] is not True or
+                    not -.1 <= age <= .5 or not 0 <= lidar['age_s'] <= .5):
+                raise ValueError('Unavailable observation')
+            key = (packet['session'], lidar['generation'])
+            previous = getattr(self, '_observation_key', None)
+            if previous and key[0] == previous[0] and key[1] <= previous[1]:
+                return
+            ranges = packet['ranges']
+            values = tuple(ranges[name] for name in ('front', 'rear', 'left', 'right'))
+            if not all(v is None or (math.isfinite(v) and v > 0) for v in values):
+                raise ValueError('Invalid range')
+            self._observation_key = key
+            self._look_observation = (time.monotonic()+.5-max(0., age)-lidar['age_s'], values)
+        except (ValueError, KeyError, TypeError):
+            self._look_observation = None
 
     def on_ir(self, msg: UInt16MultiArray):
         self.ir = tuple(int(v) for v in msg.data[:3])

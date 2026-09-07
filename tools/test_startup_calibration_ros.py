@@ -5,6 +5,8 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import Mock, patch
+from types import SimpleNamespace
+import numpy as np
 
 import rclpy
 from rclpy.parameter import Parameter
@@ -14,6 +16,7 @@ from sensor_msgs.msg import LaserScan, Imu
 
 from move_control.startup_calibration_node import StartupCalibrationNode
 from move_control.control.calibration import StationaryBaseline
+from move_control.control.safety_profile import SafetyProfile
 from test.test_calibration import VALUES
 
 
@@ -30,9 +33,11 @@ class StartupCalibrationTest(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         path = Path(self.tmp.name) / 'calibration.json'
         path.write_text('{"ready": true, "phase": "ready"}')
-        self.node = StartupCalibrationNode(parameter_overrides=[Parameter('result_path', value=str(path))])
+        self.node = StartupCalibrationNode(parameter_overrides=[Parameter('result_path', value=str(path)),
+            Parameter('calibration_rotation', value=False)])
         self.node.raw_pub = Mock()
         self.node.ready_pub = Mock()
+        self.node.profile_pub = Mock()
         self.node.read_tf = Mock()
         self.clock = patch('move_control.startup_calibration_node.time.monotonic', return_value=100.)
         self.now = self.clock.start()
@@ -44,10 +49,20 @@ class StartupCalibrationTest(unittest.TestCase):
 
     def refresh(self, when, moving=False):
         self.now.return_value = when
+        profile = SafetyProfile.build().report()
+        profile['valid'] = True
+        self.node.on_safety_profile(String(data=json.dumps(profile)))
+        previous = self.node.raw_pub.publish.call_args
+        v = previous.args[0].linear.x if previous else 0.
+        w = previous.args[0].angular.z if previous else 0.
+        self.node.on_gate_decision(String(data=json.dumps({
+            'issued_s': self.node.get_clock().now().nanoseconds*1e-9,
+            'requested_v': v, 'requested_omega': w, 'safe_v': v, 'safe_omega': w})))
         for name, value in VALUES.items():
             if moving and name in ('odom', 'lidar', 'us', 'map_tf'):
                 value = {'odom': (.03, 0., 0., 0.), 'lidar': (.62,), 'us': (.62,), 'map_tf': (.03, 0., 0.)}[name]
             self.node.baseline.add(name, value, when)
+            self.node.observations.add(name, when)
         for topic in ('/safety/blocked', '/safety/cliff', '/safety/tilt', '/safety/pickup', '/camera/blocked', '/camera/cliff'):
             self.node.hazards[topic] = (when, False)
         self.node.wander_state = ('stop', when)
@@ -72,10 +87,12 @@ class StartupCalibrationTest(unittest.TestCase):
         self.node.on_imu(msg)
         self.assertAlmostEqual(self.node.baseline.latest('imu')[1], math.radians(.9375))
         msg.angular_velocity.x = 90.
+        msg.header.stamp = self.node.get_clock().now().to_msg()
         self.node.on_imu(msg)
         self.assertIsNone(self.node.baseline.latest('imu'))
         self.node.set_parameters([Parameter('imu_angular_velocity_unit', value='rad_s')])
         msg.angular_velocity.x = .2
+        msg.header.stamp = self.node.get_clock().now().to_msg()
         self.node.on_imu(msg)
         self.assertIsNone(self.node.baseline.latest('imu'))
 
@@ -108,7 +125,7 @@ class StartupCalibrationTest(unittest.TestCase):
         self.node.tick()
         self.assertEqual(self.node.phase, 'ready')
         self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
-        self.assertTrue(json.loads((Path(self.tmp.name) / 'calibration.json').read_text())['ready'])
+        self.assertFalse(json.loads((Path(self.tmp.name) / 'calibration.json').read_text())['ready'])
 
     def test_auto_motion_never_retries_after_abort_or_failure(self):
         for final_phase in ('aborted', 'failed'):
@@ -154,8 +171,26 @@ class StartupCalibrationTest(unittest.TestCase):
         self.assertEqual(self.node.phase, 'ready', self.node.message)
         self.assertEqual(speed, 0.)
         saved = json.loads((Path(self.tmp.name) / 'calibration.json').read_text())
-        self.assertTrue(saved['settings_applied'])
+        self.assertFalse(saved['settings_applied'])  # Published is not acknowledged by safety.
         self.assertEqual(len(saved['motion']['legs']), 4)
+
+    def test_rotation_requires_observed_space_and_never_claims_translation_is_rotation(self):
+        self.node.set_parameters([Parameter('calibration_rotation', value=True)])
+        self.arm()
+        self.refresh(104.7, moving=True)
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'validating_rotation')
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'failed')
+        self.assertEqual(self.node.raw_pub.publish.call_args.args[0].angular.z, 0.)
+
+    def test_duplicate_imu_packet_does_not_manufacture_baseline_samples(self):
+        msg = Imu()
+        msg.header.stamp = self.node.get_clock().now().to_msg()
+        msg.orientation.w, msg.linear_acceleration.z = 1., 9.86
+        for _ in range(25):
+            self.node.on_imu(msg)
+        self.assertEqual(len(self.node.baseline.samples['imu']), 1)
 
     def test_round_trip_rear_clearance_loss_aborts_before_reverse(self):
         self.node.set_parameters([Parameter('calibration_round_trip', value=True)])
@@ -174,10 +209,96 @@ class StartupCalibrationTest(unittest.TestCase):
         self.assertEqual(self.node.phase, 'ready')
         self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
         report = json.loads((Path(self.tmp.name) / 'calibration.json').read_text())
-        self.assertTrue(report['ready'])
+        self.assertFalse(report['ready'])  # Safety acknowledgement has not arrived.
         self.assertTrue(all(report['motion']['checks'].values()))
         self.assertAlmostEqual(report['estimates']['imu_gyro_bias_rad_s'][0], .001)
         self.assertFalse(report['settings_applied'])
+
+    def test_only_matching_safety_ack_enables_ready(self):
+        self.arm()
+        self.refresh(104.7, moving=True)
+        self.node.tick()
+        ack = {'applied': True, 'revision': 'other', 'session': self.node.profile_session}
+        self.node.on_applied(String(data=json.dumps(ack)))
+        self.node.publish()
+        self.assertFalse(self.node.ready_pub.publish.call_args.args[0].data)
+        ack['revision'] = self.node.profile_revision
+        self.node.on_applied(String(data=json.dumps(ack)))
+        self.node.publish()
+        self.assertTrue(self.node.ready_pub.publish.call_args.args[0].data)
+
+    def test_geometry_change_revokes_without_relabelling_trial(self):
+        self.arm()
+        original = self.node.trial_geometry_revision
+        changed = SafetyProfile.build(radius=.12).report()
+        changed['valid'] = True
+        self.node.on_safety_profile(String(data=json.dumps(changed)))
+        self.assertEqual(self.node.phase, 'failed')
+        self.assertEqual(self.node.profile_packet()['geometry_revision'], original)
+        self.assertFalse(self.node.profile_packet()['enabled'])
+
+    def test_source_age_is_not_extended_by_receipt_time(self):
+        self.arm()
+        self.node.observations.add('imu', 100.6, source=50., source_now=50.95)
+        self.now.return_value = 100.7
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'failed')
+
+    def test_safety_reduction_is_not_learned_as_motor_gain(self):
+        self.arm()
+        self.node.on_gate_decision(String(data=json.dumps({
+            'issued_s': self.node.get_clock().now().nanoseconds*1e-9,
+            'requested_v': .008, 'requested_omega': 0., 'safe_v': .007, 'safe_omega': 0.})))
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'failed')
+        self.assertIn('modified', self.node.message)
+
+    def test_wrong_json_shapes_do_not_crash_callbacks(self):
+        for value in ('[]', 'null', '1'):
+            self.node.on_safety_profile(String(data=value))
+            self.node.on_applied(String(data=value))
+            self.node.on_gate_decision(String(data=value))
+            self.assertFalse(self.node.settings_applied())
+            self.assertIsNone(self.node.geometry_profile)
+
+    def test_bilateral_rotation_persists_final_evidence_and_safety_ack(self):
+        from move_control.safety.node import SafetyNode
+        self.node.set_parameters([Parameter('calibration_rotation', value=True)])
+        self.arm()
+        self.refresh(104.7, moving=True)
+        self.node.tick()
+        increment = math.pi/360
+        angles = np.arange(720)*increment
+        reference = .7+.15*np.sin(3*angles)+.1*np.cos(7*angles)
+        yaw = speed = 0.
+        for i in range(1, 1200):
+            now = 104.7+i*.05
+            yaw += speed*.05*.92
+            self.refresh(now)
+            self.node.baseline.add('odom', (0., 0., yaw, 0.), now)
+            self.node.rotation_imu_yaw = yaw
+            self.node.rotation_scan_sample(SimpleNamespace(
+                ranges=np.roll(reference, -round(yaw/increment)), angle_increment=increment), True)
+            self.node.tick()
+            speed = self.node.raw_pub.publish.call_args.args[0].angular.z
+            if self.node.phase in ('ready', 'failed'):
+                break
+        self.assertEqual(self.node.phase, 'ready', self.node.message)
+        self.assertEqual(speed, 0.)
+        saved = json.loads((Path(self.tmp.name)/'calibration.json').read_text())
+        self.assertEqual(len(saved['rotation']['legs']), 8)
+        self.assertEqual(saved['profile']['revision'], self.node.profile_revision)
+        self.assertFalse(self.node.ready_pub.publish.call_args.args[0].data)
+        safety = SafetyNode()
+        try:
+            safety.calibration_applied_pub = Mock()
+            safety.on_calibration_profile(self.node.profile_pub.publish.call_args.args[0])
+            self.node.on_applied(safety.calibration_applied_pub.publish.call_args.args[0])
+            self.node.publish()
+            self.assertTrue(self.node.ready_pub.publish.call_args.args[0].data)
+            self.assertNotEqual(safety.calibration_lease.angular_gains(now), (1., 1.))
+        finally:
+            safety.destroy_node()
 
     def test_hazard_or_stale_data_aborts_trial_with_zero(self):
         self.arm()

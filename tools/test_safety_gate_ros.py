@@ -9,7 +9,8 @@ import rclpy
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan, Range
 from rclpy.parameter import Parameter
-from std_msgs.msg import Bool, Float32MultiArray
+from std_msgs.msg import Bool, Float32MultiArray, String
+from move_control.control.calibration_profile import make_profile
 from move_control.safety.node import SafetyNode
 
 
@@ -162,13 +163,17 @@ class SafetyGateTest(unittest.TestCase):
         self.node.on_drive_scale(Float32MultiArray(data=[1.1, .9]))
         self.assertEqual(self.node.corrected_drive_speed(.008), .008)
         self.node.on_drive_ready(Bool(data=True))
+        self.assertEqual(self.node.corrected_drive_speed(.008), .008)
+        packet = make_profile('test', 1, self.node.now().nanoseconds*1e-9,
+                              True, [1.1, .9], self.node.profile.revision)
+        self.node.on_calibration_profile(String(data=json.dumps(packet)))
         self.assertAlmostEqual(self.node.corrected_drive_speed(.008), .0088)
         self.assertAlmostEqual(self.node.corrected_drive_speed(-.008), -.0072)
         self.assertEqual(self.node.corrected_drive_speed(.05), .05)
         self.node.on_drive_ready(Bool(data=False))
-        self.assertEqual(self.node.corrected_drive_speed(.008), .008)
+        self.assertAlmostEqual(self.node.corrected_drive_speed(.008), .0088)
         self.node.on_drive_ready(Bool(data=True))
-        self.node.drive_scale_time = 0.
+        self.node.calibration_lease.deadline = 0.
         self.assertEqual(self.node.corrected_drive_speed(.008), .008)
         self.node.on_drive_scale(Float32MultiArray(data=[float('nan'), 1.]))
         self.assertEqual(self.node.corrected_drive_speed(.008), .008)

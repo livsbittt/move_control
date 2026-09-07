@@ -19,7 +19,7 @@ class Observations:
         self.future_tolerance = future_tolerance
         self.rows = {}
 
-    def add(self, name, received, *, source=None, source_now=None, valid=True):
+    def add(self, name, received, *, source=None, source_now=None, valid=True, max_age=None):
         row = self.rows.setdefault(name, Observation())
         if not math.isfinite(received) or not valid:
             row.valid, row.reason = False, 'invalid'
@@ -31,7 +31,7 @@ class Observations:
                 row.valid, row.reason = False, 'invalid_stamp'
                 return False
             age = source_now - source
-            if not -self.future_tolerance <= age <= self.max_age:
+            if not -self.future_tolerance <= age <= (self.max_age if max_age is None else max_age):
                 row.valid, row.reason = False, 'source_stale'
                 return False
             if row.source is not None and source <= row.source:
@@ -49,11 +49,11 @@ class Observations:
         row = self.rows.get(name)
         return row.generation if row else 0
 
-    def fresh(self, name, now):
+    def fresh(self, name, now, max_age=None):
         row = self.rows.get(name)
         return bool(row and row.valid and row.received is not None and
                     math.isfinite(now) and 0 <= now-row.received and
-                    now-row.received+row.source_age <= self.max_age)
+                    now-row.received+row.source_age <= (self.max_age if max_age is None else max_age))
 
     def report(self, now):
         return {name: {

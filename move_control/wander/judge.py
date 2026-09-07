@@ -1,5 +1,6 @@
 """Subject: judge. LOOK / CALC / RECON / PAUSE — decide, do not drive far."""
 import math
+import time
 
 from geometry_msgs.msg import Twist
 
@@ -15,27 +16,34 @@ from ..control.recover import (
 class Judge:
 
     def _look_accum(self):
+        observation = getattr(self, '_look_observation', None)
+        key = getattr(self, '_observation_key', None)
+        if (not observation or time.monotonic() > observation[0] or
+                key == getattr(self, '_look_observation_key', None)):
+            return
+        self._look_observation_key = key
+        front, rear, left, right = (v if v is not None else math.inf for v in observation[1])
         self._look_n += 1
-        if self._finite(self.left_range):
-            self._look_L += self.left_range
+        if self._finite(left):
+            self._look_L += left
             self._look_nL += 1
-            self._samp_L.append(self.left_range)
+            self._samp_L.append(left)
             self._samp_L = self._samp_L[-40:]
-        if self._finite(self.right_range):
-            self._look_R += self.right_range
+        if self._finite(right):
+            self._look_R += right
             self._look_nR += 1
-            self._samp_R.append(self.right_range)
+            self._samp_R.append(right)
             self._samp_R = self._samp_R[-40:]
-        if self._finite(self.front_range):
-            self._look_F += self.front_range
+        if self._finite(front):
+            self._look_F += front
             self._look_nF += 1
-            self._samp_F.append(self.front_range)
+            self._samp_F.append(front)
             self._samp_F = self._samp_F[-40:]
         self._look_yaw += self.open_yaw
         self._look_cam += self.cam_side
-        if self._finite(self.rear_range):
+        if self._finite(rear):
             self._samp_rear = getattr(self, '_samp_rear', [])
-            self._samp_rear.append(self.rear_range)
+            self._samp_rear.append(rear)
             self._samp_rear = self._samp_rear[-40:]
 
     def _median(self, xs):

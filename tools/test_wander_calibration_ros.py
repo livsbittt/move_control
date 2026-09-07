@@ -1,4 +1,5 @@
 import time
+import json
 import unittest
 from unittest.mock import Mock
 
@@ -31,6 +32,19 @@ class CalibrationGateTest(unittest.TestCase):
             self.assertFalse(self.node.enabled)
         self.node.on_enable(Bool(data=True))
         self.assertFalse(self.node.enabled)
+
+    def test_look_counts_one_snapshot_once_and_uses_its_ranges(self):
+        packet = {'schema_version': 1, 'session': 'gate-a', 'frame': 'base_link',
+                  'range_origin': 'lidar', 'issued_s': self.node.get_clock().now().nanoseconds*1e-9,
+                  'streams': {'lidar': {'valid': True, 'generation': 1, 'age_s': 0.}},
+                  'ranges': {'front': .3, 'rear': .4, 'left': .5, 'right': .6}}
+        self.node.on_observation(String(data=json.dumps(packet)))
+        before = self.node._look_n
+        self.node.front_range = 9.
+        for _ in range(10):
+            self.node._look_accum()
+        self.assertEqual(self.node._look_n, before+1)
+        self.assertEqual(self.node._samp_F[-1], .3)
 
     def test_lost_ready_heartbeat_stops_active_autonomy(self):
         self.node.on_calibration(Bool(data=True))

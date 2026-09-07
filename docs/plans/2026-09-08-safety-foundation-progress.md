@@ -1,5 +1,7 @@
 # Auto calibration 안전 기반 구현 상태
 
+후속 구현 상태는 `2026-09-08-calibration-application.md`를 참조한다. 아래 내용은 1차 기반 커밋 시점의 기록이다.
+
 작업 브랜치: `codex/rotation-calibration`, 기준 main: `6f6e461`.
 상위 계획: `2026-09-07-auto-calibration-safety-profile.md`.
 
