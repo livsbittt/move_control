@@ -383,7 +383,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         if not lidar_can_rotate(
                 (self.lidar_front, self.lidar_rear, self.lidar_left,
                  self.lidar_right, self.lidar_rear_left, self.lidar_rear_right),
-                self.robot_r, lidar_ok):
+                self.robot_r, lidar_ok, getattr(self, 'lidar_rotation_clearance', None)):
             cmd.angular.z = 0.0
         if abs(cmd.linear.x) >= 0.004:
             self._auto_linear_sign(us, lidar_d, self.last_cmd.linear.x, self.last_cmd.angular.z)

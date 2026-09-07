@@ -2,11 +2,21 @@ import math
 import unittest
 from types import SimpleNamespace
 
-from move_control.control.lidar_guard import lidar_limits, lidar_blocked, lidar_can_rotate
+from move_control.control.lidar_guard import lidar_limits, lidar_blocked, lidar_can_rotate, scan_body_clearance
 from move_control.sensing.lidar import NOSE_YAW, sector_range
 
 
 class LidarGuardTest(unittest.TestCase):
+    def test_rotation_uses_tf_body_distance_instead_of_symmetric_mount_penalty(self):
+        rear=scan_body_clearance([.09],math.pi,.01,-.017,0,0,.05,12)
+        front=scan_body_clearance([.09],0,.01,-.017,0,0,.05,12)
+        self.assertAlmostEqual(rear,.107)
+        self.assertAlmostEqual(front,.073)
+        self.assertTrue(lidar_can_rotate([.2,.09,.2,.2,.2,.2],.076,True,rear))
+        self.assertFalse(lidar_can_rotate([.09,.2,.2,.2,.2,.2],.076,True,front))
+        self.assertFalse(lidar_can_rotate([.2]*6,.076,False,rear))
+        self.assertFalse(lidar_can_rotate([.2,math.inf],.076,True,rear))
+
     def test_legacy_unreachable_threshold_is_raised_above_body_and_blind_zone(self):
         stop, clear = lidar_limits(.018, .028, .076)
         self.assertAlmostEqual(stop, .111)

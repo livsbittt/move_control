@@ -1,5 +1,6 @@
 """Subject: contact sensing. Lidar sectors + US. Publish ranges."""
 import math
+from ..control.lidar_guard import scan_body_clearance
 
 from sensor_msgs.msg import LaserScan, Range
 from std_msgs.msg import Float32
@@ -89,6 +90,13 @@ class Bumper:
         rear = wrap_pi(yaw + math.pi)
         self.lidar_rear_left = sector_range(msg, wrap_pi(rear + side), side_w, **kw)
         self.lidar_rear_right = sector_range(msg, wrap_pi(rear - side), side_w, **kw)
+        self.lidar_rotation_clearance = None
+        if bool(self.get_parameter('lidar_use_tf').value):
+            mount = tf.transform.translation
+            rotation = math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z))
+            self.lidar_rotation_clearance = scan_body_clearance(
+                msg.ranges, msg.angle_min, msg.angle_increment,
+                mount.x, mount.y, rotation, max(lo,msg.range_min), min(12.,msg.range_max))
         cap = float(getattr(self, 'open_max', 0.40) or 0.40)
         self.open_range, self.open_yaw = opening_max(
             msg, yaw, math.radians(70.0), max_r=cap

@@ -26,9 +26,23 @@ def lidar_blocked(raw, filtered, was_blocked, stop, clear, fresh):
     return was_blocked
 
 
-def lidar_can_rotate(ranges, radius, fresh):
+def lidar_can_rotate(ranges, radius, fresh, base_clearance=None):
     # The body sweeps its circumradius when spinning. Unknown flank/rear
     # space is not permission to swing a corner into a wall.
+    if base_clearance is not None:
+        return (fresh and bool(ranges) and
+                all(math.isfinite(value) and value > 0 for value in ranges) and
+                math.isfinite(base_clearance) and base_clearance > use_radius(radius)+.010)
     limit = use_radius(radius) + abs(LIDAR_X) + 0.010
     return fresh and bool(ranges) and all(
         math.isfinite(value) and value > limit for value in ranges)
+
+
+def scan_body_clearance(ranges, angle_min, increment, x, y, yaw, minimum, maximum):
+    """Nearest observed obstacle to base_link, including the mount translation."""
+    nearest = math.inf
+    for i,r in enumerate(ranges):
+        if math.isfinite(r) and minimum < r <= maximum:
+            a = angle_min+i*increment+yaw
+            nearest = min(nearest, math.hypot(x+r*math.cos(a),y+r*math.sin(a)))
+    return nearest
