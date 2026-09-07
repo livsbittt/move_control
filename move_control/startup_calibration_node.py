@@ -272,7 +272,7 @@ class StartupCalibrationNode(Node):
         if self.motion_start is not None:
             current = self.snapshot()
             if not self.baseline.fresh(now) or any(value is None for value in current.values()):
-                return 'Sensor data became stale or invalid'
+                return self.sensor_failure(now)
             forward = motion_evidence(self.motion_start[1], current)['lidar_delta_m']
         round_trip = bool(self.get_parameter('calibration_round_trip').value)
         requested = float(self.get_parameter('calibration_distance_m').value) if round_trip else MOTION_LIMIT
@@ -287,7 +287,7 @@ class StartupCalibrationNode(Node):
             if not clear or now - stamp > .75:
                 return 'Round-trip requires fresh rear clearance for safe return'
         if not self.baseline.fresh(now):
-            return 'Sensor data became stale or invalid'
+            return self.sensor_failure(now)
         for name in ('lidar', 'us'):
             stamp, distance, valid = self.raw_ranges.get(name, (0., 0., False))
             if not valid or not 0 <= now - stamp <= 1. or distance <= 0.:
@@ -297,6 +297,16 @@ class StartupCalibrationNode(Node):
                or self.hazards[key][1] for key in required):
             return 'Safety hazard or missing fresh safety state'
         return None
+
+    def sensor_failure(self, now):
+        failures = []
+        for name, rows in self.baseline.samples.items():
+            if not rows or not rows[-1][2] or not 0 <= now-rows[-1][0] <= (5. if name == 'map' else 1.):
+                detail = 'no sample' if not rows else f'valid={rows[-1][2]}, age={now-rows[-1][0]:.3f}s'
+                if name == 'lidar':
+                    detail += ', wall=' + str(self.wall_tracker.diagnostic)
+                failures.append(name + ': ' + detail)
+        return 'Sensor data became stale or invalid: ' + '; '.join(failures)
 
     def on_command(self, msg):
         command = msg.data.strip().lower()
