@@ -104,5 +104,28 @@ class NoseOnWallTest(unittest.TestCase):
         self.assertFalse(nose_on_wall(math.inf, 0.0, 0.08))
 
 
+class SubjectRolesTest(unittest.TestCase):
+    def test_subject_roles_and_groups(self):
+        # Reorganized taxonomy: each subject answers exactly one question;
+        # by_subject() is the display grouping the LCD/web can consume.
+        from move_control.control.modes import SUBJECT_ROLE, SUBJECTS_ORDER, \
+            by_subject
+        for subj, role in SUBJECT_ROLE.items():
+            self.assertTrue(role)
+        groups = dict(by_subject())
+        self.assertEqual(
+            list(groups),
+            [s for s in SUBJECTS_ORDER if s in groups])
+        self.assertEqual(
+            groups['hazard'], ['ESTOP', 'PICK', 'CLIFF', 'TILT'])
+        self.assertEqual(groups['judge'], ['LOOK', 'CALC', 'RECON', 'PAUSE'])
+        self.assertEqual(groups['contact'], ['WALL', 'WARN'])
+        self.assertEqual(groups['motion'], ['BACK', 'ESCAPE', 'TURN', 'FWD'])
+        self.assertEqual(groups['idle'], ['WAIT', 'STOP'])
+        # Every mode belongs to a subject that has a role text.
+        for m in MODES:
+            self.assertIn(m.subject, SUBJECT_ROLE)
+
+
 if __name__ == '__main__':
     unittest.main()

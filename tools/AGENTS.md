@@ -9,6 +9,7 @@ ASCII simulator of the full explore→coverage pipeline (frontier explore → zi
 | File | Description |
 |---|---|
 | `explore_sim.py` | ASCII sim: `--quiet` mode for CI-style checks; exits non-zero on failure |
+| `synth_rig.py` | Synthetic web-test rig: maze /map + animated /odom + /scan (inf beams included) on plain rclpy — no gz/bridge, survives the dev machine's process reaper. Integrates /cmd_vel and follows /route so the :28161 web can be tested end-to-end (run goal_node beside it) |
 | `__pycache__/` | generated |
 
 ## For AI Agents

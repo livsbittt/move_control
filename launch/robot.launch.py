@@ -65,10 +65,10 @@ def generate_launch_description():
         respawn_delay=1.0,
     )
     web = Node(
-        package='pinky_web',
+        package='move_control',
         executable='web_node',
         output='screen',
-        parameters=[robot, _share('pinky_web', 'config', 'web.yaml')],
+        parameters=[robot, os.path.join(mc, 'web.yaml')],
         respawn=True,
         respawn_delay=1.0,
     )

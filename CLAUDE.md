@@ -37,6 +37,7 @@ ros2 launch move_control robot.launch.py             # full stack: imu+camera→
 # or wander.launch.py (imu+camera+safety+wander only)
 ros2 launch move_control map.launch.py               # slam_toolbox mapping
 ros2 launch move_control goal.launch.py              # goal node: /map -> /goal_point + /route
+ros2 launch move_control web.launch.py               # web_node: map + control dashboard on :28161 (api :28162)
 python3 tools/explore_sim.py --quiet                  # ASCII sim: frontier explore -> zigzag coverage
 ros2 launch move_control calib.launch.py             # calibration node
 ```
@@ -49,9 +50,9 @@ ros2 topic pub --once /goal_distance std_msgs/msg/Float64 "{data: 0.2}"  # contr
 ros2 topic pub --once /goal_rotate   std_msgs/msg/Float64 "{data: 90.0}" # control_node rotate test
 ```
 
-Observe: `/wander/state` (FSM verb), `/robot/mode` (canonical fused label), `/safety/mode` (deprecated alias, same label), `/robot/health`, `/camera/debug`, `/goal_point`, `/route`, `/goal/options`, `/goal_node/state`, `ros2 pkg executables move_control`.
+Observe: `/wander/state` (FSM verb), `/robot/mode` (canonical fused label), `/safety/mode` (deprecated alias, same label), `/robot/health`, `/camera/debug`, `/goal_point`, `/route`, `/goal/options`, `/goal_node/state`, `ros2 pkg executables move_control`. The `web_node` dashboard (:28161, `web.launch.py`) draws the live map + trail and these labels, with goal/wander/estop buttons and gate-safe teleop.
 
-There is no linter configured. LCD/LED/web live in **other packages** (`lcd_control`, `pinky_web`) — not in this repo.
+There is no linter configured. LCD/LED live in **other packages** (`lcd_control`, `pinky_web`) — not in this repo; the web dashboard (`web_node`, :28161) is part of this package, and `robot.launch.py` starts it in place of pinky_web.
 
 ## Architecture
 
@@ -63,12 +64,13 @@ There is no linter configured. LCD/LED/web live in **other packages** (`lcd_cont
 
 Each ROS node is an `rclpy.Node` composed of **subject mixins**, one concern each:
 
-- `wander_node` = `Senses | Judge | Contact | Motion` + FSM in `wander/node.py`. States: `wait forward pause look calc recon wall backup turn escape stop` (one 20 ms `tick()` dispatcher). Behavior: IR cliff → pause → back until IR clears → turn; wall/camera block → `look` (median L/R/F samples) → `calc` (score openings) → locked turn or backup; `escape` for maze corners; stall detection flips the escape sign after 2 failures. Wander subscribes latched `/estop/state` for the **label only** — safety owns the e-stop decision. State and mode are always published together (`_announce`); FSM entries go through shared helpers (`_hold` / `_start_backup` / `_start_escape` / `_start_turn` / `_resume_forward`).
-- `safety_node` = `Bumper | Hazard | Gate | Scale`. Fuses lidar sectors, US, IR, IMU, camera; publishes ~20 `/safety/*` range/bool topics that wander consumes; auto-scales the narrow-maze HUD (`map_range`/`open_max`) from live corridor width L+R.
+- `wander_node` = `Senses | Judge | Contact | Motion` + FSM in `wander/node.py`. States: `wait forward pause look calc recon wall backup turn escape stop` (one 20 ms `tick()` dispatcher). Behavior: IR cliff → pause → back until IR clears → turn; wall/camera block → `look` (median L/R/F samples) → `calc` (score openings) → locked turn or backup; `escape` for maze corners; stall detection flips the escape sign after 2 failures. Narrow mode scales behavior to the measured clearance (`/safety/narrow`): speed caps toward think speed, frontier gate floors at `wall_front`. Wander subscribes latched `/estop/state` for the **label only** — safety owns the e-stop decision. State and mode are always published together (`_announce`); FSM entries go through shared helpers (`_hold` / `_start_backup` / `_start_escape` / `_start_turn` / `_resume_forward`).
+- `safety_node` = `Bumper | Hazard | Gate | Scale`. Fuses lidar sectors, US, IR, IMU, camera; publishes ~20 `/safety/*` range/bool topics that wander consumes; auto-scales the narrow-maze HUD (`map_range`/`open_max`) from live corridor width L+R, and publishes `/safety/narrow` = corridor − 2×robot_radius (negative = open) for wander's narrow-mode scaling.
 - `calib_node` — `/calib/step` FSM: stable floor IR → slow ±x nudge to solve `cmd_linear_sign` + lidar nose yaw → wait for a real IR cliff. Writes `config/auto_calib.yaml` **and** pushes params into the running safety_node via the `SetParameters` service.
 - `camera_detect_node` — OV5647 via picamera2, treated as **BGR8** (libcamera RGB888 is BGR in memory), frame rotated 180°. HSV floor/void/obstacle classification in `camera.py:classify_frame` → `/camera/cliff`, `/camera/blocked`, `/camera/side`.
 - `control_node` — odom-P-controller for straight/rotate goals (published as raw `Float64` on `/goal_distance`, `/goal_rotate`).
 - `goal_node` — map-driven point to go: `/map` + TF map→base_link (odom fallback) → `/goal_point` (PoseStamped), `/route` (Path), `/goal_node/state`; `/goal/cmd` explore|coverage|stop. explore = frontier goal scored by unknown-gain ÷ route length; `/goal/options` MarkerArray shows the ranked alternatives (marker 0 = chosen); no frontier left → coverage = zigzag waypoint queue. Stall watchdog: <`progress_m` approach over `stall_plans` plan calls benches a frontier (`blacklist_plans` memory) and the next-best option becomes the goal, planned wide-first (`escape_clear_m` 2-cell inflation seals 15 cm gaps) until the robot leaves the stuck area. `/goal/eta` (Float32 s) = route length ÷ odom-derived speed. Thin I/O over `planning.GoalBrain` (explore→coverage FSM lives in `planning/goals.py`). Advisory only — never touches `/cmd_vel_raw`; motors stay with wander/control behind the safety gate.
+- `web_node` — browser view + command relay, no decision logic: /map → PNG + /camera/front → JPEG (both gen-counted, stale-while-revalidate on the page), pose/trail from /odom, labels + safety-fused sensor values polled as JSON at 333 ms; posts relay to the documented surfaces (`/goal/cmd` incl. `x,y` manual goals, `/wander/cmd`, `/estop/cmd`); teleop auto-resolves — `/cmd_vel_raw` when safety is alive (gate-passing), `/cmd_vel` only in a sim rig — and the resolved topic is shown in the UI. Map canvas has wheel zoom / drag pan / fit (overlays screen-constant).
 - `watch_node` — graph health: required node set, **exclusive topic ownership** (`/cmd_vel`→safety_node, `/cmd_vel_raw`→wander_node, `/scan`→sllidar_node), foreign-node detection (gazebo bridges). Publishes `/robot/ok|health|interrupt`; `once:=true` exits non-zero on interrupts.
 
 ### Pure-logic modules (no ROS imports — what the tests cover)

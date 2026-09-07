@@ -7,7 +7,13 @@ from std_msgs.msg import Bool, Float32, UInt16MultiArray
 
 from ..sensing.body import turn_clear_m, use_radius
 from ..control.modes import nose_on_wall
-from ..control.recover import have_turn_space, need_space_to_turn, ratio_sign, side_sign
+from ..control.recover import (
+    have_turn_space,
+    narrow_factor,
+    need_space_to_turn,
+    ratio_sign,
+    side_sign,
+)
 
 
 def yaw_from_quat(q) -> float:
@@ -88,6 +94,12 @@ class Senses:
     def on_route_range(self, msg: Float32):
         v = float(msg.data)
         self.route_range = v if v >= 0.0 else float('inf')
+
+    def on_narrow(self, msg: Float32):
+        # /safety/narrow = corridor median − 2×robot_radius; negative sentinel
+        # = no measured corridor → open behavior, same convention as ranges.
+        v = float(msg.data)
+        self.narrow_clear = v if v >= 0.0 else float('inf')
 
     def _route_aligned(self) -> bool:
         lim = math.radians(float(self.get_parameter('align_deg').value))
@@ -183,6 +195,15 @@ class Senses:
         if self._finite(self.right_range):
             sides.append(self.right_range)
         return max(sides) if sides else None
+
+    def _narrow_factor(self) -> float:
+        """1.0 open, →0 as measured clearance →0. Off (narrow_enable false) = 1.0."""
+        if not bool(self.get_parameter('narrow_enable').value):
+            return 1.0
+        return narrow_factor(
+            self.narrow_clear,
+            float(self.get_parameter('narrow_comfort_m').value),
+        )
 
     def _aligned_to_open(self) -> bool:
         if self.blocked or self.cam_block:

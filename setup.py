@@ -14,6 +14,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         (os.path.join('share', package_name, 'config'), glob('config/*.yaml')),
+        (os.path.join('share', package_name, 'web'), glob('web/*.html')),
         (os.path.join('share', package_name, 'launch'), glob('launch/*.py')),
     ],
     install_requires=['setuptools'],
@@ -31,6 +32,7 @@ setup(
             'camera_detect_node = move_control.camera_detect_node:main',
             'watch_node = move_control.watch_node:main',
             'goal_node = move_control.goal_node:main',
+            'web_node = move_control.web_node:main',
         ],
     },
 )

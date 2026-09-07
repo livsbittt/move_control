@@ -31,7 +31,14 @@ class Motion:
         return max(-wmax, min(wmax, 1.4 * yaw))
 
     def _vacuum_follow_wz(self) -> float:
-        """Roomba wall-follow: hold standoff to the nearer side wall."""
+        """Roomba wall-follow: hold standoff to the nearer side wall.
+
+        No narrow clamp on purpose: the P-control steers TOWARD its setpoint,
+        so a setpoint below the measured wall distance would steer INTO the
+        wall. When both walls read below warn_front (any lane under ~22 cm)
+        the controller already pushes away from both sides and self-centers —
+        that is the correct tight-lane behavior.
+        """
         set_d = float(self.get_parameter('warn_front').value)
         wmax = float(self.get_parameter('steer_wmax').value)
         L, R = self.left_range, self.right_range
@@ -180,7 +187,15 @@ class Motion:
         return v_think + t * (v_open - v_think)
 
     def _safe_speed(self, dist, v_think, v_open, d_stop, d_slow) -> float:
-        """Blend by remaining gap, then cap with odom so we can still stop."""
+        """Blend by remaining gap, then cap with odom so we can still stop.
+
+        The open-speed headroom shrinks toward think speed as the measured
+        corridor clearance shrinks (narrow factor) — tight lanes are taken
+        at crawl, not cruise.
+        """
+        f = self._narrow_factor()
+        if f < 1.0:
+            v_open = v_think + (v_open - v_think) * f
         v_blend = self._blend_speed(dist, v_think, v_open, d_stop, d_slow)
         horizon = max(0.05, float(self.get_parameter('think_horizon').value))
         if not math.isfinite(dist) or dist < 0.0:
@@ -277,6 +292,15 @@ class Motion:
         cmd.linear.x = self._fwd_speed()
         cmd.angular.z = self._line_wz()
         self.seen_forward = True
+        f = self._narrow_factor()
+        if f < 1.0:
+            self.get_logger().info(
+                f'narrow clear={self.narrow_clear*100:.0f}cm f={f:.2f} '
+                f'vcap={cmd.linear.x*100:.1f}cm/s '
+                f'F={self.front_range:.2f} L={self.left_range:.2f} '
+                f'R={self.right_range:.2f}',
+                throttle_duration_sec=2.0,
+            )
         self._publish(cmd, 'forward')
 
     def _tick_turn(self):

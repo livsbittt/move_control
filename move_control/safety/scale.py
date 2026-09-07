@@ -32,6 +32,24 @@ def fit_open_max(corridor, scale=1.55, lo=0.20, hi=0.50):
     return max(lo, min(hi, float(corridor) * float(scale)))
 
 
+def narrow_clearance(corridor, radius):
+    """Machine clearance inside the measured corridor: width − 2·radius.
+
+    Corridor narrower than the machine clamps to 0.0: speed caps at think
+    speed and the FSM wall/backup rules take over — never negative.
+    Invalid input → None.
+    """
+    if corridor is None:
+        return None
+    try:
+        w = float(corridor)
+    except (TypeError, ValueError):
+        return None
+    if w != w or w <= 0.0:
+        return None
+    return max(0.0, w - 2.0 * float(radius))
+
+
 class Scale:
     """Mixin. Call _scale_update(left, right) after filtered L/R."""
 
@@ -40,16 +58,20 @@ class Scale:
             self.map_pub.publish(Float32(data=float(self.map_range)))
             self.open_max_pub.publish(Float32(data=float(self.open_max)))
             self.corr_pub.publish(Float32(data=-1.0))
+            self.narrow_pub.publish(Float32(data=-1.0))
             return
         w = corridor_width(left, right)
         if w is None:
             self.map_pub.publish(Float32(data=float(self.map_range)))
             self.open_max_pub.publish(Float32(data=float(self.open_max)))
+            # Fresh sentinel every tick: no measured corridor = open behavior.
+            self.narrow_pub.publish(Float32(data=-1.0))
             return
         self._corr_buf.append(w)
         if len(self._corr_buf) > 40:
             del self._corr_buf[0]
         if len(self._corr_buf) < 8:
+            self.narrow_pub.publish(Float32(data=-1.0))
             return
         s = sorted(self._corr_buf)
         med = s[len(s) // 2]
@@ -58,6 +80,8 @@ class Scale:
         map_r = fit_map(med, lo=lo_m, hi=hi_m)
         open_m = fit_open_max(med, lo=max(0.16, lo_m), hi=min(0.55, hi_m + 0.10))
         self.corr_pub.publish(Float32(data=float(med)))
+        clear = narrow_clearance(med, self.robot_r)
+        self.narrow_pub.publish(Float32(data=float(clear)))
         changed = (
             abs(map_r - self.map_range) >= 0.02
             or abs(open_m - self.open_max) >= 0.03

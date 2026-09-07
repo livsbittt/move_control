@@ -21,6 +21,7 @@ ROS 2 Jazzy ament_python package for the **Pinky Pro** desk-maze robot (~11 cm; 
 | `launch/` | Launch files; bringup order matters (see `launch/AGENTS.md`) |
 | `test/` | Pure-logic unittest suite, no ROS needed (see `test/AGENTS.md`) |
 | `tools/` | Offline ASCII simulator (see `tools/AGENTS.md`) |
+| `web/` | web_node dashboard UI — served from share/move_control/web (see `web/AGENTS.md`) |
 | `map/` | Gazebo world asset for the desk maze |
 
 ## For AI Agents

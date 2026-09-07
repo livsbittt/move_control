@@ -27,7 +27,7 @@ from std_msgs.msg import Float32, String
 from tf2_ros import Buffer as TfBuffer
 from tf2_ros import TransformListener
 
-from .planning import GoalBrain, OccupancyMap
+from .planning import GoalBrain, OccupancyMap, parse_goal_cmd
 
 
 class GoalNode(Node):
@@ -74,6 +74,7 @@ class GoalNode(Node):
         self.tf = TfBuffer()
         self.tf_listener = TransformListener(self.tf, self)
         self.map_obj = None
+        self._n_options = 0  # last published /goal/options marker count
         self.ox = self.oy = 0.0
         self.have_odom = False
         self._hist = []  # (t, x, y) odom ring for the effective speed
@@ -134,9 +135,17 @@ class GoalNode(Node):
         if cmd in ('explore', 'coverage', 'stop'):
             self.mode = cmd
             self.brain.mode = 'explore' if cmd == 'stop' else cmd
+            self.brain.clear_manual()
             self.get_logger().info(f'mode -> {cmd}')
-        else:
-            self.get_logger().warn(f'unknown /goal/cmd {cmd!r} (explore|coverage|stop)')
+            return
+        xy = parse_goal_cmd(cmd)
+        if xy is not None:
+            self.brain.set_manual(*xy)
+            self.get_logger().info(
+                f'manual goal -> ({xy[0]:.2f}, {xy[1]:.2f})')
+            return
+        self.get_logger().warn(
+            f'unknown /goal/cmd {cmd!r} (explore|coverage|stop|x,y)')
 
     def pose(self):
         """Robot pose in the map frame. TF first, odom as fallback."""
@@ -199,7 +208,10 @@ class GoalNode(Node):
         """
         arr = MarkerArray()
         opts = self.brain.last_options if self.mode != 'stop' else []
-        if not opts:
+        # A shrink (stall bench dropping candidates) leaves ids above n-1
+        # drawn forever — wipe first so RViz drops the removed routes
+        # instead of showing bench-dead options.
+        if not opts or len(opts) < self._n_options:
             clear = Marker()
             clear.action = Marker.DELETEALL
             arr.markers.append(clear)
@@ -222,6 +234,7 @@ class GoalNode(Node):
             mk.points = [Point(x=float(px), y=float(py), z=0.01)
                          for px, py in opt['route']['points']]
             arr.markers.append(mk)
+        self._n_options = len(opts)
         self.options_pub.publish(arr)
 
     def _pub_goal(self, x, y, route):

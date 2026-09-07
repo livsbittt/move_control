@@ -65,6 +65,11 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         self.declare_parameter('steer_k', 0.9)
         self.declare_parameter('steer_wmax', 0.05)
         self.declare_parameter('vacuum_follow', True)
+        # Narrow mode: safety measures corridor width (/safety/narrow = width
+        # − 2×robot_radius, negative = open). Tight lanes cap at crawl speed
+        # and the frontier gate floors at the wall band instead of grinding.
+        self.declare_parameter('narrow_enable', True)
+        self.declare_parameter('narrow_comfort_m', 0.10)
         self.declare_parameter('turn_clear_m', 0.08)
         self.declare_parameter('turn_back_max', 2)
         self.declare_parameter('robot_radius', URDF_RADIUS)
@@ -115,6 +120,7 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         self.create_subscription(Float32, '/camera/side', self.on_cam_side, 10)
         self.create_subscription(Bool, '/camera/blocked', self.on_cam_block, 10)
         self.create_subscription(Float32, '/safety/us_range', self.on_us, 10)
+        self.create_subscription(Float32, '/safety/narrow', self.on_narrow, 10)
         self.create_subscription(String, '/wander/cmd', self.on_cmd, 10)
         self.create_subscription(Bool, '/wander/enable', self.on_enable, 10)
         self.create_subscription(
@@ -142,6 +148,7 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         self.cam_side = 0.0
         self.cam_block = False
         self.us_range = float('inf')
+        self.narrow_clear = float('inf')
         self.rear_left = float('inf')
         self.rear_right = float('inf')
         self.turn_sign = 1.0

@@ -7,9 +7,14 @@ from move_control.control.recover import (
     backup_limit_m,
     escape_may_abort,
     escape_may_desense,
+    escape_open,
+    frontier_gate,
+    front_block,
+    guard_speed,
     have_turn_space,
     hazard_action,
     is_stuck_motion,
+    narrow_factor,
     need_space_to_turn,
     ratio_sign,
     side_sign,
@@ -66,6 +71,31 @@ class RecoverTest(unittest.TestCase):
         # window not elapsed
         self.assertFalse(is_stuck_motion(0.0, 0.5, 0.014, stuck_m, stuck_sec))
 
+    def test_narrow_factor_curves_open_to_tight(self):
+        comfort = 0.10
+        # open: no corridor (inf) or clearance at comfort → 1.0
+        self.assertEqual(narrow_factor(float('inf'), comfort), 1.0)
+        self.assertEqual(narrow_factor(comfort, comfort), 1.0)
+        # NaN/None → open: never slow on a broken reading
+        self.assertEqual(narrow_factor(float('nan'), comfort), 1.0)
+        self.assertEqual(narrow_factor(None, comfort), 1.0)
+        self.assertAlmostEqual(narrow_factor(0.048, comfort), 0.48, places=3)
+        # zero/negative clearance: think-speed floor
+        self.assertEqual(narrow_factor(0.0, comfort), 0.0)
+        self.assertEqual(narrow_factor(-0.01, comfort), 0.0)
+
+    def test_narrow_factor_ignores_zero_comfort(self):
+        # comfort ≤ 0 would divide by ~0; treat as "always open".
+        self.assertEqual(narrow_factor(0.048, 0.0), 1.0)
+
+    def test_frontier_gate_lowers_to_wall_band_when_tight(self):
+        # open = 0.16 as today; full narrow floors at the wall_front band
+        # (below it on_wall pauses first, so the floor admits nothing closer).
+        self.assertAlmostEqual(frontier_gate(1.0, 0.08, 0.16), 0.16, places=3)
+        self.assertAlmostEqual(frontier_gate(0.0, 0.08, 0.16), 0.08, places=3)
+        self.assertAlmostEqual(frontier_gate(0.5, 0.08, 0.16), 0.12, places=3)
+        self.assertAlmostEqual(frontier_gate(2.0, 0.08, 0.16), 0.16, places=3)
+
     def test_escape_abort_needs_45deg_and_not_on_wall(self):
         self.assertFalse(escape_may_abort(math.radians(13.0), False, False))
         self.assertTrue(escape_may_abort(ESCAPE_MIN_TURN, False, False))
@@ -121,6 +151,45 @@ class RecoverTest(unittest.TestCase):
         self.assertEqual(ratio_sign(0.40, 0.36), 0.0)
         self.assertEqual(ratio_sign(None, 0.40), 0.0)
         self.assertEqual(ratio_sign(0.40, None), 0.0)
+
+    def test_front_block_below_clear(self):
+        # Wall inside the nose arc → forward blocked.
+        self.assertTrue(front_block(0.07, 0.12))
+        self.assertTrue(front_block(0.119, 0.12))
+
+    def test_front_block_at_or_over_clear(self):
+        # At the threshold and beyond, driving is allowed.
+        self.assertFalse(front_block(0.12, 0.12))
+        self.assertFalse(front_block(0.30, 0.12))
+
+    def test_front_block_broken_reading_is_open(self):
+        # inf = no return (open ahead); NaN = broken reading. Repo
+        # convention (narrow_factor): never block on a broken sensor.
+        self.assertFalse(front_block(float('inf'), 0.12))
+        self.assertFalse(front_block(float('nan'), 0.12))
+
+    def test_escape_open_requires_confirmed_gap(self):
+        # Resume forward only on a confirmed opening at the nose.
+        self.assertTrue(escape_open(0.20, 0.18))
+        self.assertTrue(escape_open(float('inf'), 0.18))
+        self.assertFalse(escape_open(0.12, 0.18))
+        # NaN = no reading: keep spinning, keep waiting, never a blind resume.
+        self.assertFalse(escape_open(float('nan'), 0.18))
+
+    def test_guard_speed_proportional(self):
+        # Full speed well clear of the band, zero at/below the hard limit.
+        self.assertEqual(front_block(0.07, 0.12), True)
+        self.assertEqual(guard_speed(0.30, 0.12, 0.18), 0.18)
+        self.assertEqual(guard_speed(0.20, 0.12, 0.18), 0.18)
+        self.assertEqual(guard_speed(0.12, 0.12, 0.18), 0.0)
+        self.assertEqual(guard_speed(0.07, 0.12, 0.18), 0.0)
+        # Linear crawl inside the band: midpoint of 0.12..0.20 = half speed.
+        self.assertAlmostEqual(guard_speed(0.16, 0.16 - 0.04, 0.18), 0.09)
+        self.assertAlmostEqual(guard_speed(0.14, 0.12, 0.18), 0.045)
+        # inf (open ahead) and NaN (broken reading) never cap — repo
+        # convention: never slow on a broken sensor.
+        self.assertEqual(guard_speed(float('inf'), 0.12, 0.18), 0.18)
+        self.assertEqual(guard_speed(float('nan'), 0.12, 0.18), 0.18)
 
 
 if __name__ == '__main__':

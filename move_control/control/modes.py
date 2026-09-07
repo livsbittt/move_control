@@ -1,10 +1,18 @@
 """Canonical robot mode. One label. Subjects do not overlap.
 
-  hazard   body: ESTOP PICK CLIFF TILT
-  contact  nose vs world: WALL WARN
-  judge    decide: LOOK PAUSE
-  motion   move: BACK ESCAPE TURN FWD
-  idle     WAIT STOP
+Each subject answers ONE question; the /robot/mode label names that
+answer. pick_mode priority, highest first:
+
+  HAZARD   why the motors must be off or recovering (body endangerment)
+           ESTOP PICK CLIFF TILT
+  JUDGE    how the next move is being chosen (decision work, robot still)
+           LOOK CALC RECON PAUSE
+  CONTACT  what the nose touches or is about to touch (world geometry)
+           WALL WARN
+  MOTION   how the robot is moving (drive work)
+           BACK ESCAPE TURN FWD
+  IDLE     why nothing is happening (no job or disabled)
+           WAIT STOP
 """
 from dataclasses import dataclass
 
@@ -16,10 +24,25 @@ LIDAR_NOSE_MAX_M = 8.0
 
 class Subject:
     HAZARD = 'hazard'
-    CONTACT = 'contact'
     JUDGE = 'judge'
+    CONTACT = 'contact'
     MOTION = 'motion'
     IDLE = 'idle'
+
+
+# One question per subject — the class's precise responsibility; the LCD
+# and web render it next to the mode group.
+SUBJECT_ROLE = {
+    Subject.HAZARD: 'why the motors must be off or recovering',
+    Subject.JUDGE: 'how the next move is being chosen',
+    Subject.CONTACT: 'what the nose touches or is about to touch',
+    Subject.MOTION: 'how the robot is moving',
+    Subject.IDLE: 'why nothing is happening',
+}
+
+# Display order of the subject groups.
+SUBJECTS_ORDER = (Subject.HAZARD, Subject.JUDGE, Subject.CONTACT,
+                  Subject.MOTION, Subject.IDLE)
 
 
 @dataclass(frozen=True)
@@ -31,6 +54,8 @@ class Mode:
 
 
 # Order inside a subject is display/priority, not execution order.
+# Section comments mark each subject's precise slice of the taxonomy:
+#   body endangerment | decision | nose-vs-world | drive | no job
 MODES = (
     Mode('ESTOP', Subject.HAZARD, 'e-stop latched', 'motors 0'),
     Mode('PICK', Subject.HAZARD, 'robot lifted (IMU)', 'motors 0'),
@@ -73,6 +98,16 @@ WANDER_TO_MODE = {
 # Wander states that own the label outright; only 'forward' falls through
 # to the contact bands.
 NON_FORWARD_STATES = frozenset(WANDER_TO_MODE) - {'forward'}
+
+
+def by_subject():
+    """Modes grouped by subject in display order: [(subject, [names])]."""
+    out = []
+    for subj in SUBJECTS_ORDER:
+        names = [m.name for m in MODES if m.subject == subj]
+        if names:
+            out.append((subj, names))
+    return out
 
 
 def nose_range(front, us):
@@ -120,7 +155,13 @@ def pick_mode(
     wall_front=0.08,
     warn_front=0.11,
 ) -> str:
-    """One mode. Hazard, then wander action, then contact while still driving."""
+    """One mode label: HAZARD, then JUDGE, then CONTACT bands, then FWD.
+
+    Each subject class answers exactly one question and the chain walks
+    the questions in authority order: the body (hazard) always wins, a
+    non-forward wander state means decision work owns the label, contact
+    bands apply only while actually driving forward.
+    """
     if estop:
         return 'ESTOP'
     if pickup:

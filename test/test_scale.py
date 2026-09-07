@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 import unittest
 
-from move_control.safety.scale import corridor_width, fit_map, fit_open_max
+from move_control.safety.scale import (
+    corridor_width,
+    fit_map,
+    fit_open_max,
+    narrow_clearance,
+)
 
 
 class ScaleTest(unittest.TestCase):
@@ -28,6 +33,17 @@ class ScaleTest(unittest.TestCase):
     def test_clamps(self):
         self.assertEqual(fit_map(0.05, lo=0.18, hi=0.40), 0.18)
         self.assertEqual(fit_map(2.0, lo=0.18, hi=0.40), 0.40)
+
+    def test_narrow_clearance_is_width_minus_machine(self):
+        # 24 cm corridor, 15.2 cm machine → 8.8 cm total clearance
+        self.assertAlmostEqual(narrow_clearance(0.24, 0.076), 0.088, places=3)
+        self.assertAlmostEqual(narrow_clearance(0.30, 0.076), 0.148, places=3)
+        # corridor narrower than the machine clamps to 0.0 (speed floor,
+        # escape is the FSM's job) — never negative.
+        self.assertEqual(narrow_clearance(0.12, 0.076), 0.0)
+        self.assertIsNone(narrow_clearance(None, 0.076))
+        self.assertIsNone(narrow_clearance(-0.24, 0.076))
+        self.assertIsNone(narrow_clearance(float('nan'), 0.076))
 
 
 if __name__ == '__main__':

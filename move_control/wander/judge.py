@@ -3,7 +3,13 @@ import math
 
 from geometry_msgs.msg import Twist
 
-from ..control.recover import hazard_action, ratio_sign, side_sign, wall_first_move
+from ..control.recover import (
+    frontier_gate,
+    hazard_action,
+    ratio_sign,
+    side_sign,
+    wall_first_move,
+)
 
 
 class Judge:
@@ -108,7 +114,18 @@ class Judge:
             and abs(fy) < math.radians(18.0)
             and not self._front_pinched()
             and not self._on_wall()
-            and (F is None or fd >= max(0.16, (F or 0.0) * 1.05))
+            and (
+                F is None
+                or fd
+                >= max(
+                    frontier_gate(
+                        self._narrow_factor(),
+                        float(self.get_parameter('wall_front').value),
+                        0.16,
+                    ),
+                    (F or 0.0) * 1.05,
+                )
+            )
         ):
             return 'forward', 1.0 if fy >= 0.0 else sign, 'frontier ahead'
         if self._aligned_to_open() and not self._front_pinched():
@@ -120,6 +137,17 @@ class Judge:
                 return 'look', sign, 'L~R unsure'
         if self._need_space_to_turn(sign):
             return 'backup', sign, 'space for turn'
+        gate = frontier_gate(
+            self._narrow_factor(),
+            float(self.get_parameter('wall_front').value), 0.16,
+        )
+        nan = float('nan')
+        self.get_logger().info(
+            f'calc fallthrough F={(F or nan):.2f} L={(L or nan):.2f} '
+            f'R={(R or nan):.2f} fd={fd:.2f} fy={math.degrees(fy):.0f}deg '
+            f'gate={gate:.2f} route={rl:.2f}@{math.degrees(ry):.0f}deg',
+            throttle_duration_sec=2.0,
+        )
         return 'escape', sign, 'turn to opening'
 
     def _commit_plan(self, kind, sign, why):

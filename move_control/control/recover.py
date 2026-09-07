@@ -1,4 +1,5 @@
-"""Stuck / escape / backup / hazard response and turn-sign rules. Pure — no ROS."""
+"""Stuck / escape / backup / hazard response, narrow-squeeze policy, turn
+signs. Pure — no ROS."""
 import math
 
 ESCAPE_MIN_TURN = math.radians(45.0)
@@ -55,6 +56,91 @@ def is_stuck_motion(moved, dt, v_cmd, stuck_m, stuck_sec):
     if expected <= float(stuck_m):
         return False
     return True
+
+
+def narrow_factor(clear, comfort):
+    """Open-speed headroom left at the measured clearance: 1.0 open, → 0 tight.
+
+    clear ≥ comfort (wander param narrow_comfort_m) → 1.0: open-space behavior.
+    None/NaN → 1.0 (open, never slow on a broken reading).
+    """
+    c = float(comfort)
+    if c <= 1e-6:
+        return 1.0
+    try:
+        f = float(clear) / c
+    except (TypeError, ValueError):
+        return 1.0
+    if f != f:
+        return 1.0
+    return max(0.0, min(1.0, f))
+
+
+def frontier_gate(factor, wall, open_gate):
+    """Forward gate for a last-seen frontier, on the narrow factor.
+
+    Open space wants 0.16 m of visible run; a tight corridor needs only the
+    wall_front band (0.08) — anything below pauses as on_wall anyway, so the
+    floor never admits a closer-than-wall drive. Factor is clamped.
+    """
+    f = max(0.0, min(1.0, float(factor)))
+    return float(wall) + (float(open_gate) - float(wall)) * f
+
+
+def front_block(front, clear):
+    """Forward guard: block driving while the nose arc reads < clear.
+
+    The gz rig wedge ran full command into a wall corner with the scan
+    already showing 7 cm — the driver had the lidar and never used it.
+    inf (no return = open ahead) and NaN (broken reading) are open, same
+    never-block-on-broken-sensor convention as narrow_factor.
+    """
+    try:
+        f = float(front)
+    except (TypeError, ValueError):
+        return False
+    if f != f or f == float('inf'):
+        return False
+    if f < 0.0:
+        return False
+    return f < float(clear)
+
+
+def escape_open(front, clear):
+    """Escape resume gate: forward again only on a confirmed nose gap.
+
+    The rig's blind flee re-wedged corners; the replacement spins until the
+    nose arc actually shows clear space. inf = open ahead = confirmed. NaN
+    is no confirmation — keep spinning.
+    """
+    try:
+        f = float(front)
+    except (TypeError, ValueError):
+        return False
+    if f != f:
+        return False
+    return f >= float(clear)
+
+
+def guard_speed(front, clear, v, hyst=0.08):
+    """Proportional forward cap on the nose-arc clearance.
+
+    Full v at clear+hyst and beyond, hard 0 at/below clear, linear crawl
+    between. The binary block fought pure-pursuit at full command — measured
+    on the gz rig: mean command 0.157 m/s against 3.7 cm/s actual, a standing
+    wall-skim grind; scaling speed by clearance lets the guard steering win
+    before contact. inf/NaN = open/broken reading → v (never cap on a broken
+    sensor, same convention as narrow_factor).
+    """
+    try:
+        f = float(front)
+    except (TypeError, ValueError):
+        return float(v)
+    if f != f or f < 0.0 or f == float('inf'):
+        return float(v)
+    if f <= float(clear):
+        return 0.0
+    return float(v) * min(1.0, (f - float(clear)) / float(hyst))
 
 
 def escape_may_abort(

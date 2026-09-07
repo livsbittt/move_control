@@ -47,7 +47,7 @@ zip 위치 (핑키):
 
 확인:
   ros2 pkg executables move_control
-  → calib_node  camera_detect_node  control_node  goal_node  safety_node  watch_node  wander_node
+  → calib_node  camera_detect_node  control_node  goal_node  safety_node  watch_node  wander_node  web_node
   ros2 pkg executables lcd_control
   → lcd_node
   ros2 pkg executables pinky_web
@@ -57,6 +57,27 @@ zip 위치 (핑키):
   ros2 launch pinky_web web.launch.py
   브라우저  http://<핑키IP>:8090
   DB        /home/pinky/dev_ws/wj/pinky.db  (journal_mode=WAL)
+
+
+웹 대시보드 (move_control web_node — 지도+제어 한 페이지):
+  ros2 launch move_control web.launch.py        # 또는: ros2 run move_control web_node
+  브라우저  http://<핑키IP>:28161
+  백엔드 API  :28162 (/state.json · /map.png · 버튼/teleop POST)
+  지도: /map → PNG, 궤적(trail) + 로봇/목표/경로/frontier 대안 오버레이
+        휠 줌(1–8x, 커서 기준) · 드래그 팬 · fit 버튼/f 키
+        카메라: /camera/front → JPEG 스트림 + HSV 장애물/절벽 판정 칩
+  제어 상태: /robot/mode · /wander/state · estop 래치 · /goal_node/state
+            · /goal/eta · /robot/ok·health · /cmd_vel
+  버튼: goal explore|coverage|stop → /goal/cmd
+        지도 클릭 = x,y 핀 → "send robot here" → /goal/cmd "x,y"
+          (goal_node 가 manual goal 로 래치; 도착/불가/TTL/모드변경 시 해제)
+        wander start|stop → /wander/cmd
+        estop STOP|release → /estop/cmd
+        teleop (패드 누르기 or 키보드 u i o / j k l / m , . — k 정지) → auto:
+          safety 살아있으면 /cmd_vel_raw (safety 게이트 통과),
+          gz 리그( safety 없음, /cmd_vel 구독 있음)는 /cmd_vel 로 직행.
+          지도 클릭 = 그 x, y 핀 표시.
+  메모: 옛 tools/dashboard.py 는 web_node(:28161) 로 통합·제거됨. robot.launch 도 pinky_web 대신 web_node 를 띄움.
 
 
 1) 자동 캘리브 (wander 끄고, 책상 가운데)
@@ -131,6 +152,7 @@ zip 위치 (핑키):
   맵 만들기 (wander 켠 채로, 이 로봇 SLAM):
       ros2 launch move_control map.launch.py
       웹 http://<핑키IP>:8090  의 Map 그림이 커져야 함
+      (실시간 지도+제어 뷰: ros2 launch move_control web.launch.py → :28161)
       저장:
         mkdir -p /home/pinky/dev_ws/wj/maps
         ros2 run nav2_map_server map_saver_cli -f /home/pinky/dev_ws/wj/maps/pinky

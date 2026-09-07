@@ -107,6 +107,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.map_pub = self.create_publisher(Float32, '/safety/map_range', 10)
         self.open_max_pub = self.create_publisher(Float32, '/safety/open_max', 10)
         self.corr_pub = self.create_publisher(Float32, '/safety/corridor', 10)
+        self.narrow_pub = self.create_publisher(Float32, '/safety/narrow', 10)
         self.frontier_yaw_pub = self.create_publisher(Float32, '/safety/frontier_yaw', 10)
         self.frontier_pub = self.create_publisher(Float32, '/safety/frontier_range', 10)
         self.route_yaw_pub = self.create_publisher(Float32, '/safety/route_yaw', 10)

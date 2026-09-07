@@ -47,3 +47,10 @@ wander_node:
     steer_wmax: 0.05
     # Roomba-style: hold warn_front on the nearer wall while driving.
     vacuum_follow: true
+    # Narrow mode: /safety/narrow = measured corridor − 2×robot_radius
+    # (negative = open). Tight lanes are taken at crawl (factor =
+    # clearance / narrow_comfort_m) and the frontier gate floors at wall_front.
+    # Vacuum follow needs no clamp: below the setpoint both walls push the
+    # controller to self-center, which is already the right tight-lane move.
+    narrow_enable: true
+    narrow_comfort_m: 0.10
