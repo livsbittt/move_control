@@ -9,6 +9,7 @@ from tf2_ros import Buffer, TransformException, TransformListener
 
 from ..control.path_follow import ProgressGuard, follow_path
 from ..control.recover import hazard_action
+from ..control.route_recovery import RouteRecovery
 
 
 class Navigator:
@@ -21,6 +22,7 @@ class Navigator:
         self.navigation_received = None
         self.navigation_stamp = None
         self.navigation_progress = ProgressGuard()
+        self.navigation_recovery = RouteRecovery()
         self.navigation_tf = Buffer()
         self.navigation_listener = TransformListener(self.navigation_tf, self)
         self.navigation_goal_pub = self.create_publisher(String, '/goal/cmd', 10)
@@ -34,6 +36,7 @@ class Navigator:
         self.navigation_received = None
         self.navigation_stamp = None
         self.navigation_progress.reset()
+        self.navigation_recovery.reset()
 
     def _start_navigation(self, mode):
         self._cancel_navigation()
@@ -87,6 +90,22 @@ class Navigator:
             reason = 'turn_away' if w else 'front_blocked'
         if self.navigation_progress.check(now, pose, bool(v or w)):
             v, w, reason = 0.0, 0.0, 'stalled_restart_required'
+        recoverable = (not hazard and not self.estop and not self.pickup and self._ir_ready()
+                       and 0 <= tf_age <= float(self.get_parameter('route_tf_timeout').value))
+        recovery = self.navigation_recovery.update(
+            now, pose, reason, self.navigation_route[-1] if self.navigation_route else None,
+            self.navigation_stamp, recoverable)
+        if recovery == 'replan':
+            v = w = 0.0
+            self.navigation_goal_pub.publish(String(data='replan'))
+            reason = 'replanning_' + str(self.navigation_recovery.attempts)
+        elif recovery in ('waiting', 'exhausted'):
+            v = w = 0.0
+            reason = 'recovery_' + recovery
+        elif recovery == 'alternative':
+            self.navigation_progress.reset()
+            v = w = 0.0  # resume the accepted alternative on the next control tick
+            reason = 'alternative_accepted'
         self.state = 'forward' if v else ('turn' if w else 'wait')
         if v > 0:
             self.seen_forward = True

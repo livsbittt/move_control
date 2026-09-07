@@ -604,6 +604,12 @@ function renderNavigation(s) {
     !s.pose_available ? '지도 내 로봇 위치 확인 대기' : '';
   $('navexplore').disabled = !!reason || !calibrationReady(s);
   $('navcoverage').disabled = !!reason || !calibrationReady(s);
+  const recovery = s && s.wander || '';
+  if (!reason && calibrationReady(s) && /replanning_|recovery_|alternative_accepted/.test(recovery)) {
+    setTxt('navready', recovery.includes('exhausted') ? '정체 · 대체 경로 3회 시도 후 정지. 주변을 확인한 뒤 모드를 다시 시작하세요' :
+      recovery.includes('alternative_accepted') ? '대체 경로 확인 · 주행 재개' : '정체 감지 · 실패한 목표를 제외하고 다른 경로를 찾는 중');
+    return;
+  }
   if (!reason && calibrationReady(s) && planningBlocked) {
     setTxt('navready', '경로 대기 · 현재 위치가 벽의 안전 여유 영역에 걸립니다');
     return;

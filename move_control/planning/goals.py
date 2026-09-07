@@ -92,10 +92,18 @@ class GoalBrain:
         self._n = 0
         self._coverage_deferred = {}
         self._map_lattice = None
+        self._failed_goals = []
+
+    def avoid_goal(self, goal):
+        if goal is not None and all(math.isfinite(v) for v in goal):
+            self._failed_goals.append((tuple(goal), self._plan_n+self.blacklist_plans))
+        self.clear_manual()
+        self._target = self._probe = None
 
     def reset(self):
         """Clear map-session memory without changing configured geometry."""
         self.covered.clear()
+        self._failed_goals.clear()
         self._coverage_deferred.clear()
         self._blacklist.clear()
         self.last_options = []
@@ -135,6 +143,9 @@ class GoalBrain:
             return g, ''
         self._n += 1
         self._best = min(self._best, dist)
+        if self._first-self._best >= self.progress_m:
+            self._first = self._best = dist
+            self._n = 0  # start a new window; early progress cannot excuse a later stall
         if (self._n < self.stall_plans or dist <= self.stall_min_dist
                 or self._first - self._best >= self.progress_m):
             return g, ''
@@ -296,6 +307,12 @@ class GoalBrain:
         self._coverage_deferred = {c: expiry for c, expiry in self._coverage_deferred.items()
                                    if expiry > self._plan_n}
         self._gc_blacklist()
+        self._failed_goals = [(xy,expiry) for xy,expiry in self._failed_goals if expiry>self._plan_n]
+        failed = {cell for cell in m.free_cells() if any(
+            math.dist(m.grid_to_world(*cell),xy)<=.10 for xy,_ in self._failed_goals)}
+        for cell in failed:
+            self._coverage_deferred[cell] = self._plan_n+1
+            self._blacklist[cell] = max(self._blacklist.get(cell,0),self._plan_n+1)
         # External (dashboard) goal wins while valid; _manual_plan clears it
         # on expiry/unreachable and returns None -> fall through normally.
         if self._manual is not None:
@@ -317,7 +334,7 @@ class GoalBrain:
             g = pick_goal(m, pose, min_size=self.min_size,
                           clear_m=clear_first,
                           retry_clear_m=clear_retry,
-                          exclude=set(self._blacklist))
+                          exclude=set(self._blacklist) | failed)
             if g is not None:
                 g, prefix = self._watchdog(m, pose, g)
                 if g is None:
