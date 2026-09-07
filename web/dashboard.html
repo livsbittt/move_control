@@ -1232,9 +1232,10 @@ async function poll() {
   $('live').classList.add('live');
   S.lastOk = Date.now();
   S.data = s;
-  if (s.map_control && S.mapEpoch !== s.map_control.epoch) {
+  if (S.runtimeId !== s.runtime_id || (s.map_control && S.mapEpoch !== s.map_control.epoch)) {
     if (S.mapEpoch !== null) S.view.aligned = false;
-    S.mapEpoch = s.map_control.epoch;
+    S.runtimeId = s.runtime_id;
+    S.mapEpoch = s.map_control ? s.map_control.epoch : null;
     S.img = {gen: -1, im: null, t: 0};
     S.pin = null;
     S.view.ok = false;
@@ -1319,14 +1320,15 @@ function fit() {
 new ResizeObserver(fit).observe(wrap);
 function loadMap(gen) {
   const epoch = S.mapEpoch;
+  const session = S.runtimeId;
   const meta = S.data.map && S.data.map.slice();
   S.img.t = Date.now();
   const image = new Image();
   image.onload = () => {
-    if (epoch !== S.mapEpoch || !S.data.map || S.data.map[5] !== gen) return;
+    if (session !== S.runtimeId || epoch !== S.mapEpoch || !S.data.map || S.data.map[5] !== gen) return;
     S.img.gen = gen; S.img.im = image; S.img.meta = meta; draw(S.data);
   };
-  image.src = API + '/map.png?g=' + gen;
+  image.src = API + '/map.png?g=' + gen + (session ? '&session=' + session : '');
 }
 setInterval(poll, CFG.poll_ms);
 poll();

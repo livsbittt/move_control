@@ -33,6 +33,7 @@ import os
 import threading
 import time
 import http.server
+import uuid
 
 import rclpy
 from rclpy.node import Node
@@ -80,6 +81,7 @@ K_CAM = 'cam'
 K_LIMITS = 'limits'
 
 STATE = {}
+RUNTIME_ID = uuid.uuid4().hex
 LOCK = threading.Lock()
 MAP_PNG = {'bytes': None, 'gen': 0}
 CAM_JPG = {'bytes': None, 'gen': 0, 't': 0.0}
@@ -710,7 +712,7 @@ def _handler(node, html, api):
                 with LOCK:
                     if time.monotonic() - STATE.get('calibration_received', -1e9) > 3.0:
                         STATE['calibration_ready'] = False
-                    body = json.dumps(STATE).encode()
+                    body = json.dumps({**STATE, 'runtime_id': RUNTIME_ID}).encode()
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
                 self.send_header('Cache-Control', 'no-store')
@@ -718,12 +720,14 @@ def _handler(node, html, api):
                 self.wfile.write(body)
             elif path == '/map.png':
                 from urllib.parse import parse_qs, urlsplit
-                requested = parse_qs(urlsplit(self.path).query).get('g', [None])[0]
+                query = parse_qs(urlsplit(self.path).query)
+                requested = query.get('g', [None])[0]
+                session = query.get('session', [RUNTIME_ID])[0]
                 with LOCK:
                     png = MAP_PNG['bytes']
                     generation = MAP_PNG['gen']
                 # A newer image must never masquerade as the requested map.
-                if requested is not None and requested != str(generation):
+                if session != RUNTIME_ID or (requested is not None and requested != str(generation)):
                     self.send_response(409)
                     self.send_header('Cache-Control', 'no-store')
                     self.end_headers()

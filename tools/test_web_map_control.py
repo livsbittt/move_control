@@ -46,6 +46,12 @@ class MapControlTest(unittest.TestCase):
                 body = response.read()
                 self.assertEqual(body, b'old' if status == 200 else b'')
             client.close()
+            client = http.client.HTTPConnection(*server.server_address)
+            client.request('GET', '/map.png?g=10&session=previous-process')
+            response = client.getresponse()
+            self.assertEqual(response.status, 409)
+            response.read()
+            client.close()
         finally:
             server.shutdown()
             server.server_close()
