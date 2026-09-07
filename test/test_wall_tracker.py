@@ -2,7 +2,7 @@ import math
 import unittest
 from types import SimpleNamespace
 
-from move_control.sensing.wall_tracker import WallTracker
+from move_control.sensing.wall_tracker import WallTracker, _fit
 
 
 def corner(travel=0., outer=False, dropout=False, slope=1.):
@@ -41,6 +41,31 @@ def world_wall(pose, mount=(-.017, 0.)):
 
 
 class WallTrackerTest(unittest.TestCase):
+    def test_captured_frame5_single_boundary_residual_is_excluded(self):
+        # Compact replay of the measured frame5 residual pattern (mm):
+        # 36 supporting returns and one 4.46mm endpoint, not a wall cluster.
+        errors = [-1.738,-.121,1.424,2.897,2.324,.684,-.047,1.126,.243,-.716,
+                  .235,.120,-.069,.664,.327,-.083,-.566,-.125,.245,-.457,
+                  -.232,-.080,0.,-.992,-1.057,-.194,-.403,-.684,-1.038,
+                  .533,.034,.459,-.185,1.090,2.289,1.424,4.460]
+        points = []
+        for i, error in enumerate(errors):
+            angle = math.radians(-12+i*.5)
+            y = .947*math.tan(angle)
+            points.append((angle, y, .947+.01217*y+error/1000))
+        fit = _fit(points)
+        self.assertIsNotNone(fit)
+        self.assertEqual(fit['excluded_rays'], 1)
+        self.assertEqual(len(fit['_raw_points']), 37)
+        self.assertEqual(len(fit['_points']), 36)
+        self.assertLessEqual(fit['residual_m'], .003)
+
+    def test_cluster_or_large_outlier_cannot_be_trimmed_into_wall(self):
+        points = [(math.radians(-10+i*.5), (i-20)*.008, .4) for i in range(41)]
+        for indices, offset in [([19,20], .008), ([20], .012)]:
+            changed = [(a,y,x+offset if i in indices else x) for i,(a,y,x) in enumerate(points)]
+            self.assertIsNone(_fit(changed))
+
     def test_inner_and_outer_corner_round_trip_tracks_same_wall(self):
         for outer in (False, True):
             tracker = WallTracker()

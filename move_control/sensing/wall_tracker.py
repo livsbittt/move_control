@@ -5,11 +5,11 @@ from statistics import median
 from .lidar import robot_yaw
 
 
-def _fit(points):
+def _fit(points, allow_exclusion=True):
     if len(points) < 6 or points[-1][0]-points[0][0] < math.radians(5):
         return None
-    # Wide-baseline pair slopes resist isolated noise; every original return
-    # must subsequently satisfy the physical 3mm wall-normal residual.
+    # Wide-baseline pair slopes resist isolated noise. Accepted support must
+    # satisfy 3mm; sparse isolated/boundary returns may be excluded once only.
     quarter = max(1, len(points)//4)
     slopes = [(q[2]-p[2])/(q[1]-p[1]) for p in points[:quarter]
               for q in points[-quarter:] if abs(q[1]-p[1]) > 1e-6]
@@ -17,12 +17,29 @@ def _fit(points):
         return None
     a = median(slopes)
     b = median(x-a*y for _, y, x in points)
-    residual = max(abs(x-a*y-b)/math.hypot(1., a) for _, y, x in points)
-    if abs(a) > 2.5 or not .05 < b < 8. or residual > .003:
+    errors = [abs(x-a*y-b)/math.hypot(1., a) for _, y, x in points]
+    residual = max(errors)
+    if abs(a) > 2.5 or not .05 < b < 8.:
         return None
+    if residual > .003:
+        excluded = [i for i, error in enumerate(errors) if error > .003]
+        if (not allow_exclusion or len(excluded) > .1*len(points) or residual > .010
+                or any(j == i+1 for i, j in zip(excluded, excluded[1:]))):
+            return None
+        fit = _fit([p for i, p in enumerate(points) if i not in excluded], False)
+        if fit is None:
+            return None
+        raw_residual = max(abs(x-fit['slope']*y-fit['intercept'])/math.hypot(1., fit['slope'])
+                           for _, y, x in points)
+        if raw_residual > .010:
+            return None
+        fit.update(excluded_rays=len(excluded), raw_residual_m=raw_residual,
+                   _raw_points=tuple(points))
+        return fit
     return {'slope': a, 'intercept': b, 'lo': points[0][0],
             'hi': points[-1][0], 'rays': len(points), 'residual_m': residual,
-            '_points': tuple(points)}
+            'excluded_rays': 0, 'raw_residual_m': residual, 'outlier_cap_m': .010,
+            '_points': tuple(points), '_raw_points': tuple(points)}
 
 
 def _segments(scan, nose, compensation=None):
@@ -132,14 +149,14 @@ class WallTracker:
                         and abs(wall['intercept']-self.anchor['intercept']) <= .06):
                     matches.append(wall)
         if len(matches) > 1:
-            points = sorted(point for wall in matches for point in wall['_points'])
+            points = sorted(point for wall in matches for point in wall['_raw_points'])
             merged = _fit(points)
             # A tilted bridge can fit two nearby parallel surfaces despite
             # neither fragment supporting the other. Require mutual support,
             # as well as the combined fit, before treating them as one wall.
             equivalent = merged is not None and all(
                 abs(x-wall['slope']*y-wall['intercept'])/math.hypot(1., wall['slope']) <= .003
-                for wall in matches for _, y, x in points)
+                for wall in matches for _, y, x in merged['_points'])
             if equivalent and (abs(merged['slope']-self.anchor['slope']) <= .12
                     and abs(merged['intercept']-self.wall['intercept']) <= .012
                     and abs(merged['intercept']-self.anchor['intercept']) <= .06):
