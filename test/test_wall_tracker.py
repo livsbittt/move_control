@@ -116,3 +116,26 @@ class WallTrackerTest(unittest.TestCase):
         self.assertTrue(math.isinf(tracker.update(world_wall((0., 0., 0.)), math.pi)))
         self.assertTrue(math.isinf(tracker.update(world_wall((0., .02, 0.)), math.pi,
                           pose=(0., .02, 0.), mount=(-.017, 0.))))
+
+    def test_coplanar_fragments_after_dropout_remain_same_locked_wall(self):
+        tracker = WallTracker()
+        origin = collect(tracker, world_wall((0., 0., 0.)))
+        scan = world_wall((.01, 0., 0.))
+        scan.ranges[0] = math.inf
+        value = tracker.update(scan, math.pi, locked=True)
+        self.assertAlmostEqual(origin-value, .01, delta=.001)
+        self.assertEqual(tracker.diagnostic['fragments'], 2)
+        self.assertNotIn('_points', tracker.diagnostic)
+
+    def test_nearby_parallel_fragments_cannot_be_merged_as_one_wall(self):
+        tracker = WallTracker()
+        collect(tracker, world_wall((0., 0., 0.)))
+        scan = world_wall((0., 0., 0.))
+        scan.ranges[0] = math.inf
+        # Both fragments match the 12mm association window, but one is a
+        # distinct wall displaced 8mm along x, not a dropout in one plane.
+        other = world_wall((-.008, 0., 0.))
+        for i in range(1, 71):
+            scan.ranges[i] = other.ranges[i]
+        self.assertTrue(math.isinf(tracker.update(scan, math.pi, locked=True)))
+        self.assertEqual(tracker.diagnostic['matches'], 2)

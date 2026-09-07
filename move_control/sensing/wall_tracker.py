@@ -21,7 +21,8 @@ def _fit(points):
     if abs(a) > 2.5 or not .05 < b < 8. or residual > .003:
         return None
     return {'slope': a, 'intercept': b, 'lo': points[0][0],
-            'hi': points[-1][0], 'rays': len(points), 'residual_m': residual}
+            'hi': points[-1][0], 'rays': len(points), 'residual_m': residual,
+            '_points': tuple(points)}
 
 
 def _segments(scan, nose, compensation=None):
@@ -130,6 +131,20 @@ class WallTracker:
                         and abs(wall['intercept']-self.wall['intercept']) <= .012
                         and abs(wall['intercept']-self.anchor['intercept']) <= .06):
                     matches.append(wall)
+        if len(matches) > 1:
+            points = sorted(point for wall in matches for point in wall['_points'])
+            merged = _fit(points)
+            # A tilted bridge can fit two nearby parallel surfaces despite
+            # neither fragment supporting the other. Require mutual support,
+            # as well as the combined fit, before treating them as one wall.
+            equivalent = merged is not None and all(
+                abs(x-wall['slope']*y-wall['intercept'])/math.hypot(1., wall['slope']) <= .003
+                for wall in matches for _, y, x in points)
+            if equivalent and (abs(merged['slope']-self.anchor['slope']) <= .12
+                    and abs(merged['intercept']-self.wall['intercept']) <= .012
+                    and abs(merged['intercept']-self.anchor['intercept']) <= .06):
+                merged['fragments'] = len(matches)
+                matches = [merged]
         if len(matches) == 1:
             self.wall = matches[0]
             self.stable += 1
@@ -147,7 +162,8 @@ class WallTracker:
         if self.wall is None or self.stable < 3:
             self.diagnostic = {'status': 'collecting', 'reason': 'Waiting for three associated scans'}
             return math.inf
-        self.diagnostic = {'status': 'ok', 'locked': self.locked, **self.wall,
+        public_wall = {key: value for key, value in self.wall.items() if not key.startswith('_')}
+        self.diagnostic = {'status': 'ok', 'locked': self.locked, **public_wall,
                            'compensation': None if compensation is None else {
                                'yaw_rad': compensation[0], 'lateral_m': compensation[1],
                                'mount_m': list(compensation[2]), 'forward_odom_used': False}}
