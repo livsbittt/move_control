@@ -92,6 +92,7 @@ class StartupCalibrationTest(unittest.TestCase):
         self.node.phase = 'collecting'
         self.node.on_imu(msg)
         self.assertIsNone(self.node.baseline.latest('imu'))
+
         self.node.phase = 'ready'
         msg.orientation.x = math.sin(math.radians(30)/2)
         msg.orientation.w = math.cos(math.radians(30)/2)
@@ -101,6 +102,18 @@ class StartupCalibrationTest(unittest.TestCase):
         msg.angular_velocity.z = float('nan')
         self.node.on_imu(msg)
         self.assertIsNone(self.node.baseline.latest('imu'))
+
+    def test_environment_is_measured_while_estop_still_blocks_motion(self):
+        from move_control.planning import OccupancyMap
+        for i in range(21):
+            self.refresh(96.+i*.2)
+        self.node.environment_map = OccupancyMap(20,20,.02,fill=0)
+        self.node.environment_samples = [(100.,(.14,.13,None,None))]*30
+        self.node.estop = True
+        self.node.tick()
+        self.assertEqual(self.node.phase,'waiting_motion')
+        self.assertIsNotNone(self.node.report()['navigation_profile'])
+        self.assertFalse(self.node.report()['ready'])
 
     def test_boot_and_estopped_request_never_publish_positive_velocity(self):
         self.assertEqual(self.node.phase, 'collecting')

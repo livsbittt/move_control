@@ -281,6 +281,10 @@ class StartupCalibrationNode(Node):
             self.phase = 'waiting_motion' if valid else 'collecting'
             if valid:
                 self.baseline_values = self.baseline.statistics(now)
+                if self.environment_map is not None:
+                    self.navigation_profile = environment_profile(
+                        float(self.get_parameter('robot_radius').value), self.environment_map.res,
+                        [row for stamp,row in self.environment_samples if now-stamp <= 5.])
             self.message = 'Keep stationary; waiting for healthy stable sensors'
             if valid:
                 if self.get_parameter('calibration_auto_motion').value:
