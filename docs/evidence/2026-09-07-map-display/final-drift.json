@@ -1,0 +1,23 @@
+{
+  "captured_unix_s": 1788789141.1228175,
+  "rotation_present": false,
+  "continuous_cell_math": false,
+  "served_html_sha256": "3fb3859a86e19a5f571af45854846659b53887273ffc5edd1328a4548412855b",
+  "web_processes": [
+    {
+      "pid": "57886",
+      "cwd": "/home/pinky/pinky-calibration-1c40085",
+      "command": [
+        "/usr/bin/python3",
+        "/home/pinky/pinky-calibration-1c40085/install/move_control/lib/move_control/web_node",
+        "--ros-args",
+        "--params-file",
+        "/home/pinky/pinky-calibration-1c40085/install/move_control/share/move_control/config/robot.yaml",
+        "--params-file",
+        "/home/pinky/pinky-calibration-1c40085/install/move_control/share/move_control/config/web.yaml",
+        "--params-file",
+        "/tmp/launch_params_u4_rfyec"
+      ]
+    }
+  ]
+}
