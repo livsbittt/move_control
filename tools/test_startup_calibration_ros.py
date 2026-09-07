@@ -10,7 +10,7 @@ import rclpy
 from rclpy.parameter import Parameter
 from std_msgs.msg import String
 from geometry_msgs.msg import TransformStamped
-from sensor_msgs.msg import LaserScan
+from sensor_msgs.msg import LaserScan, Imu
 
 from move_control.startup_calibration_node import StartupCalibrationNode
 from move_control.control.calibration import StationaryBaseline
@@ -61,6 +61,23 @@ class StartupCalibrationTest(unittest.TestCase):
         self.node.on_command(String(data='validate_motion'))
         self.refresh(100.6)
         self.node.tick()
+
+    def test_driver_degree_units_are_converted_without_hiding_real_rotation(self):
+        msg = Imu()
+        msg.header.stamp = self.node.get_clock().now().to_msg()
+        msg.orientation.w = 1.
+        msg.linear_acceleration.z = 9.86
+        msg.angular_velocity.x = .9375
+        self.node.set_parameters([Parameter('imu_angular_velocity_unit', value='deg_s')])
+        self.node.on_imu(msg)
+        self.assertAlmostEqual(self.node.baseline.latest('imu')[1], math.radians(.9375))
+        msg.angular_velocity.x = 90.
+        self.node.on_imu(msg)
+        self.assertIsNone(self.node.baseline.latest('imu'))
+        self.node.set_parameters([Parameter('imu_angular_velocity_unit', value='rad_s')])
+        msg.angular_velocity.x = .2
+        self.node.on_imu(msg)
+        self.assertIsNone(self.node.baseline.latest('imu'))
 
     def test_boot_and_estopped_request_never_publish_positive_velocity(self):
         self.assertEqual(self.node.phase, 'collecting')

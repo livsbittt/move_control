@@ -7,6 +7,8 @@
     # A safety restart must not silently release a physical emergency stop.
     start_estopped: true
     calibration_required: true
+    # Installed Pinky BNO055 driver publishes raw /16 values in degrees/s.
+    imu_angular_velocity_unit: deg_s
     # Lidar-origin range: body radius 76mm + offset 17mm + stand-off 18mm.
     # Round the conservative 111mm floor upward; the C1 cannot see 18mm.
     stop_distance: 0.12

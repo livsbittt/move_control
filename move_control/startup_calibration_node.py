@@ -26,6 +26,7 @@ class StartupCalibrationNode(Node):
     def __init__(self, parameter_overrides=None):
         super().__init__('startup_calibration_node', parameter_overrides=parameter_overrides or [])
         self.declare_parameter('lidar_yaw_offset', NOSE_YAW)
+        self.declare_parameter('imu_angular_velocity_unit', 'rad_s')
         self.declare_parameter('result_path', str(Path.home() / '.local/state/move_control/calibration.json'))
         latched = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL,
                              reliability=ReliabilityPolicy.RELIABLE)
@@ -133,11 +134,14 @@ class StartupCalibrationNode(Node):
         roll = math.atan2(2*(q.w*q.x + q.y*q.z), 1 - 2*(q.x*q.x + q.y*q.y))
         pitch = math.asin(max(-1., min(1., 2*(q.w*q.y - q.z*q.x))))
         gravity = math.sqrt(a.x*a.x+a.y*a.y+a.z*a.z)
-        gyro = math.sqrt(g.x*g.x+g.y*g.y+g.z*g.z)
+        unit = self.get_parameter('imu_angular_velocity_unit').value
+        scale = math.pi / 180. if unit == 'deg_s' else 1.
+        gx, gy, gz = g.x * scale, g.y * scale, g.z * scale
+        gyro = math.sqrt(gx*gx+gy*gy+gz*gz)
         tilt = max(abs(roll), abs(pitch))
         self.add('imu', (gravity, gyro, tilt,
-                         g.x, g.y, g.z, a.x, a.y, a.z, roll, pitch),
-                 self.stamped(msg) and .9 <= norm <= 1.1 and 8 <= gravity <= 11.5 and
+                         gx, gy, gz, a.x, a.y, a.z, roll, pitch),
+                 unit in ('rad_s', 'deg_s') and self.stamped(msg) and .9 <= norm <= 1.1 and 8 <= gravity <= 11.5 and
                  gyro < .15 and tilt < math.radians(20))
 
     def on_camera(self, msg):
