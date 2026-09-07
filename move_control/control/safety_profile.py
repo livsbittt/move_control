@@ -21,24 +21,28 @@ class SafetyProfile:
     imu_unit: str
 
     @classmethod
-    def build(cls, *, radius=URDF_RADIUS, stop=.12, clear=.14, half_width_deg=45.,
-              stop_floor=.12, clear_floor=.14, max_linear=.014, max_angular=.10,
+    def build(cls, *, radius=URDF_RADIUS, stop=None, clear=None, half_width_deg=45.,
+              stop_floor=0., clear_floor=0., max_linear=.014, max_angular=.10,
               lidar_yaw_rad=math.radians(190), linear_sign=1., imu_unit='rad_s'):
+        physical_floor = radius+abs(LIDAR_X)+.018
+        # Defaults fill absent fields only. Supplied values are validated,
+        # never silently replaced with a bootstrap constant.
+        if stop is None:
+            stop = max(.12, physical_floor, stop_floor)
+        if clear is None:
+            clear = max(.14, stop+.010, clear_floor)
         values = (radius, stop, clear, half_width_deg, stop_floor, clear_floor, max_linear, max_angular,
                   lidar_yaw_rad, linear_sign)
         if not all(math.isfinite(v) for v in values):
             raise ValueError('Non-finite safety profile')
-        if not 0 < radius <= .15 or not 0 < max_linear <= .014 or not 0 < max_angular <= .10:
+        if not URDF_RADIUS <= radius <= .15 or not 0 < max_linear <= .014 or not 0 < max_angular <= .10:
             raise ValueError('Profile exceeds nominal hardware envelope')
-        if stop_floor < .12 or clear_floor < .14:
-            raise ValueError('Bootstrap floors need commissioning before reduction')
+        if (stop_floor < 0 or clear_floor < 0 or stop < max(physical_floor, stop_floor) or
+                clear < max(stop+.010, clear_floor) or not 45. <= half_width_deg <= 90.):
+            raise ValueError('Configured profile violates geometry or explicit safety constraints')
         if linear_sign not in (-1., 1.) or imu_unit not in ('rad_s', 'deg_s'):
             raise ValueError('Invalid sensor or drive convention')
-        radius = max(URDF_RADIUS, radius)
-        stop = max(radius+abs(LIDAR_X)+.018, stop_floor, stop)
-        clear = max(stop+.010, clear_floor, clear)
-        half = max(45., min(90., half_width_deg))
-        return cls(radius, stop, clear, radius+abs(LIDAR_X)+.010, half, max_linear, max_angular,
+        return cls(radius, stop, clear, radius+abs(LIDAR_X)+.010, half_width_deg, max_linear, max_angular,
                    round(math.atan2(math.sin(lidar_yaw_rad), math.cos(lidar_yaw_rad)), 6), linear_sign, imu_unit)
 
     @property
@@ -47,7 +51,7 @@ class SafetyProfile:
 
     def report(self):
         return {'schema_version': 1, 'revision': self.revision,
-                'source': 'nominal_bootstrap', 'commissioned': False,
+                'source': 'validated_configuration', 'commissioned': False,
                 'limits_frame': 'lidar_origin', 'geometry_frame': 'base_link',
                 'effective': asdict(self),
                 'unverified': ['physical_geometry', 'stopping_response', 'rotational_response']}

@@ -5,14 +5,19 @@ from move_control.control.safety_profile import SafetyProfile, bounded_command
 
 
 class ProfileTest(unittest.TestCase):
+    def test_configured_values_below_bootstrap_defaults_are_preserved(self):
+        profile = SafetyProfile.build(stop=.115, clear=.13)
+        self.assertEqual(profile.stop, .115)
+        self.assertEqual(profile.clear, .13)
+
+    def test_invalid_configuration_is_rejected_instead_of_rewritten(self):
+        with self.assertRaises(ValueError):
+            SafetyProfile.build(stop=.018, clear=.028)
+
     def test_legacy_distances_cannot_shrink_nominal_physical_limits(self):
-        profile = SafetyProfile.build(radius=.04, stop=.018, clear=.028, half_width_deg=8.)
-        self.assertGreaterEqual(profile.radius, .076)
-        self.assertGreaterEqual(profile.stop, .12)
-        self.assertGreaterEqual(profile.clear, .14)
-        self.assertGreaterEqual(profile.half_width_deg, 45.)
-        self.assertEqual(profile.revision, SafetyProfile.build(radius=.04, stop=.018, clear=.028, half_width_deg=8.).revision)
-        self.assertFalse(profile.report()['commissioned'])
+        with self.assertRaises(ValueError):
+            SafetyProfile.build(radius=.04, stop=.018, clear=.028, half_width_deg=8.)
+        self.assertFalse(SafetyProfile.build().report()['commissioned'])
 
     def test_larger_body_increases_limits_and_changes_revision(self):
         a, b = SafetyProfile.build(), SafetyProfile.build(radius=.12)

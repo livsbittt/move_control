@@ -149,6 +149,18 @@ class SafetyGateTest(unittest.TestCase):
         self.assertEqual(report['effective']['stop'], self.node.stop_d)
         self.assertGreaterEqual(self.node.stop_d, .12)
         self.assertGreaterEqual(self.node.robot_r, .076)
+        self.assertFalse(report['valid'])
+        self.assertEqual(self.node.get_parameter('stop_distance').value, .018)
+
+    def test_repeated_ticks_do_not_restore_bootstrap_distance(self):
+        self.node.set_parameters([Parameter('stop_distance', value=.115),
+                                 Parameter('clear_distance', value=.13)])
+        for _ in range(5):
+            self.node.tick()
+        self.assertTrue(self.node.profile_valid)
+        self.assertEqual(self.node.stop_d, .115)
+        self.assertEqual(self.node.clear_d, .13)
+        self.assertEqual(self.node.get_parameter('stop_distance').value, .115)
 
     def test_restart_is_estopped_but_still_publishes_obstacle_telemetry(self):
         self.assertTrue(self.node.estop)

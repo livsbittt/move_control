@@ -10,9 +10,10 @@
     calibration_round_trip: true
     calibration_distance_m: 0.03
     calibration_rotation: true
-    # Independent bootstrap bounds cannot be overwritten by legacy calib keys.
-    safety_stop_floor: 0.12
-    safety_clear_floor: 0.14
+    # Zero adds no configured floor; physical geometry is still validated.
+    # stop/clear_distance below are initial defaults, not recurring overrides.
+    safety_stop_floor: 0.0
+    safety_clear_floor: 0.0
     safety_max_linear: 0.014
     safety_max_angular: 0.10
     # Installed Pinky BNO055 driver publishes raw /16 values in degrees/s.

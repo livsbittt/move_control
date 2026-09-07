@@ -14,6 +14,8 @@ Abort:   /calib/step  abort
 import math
 import os
 import statistics
+import tempfile
+import yaml
 
 import rclpy
 from geometry_msgs.msg import Twist
@@ -479,17 +481,15 @@ class CalibNode(Node):
         )
         yaml_text = (
             'safety_node:\n  ros__parameters:\n'
-            '    cliff_enable: true\n'
             f'    cliff_raw_max: {th}\n    cliff_clear_raw: {clear}\n'
-            '    cliff_mode: low\n    cliff_hits: 2\n'
+            '    cliff_mode: low\n'
         )
-        self._write(self.get_parameter('save_path').value, yaml_text)
+        if not self._write(self.get_parameter('save_path').value, yaml_text):
+            return
         apply_params = [
-            ('cliff_enable', True),
             ('cliff_raw_max', th),
             ('cliff_clear_raw', clear),
             ('cliff_mode', 'low'),
-            ('cliff_hits', 2),
         ]
         extra = {}
         if self.linear_sign is not None:
@@ -505,30 +505,8 @@ class CalibNode(Node):
             self._status(
                 f'IMU rest roll={extra["imu_roll0"]:.1f} pitch={extra["imu_pitch0"]:.1f} deg'
             )
-        extra['camera_as_wall'] = False
-        extra['camera_block_as_wall'] = True
-        extra['stop_distance'] = 0.018
-        extra['clear_distance'] = 0.028
-        extra['us_stop_distance'] = 0.020
-        extra['us_clear_distance'] = 0.028
-        extra['front_half_width_deg'] = 8.0
-        extra['robot_radius'] = use_radius(
-            self.get_parameter('robot_radius').value
-            if self.has_parameter('robot_radius') else URDF_RADIUS
-        )
-        if self.lidar_yaw is None:
-            extra['lidar_yaw_offset'] = float(NOSE_YAW)
-            apply_params.append(('lidar_yaw_offset', float(NOSE_YAW)))
-        apply_params.extend([
-            ('camera_as_wall', False),
-            ('camera_block_as_wall', True),
-            ('stop_distance', 0.018),
-            ('clear_distance', 0.028),
-            ('us_stop_distance', 0.020),
-            ('us_clear_distance', 0.028),
-            ('front_half_width_deg', 8.0),
-            ('robot_radius', extra['robot_radius']),
-        ])
+        # This trial did not measure body size, safety margins, camera policy
+        # or an absent mounting yaw. Keep their configured values untouched.
         if self.lidar_yaw is not None:
             extra['lidar_yaw_offset'] = float(self.lidar_yaw)
             apply_params.append(('lidar_yaw_offset', float(self.lidar_yaw)))
@@ -541,18 +519,47 @@ class CalibNode(Node):
                 lines.append(f'    {k}: {v:.4f}\n')
             else:
                 lines.append(f'    {k}: {v}\n')
-        self._write(self.get_parameter('sign_path').value, ''.join(lines))
+        if extra and not self._write(self.get_parameter('sign_path').value, ''.join(lines)):
+            return
         self._apply_safety(apply_params)
         self._status('AUTO 완료')
 
     def _write(self, path, text):
+        temporary = None
         try:
-            os.makedirs(os.path.dirname(path) or '.', exist_ok=True)
-            with open(path, 'w', encoding='utf-8') as f:
-                f.write(text)
+            directory = os.path.dirname(path) or '.'
+            os.makedirs(directory, exist_ok=True)
+            existing = {}
+            if os.path.exists(path):
+                with open(path, encoding='utf-8') as stream:
+                    existing = yaml.safe_load(stream)
+                if existing is None:
+                    existing = {}
+            if not isinstance(existing, dict):
+                raise ValueError('Existing calibration must be a mapping')
+            updates = yaml.safe_load(text)
+            for name, content in updates.items():
+                owner = existing.setdefault(name, {})
+                if not isinstance(owner, dict):
+                    raise ValueError('Existing node settings must be a mapping')
+                parameters = owner.setdefault('ros__parameters', {})
+                if not isinstance(parameters, dict):
+                    raise ValueError('Existing parameters must be a mapping')
+                parameters.update(content['ros__parameters'])
+            with tempfile.NamedTemporaryFile('w', dir=directory, encoding='utf-8', delete=False) as stream:
+                temporary = stream.name
+                yaml.safe_dump(existing, stream, sort_keys=False, allow_unicode=True)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(temporary, path)
             self._status(f'saved {path}')
-        except OSError as exc:
+            return True
+        except (OSError, ValueError, yaml.YAMLError) as exc:
             self._status(f'save fail {exc}')
+            return False
+        finally:
+            if temporary and os.path.exists(temporary):
+                os.unlink(temporary)
 
     def _apply_safety(self, pairs):
         client = self.create_client(SetParameters, '/safety_node/set_parameters')
