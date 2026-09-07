@@ -381,6 +381,7 @@ class WebNode(Node):
         self.create_timer(1.0, self.resolve_teleop)
         self.create_subscription(String, '/robot/mode', self.on_mode, 10)
         self.create_subscription(String, '/wander/state', self.on_wander, 10)
+        self.create_subscription(String, '/safety/motion_limits', self.on_motion_limits, 10)
         self.create_subscription(
             String, '/goal_node/state', self.on_gstate, 10)
         self.create_subscription(Float32, '/goal/eta', self.on_eta, 10)
@@ -593,6 +594,17 @@ class WebNode(Node):
         return {LIMIT_KEYS[name]: float(self.get_parameter(name).value)
                 for name, _ in LIMIT_PARAMS}
 
+    def on_motion_limits(self, msg):
+        try:
+            value = json.loads(msg.data)
+            if not isinstance(value, dict):
+                return
+        except (ValueError, TypeError):
+            return
+        with LOCK:
+            STATE['motion_limits'] = value
+            STATE['motion_limits_received'] = time.monotonic()
+
     def load_metrics(self):
         """Map-QA metrics (check_map.py output) for the result panel; None
         when absent — the panel hides itself. Cached by mtime so the HTTP
@@ -708,6 +720,7 @@ def _handler(node, html, api):
                 return
             if path == '/state.json':
                 with LOCK:
+                    STATE['motion_limits_fresh'] = 0 <= time.monotonic()-STATE.get('motion_limits_received', -1e9) <= .75
                     if time.monotonic() - STATE.get('calibration_received', -1e9) > 3.0:
                         STATE['calibration_ready'] = False
                     body = json.dumps(STATE).encode()

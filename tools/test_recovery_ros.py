@@ -20,12 +20,14 @@ class RecoveryIntegrationTest(unittest.TestCase):
         try:
             node.plan=Mock()
             node.last_executable_goal=(1.,2.)
+            node.last_executable_exit=(.06, 0.)
             node.on_cmd(String(data='replan'))
             node.plan.assert_not_called()
             node.mode='explore'
             node.on_cmd(String(data='replan'))
             node.plan.assert_called_once()
             self.assertEqual(node.brain._failed_goals[0][0],(1.,2.))
+            self.assertEqual(node.brain._failed_exits[0][0],(.06,0.))
         finally:node.destroy_node()
 
     def test_stationary_range_hold_requests_replan_and_only_new_goal_unlocks(self):

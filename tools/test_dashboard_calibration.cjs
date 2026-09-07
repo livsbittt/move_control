@@ -52,9 +52,20 @@ function dashboard() {
   });
   const html = fs.readFileSync(process.env.DASHBOARD_HTML || path.join(__dirname, '../web/dashboard.html'), 'utf8');
   const source = html.match(/<script>([\s\S]*?)<\/script>/)[1];
-  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.exposed={S,renderCalibration,renderNavigation,calibrationAction,ktick};})();'), context);
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 'globalThis.exposed={S,renderCalibration,renderNavigation,calibrationAction,ktick,LIM,chLimits};})();'), context);
   return {...context.exposed, elements, requests};
 }
+
+test('gauges use live front and rear limits and identify stale fallback', () => {
+  const d = dashboard();
+  d.S.data={limits:{stop:.12,clear:.14},motion_limits_fresh:true,
+    motion_limits:{front_stop_m:.07,front_clear_m:.08,rear_stop_m:.075,rear_clear_m:.085}};
+  assert.equal(d.LIM().stop,.07);
+  assert.equal(d.chLimits({k:'rear'}).stop,.075);
+  d.S.data.motion_limits_fresh=false;
+  assert.equal(d.LIM().stop,.12);
+  assert.ok(!d.LIM().live);
+});
 
 test('calibration gates reactive and map navigation; sensor detail stays visible', () => {
   const d = dashboard();

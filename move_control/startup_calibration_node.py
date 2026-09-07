@@ -21,6 +21,7 @@ from .control.calibration import (StationaryBaseline, MOTION_SPEED, MOTION_SECON
 from .sensing.lidar import NOSE_YAW, is_robot_scan, sector_range
 from .sensing.lidar_mount import nose_from_quaternion
 from .sensing.range_filter import CalibrationRangeFilter
+from .sensing.precision_range import precision_axis_range
 from .control.round_trip import RoundTrip
 from .control.calibration_clearance import motion_clearance
 from .control.navigation_calibration import environment_profile, map_ray
@@ -137,7 +138,11 @@ class StartupCalibrationNode(Node):
             valid = False
         distance = sector_range(msg, self.lidar_nose,
                                 math.radians(12), pctl=.1) if valid else math.inf
-        self.add_range('lidar', distance, valid)
+        precision = precision_axis_range(msg, self.lidar_nose) if valid else math.inf
+        self.add_range('lidar', precision, valid and math.isfinite(precision))
+        # Braking still observes the original raw cone; the fitted wall only
+        # supplies measurement evidence and cannot hide a closer obstacle.
+        self.raw_ranges['lidar'] = (time.monotonic(), distance, valid and math.isfinite(distance))
         if valid and self.phase in ('collecting', 'waiting_motion'):
             left = sector_range(msg, self.lidar_nose+math.pi/2, math.radians(8), pctl=.5)
             right = sector_range(msg, self.lidar_nose-math.pi/2, math.radians(8), pctl=.5)

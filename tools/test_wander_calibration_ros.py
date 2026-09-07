@@ -10,6 +10,20 @@ from move_control.wander.node import WanderNode
 
 
 class CalibrationGateTest(unittest.TestCase):
+    def test_live_safety_limits_replace_old_wall_band_and_missing_values_do_not(self):
+        self.node.front_range = .15
+        self.node.us_range = .08
+        self.node.blocked = False
+        self.node.set_parameters([Parameter('wall_front', value=.14)])
+        self.node.on_motion_limits(String(data='{"front_m":0.15,"rear_m":0.12,"front_stop_m":0.07,"rear_stop_m":0.07}'))
+        self.assertFalse(self.node._on_wall())
+        self.node.blocked = True
+        self.assertTrue(self.node._on_wall())
+        self.node.blocked = False
+        self.node.on_motion_limits(String(data='{}'))
+        self.assertFalse(self.node._motion_limits_fresh())
+        self.assertTrue(self.node._on_wall())
+
     @classmethod
     def setUpClass(cls):
         rclpy.init(domain_id=222)

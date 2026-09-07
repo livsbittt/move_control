@@ -322,12 +322,20 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             self.blocked = lidar_blocked(travel[0], travel[0], previous_front, 0., .010, True)
             self.rear_blocked = lidar_blocked(travel[1], travel[1], previous_rear, 0., .010, True)
             can_rev = not self.rear_blocked
+        can_rotate = lidar_can_rotate(
+            (self.lidar_front, self.lidar_rear, self.lidar_left, self.lidar_right,
+             self.lidar_rear_left, self.lidar_rear_right),
+            max(self.robot_r, .083) if self.get_parameter('footprint_guard_enabled').value else self.robot_r,
+            lidar_ok, getattr(self, 'lidar_rotation_clearance', None))
         self.motion_limits_pub.publish(String(data=json.dumps({
+            'can_rotate': can_rotate,
             'front_stop_m': .043-self.lidar_mount[0]+.010 if footprint else self.stop_d,
             'front_clear_m': .043-self.lidar_mount[0]+.020 if footprint else self.clear_d,
             'rear_stop_m': .077+self.lidar_mount[0]+.010 if footprint else self.rear_stop_d,
             'rear_clear_m': .077+self.lidar_mount[0]+.020 if footprint else self.rear_clear_d,
             'translation_mode': footprint,
+            'rotation_radius_m': max(self.robot_r, .083) if self.get_parameter('footprint_guard_enabled').value else self.robot_r,
+            'footprint_half_width_m': .077 if footprint else None,
             'forward_travel_m': travel[0] if footprint else None,
             'reverse_travel_m': travel[1] if footprint else None,
             'us_stop_m': self.us_stop,
@@ -400,11 +408,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             cmd.linear.x = 0.0
         if cmd.linear.x < 0.0 and self.rear_blocked:
             cmd.linear.x = 0.0
-        if not lidar_can_rotate(
-                (self.lidar_front, self.lidar_rear, self.lidar_left,
-                 self.lidar_right, self.lidar_rear_left, self.lidar_rear_right),
-                max(self.robot_r, .083) if self.get_parameter('footprint_guard_enabled').value else self.robot_r,
-                lidar_ok, getattr(self, 'lidar_rotation_clearance', None)):
+        if not can_rotate:
             cmd.angular.z = 0.0
         if abs(cmd.linear.x) >= 0.004:
             self._auto_linear_sign(us, lidar_d, self.last_cmd.linear.x, self.last_cmd.angular.z)

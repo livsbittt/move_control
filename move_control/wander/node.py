@@ -146,6 +146,9 @@ class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
         self.create_subscription(Float32, '/safety/us_range', self.on_us, 10)
         self.create_subscription(Float32, '/safety/narrow', self.on_narrow, 10)
         self.create_subscription(String, '/wander/cmd', self.on_cmd, 10)
+        self.motion_limits = {}
+        self.motion_limits_received = None
+        self.create_subscription(String, '/safety/motion_limits', self.on_motion_limits, 10)
         self.create_subscription(Bool, '/wander/enable', self.on_enable, 10)
         self.create_subscription(
             Odometry, self.get_parameter('odom_topic').value, self.on_odom, 10

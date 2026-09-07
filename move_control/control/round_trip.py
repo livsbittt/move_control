@@ -21,6 +21,7 @@ class RoundTrip:
         self.commanded = 0.
         self.last_time = now
         self.last_speed = 0.
+        self.last_leg_evidence = None
 
     def fail(self, reason):
         self.error = reason
@@ -49,6 +50,13 @@ class RoundTrip:
             leg = motion_evidence(self.leg_origin, snapshot)
             measured = (-1 if returning else 1) * leg['lidar_delta_m']
             odom = (-1 if returning else 1) * leg['forward_m']
+            self.last_leg_evidence = {
+                'direction': 'reverse' if returning else 'forward',
+                'measured_m': measured, 'odom_m': odom,
+                'commanded_m': self.commanded,
+                'ratio': self.commanded / measured if measured > 0 else None,
+                'evidence': leg,
+            }
             if measured < .018 or abs(measured - odom) > .012:
                 return self.fail('LiDAR and wheel distance disagree during round trip')
             if abs(leg['map_forward_m'] - leg['forward_m']) > .015:
@@ -91,4 +99,5 @@ class RoundTrip:
     def report(self):
         return {'stage': self.stage, 'cycle': self.cycle + 1, 'target_m': self.target,
                 'forward_scale': self.scales[0], 'reverse_scale': self.scales[1],
-                'legs': self.legs, 'done': self.done, 'error': self.error}
+                'legs': self.legs, 'done': self.done, 'error': self.error,
+                'last_leg_evidence': self.last_leg_evidence}

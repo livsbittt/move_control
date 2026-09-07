@@ -13,7 +13,7 @@ _STEPS = ((1, 0), (-1, 0), (0, 1), (0, -1),
           (1, 1), (1, -1), (-1, 1), (-1, -1))
 
 
-def best_route(m, start, goal, clear_m=0.06):
+def best_route(m, start, goal, clear_m=0.06, avoid_points=()):
     """Best route start->goal (world metres in). None if walled off.
 
     clear_m inflates walls so the 5 cm grid can't hug corners (robot ~15 cm
@@ -24,6 +24,9 @@ def best_route(m, start, goal, clear_m=0.06):
         return None
     grid = m.inflate(clear_m / m.res)
     sc = m.world_to_grid(*start)
+    # Execution failures are temporary path exclusions, not fake SLAM walls.
+    avoided = {cell for cell in m.free_cells() if cell != sc and any(
+        math.dist(m.grid_to_world(*cell), point) <= .05 for point in avoid_points)} if avoid_points else set()
     if not grid.is_free(*sc):
         return None  # Snapping the robot can create a first leg through a wall.
     gc = nearest_free(grid, m.world_to_grid(*goal), max_occ=2)
@@ -45,15 +48,16 @@ def best_route(m, start, goal, clear_m=0.06):
                 'points': [m.grid_to_world(c, r) for c, r in cells],
                 'cells': cells,
                 'length': g[cur] * m.res,
+                'clearance_m': clear_m,
             }
         for dc, dr in _STEPS:
             nx = (cur[0] + dc, cur[1] + dr)
-            if grid.cell(*nx) != FREE:
+            if grid.cell(*nx) != FREE or nx in avoided:
                 continue
             if dc and dr:
                 a = (cur[0] + dc, cur[1])
                 b = (cur[0], cur[1] + dr)
-                if grid.cell(*a) != FREE or grid.cell(*b) != FREE:
+                if grid.cell(*a) != FREE or grid.cell(*b) != FREE or a in avoided or b in avoided:
                     continue  # no corner cutting
             ng = g[cur] + math.hypot(dc, dr)
             if nx not in closed and ng < g.get(nx, 1e9):

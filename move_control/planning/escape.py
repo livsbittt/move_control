@@ -28,7 +28,8 @@ def start_escape(m, pose, preferred_m, minimum_m, max_distance_m, excluded=()):
         if (soft.is_free(*cell) and math.dist(pose, m.grid_to_world(*cell)) >= .04
                 and all(math.dist(m.grid_to_world(*cell),goal)>.10 for goal in excluded)):
             points = [tuple(pose)] + [m.grid_to_world(*p) for p in path]
-            return {'points': points, 'cells': path, 'length': offset+(len(path)-1)*m.res}
+            return {'points': points, 'cells': path, 'length': offset+(len(path)-1)*m.res,
+                    'clearance_m': minimum_m}
         if len(path)-1 >= limit:
             continue
         for dx,dy in ((1,0),(-1,0),(0,1),(0,-1)):

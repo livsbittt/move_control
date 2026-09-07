@@ -599,7 +599,18 @@ function setCls(id, cls, on) {
 }
 const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
 // Limits the robot is actually running on; CFG.lim is the offline fallback.
-const LIM = () => Object.assign({}, CFG.lim, S.data.limits || {});
+const LIM = () => {
+  const limits = Object.assign({}, CFG.lim, S.data.limits || {});
+  const active = S.data.motion_limits;
+  if (S.data.motion_limits_fresh && active) {
+    const keys = {front_stop_m:'stop',front_clear_m:'clear',rear_stop_m:'rear_stop',rear_clear_m:'rear_clear',us_stop_m:'us_stop',rotation_radius_m:'radius'};
+    Object.entries(keys).forEach(([source,key]) => { if (Number.isFinite(active[source])) limits[key]=active[source]; });
+    limits.live = true;
+    limits.translation = active.translation_mode === true;
+    limits.halfWidth = active.footprint_half_width_m;
+  }
+  return limits;
+};
 
 function renderMapping(control) {
   const ready = !!control && control.available;
@@ -936,14 +947,19 @@ function drawScan(s) {
     scv.fill(); scv.stroke();
     pts.forEach(([px, py, ok, r]) => {
       if (!ok) return;
-      scv.fillStyle = r < lim.stop ? T.crit : (r < lim.clear ? T.warn : T.route);
+      scv.fillStyle = lim.translation ? T.route : r < lim.stop ? T.crit : (r < lim.clear ? T.warn : T.route);
       scv.beginPath(); scv.arc(px, py, 2.6, 0, 7); scv.fill();
     });
   }
   // the line safety halts at — a boundary, so a ring rather than a disc
   scv.strokeStyle = 'rgba(208,59,59,0.75)'; scv.lineWidth = 1.2;
   scv.setLineDash([4, 4]);
-  scv.beginPath(); scv.arc(cx, cy, lim.stop * k, 0, 7); scv.stroke();
+  scv.beginPath();
+  if (lim.translation && Number.isFinite(lim.halfWidth)) {
+    const half = (lim.halfWidth + .010) * k;
+    scv.rect(cx-half, cy-lim.stop*k, 2*half, (lim.stop+lim.rear_stop)*k);
+  } else scv.arc(cx, cy, lim.stop * k, 0, 7);
+  scv.stroke();
   scv.setLineDash([]);
   // chassis at true scale, nose marker on its rim
   const body = lim.radius * k;
@@ -963,7 +979,7 @@ function drawScan(s) {
   setTxt('dialnote',
     s.scan_reason === 'missing_mount_tf' ? '라이다 장착 TF 없음 — 방향 계산 불가' :
     (nose != null && sc.rs && sc.rs.length) ?
-      '정면 위 · 점선 안쪽은 정지 거리 ' + Math.round(lim.stop * 100) + ' cm' :
+      (lim.translation ? '정면 위 · 점선은 차체 외곽과 정지 여유' : '정면 위 · 참고 정면 거리 ' + Math.round(lim.stop * 100) + ' cm') :
       '라이다 대기');
 }
 // ---- 감지: clearance gauges -------------------------------------------------
@@ -990,10 +1006,12 @@ function chLimits(ch) {
   if (ch.corridor) return { scale: 0.80, stop: 2 * L.radius,
                             clear: 2 * L.radius + 0.04 };
   if (ch.more) return { scale: L.open_max, stop: null, clear: null };
+  if (ch.k === 'rear' && L.live) return {scale:L.open_max,stop:L.rear_stop,clear:L.rear_clear};
+  if (L.live && ch.k !== 'F') return {scale:L.open_max,stop:L.radius+.010,clear:L.radius+.020};
   return { scale: L.open_max, stop: L.stop, clear: L.clear };
 }
 function buildGauges(shown) {
-  const key = shown.join('|') + '#' + JSON.stringify(S.data.limits || {});
+  const key = shown.join('|') + '#' + JSON.stringify(LIM());
   if (S.gaugeKey === key) return;
   S.gaugeKey = key;
   $('gauges').innerHTML = CH.filter(ch => shown.indexOf(ch.k) >= 0).map(ch => {
@@ -1054,11 +1072,10 @@ function renderSensors(s) {
   buildGauges(shown);
   CH.forEach(ch => { if (shown.indexOf(ch.k) >= 0) paintGauge(ch, v[ch.k]); });
   const lim = LIM();
-  setTxt('clearhint', v.F == null ? '거리 정보 없음' :
-    v.F < lim.stop ? '정면이 정지 거리 안입니다 — safety가 잡습니다.' :
-    v.F < lim.warn ? '정면 감속 구간입니다.' :
-    '정지 ' + Math.round(lim.stop * 100) + ' cm · 감속 ' +
-      Math.round(lim.warn * 100) + ' cm');
+  setTxt('clearhint', !lim.live ? '설정 기준 표시 · 실시간 안전 기준 수신 대기' :
+    (v.blocked ? '실제 전방 차단 · ' : '실제 전방 차단 없음 · ') +
+    (lim.translation ? '차체 외곽 기준 · ' : '회전/일반 기준 · ') +
+    '정면 기준 ' + (lim.stop*100).toFixed(1) + 'cm · 후방 기준 ' + (lim.rear_stop*100).toFixed(1) + 'cm');
   const have = FLAGS.filter(f => v[f.k] != null);
   $('bools').innerHTML = have.length ?
     have.map(f => flagHtml(f, v[f.k])).join('') :

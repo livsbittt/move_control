@@ -94,6 +94,7 @@ class GoalNode(Node):
         self._map_reset_ns = 0
         self._n_options = 0  # last published /goal/options marker count
         self.last_executable_goal = None
+        self.last_executable_exit = None
         self.ox = self.oy = 0.0
         self.have_odom = False
         self._hist = []  # (t, x, y) odom ring for the effective speed
@@ -192,6 +193,7 @@ class GoalNode(Node):
             if self.mode == 'stop':
                 return
             self.brain.avoid_goal(self.last_executable_goal)
+            self.brain.avoid_route_exit(self.last_executable_exit)
             self.last_executable_goal = None
             self._clear_route('replanning: failed target excluded; seeking alternative')
             self.plan()
@@ -350,6 +352,8 @@ class GoalNode(Node):
 
     def _pub_goal(self, x, y, route):
         self.last_executable_goal = (x,y)
+        points = route['points']
+        self.last_executable_exit = next((p for p in points if math.dist(p, points[0]) >= .06), points[-1])
         stamp = self.get_clock().now().to_msg()
         gp = PoseStamped()
         gp.header.frame_id = 'map'

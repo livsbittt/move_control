@@ -1,6 +1,8 @@
 """Subject: sensing. Read lidar/US/IR/camera/odom. No motion."""
 import math
 import random
+import json
+import time
 
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool, Float32, UInt16MultiArray
@@ -20,6 +22,30 @@ def yaw_from_quat(q) -> float:
 
 
 class Senses:
+
+    def on_motion_limits(self, msg):
+        try:
+            limits = json.loads(msg.data)
+            self.motion_limits = limits if isinstance(limits, dict) else {}
+            self.motion_limits_received = time.monotonic()
+        except (ValueError, TypeError):
+            self.motion_limits = {}
+            self.motion_limits_received = None
+
+    def _motion_limits_fresh(self):
+        stamp = getattr(self, 'motion_limits_received', None)
+        limits = getattr(self, 'motion_limits', {})
+        return (stamp is not None and 0 <= time.monotonic()-stamp <= .75 and
+                all(isinstance(limits.get(k), (int, float)) and math.isfinite(limits[k]) and limits[k] > 0
+                    for k in ('front_m', 'rear_m', 'front_stop_m', 'rear_stop_m')))
+
+    def _odom_fresh(self):
+        stamp = getattr(self, 'odom_received', None)
+        header = getattr(self, 'odom_stamp_ns', 0)
+        return (stamp is not None and 0 <= time.monotonic()-stamp <= .75 and
+                0 <= (self.now().nanoseconds-header)*1e-9 <= 1. and
+                self.have_odom and all(math.isfinite(v) for v in
+                                       (self.odom_x, self.odom_y, self.odom_yaw)))
 
     def on_ir(self, msg: UInt16MultiArray):
         self.ir = tuple(int(v) for v in msg.data[:3])
@@ -125,6 +151,8 @@ class Senses:
         self.us_range = v if v >= 0.0 else float('inf')
 
     def on_odom(self, msg: Odometry):
+        self.odom_received = time.monotonic()
+        self.odom_stamp_ns = msg.header.stamp.sec*1000000000+msg.header.stamp.nanosec
         p = msg.pose.pose.position
         self.odom_x, self.odom_y = p.x, p.y
         self.odom_yaw = yaw_from_quat(msg.pose.pose.orientation)
@@ -271,6 +299,8 @@ class Senses:
         )
 
     def _have_turn_space(self, sign=None) -> bool:
+        if self._motion_limits_fresh() and isinstance(self.motion_limits.get('can_rotate'), bool):
+            return self.motion_limits['can_rotate']
         clear = self._turn_clear()
         front = self.front_range if self._finite(self.front_range) else float('inf')
         return have_turn_space(
@@ -281,6 +311,8 @@ class Senses:
         """Too tight to spin: reverse first if the rear is clear."""
         n = int(getattr(self, '_turn_backs', 0))
         max_n = int(self.get_parameter('turn_back_max').value)
+        if self._motion_limits_fresh() and isinstance(self.motion_limits.get('can_rotate'), bool):
+            return not self.motion_limits['can_rotate'] and self._can_reverse() and n < max_n
         front = self.front_range if self._finite(self.front_range) else float('inf')
         return need_space_to_turn(
             front,
@@ -293,7 +325,9 @@ class Senses:
         )
 
     def _on_wall(self) -> bool:
-        """Bumper contact from lidar/US only. Camera obstacle is a corner (ESCAPE)."""
+        """Consume the active safety decision instead of a second wall threshold."""
+        if self._motion_limits_fresh():
+            return bool(self.blocked)
         wall_d = float(self.get_parameter('wall_front').value)
         return nose_on_wall(self.front_range, self.us_range, wall_d)
 

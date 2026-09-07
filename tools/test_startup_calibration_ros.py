@@ -270,7 +270,9 @@ class StartupCalibrationTest(unittest.TestCase):
         scan.angle_increment = math.pi / 360
         scan.range_max = 40.
         ranges = [math.inf] * 720
-        ranges[340] = .65  # 170deg is in the true180 cone, not legacy190 cone.
+        # A continuous wall around actual180; legacy190 has no usable plane.
+        for index in range(352, 369):
+            ranges[index] = .65 / math.cos((index-360)*scan.angle_increment)
         scan.ranges = ranges
         self.node.on_scan(scan)
         self.assertAlmostEqual(self.node.lidar_nose, math.pi)
