@@ -23,11 +23,14 @@ class Navigator:
         self.navigation_route = []
         self.navigation_received = None
         self.navigation_stamp = None
+        self.navigation_stamp_ns = None
+        self.navigation_arrived_target = None
         self.navigation_progress = ProgressGuard()
         self.navigation_recovery = RouteRecovery()
         self.navigation_tf = Buffer()
         self.navigation_listener = TransformListener(self.navigation_tf, self)
         self.navigation_goal_pub = self.create_publisher(String, '/goal/cmd', 10)
+        self.navigation_arrival_pub = self.create_publisher(String, '/goal/arrival', 10)
         self.create_subscription(Path, '/route', self._on_navigation_route, 10)
         self.create_subscription(String, '/goal/manual_result', self._on_manual_result, 10)
 
@@ -39,6 +42,8 @@ class Navigator:
         self.navigation_route = []
         self.navigation_received = None
         self.navigation_stamp = None
+        self.navigation_stamp_ns = None
+        self.navigation_arrived_target = None
         self.navigation_progress.reset()
         self.navigation_recovery.reset()
 
@@ -87,6 +92,11 @@ class Navigator:
                                  for p in msg.poses] if valid else []
         self.navigation_received = self.now().nanoseconds * 1e-9
         self.navigation_stamp = stamp
+        self.navigation_stamp_ns = (msg.header.stamp.sec * 1_000_000_000
+                                    + msg.header.stamp.nanosec) if valid else None
+        if (self.navigation_route and self.navigation_arrived_target is not None
+                and math.dist(self.navigation_route[-1], self.navigation_arrived_target) > .005):
+            self.navigation_arrived_target = None
 
     def _tick_navigation(self):
         now = self.now().nanoseconds * 1e-9
@@ -115,6 +125,21 @@ class Navigator:
         if (self.blocked or self._on_wall()) and v > 0:
             v = 0.0
             reason = 'turn_away' if w else 'front_blocked'
+        if reason == 'arrived' and self.navigation_mode in ('explore', 'coverage'):
+            # Success is not a stuck episode. Let the planner retire this
+            # endpoint once; periodic same-goal routes must not flood it.
+            target = self.navigation_route[-1]
+            if (self.navigation_arrived_target is None
+                    and self.navigation_stamp_ns is not None):
+                self.navigation_arrival_pub.publish(String(data=json.dumps({
+                    'route_stamp_ns': self.navigation_stamp_ns,
+                    'target': list(target), 'pose': list(pose[:2])})))
+                self.navigation_arrived_target = target
+            self.navigation_progress.reset()
+            self.navigation_recovery.reset()
+            self.state = 'wait'
+            self._publish(Twist(), f'route_{self.navigation_mode}:awaiting_next_goal')
+            return
         if self.navigation_progress.check(now, pose, bool(v or w)):
             v, w, reason = 0.0, 0.0, 'stalled_restart_required'
         recoverable = (not hazard and not self.estop and not self.pickup and self._ir_ready()

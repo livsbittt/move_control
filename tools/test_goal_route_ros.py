@@ -128,3 +128,36 @@ class GoalRouteTest(unittest.TestCase):
     def test_float32_grid_does_not_add_an_unnecessary_cell(self):
         self.assertAlmostEqual(grid_clearance(.12, .019999999552965164), .12)
         self.assertGreaterEqual(grid_clearance(.121, .019999999552965164), .139)
+
+
+    def test_arrival_accepts_issued_refresh_and_replans_once(self):
+        self.known_map()
+        self.node.on_cmd(String(data='coverage'))
+        self.node.pose = Mock(return_value=((.5, .5), 'tf'))
+        route = {'points':[(.4,.5),(.5,.5)]}
+        self.node._pub_goal(.5, .5, route)
+        stamp = self.node.issued_routes[-1][0]
+        self.node._pub_goal(.5, .5, route)  # arrival may be in flight during refresh
+        self.node.plan = Mock()
+        event = String(data=json.dumps({'route_stamp_ns':stamp, 'target':[.5,.5]}))
+        self.node.on_arrival(String(data=json.dumps({'route_stamp_ns':stamp-1,'target':[.5,.5]})))
+        self.node.plan.assert_not_called()
+        self.node.on_arrival(event)
+        self.node.plan.assert_called_once()
+        self.assertTrue(self.node.brain._completed_goals)
+        self.node.on_arrival(event)
+        self.node.plan.assert_called_once()
+
+    def test_arrival_rejects_distant_pose_and_manual_mode(self):
+        self.known_map()
+        self.node.on_cmd(String(data='coverage'))
+        self.node.pose = Mock(return_value=((.3, .5), 'tf'))
+        self.node._pub_goal(.5,.5,{'points':[(.3,.5),(.5,.5)]})
+        event = String(data=json.dumps({'route_stamp_ns':self.node.issued_routes[-1][0], 'target':[.5,.5]}))
+        self.node.plan = Mock()
+        self.node.on_arrival(event)
+        self.node.plan.assert_not_called()
+        self.node.pose = Mock(return_value=((.5,.5),'tf'))
+        self.node.mode = 'manual'
+        self.node.on_arrival(event)
+        self.node.plan.assert_not_called()

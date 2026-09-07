@@ -82,6 +82,8 @@ class GoalNode(Node):
         self.create_subscription(
             Odometry, self.get_parameter('odom_topic').value, self.on_odom, 10)
         self.create_subscription(String, '/goal/cmd', self.on_cmd, 10)
+        self.create_subscription(String, '/goal/arrival', self.on_arrival, 10)
+        self.issued_routes = []
         self.goal_pub = self.create_publisher(PoseStamped, '/goal_point', 10)
         self.manual_result_pub = self.create_publisher(String, '/goal/manual_result', 10)
         self.manual_started_ns = None
@@ -189,6 +191,30 @@ class GoalNode(Node):
                 d = math.hypot(h[-1][1] - _x, h[-1][2] - _y)
                 return d / dt if dt > 0.2 else 0.0
         return 0.0
+
+    def on_arrival(self, msg):
+        if self.mode not in ('explore', 'coverage') or self.map_obj is None:
+            return
+        try:
+            event = json.loads(msg.data)
+            stamp, target = event['route_stamp_ns'], event['target']
+            if (not isinstance(stamp, int) or isinstance(stamp, bool)
+                    or not isinstance(target, list) or len(target) != 2
+                    or not all(isinstance(v, (int, float)) and math.isfinite(v) for v in target)):
+                return
+            if not any(t == stamp and tuple(target) == xy for t, xy in self.issued_routes):
+                return
+            if (self.last_executable_goal is None or
+                    math.dist(target, self.last_executable_goal) > .005):
+                return
+            pose, _ = self.pose()
+            if pose[0] is None or math.dist(pose, target) > .04:
+                return
+        except (ValueError, KeyError, TypeError):
+            return
+        self.brain.complete_goal(self.map_obj, pose, target)
+        self._clear_route('goal reached; selecting next target')
+        self.plan()
 
     def on_cmd(self, msg):
         cmd = msg.data.strip().lower()
@@ -299,6 +325,7 @@ class GoalNode(Node):
 
     def _clear_route(self, status=None):
         """Revoke old routes immediately; silence is not a stop command."""
+        self.issued_routes.clear()
         path = Path()
         path.header.frame_id = 'map'
         path.header.stamp = self.get_clock().now().to_msg()
@@ -369,6 +396,8 @@ class GoalNode(Node):
         points = route['points']
         self.last_executable_exit = next((p for p in points if math.dist(p, points[0]) >= .06), points[-1])
         stamp = self.get_clock().now().to_msg()
+        self.issued_routes.append((stamp.sec*1000000000+stamp.nanosec, (x, y)))
+        self.issued_routes = self.issued_routes[-8:]
         gp = PoseStamped()
         gp.header.frame_id = 'map'
         gp.header.stamp = stamp

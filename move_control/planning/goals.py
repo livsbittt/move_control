@@ -92,6 +92,7 @@ class GoalBrain:
         self._n = 0
         self._coverage_deferred = {}
         self._map_lattice = None
+        self._completed_goals = []
         self._failed_goals = []
         self._failed_exits = []
         self._route_tick = 0
@@ -106,9 +107,19 @@ class GoalBrain:
         self.clear_manual()
         self._target = self._probe = None
 
+    def complete_goal(self, m, pose, goal):
+        """Successful arrival consumes a target, without a failure penalty."""
+        self._track_map_lattice(m)
+        self._completed_goals.append((tuple(goal), self._plan_n + self.blacklist_plans))
+        cover_ring(self.covered, m, pose[0], pose[1], radius_m=self.lane_width / 2)
+        self._target = self._probe = self._wide_cell = None
+        self._n = 0
+        self._failed_exits.clear()
+
     def reset(self):
         """Clear map-session memory without changing configured geometry."""
         self.covered.clear()
+        self._completed_goals.clear()
         self._failed_goals.clear()
         self._failed_exits.clear()
         self._coverage_deferred.clear()
@@ -284,6 +295,8 @@ class GoalBrain:
         return None, None, ''
 
     def plan(self, m, pose):
+        self._completed_goals = [(xy, expiry) for xy, expiry in self._completed_goals
+                                 if expiry > self._plan_n]
         self._route_tick += 1
         self._plan_n += 1
         self._track_map_lattice(m)
@@ -320,7 +333,8 @@ class GoalBrain:
         if m.is_free(*start) and not m.inflate(self.clear_m / m.res).is_free(*start):
             route = start_escape(m, pose, self.clear_m, self.start_escape_clear_m,
                                  self.start_escape_distance_m,
-                                 [xy for xy,expiry in self._failed_goals if expiry>self._plan_n])
+                                 [xy for xy, expiry in self._failed_goals + self._completed_goals
+                                  if expiry > self._plan_n])
             if route:
                 self.last_options = []
                 return route['points'][-1], route, 'escape: moving to preferred clearance'
@@ -353,6 +367,11 @@ class GoalBrain:
         self._failed_goals = [(xy,expiry) for xy,expiry in self._failed_goals if expiry>self._plan_n]
         failed = {cell for cell in m.free_cells() if any(
             math.dist(m.grid_to_world(*cell),xy)<=.10 for xy,_ in self._failed_goals)}
+        completed = {cell for cell in m.free_cells() if any(
+            math.dist(m.grid_to_world(*cell), xy) <= self.reach_tol
+            for xy, _ in self._completed_goals)}
+        for cell in completed:
+            self._coverage_deferred[cell] = self._plan_n+1
         for cell in failed:
             self._coverage_deferred[cell] = self._plan_n+1
             self._blacklist[cell] = max(self._blacklist.get(cell,0),self._plan_n+1)
@@ -384,7 +403,7 @@ class GoalBrain:
             g = pick_goal(m, pose, min_size=self.min_size,
                           clear_m=clear_first,
                           retry_clear_m=clear_retry,
-                          exclude=set(self._blacklist) | failed)
+                          exclude=set(self._blacklist) | failed | completed)
             if g is not None:
                 g, prefix = self._watchdog(m, pose, g)
                 if g is None:

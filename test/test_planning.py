@@ -652,3 +652,31 @@ class NarrowCoverageRouteRegression(unittest.TestCase):
         self.assertIsNotNone(route, status)
         self.assertGreater(goal[0], m.grid_to_world(20, 12)[0])
         self.assertEqual(route['clearance_m'], .08)
+
+
+class ArrivalProgressionRegression(unittest.TestCase):
+    def test_coverage_arrival_selects_next_point_without_failure_blacklist(self):
+        m = OccupancyMap(30, 30, .02, fill=FREE)
+        brain = GoalBrain(clear_m=.04)
+        brain.mode = 'coverage'
+        goal, route, _ = brain.plan(m, (.3, .3))
+        self.assertIsNotNone(goal)
+        brain.complete_goal(m, goal, goal)
+        nxt, route, status = brain.plan(m, goal)
+        self.assertIsNotNone(nxt, status)
+        self.assertGreater(math.dist(goal, nxt), brain.reach_tol)
+        self.assertEqual(brain._failed_goals, [])
+        self.assertEqual(brain._failed_exits, [])
+        brain.reset()
+        self.assertEqual(brain._completed_goals, [])
+
+    def test_completed_frontier_neighborhood_excluded_on_immediate_replan(self):
+        m = OccupancyMap(30, 30, .02, fill=FREE)
+        for r in range(30):
+            m.set_cell(29, r, UNKNOWN)
+        brain = GoalBrain(clear_m=.02, min_size=3)
+        target, route, _ = brain.plan(m, (.2, .3))
+        brain.complete_goal(m, target, target)
+        with mock.patch('move_control.planning.goals.pick_goal', return_value=None) as pick:
+            brain.plan(m, target)
+            self.assertIn(m.world_to_grid(*target), pick.call_args.kwargs['exclude'])

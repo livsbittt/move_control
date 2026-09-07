@@ -6,11 +6,58 @@ from unittest.mock import Mock
 import rclpy
 from rclpy.parameter import Parameter
 from std_msgs.msg import Bool, String
-from geometry_msgs.msg import TransformStamped
+from geometry_msgs.msg import TransformStamped, PoseStamped
+from nav_msgs.msg import Path
 from move_control.wander.node import WanderNode
 
 
 class CalibrationGateTest(unittest.TestCase):
+    def test_arrival_once_per_endpoint_resets_stuck_and_new_goal_rearms(self):
+        self.node.on_calibration(Bool(data=True))
+        self.node.estop = False
+        self.node.on_cmd(String(data='explore'))
+        self.node._ir_ready = Mock(return_value=True)
+        self.node._on_wall = Mock(return_value=False)
+        self.node._can_reverse = Mock(return_value=True)
+        self.node.blocked = self.node.cliff = self.node.tilt = self.node.pickup = False
+        self.node.navigation_arrival_pub = Mock()
+        self.node.navigation_goal_pub = Mock()
+        self.node.navigation_tf = Mock()
+
+        def arrive(x):
+            stamp = self.node.now().to_msg()
+            tf = TransformStamped()
+            tf.header.stamp = stamp
+            tf.transform.translation.x = x
+            tf.transform.rotation.w = 1.
+            self.node.navigation_tf.lookup_transform.return_value = tf
+            route = Path()
+            route.header.frame_id = 'map'
+            route.header.stamp = stamp
+            point = PoseStamped()
+            point.pose.position.x = x
+            route.poses = [point]
+            self.node._on_navigation_route(route)
+            self.node.navigation_progress.stalled = True
+            self.node._tick_navigation()
+            return stamp.sec * 1_000_000_000 + stamp.nanosec
+
+        stamp_ns = arrive(.2)
+        self.assertFalse(self.node.navigation_progress.stalled)
+        first = json.loads(self.node.navigation_arrival_pub.publish.call_args.args[0].data)
+        self.assertEqual(first, {'route_stamp_ns': stamp_ns, 'target': [.2, 0.],
+                                 'pose': [.2, 0.]})
+        arrive(.2)
+        self.assertEqual(self.node.navigation_arrival_pub.publish.call_count, 1)
+        self.node.navigation_goal_pub.publish.assert_not_called()
+        arrive(.3)
+        self.assertEqual(self.node.navigation_arrival_pub.publish.call_count, 2)
+        cmd = self.node.pub.publish.call_args.args[0]
+        self.assertEqual((cmd.linear.x, cmd.angular.z), (0., 0.))
+        self.node.estop = True
+        arrive(.4)
+        self.assertEqual(self.node.navigation_arrival_pub.publish.call_count, 2)
+
     def test_live_safety_limits_replace_old_wall_band_and_missing_values_do_not(self):
         self.node.front_range = .15
         self.node.us_range = .08
