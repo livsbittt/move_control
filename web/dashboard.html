@@ -323,6 +323,11 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
           <button type="button" data-view="in" aria-label="확대">+</button>
           <button type="button" data-view="out" aria-label="축소">&minus;</button>
           <button type="button" data-view="fit" aria-label="화면 맞춤">맞춤</button>
+          <button type="button" data-view="align" title="현재 로봇 방향을 화면 오른쪽으로 정렬">방향 정렬</button>
+          <button type="button" data-view="left" aria-label="지도 왼쪽으로 5도 회전">↶</button>
+          <button type="button" data-view="right" aria-label="지도 오른쪽으로 5도 회전">↷</button>
+          <button type="button" data-view="north" title="원래 지도 방향">0°</button>
+          <span id="viewangle">0.0°</span>
           <span id="zoompct">100%</span>
         </div>
         <div class="stale" id="stale"></div>
@@ -467,7 +472,7 @@ const S = {
   data: {},
   img: { gen: -1, im: null, t: 0 },
   cam: { gen: -1, t: 0 },
-  view: { z: 1, A: { x: 0, y: 0 }, ok: false,
+  view: { angle: 0, aligned: false, z: 1, A: { x: 0, y: 0 }, ok: false,
           k: 1, w: 0, h: 1, res: 0.05, ox: 0, oy: 0, wc: null },
   split: { key: '', bi: 0 },
   pin: null, lastOk: 0, raf: 0,
@@ -556,13 +561,31 @@ async function mappingAction(action) {
 // absorbed by re-anchoring the world point at the canvas center.
 const cv = $('map'), c = cv.getContext('2d'), wrap = $('mapwrap');
 const Sc = () => S.view.k * S.view.z;
+function rotateVector(x, y, angle) {
+  const co = Math.cos(angle), si = Math.sin(angle);
+  return [co*x-si*y, si*x+co*y];
+}
+function screenPoint(x, y, inverse = false) {
+  const q = rotateVector(x-cv.width/2, y-cv.height/2,
+                        (inverse ? -1 : 1) * S.view.angle);
+  return [q[0]+cv.width/2, q[1]+cv.height/2];
+}
+function setViewAngle(angle) {
+  if (!Number.isFinite(angle)) return;
+  S.view.angle = Math.atan2(Math.sin(angle), Math.cos(angle));
+  S.view.aligned = true;
+  setTxt('viewangle', (S.view.angle*180/Math.PI).toFixed(1) + '°');
+  fitReset();
+}
 function fitView() {
   const W = cv.width, H = cv.height;
   if (!W || !H || !S.data.map) return;
   const m = S.data.map;
   S.view.w = m[0]; S.view.h = m[1]; S.view.res = m[2];
   S.view.ox = m[3]; S.view.oy = m[4];
-  S.view.k = Math.min(W / S.view.w, H / S.view.h) * CFG.fit_margin;
+  const co = Math.abs(Math.cos(S.view.angle)), si = Math.abs(Math.sin(S.view.angle));
+  S.view.k = Math.min(W / (S.view.w*co + S.view.h*si),
+                     H / (S.view.w*si + S.view.h*co)) * CFG.fit_margin;
   S.view.A.x = (W - S.view.w * Sc()) / 2;
   S.view.A.y = (H - S.view.h * Sc()) / 2;
   S.view.ok = true;
@@ -576,6 +599,7 @@ function clampPan() {
 }
 function zoomAt(cx, cy, f) {
   if (!S.view.ok) return;
+  [cx, cy] = screenPoint(cx, cy, true);
   const V = S.view, s = Sc();
   const u0 = (cx - V.A.x) / s, v0 = (cy - V.A.y) / s;
   V.z = Math.min(CFG.zoom_max, Math.max(CFG.zoom_min, V.z * f));
@@ -615,6 +639,7 @@ function w2c(x, y) {
            V.A.y + (V.h - 1 - (y - V.oy) / V.res) * Sc() ];
 }
 function c2w(X, Y) {
+  [X, Y] = screenPoint(X, Y, true);
   const V = S.view;
   return [ V.ox + ((X - V.A.x) / Sc()) * V.res,
            V.oy + (V.h - 1 - (Y - V.A.y) / Sc()) * V.res ];
@@ -635,7 +660,11 @@ function draw(s) {
     return;
   }
   $('mapnote').style.display = 'none';
+  // Lock the first valid heading; subsequent robot turns never spin the map.
+  if (!S.view.aligned && s.pose_available && s.pose) setViewAngle(s.pose[2]);
   syncView();
+  c.save();
+  c.translate(W/2, H/2); c.rotate(S.view.angle); c.translate(-W/2, -H/2);
   if (S.img.im) {
     // stale-while-revalidate: the previous raster stays until the next one
     // has decoded — a fresh gen must never blank the map (the blink).
@@ -726,6 +755,7 @@ function draw(s) {
     c.fillStyle = T.pin;
     c.beginPath(); c.arc(q[0], q[1], 2 * dpr, 0, 7); c.fill();
   }
+  c.restore();
 }
 // ---- lidar dial ------------------------------------------------------------
 // Nose up. Rings every 10 cm, safety's stop distance drawn as a no-go annulus,
@@ -1033,8 +1063,9 @@ cv.addEventListener('pointermove', e => {
   const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
   if (!drag.moved && Math.hypot(dx, dy) > CFG.click_slop_px) drag.moved = true;
   if (drag.moved && S.view.ok && S.view.z > 1) {
-    S.view.A.x += (e.clientX - drag.x) * dpr;
-    S.view.A.y += (e.clientY - drag.y) * dpr;
+    const delta = rotateVector(dx*dpr, dy*dpr, -S.view.angle);
+    S.view.A.x += delta[0];
+    S.view.A.y += delta[1];
     drag.x = e.clientX; drag.y = e.clientY;
     clampPan(); requestDraw();
     wrap.classList.add('grabbing');
@@ -1113,6 +1144,7 @@ async function poll() {
   S.lastOk = Date.now();
   S.data = s;
   if (s.map_control && S.mapEpoch !== s.map_control.epoch) {
+    if (S.mapEpoch !== null) S.view.aligned = false;
     S.mapEpoch = s.map_control.epoch;
     S.img = {gen: -1, im: null, t: 0};
     S.pin = null;
@@ -1175,6 +1207,10 @@ document.querySelectorAll('[data-view]').forEach(b =>
     if (b.dataset.view === 'in') zoomAt(cv.width / 2, cv.height / 2, CFG.zoom_step);
     if (b.dataset.view === 'out') zoomAt(cv.width / 2, cv.height / 2, 1 / CFG.zoom_step);
     if (b.dataset.view === 'fit') fitReset();
+    if (b.dataset.view === 'align' && S.data.pose) setViewAngle(S.data.pose[2]);
+    if (b.dataset.view === 'left') setViewAngle(S.view.angle - Math.PI/36);
+    if (b.dataset.view === 'right') setViewAngle(S.view.angle + Math.PI/36);
+    if (b.dataset.view === 'north') setViewAngle(0);
   }));
 $('pinsend').addEventListener('click', sendPin);
 $('pinclear').addEventListener('click', clearPin);
