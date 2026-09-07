@@ -1,0 +1,42 @@
+from move_control.control.route_recovery import RouteRecovery
+
+
+def tick(r,t,reason='front_blocked',goal=(1.,0.),pose=(0.,0.,0.),safe=True,stamp=None):
+    return r.update(t,pose,reason,goal,t if stamp is None else stamp,safe)
+
+
+def test_zero_command_hold_replans_then_requires_a_different_fresh_route():
+    r=RouteRecovery()
+    assert tick(r,0)=='following'
+    assert tick(r,5)=='replan'
+    assert tick(r,6)=='waiting'
+    assert tick(r,7,goal=(2.,0.),stamp=4)=='waiting'
+    assert tick(r,8,goal=(2.,0.))=='alternative'
+    assert r.attempts==1
+
+
+def test_no_route_does_not_erase_failed_target_and_retries_are_bounded():
+    r=RouteRecovery()
+    tick(r,0)
+    assert tick(r,5)=='replan'
+    assert tick(r,10,goal=None)=='replan'
+    assert tick(r,11)=='waiting'
+    assert tick(r,15)=='replan'
+    assert tick(r,20)=='exhausted'
+    assert tick(r,50,goal=(2.,0.))=='exhausted'
+
+
+def test_normal_alignment_is_allowed_but_endless_rotation_is_not_progress():
+    r=RouteRecovery()
+    assert tick(r,0,'align')=='following'
+    assert tick(r,30,'align',pose=(0.,0.,3.))=='following'
+    assert tick(r,45,'align',pose=(0.,0.,6.))=='replan'
+
+
+def test_safety_hold_cannot_request_recovery_and_progress_then_freeze_is_detected():
+    r=RouteRecovery()
+    assert tick(r,0,safe=False)=='safety_hold'
+    assert tick(r,60,safe=False)=='safety_hold'
+    tick(r,61,'forward')
+    tick(r,70,'forward',pose=(.03,0.,0.))
+    assert tick(r,115,'forward',pose=(.03,0.,0.))=='replan'

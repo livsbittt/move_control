@@ -87,6 +87,8 @@ def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
             route = best_route(m, start, (f['x'], f['y']), clear_m=cm)
             if not route or route['length'] < min_route_m:
                 continue
+            if route['cells'][-1] in exclude:
+                continue  # a snapped goal may land in a failed target region
             # NOTE: f['cells'] (the whole frontier cluster) is deliberately
             # NOT forwarded to the watchdog: measured on the isolated rig,
             # whole-cluster benching + the goal latch mass-benches every
