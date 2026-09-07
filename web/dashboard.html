@@ -350,7 +350,6 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
         <div class="cell"><div class="lbl">주행 거리</div>
           <div class="val" id="pathm">-</div></div>
       </div>
-      <p class="hint">선택하면 실제 주행을 시작합니다. 경로·위치가 없거나 복구에 반복 실패하면 정지합니다.</p>
     </div>
   </section>
 
@@ -359,20 +358,6 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
     <div class="rhead"><h2 id="h-act">조작</h2>
       <span class="gloss">로봇을 움직이는 버튼</span></div>
     <div class="rbody">
-
-      <div class="block" id="calibrationcard">
-      <h3>자동 시작 보정</h3>
-      <p class="hint" id="calibrationstatus" role="status">교정 노드 연결 대기</p>
-      <progress id="calibrationprogress" value="0" max="9" aria-label="정상 검사 수"></progress>
-      <pre class="hint" id="calibrationsensors" style="white-space:pre-wrap">센서 데이터 대기</pre>
-      <p class="hint">센서 확인 → 3cm 전진·출발점 복귀 → 보정값 계산 → 보정값으로 왕복 재검증 → 저장까지 자동으로 진행합니다(최대 35초). 비상정지를 해제하기 전에 앞뒤 공간을 확보해 주세요. 실패·중단 시 즉시 정지하며, 다시 확인을 눌러야 재시작합니다.</p>
-      <div class="btnrow">
-        <button type="button" id="calibrationretry" data-calibration="retry">다시 확인</button>
-        <button type="button" id="calibrationmotion" data-calibration="validate_motion" disabled>4초 저속 이동 검증</button>
-        <button type="button" data-calibration="abort">검증 중단</button>
-      </div>
-      <div id="calibrationerror" role="alert"></div>
-    </div>
 
       <div class="block estop">
         <h3>비상정지</h3>
@@ -385,6 +370,20 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
           <button type="button" data-post="/estop" data-val="release">해제</button>
         </div>
       </div>
+
+    <div class="block" id="calibrationcard">
+      <h3>자동 시작 보정</h3>
+      <p class="hint" id="calibrationstatus" role="status">교정 노드 연결 대기</p>
+      <progress id="calibrationprogress" value="0" max="9" aria-label="정상 검사 수"></progress>
+      <p class="hint" id="calibrationsummary" aria-live="polite">센서 검사 대기</p><details><summary>센서별 상세값</summary><pre class="hint" id="calibrationsensors" style="white-space:pre-wrap;overflow-wrap:anywhere">센서 데이터 대기</pre></details>
+      <p class="hint">센서 확인 → 3cm 전진·출발점 복귀 → 보정값 계산 → 보정값으로 왕복 재검증 → 저장까지 자동으로 진행합니다(최대 35초). 비상정지를 해제하기 전에 앞뒤 공간을 확보해 주세요. 실패·중단 시 즉시 정지하며, 다시 확인을 눌러야 재시작합니다.</p>
+      <div class="btnrow">
+        <button type="button" id="calibrationretry" data-calibration="retry">자동 보정 다시 시작</button>
+        <button type="button" id="calibrationmotion" data-calibration="validate_motion" disabled>4초 저속 이동 검증</button>
+        <button type="button" data-calibration="abort">검증 중단</button>
+      </div>
+      <div id="calibrationerror" role="alert"></div>
+    </div>
 
       <div class="block">
         <h3>주행</h3>
@@ -402,7 +401,7 @@ button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
           <h4>센서 회피</h4>
           <p class="hint">라이다로 벽을 따라갑니다. 같은 자리 반복 복구는 제한됩니다.</p>
           <div class="btnrow">
-            <button type="button" id="wanderstart" data-post="/wander" data-val="start" disabled>시작</button>
+            <button type="button" id="wanderstart" data-post="/wander" data-val="start" disabled>센서 회피 시작</button>
           </div>
         </div>
         <div class="sub">
@@ -533,9 +532,10 @@ function renderCalibration(s) {
       ' · ' + (sensor.samples || 0) + '개 · ' + (sensor.detail || '') : '데이터 대기');
   });
   $('calibrationprogress').value = count;
+  setTxt('calibrationsummary', '센서 검사 ' + count + '/9 · ' + (phase === 'ready' ? '왕복 검증 및 저장 완료' : phase === 'validating_motion' ? '왕복 검증 중 — 앞뒤 공간을 비워 주세요' : phase === 'waiting_motion' ? '비상정지 해제 및 안전 조건 대기' : phase === 'failed' || phase === 'aborted' ? '정지됨 · 원인 확인 후 재시작하세요' : '검사 중'));
   if (calibration && calibration.motion && calibration.motion.stage) {
     const m = calibration.motion;
-    lines.push('왕복 ' + m.cycle + '/2 · 목표 ' + (m.target_m * 100).toFixed(1) + 'cm · ' + m.stage);
+    lines.push('왕복 ' + m.cycle + '/2 · 목표 ' + (m.target_m * 100).toFixed(1) + 'cm · ' + ({outbound:'전진 중',settle_out:'전진 거리 확인',returning:'출발점으로 복귀 중',settle_home:m.done ? '복귀 확인 완료' : '복귀 오차 확인'}[m.stage] || m.stage));
     lines.push('속도 보정: 전진 ×' + m.forward_scale.toFixed(3) + ' / 후진 ×' + m.reverse_scale.toFixed(3));
     if (m.legs && m.legs.length) {
       const last = m.legs[m.legs.length - 1];
@@ -549,9 +549,9 @@ function renderCalibration(s) {
   $('calibrationmotion').disabled = !!(calibration && calibration.auto_motion) || phase !== 'waiting_motion' || !s || s.estop !== false ||
     !s.map_control || s.map_control.paused !== false;
   $('calibrationretry').disabled = phase === 'validating_motion';
-  $('wanderstart').disabled = !calibrationReady(s);
+  $('wanderstart').disabled = !calibrationReady(s) || s.estop !== false;
   document.querySelectorAll('[data-hold]').forEach(button => {
-    button.disabled = button.dataset.hold !== 'stop' && !calibrationReady(s);
+    button.disabled = button.dataset.hold !== 'stop' && (!calibrationReady(s) || s.estop !== false);
   });
   if (!calibrationReady(s) && S.held.size) { S.held.clear(); ksync(); }
 }
@@ -589,15 +589,12 @@ function renderMapping(control) {
     control.paused === false ? '지도 수집 중' : '매핑 상태 확인 중…');
 }
 function renderNavigation(s) {
-  const poseReason = s && ({stale_odom:'이동 센서 데이터 지연', missing_map_tf:'지도 위치 변환 대기',
-    stale_map_tf:'지도 위치 변환 지연', invalid_map_tf:'지도 위치 변환 오류',
-    mapping_paused:'매핑 일시정지'}[s.pose_reason]);
   const reason = !s ? '로봇 연결 대기' : s.estop !== false ? '비상정지 상태' :
     !s.map || !s.map_control || s.map_control.paused !== false ? '매핑을 재개해 주세요' :
-    !s.pose_available ? poseReason || '지도 내 로봇 위치 확인 대기' : '';
+    !s.pose_available ? '지도 내 로봇 위치 확인 대기' : '';
   $('navexplore').disabled = !!reason || !calibrationReady(s);
   $('navcoverage').disabled = !!reason || !calibrationReady(s);
-  setTxt('navready', reason || '준비됨 · 모드를 선택하면 주행합니다');
+  setTxt('navready', reason || (!calibrationReady(s) ? '자동 보정을 완료해 주세요' : '') || '준비됨 · 모드를 고르면 주행합니다');
 }
 async function mappingAction(action) {
   if (S.mappingBusy || $(action === 'reset' ? 'mapreset' : 'mapresume').disabled) return;
@@ -730,7 +727,8 @@ function draw(s) {
     return;
   }
   $('mapnote').style.display = 'none';
-  // Keep map axes stable across reloads. Heading alignment is an explicit action.
+  // Lock the first valid heading; subsequent robot turns never spin the map.
+  // Map orientation changes only through explicit operator controls.
   syncView();
   c.save();
   c.translate(W/2, H/2); c.rotate(S.view.angle); c.translate(-W/2, -H/2);

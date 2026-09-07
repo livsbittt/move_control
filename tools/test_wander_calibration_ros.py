@@ -40,3 +40,14 @@ class CalibrationGateTest(unittest.TestCase):
         self.node.tick()
         self.assertFalse(self.node.enabled)
         self.assertEqual(self.node.stop_reason, 'calibration_required')
+
+    def test_ready_does_not_start_a_mode_until_a_command_arrives(self):
+        self.node.on_calibration(Bool(data=True))
+        self.node.tick()
+        self.assertFalse(self.node.enabled)
+        self.assertIsNone(self.node.navigation_mode)
+        self.node.on_cmd(String(data='coverage'))
+        self.assertTrue(self.node.enabled)
+        self.assertEqual(self.node.navigation_mode, 'coverage')
+        self.node.on_cmd(String(data='stop'))
+        self.assertFalse(self.node.enabled)

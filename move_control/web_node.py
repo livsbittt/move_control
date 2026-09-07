@@ -802,6 +802,9 @@ def _handler(node, html, api):
                     if self.path == '/wander' and body != 'stop' and not ready:
                         reject('Startup calibration must pass before driving')
                         return
+                    if self.path == '/wander' and body != 'stop' and not released:
+                        reject('Release emergency stop before selecting a driving mode')
+                        return
                     getattr(node, attr).publish(String(data=body))
                     self.send_response(200)
                 else:

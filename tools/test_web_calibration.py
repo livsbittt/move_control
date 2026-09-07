@@ -48,12 +48,22 @@ class CalibrationHttpTest(unittest.TestCase):
         self.assertEqual(self.post('/wander', 'start'), 409)
         web.STATE['calibration_ready'] = True
         web.STATE['calibration_received'] = time.monotonic()
+        self.assertEqual(self.post('/wander', 'start'), 409)
+        web.STATE['estop'] = False
         self.assertEqual(self.post('/wander', 'start'), 200)
         self.assertEqual(self.post('/teleop', '{"x":0.01}'), 200)
         web.STATE['calibration_received'] = time.monotonic() - 4
         self.assertEqual(self.post('/teleop', '{"x":0.01}'), 409)
         self.assertEqual(self.post('/calibration', 'retry'), 200)
         self.assertEqual(self.post('/wander', 'start'), 409)
+
+    def test_mode_selection_is_explicit_and_relays_exactly_the_clicked_mode(self):
+        web.STATE.update(calibration_ready=True, calibration={'ready': True},
+                         calibration_received=time.monotonic(), estop=False)
+        self.node.wander_pub.publish.assert_not_called()
+        for mode in ('start', 'explore', 'coverage'):
+            self.assertEqual(self.post('/wander', mode), 200)
+            self.assertEqual(self.node.wander_pub.publish.call_args.args[0].data, mode)
 
     def test_motion_requires_correct_phase_release_and_active_mapping(self):
         web.STATE['calibration'] = {'phase': 'waiting_motion'}
