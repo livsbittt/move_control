@@ -38,6 +38,14 @@ function dashboard() {
 
 
 const near = (a,b) => assert.ok(Math.abs(a-b)<1e-8, `${a} != ${b}`);
+test('world cell centers land in raster pixel centers', () => {
+  const d=dashboard(); d.cv.width=1000; d.cv.height=700;
+  d.S.data.map=[5,4,.02,-.38,-.01,1];d.setViewAngle(0);d.fitView();
+  const v=d.S.view, scale=v.k*v.z;
+  const point=d.w2c(v.ox+3.5*v.res,v.oy+1.5*v.res);
+  near(point[0],v.A.x+3.5*scale);
+  near(point[1],v.A.y+2.5*scale);
+});
 test('rotated map click returns original world coordinate at several angles', () => {
   const d=dashboard(); d.cv.width=1000; d.cv.height=700;
   d.S.data.map=[63,43,.02,-.38,-.01,1];

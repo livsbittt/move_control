@@ -1,0 +1,26 @@
+{
+  "time_utc": "20260907T134327Z",
+  "pid_before": "49369",
+  "command": [
+    "/usr/bin/python3",
+    "/home/pinky/pinky-calibration-0db34f6/install/move_control/lib/move_control/web_node",
+    "--ros-args",
+    "--params-file",
+    "/home/pinky/pinky-calibration-0db34f6/install/move_control/share/move_control/config/robot.yaml",
+    "--params-file",
+    "/home/pinky/pinky-calibration-0db34f6/install/move_control/share/move_control/config/web.yaml",
+    "--params-file",
+    "/tmp/launch_params_26t8i8oq"
+  ],
+  "root": "/home/pinky/pinky-calibration-0db34f6",
+  "before": {
+    "/home/pinky/pinky-calibration-0db34f6/src/move_control/move_control/web_node.py": "cd1789425e0fc35b2e3ca6ad872b298fe38e91eb73da98aad576ec1ed9df7a10",
+    "/home/pinky/pinky-calibration-0db34f6/src/move_control/web/dashboard.html": "873d5ff61ee7703655d23e8bd536301d0e60f7022846e8aca7c1783c8e3f6b27"
+  },
+  "after": {
+    "/home/pinky/pinky-calibration-0db34f6/src/move_control/move_control/web_node.py": "f36a2557542c51f3da8e43944f962fb5923e9f77aaa85792c61a1465b6924974",
+    "/home/pinky/pinky-calibration-0db34f6/src/move_control/web/dashboard.html": "b5793bf8e91dce13e3801ae0cc1e194f27bf1b497639733cf07b306ca6fec8d7",
+    "/home/pinky/pinky-calibration-0db34f6/src/move_control/move_control/sensing/map_raster.py": "d47e33601c81f03ef390a61a8b56e0258e2dd407eb310be080b2497dc5778568"
+  },
+  "pid_after": 52843
+}

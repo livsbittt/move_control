@@ -1,0 +1,36 @@
+{
+  "python_tests": {
+    "result": "189 passed",
+    "scope": "Current source snapshot, test/ plus tools/test_web_map_raster.py and tools/test_web_map_control.py; isolated temp directory on Pinky; ROS environment loaded"
+  },
+  "javascript_tests": {
+    "result": "10 passed",
+    "command": "node --test tools/test_dashboard_rotation.cjs tools/test_dashboard_mapping.cjs"
+  },
+  "browser": {
+    "url": "http://192.168.4.1:28161/",
+    "engine": "Playwright Edge headless",
+    "viewport": [
+      1440,
+      1000
+    ],
+    "page_errors": [],
+    "view_angle_degrees": -22.9
+  },
+  "runtime_after": {
+    "pid": 53760,
+    "ownership": "Existing launch supervisor; temporary PID 52843 was stopped",
+    "source_root": "/home/pinky/pinky-calibration-0db34f6/src/move_control"
+  },
+  "documentation": {
+    "mode": "lightweight",
+    "frontmatter": "passed",
+    "claim_flags": "3 historical runtime directory suffixes mistaken for main-branch commit citations; annotated and intentionally retained",
+    "vocabulary": "CONCEPTS.md absent; creation deferred",
+    "discoverability": "Existing agent guidance does not yet link docs/solutions; no instruction files changed"
+  },
+  "limits": [
+    "Other deployments were still active at user confirmation",
+    "Stationary display alignment verified; no physical-motion acceptance claimed"
+  ]
+}

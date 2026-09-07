@@ -208,7 +208,7 @@ def render_png(msg, epoch=None):
     (unknown #161615 / free #232322 / wall #e1e0d9) so overlays blend —
     dark unknown recedes, light walls read as structure."""
     try:
-        import numpy as np
+        from move_control.sensing.map_raster import occupancy_bgr
         import cv2
     except ImportError:
         if not MAP_PNG.get('warned'):
@@ -217,12 +217,8 @@ def render_png(msg, epoch=None):
                   '(install python3-numpy python3-opencv)')
         return
     info = msg.info
-    arr = np.array(msg.data, np.int16).reshape(info.height, info.width)
-    img = np.full((info.height, info.width, 3), (22, 22, 21), np.uint8)
-    img[(arr >= 0) & (arr < 65)] = (35, 35, 34)      # free
-    img[arr >= 65] = (225, 224, 217)                 # wall
-    # ROS rows increase northward; image rows increase downward, like w2c.
-    ok, buf = cv2.imencode('.png', img[::-1])
+    img = occupancy_bgr(msg.data, info.width, info.height)
+    ok, buf = cv2.imencode('.png', img)
     if ok:
         with LOCK:
             if epoch is not None and epoch != STATE.get('map_control', {}).get('epoch', 0):
