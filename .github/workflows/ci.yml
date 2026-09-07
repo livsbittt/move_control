@@ -1,0 +1,59 @@
+name: ci
+
+# Gate every push and PR on the same script you run locally
+# (tools/ci/run_tests.sh), so a green tick here means exactly what a green
+# local run means -- there is no second, drifting copy of the test command.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: tools/ci/requirements-dev.txt
+
+      # No ROS on the runner, so run_tests.sh skips the ROS-dependent test
+      # files and names them in the log. The full suite runs on the robot as
+      # part of the deploy gate, before any version switch is kept.
+      - name: Run test suite
+        run: ./tools/ci/run_tests.sh
+
+      - name: Check deploy scripts parse
+        run: |
+          for f in tools/ci/*.sh tools/deploy/*.sh; do
+            bash -n "$f" || exit 1
+            echo "ok $f"
+          done
+
+      # deploy.sh scp's these scripts to the robot verbatim. A CRLF sneaks in
+      # whenever one is edited by a Windows tool, and the robot then fails with
+      # a bare "bad interpreter" -- catch it here instead.
+      - name: Reject CRLF in shell scripts
+        run: |
+          bad=0
+          for f in tools/ci/*.sh tools/deploy/*.sh; do
+            if grep -qU $'\r' "$f"; then echo "CRLF found: $f"; bad=1; fi
+          done
+          [ "$bad" = 0 ] || { echo "convert with: tr -d '\r' < f > f.lf && mv f.lf f"; exit 1; }
+          echo "all scripts are LF"
+
+      - name: Shellcheck
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          shellcheck -S warning tools/ci/*.sh tools/deploy/*.sh
+
+      # A bundle that cannot be built is a broken release waiting to happen,
+      # so prove it builds on every push rather than at tag time.
+      - name: Build a bundle (smoke test)
+        run: |
+          ./tools/ci/make_bundle.sh
+          ls -l dist/
