@@ -127,6 +127,8 @@ class WallTracker:
             if (pose is None or mount is None or len(pose) != 3 or len(mount) != 2
                     or not all(math.isfinite(v) for v in (*pose, *mount))):
                 self.diagnostic = {'status': 'invalid', 'reason': 'Finite pose and mount required'}
+                if self.locked:
+                    self.stable = 0
                 return math.inf
             anchor = self.pose_anchor if self.pose_anchor is not None else tuple(pose)
             initial_mount = self.mount_anchor if self.mount_anchor is not None else tuple(mount)
@@ -134,6 +136,8 @@ class WallTracker:
             lateral = -(pose[0]-anchor[0])*math.sin(anchor[2])+(pose[1]-anchor[1])*math.cos(anchor[2])
             if abs(yaw) > .1 or abs(lateral) > .015 or any(abs(a-b) > 1e-6 for a,b in zip(mount, initial_mount)):
                 self.diagnostic = {'status': 'invalid', 'reason': 'Pose or mount outside calibration envelope'}
+                if self.locked:
+                    self.stable = 0
                 return math.inf
             compensation = (yaw, lateral, tuple(mount), initial_mount)
         candidates = _segments(scan, nose, compensation)
@@ -166,6 +170,7 @@ class WallTracker:
             self.wall = matches[0]
             self.stable += 1
         elif self.locked:
+            self.stable = 0
             self.diagnostic = {'status': 'invalid', 'reason': 'Tracked wall missing or ambiguous',
                                'candidates': len(candidates), 'matches': len(matches)}
             return math.inf

@@ -84,6 +84,22 @@ class WallTrackerTest(unittest.TestCase):
         self.assertTrue(math.isinf(tracker.update(corner(dropout=True), math.pi, locked=True)))
         self.assertTrue(tracker.locked)
 
+    def test_locked_loss_requires_three_consecutive_same_wall_scans(self):
+        tracker = WallTracker()
+        origin = collect(tracker, corner())
+        anchor = dict(tracker.anchor)
+        self.assertTrue(math.isinf(tracker.update(corner(dropout=True), math.pi, locked=True)))
+        self.assertEqual(tracker.stable, 0)
+        self.assertTrue(math.isinf(tracker.update(corner(), math.pi, locked=True)))
+        self.assertTrue(math.isinf(tracker.update(corner(), math.pi, locked=True)))
+        # Another dropout restarts the streak, never accumulates sparse hits.
+        self.assertTrue(math.isinf(tracker.update(corner(dropout=True), math.pi, locked=True)))
+        for _ in range(2):
+            self.assertTrue(math.isinf(tracker.update(corner(), math.pi, locked=True)))
+        self.assertAlmostEqual(tracker.update(corner(), math.pi, locked=True), origin)
+        self.assertEqual(tracker.anchor, anchor)
+        self.assertTrue(tracker.locked)
+
     def test_same_support_different_wall_is_rejected(self):
         tracker = WallTracker()
         collect(tracker, corner())

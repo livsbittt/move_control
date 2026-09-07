@@ -14,6 +14,7 @@ from sensor_msgs.msg import LaserScan, Imu
 
 from move_control.startup_calibration_node import StartupCalibrationNode
 from move_control.control.calibration import StationaryBaseline
+from move_control.control.round_trip import RoundTrip
 from test.test_calibration import VALUES
 
 
@@ -73,6 +74,38 @@ class StartupCalibrationTest(unittest.TestCase):
         self.node.tick()
         self.assertEqual(self.node.phase, 'failed')
         self.assertIn('stale or invalid', self.node.message)
+        self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
+
+    def test_precision_pause_holds_zero_then_resumes_on_fresh_wall(self):
+        self.arm()
+        self.node.motion_start = (100.6, self.node.snapshot())
+        self.node.round_trip = RoundTrip(100.6, self.node.snapshot())
+        self.node.wall_tracker.diagnostic = {'reason': 'Tracked wall missing or ambiguous'}
+        self.node.baseline.add('lidar', (math.inf,), 100.6, False)
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'validating_motion')
+        self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
+        self.refresh(100.8)
+        self.node.tick()
+        self.assertGreater(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
+        self.assertAlmostEqual(self.node.precision_pause_total, .2)
+
+    def test_precision_pause_cannot_hide_real_hazard_or_wait_indefinitely(self):
+        self.arm()
+        self.node.motion_start = (100.6, self.node.snapshot())
+        self.node.round_trip = RoundTrip(100.6, self.node.snapshot())
+        self.node.wall_tracker.diagnostic = {'reason': 'Tracked wall missing or ambiguous'}
+        self.node.baseline.add('lidar', (math.inf,), 100.6, False)
+        self.node.hazards['/safety/cliff'] = (100.6, True)
+        self.assertFalse(self.node.pause_precision(100.6))
+        for i in range(23):
+            now = 100.6+i*.05
+            self.refresh(now)
+            self.node.baseline.add('lidar', (math.inf,), now, False)
+            self.node.tick()
+            if self.node.phase == 'failed':
+                break
+        self.assertEqual(self.node.phase, 'failed')
         self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
 
     def test_collecting_displays_raw_values_and_clearance_without_motion(self):

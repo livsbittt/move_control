@@ -36,6 +36,19 @@ def test_pause_in_controller_aborts_instead_of_reusing_command():
     assert trip.error
 
 
+def test_explicit_zero_pause_does_not_integrate_motion_while_waiting():
+    trip = RoundTrip(0., snapshot(0.))
+    trip.update(.05, snapshot(0.))
+    trip.pause(.10)
+    issued = trip.commanded
+    for now in (.15, .20, .25):
+        assert trip.pause(now) == 0.
+    assert trip.commanded == issued
+    assert trip.last_speed == 0.
+    assert trip.update(.30, snapshot(.0004)) > 0.
+    assert trip.error is None
+
+
 def test_failed_gain_preserves_measurements_without_relaxing_bounds():
     trip = RoundTrip(0., snapshot(0.))
     trip.stage = 'settle_out'

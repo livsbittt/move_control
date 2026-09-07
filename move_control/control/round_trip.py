@@ -27,6 +27,16 @@ class RoundTrip:
         self.error = reason
         return 0.
 
+    def pause(self, now):
+        """Account the last issued command, then hold zero without fake travel."""
+        dt = now - self.last_time
+        if dt < 0 or dt > .5:
+            return self.fail('Round-trip control updates interrupted')
+        self.commanded += abs(self.last_speed) * dt
+        self.last_time = now
+        self.last_speed = 0.
+        return 0.
+
     def update(self, now, snapshot):
         if self.error or self.done:
             return 0.

@@ -86,6 +86,8 @@ class StartupCalibrationNode(Node):
         self.phase, self.message = 'collecting', 'Keep robot stationary on safe level floor'
         self.started = time.monotonic()
         self.motion_start = None
+        self.precision_pause_started = None
+        self.precision_pause_total = 0.
         self.selected_target = None
         self.motion_clearance = {}
         self.round_trip = None
@@ -308,6 +310,43 @@ class StartupCalibrationNode(Node):
                 failures.append(name + ': ' + detail)
         return 'Sensor data became stale or invalid: ' + '; '.join(failures)
 
+    def pause_precision(self, now):
+        # An ambiguous measurement is never permission to coast. Only this
+        # precision channel may wait; raw braking and all other sensors remain
+        # mandatory. Keep the same locked wall and bound the stationary wait.
+        if self.estop is not False or self.motion_start is None or self.round_trip is None:
+            return False
+        if self.wall_tracker.diagnostic.get('reason') not in (
+                'Tracked wall missing or ambiguous', 'Waiting for three associated scans'):
+            return False
+        for name, rows in self.baseline.samples.items():
+            if name != 'lidar' and (not rows or not rows[-1][2] or
+                    not 0 <= now-rows[-1][0] <= (5. if name == 'map' else .2 if name == 'odom' else 1.)):
+                return False
+        stamp, limits = self.safety_limits
+        if not 0 <= now-stamp <= .75:
+            return False
+        for name, stop_key in (('lidar', 'front_stop_m'), ('us', 'us_stop_m')):
+            stamp, distance, valid = self.raw_ranges.get(name, (0., 0., False))
+            stop = limits.get(stop_key)
+            if not valid or not 0 <= now-stamp <= .2 or not isinstance(stop, (float, int)) or distance <= stop:
+                return False
+        if any(key not in self.hazards or not 0 <= now-self.hazards[key][0] <= .75 or self.hazards[key][1]
+               for key in ('/safety/blocked', '/safety/cliff', '/safety/tilt', '/safety/pickup')):
+            return False
+        if self.precision_pause_started is None:
+            self.precision_pause_started = now
+        elapsed = now-self.precision_pause_started
+        if elapsed > 1. or self.precision_pause_total+elapsed > 2.:
+            return False
+        self.zero()
+        self.round_trip.pause(now)
+        if self.round_trip.error:
+            return False
+        self.message = 'Precision LiDAR paused at zero speed; reacquiring the same wall (maximum 1s)'
+        self.publish()
+        return True
+
     def on_command(self, msg):
         command = msg.data.strip().lower()
         if command == 'abort':
@@ -375,8 +414,19 @@ class StartupCalibrationNode(Node):
         elif self.phase == 'validating_motion':
             reason = self.safe_motion(now)
             if reason:
+                if reason.startswith('Sensor data became stale or invalid') and self.pause_precision(now):
+                    return
                 self.finish(False, reason)
                 return
+            if self.precision_pause_started is not None:
+                elapsed = now-self.precision_pause_started
+                if elapsed > 1. or self.precision_pause_total+elapsed > 2.:
+                    self.finish(False, 'Precision LiDAR reacquisition time exceeded')
+                    return
+                self.precision_pause_total += elapsed
+                self.precision_pause_started = None
+                if self.round_trip is not None:
+                    self.round_trip.pause(now)
             state, seen = self.wander_state
             if not state.startswith('stop') or seen < self.requested or now - seen > .75:
                 self.zero()
