@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Gazebo test of the planning stack (GUI shows the maze + robot).
+# Headless Gazebo test of the planning stack (RIG_GUI=1 enables the GUI).
 #   bash tools/gz/test_planning.sh
 cd "$(dirname "$0")/../.."
 source /opt/ros/jazzy/setup.bash
@@ -14,7 +14,7 @@ set --
 mkdir -p /tmp/gztest
 log() { echo "[runner] $*"; }
 
-log "world: server + GUI (separate procs so a GUI crash can't kill the sim)"
+log "world: headless server (optional GUI is a separate process)"
 # --headless-rendering: GPU lidar via EGL on the server; GUI is a client.
 gz sim -s -r --headless-rendering tools/gz/pinky_maze.sdf \
   > /tmp/gztest/gz.log 2>&1 &
@@ -22,14 +22,15 @@ GZ=$!
 sleep 3
 # RIG_GUI=0 skips the GUI client entirely (low-memory boots: the web
 # frontend is the viewer; the GUI costs ~1 GB).
-if [ "${RIG_GUI:-1}" = "1" ]; then
+GUI=
+if [ "${RIG_GUI:-0}" = "1" ]; then
   # snap VS Code pollution (GTK_PATH etc.) breaks gz-sim-gui with
   # GLIBC_PRIVATE — strip it for the GUI client only (server unaffected).
   env -u GTK_PATH -u GTK_EXE_PREFIX -u LOCPATH \
     PATH=$(echo "$PATH" | tr ':' '\n' | grep -v '^/snap/' | paste -sd:) \
     gz sim -g tools/gz/pinky_maze.sdf > /tmp/gztest/gui.log 2>&1 &
+  GUI=$!
 fi
-GUI=$!
 sleep 6
 log "bridge"
 ros2 run ros_gz_bridge parameter_bridge \
@@ -73,6 +74,6 @@ python3 -c "import move_control.web_node as w; w.main()" --ros-args \
   > /tmp/gztest/web.log 2>&1 &
 DA=$!
 log "all up: gz=$GZ bridge=$BR slam=$SL goal=$GO driver=$DR"
-log "GUI: gz window | logs: /tmp/gztest/*.log"
+log "logs: /tmp/gztest/*.log | dashboard: http://localhost:28161"
 trap 'kill $DR $GO $SL $BR $DA $GUI 2>/dev/null; sleep 1; kill $GZ 2>/dev/null' INT TERM
 wait

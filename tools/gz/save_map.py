@@ -15,13 +15,18 @@ import time
 
 import numpy as np
 
-import rclpy
-from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
-from nav_msgs.msg import OccupancyGrid
+def map_pixels(arr):
+    """Convert south-first OccupancyGrid rows to north-first PGM rows."""
+    img = np.full(arr.shape, 205, np.uint8)
+    img[(arr >= 0) & (arr < 65)] = 254
+    img[arr >= 65] = 0
+    return np.flipud(img)
 
 
 def main():
+    import rclpy
+    from rclpy.qos import qos_profile_sensor_data
+    from nav_msgs.msg import OccupancyGrid
     prefix = sys.argv[1] if len(sys.argv) > 1 else 'map/gz_maze'
     wait_s = float(sys.argv[2]) if len(sys.argv) > 2 else 5.0
     rclpy.init()
@@ -45,9 +50,7 @@ def main():
     # map_saver trinary: v = -1 unknown; p_occ = v/100 for v >= 0.
     occ = arr >= 65
     free = (arr >= 0) & (arr < 65)
-    img = np.full(arr.shape, 205, np.uint8)
-    img[free] = 254
-    img[occ] = 0
+    img = map_pixels(arr)
     with open(prefix + '.pgm', 'wb') as f:
         f.write(f'P5\n{info.width} {info.height}\n255\n'.encode())
         f.write(img.tobytes())

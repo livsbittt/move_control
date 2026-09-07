@@ -94,6 +94,16 @@ def measure(img, res, ox, oy, walls, tol_m=0.10):
     interior covered. Dashboard /result.json reuses this on the saved map.
     """
     h, w = img.shape
+    # Unobserved world outside SLAM's current bounds is still unknown.
+    # Pad on the existing lattice so the denominator covers the full maze.
+    left = max(0, int(np.ceil((ox - MAZE[0]) / res)))
+    bottom = max(0, int(np.ceil((oy - MAZE[0]) / res)))
+    right = max(0, int(np.ceil((MAZE[1] - ox - w * res) / res)))
+    top = max(0, int(np.ceil((MAZE[1] - oy - h * res) / res)))
+    img = np.pad(img, ((top, bottom), (left, right)),
+                 constant_values=205)
+    ox, oy = ox - left * res, oy - bottom * res
+    h, w = img.shape
 
     def w2p(x, y):
         return (x - ox) / res, h - 1 - (y - oy) / res
@@ -199,6 +209,7 @@ def main():
     img, res, ox, oy = load_map(a.map)
     walls = parse_sdf_walls(a.sdf)
     r = measure(img, res, ox, oy, walls, tol_m=a.tol)
+    img = r['img']
     h, w = r['h'], r['w']
     wall_px, occ, known = r['wall_px'], r['img'] < 100, r['img'] != 205
     occ_dil = cv2.dilate(occ.astype(np.uint8),

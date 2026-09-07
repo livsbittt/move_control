@@ -27,6 +27,7 @@ from rclpy.qos import qos_profile_sensor_data
 from nav_msgs.msg import OccupancyGrid, Odometry
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import String
+from tools.gz.save_map import map_pixels
 
 SAVE_EVERY = 30.0     # s wall time between PNG saves
 HEARTBEAT = 10.0      # s between stdout status lines
@@ -92,6 +93,10 @@ class Mon(Node):
         self.goal = (msg.pose.position.x, msg.pose.position.y)
 
     def on_state(self, msg):
+        # A resumed exploration breaks the continuous completion hold,
+        # even when both transitions arrive between monitor ticks.
+        if not msg.data.startswith('coverage done'):
+            self.done_t = None
         if msg.data != self.state:
             self.log(f"state -> {msg.data!r} path={self.path_m:.2f}m")
             self.state = msg.data
@@ -104,10 +109,7 @@ class Mon(Node):
         if self.map is None:
             return
         res, ox, oy, h, w, arr = self.map
-        img = np.full((h, w, 3), 205, np.uint8)  # unknown gray
-        img[arr < 0] = (205, 205, 205)
-        img[(arr >= 0) & (arr < 65)] = (255, 255, 255)   # free (map_saver)
-        img[arr >= 65] = (0, 0, 0)                       # occupied
+        img = np.repeat(map_pixels(arr)[:, :, None], 3, axis=2)
         for x, y in self.trail:
             px, py = int((x - ox) / res), h - 1 - int((y - oy) / res)
             if 0 <= px < w and 0 <= py < h:

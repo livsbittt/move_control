@@ -40,6 +40,7 @@ from move_control.control.recover import (
     ratio_sign,
 )
 from move_control.sensing.lidar import sector_min
+from move_control.control.pursuit import pursuit_index, pursuit_speed
 
 
 def wrap(a):
@@ -215,22 +216,12 @@ class Driver(Node):
         # gently through it: aiming across a sharp corner aims THROUGH the
         # wall corner the route turns around (measured: goals landed 2 cm
         # from the robot across a jamb).
+        odom_route = [self.tf_odom(*p) for p in self.wps]
+        self.wi = min(range(len(odom_route)),
+                      key=lambda i: math.hypot(odom_route[i][0] - self.x,
+                                               odom_route[i][1] - self.y))
         wi0 = self.wi
-        la = self.wi
-        while la + 1 < len(self.wps):
-            nx, ny = self.tf_odom(*self.wps[la + 1])
-            if la > self.wi:
-                pv = self.tf_odom(*self.wps[la - 1])
-                cv = self.tf_odom(*self.wps[la])
-                a1 = math.atan2(cv[1] - pv[1], cv[0] - pv[0])
-                a2 = math.atan2(ny - cv[1], nx - cv[0])
-                if abs(wrap(a2 - a1)) > 0.6:
-                    break
-            if math.hypot(nx - self.x, ny - self.y) >= 0.25:
-                la += 1  # aim AT the first point at/over the lookahead
-                break
-            la += 1
-        self.wi = la
+        la = pursuit_index(odom_route, self.x, self.y)
         tx, ty = self.tf_odom(*self.wps[la])
         d = math.hypot(tx - self.x, ty - self.y)
         err = wrap(math.atan2(ty - self.y, tx - self.x) - self.yaw)
@@ -246,10 +237,8 @@ class Driver(Node):
             ux, uy = segx / seg_len, segy / seg_len
             lat = (self.x - ax) * -uy + (self.y - ay) * ux
             err = wrap(err - max(-0.5, min(0.5, 3.0 * lat)))
-        # Arc toward the aim: stop-and-spin at |err|>0.45 pivoted in tight
-        # corridors (swing-guard churn, measured x=0/wz=0 at d=0.06) —
-        # alignment-scaled forward speed turns while moving instead.
-        cmd.linear.x = min(self.v, 1.2 * d) * max(0.3, math.cos(err))
+        # Align before advancing so the chassis does not cut the corner.
+        cmd.linear.x = pursuit_speed(self.v, d, err)
         cmd.angular.z = max(-self.w, min(self.w, 1.5 * err))
         # Wedged: commanded forward but odom flat (or yaw frozen) for 3 s
         # -> reverse, then spin-until-clear — wander's BACK+ESCAPE as a sim
@@ -337,15 +326,10 @@ class Driver(Node):
                             self.grind_t0 = None  # progressing — re-arm
                 else:
                     self.grind_t0 = None
-                # Side-press cap: the driver never measured the flanks, and
-                # an angled side contact drags the robot to 3 mm/s with a
-                # CLEAR nose (measured: 22 cm/s free vs 3.1 cm/s angled into
-                # a corner). Cap speed by the worst of nose and flank arcs.
-                body = min(front if front is not None else math.inf,
-                           self._flank_min())
-                body_cap = guard_speed(body, 0.10, cmd.linear.x, hyst=0.05)
-                if body_cap < cmd.linear.x:
-                    cmd.linear.x = body_cap
+                # A flank is parallel to travel, not a forward obstacle.
+                # Applying a 10 cm stop band here locked a wall-adjacent
+                # robot at x=0 even with 30 cm free ahead and no yaw error.
+                # Nose/swing guards and measured grind recovery own stops.
                 if abs(cmd.angular.z) > 0.05 and front_block(
                         swing, self.guard_clear * 0.75):
                     # Rotation press: the corner swing arc is blocked — hold
