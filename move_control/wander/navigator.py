@@ -70,8 +70,8 @@ class Navigator:
             pass
         hazard = hazard_action(self.tilt, self.cliff, self.seen_forward,
                                self._can_reverse()) != 'none'
-        blocked = (hazard or self.estop or self.pickup or self.blocked or
-                   self.cam_block or not self._ir_ready() or self._on_wall())
+        blocked = (hazard or self.estop or self.pickup or
+                   self.cam_block or not self._ir_ready())
         age = math.inf if self.navigation_received is None else max(
             now - self.navigation_received, now - self.navigation_stamp)
         v, w, reason = follow_path(
@@ -80,6 +80,11 @@ class Navigator:
             max_age=float(self.get_parameter('route_timeout').value),
             max_tf_age=float(self.get_parameter('route_tf_timeout').value),
             lookahead=float(self.get_parameter('route_lookahead').value))
+        # A front wall blocks translation, not a turn away from it. The sole
+        # motor publisher still requires fresh all-around rotation clearance.
+        if (self.blocked or self._on_wall()) and v > 0:
+            v = 0.0
+            reason = 'turn_away' if w else 'front_blocked'
         if self.navigation_progress.check(now, pose, bool(v or w)):
             v, w, reason = 0.0, 0.0, 'stalled_restart_required'
         self.state = 'forward' if v else ('turn' if w else 'wait')

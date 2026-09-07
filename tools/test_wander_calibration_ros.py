@@ -5,6 +5,7 @@ from unittest.mock import Mock
 import rclpy
 from rclpy.parameter import Parameter
 from std_msgs.msg import Bool, String
+from geometry_msgs.msg import TransformStamped
 from move_control.wander.node import WanderNode
 
 
@@ -51,3 +52,28 @@ class CalibrationGateTest(unittest.TestCase):
         self.assertEqual(self.node.navigation_mode, 'coverage')
         self.node.on_cmd(String(data='stop'))
         self.assertFalse(self.node.enabled)
+
+    def test_front_wall_allows_route_alignment_but_estop_still_halts_every_axis(self):
+        self.node.on_calibration(Bool(data=True))
+        self.node.on_cmd(String(data='explore'))
+        self.node._ir_ready = Mock(return_value=True)
+        self.node._on_wall = Mock(return_value=True)
+        self.node._can_reverse = Mock(return_value=False)
+        self.node.blocked = True
+        self.node.cam_block = self.node.cliff = self.node.tilt = self.node.pickup = False
+        self.node.estop = False
+        t = TransformStamped()
+        t.header.stamp = self.node.now().to_msg()
+        t.transform.rotation.w = 1.
+        self.node.navigation_tf = Mock()
+        self.node.navigation_tf.lookup_transform.return_value = t
+        self.node.navigation_route = [(0.,0.),(-.3,0.)]
+        self.node.navigation_received = self.node.navigation_stamp = self.node.now().nanoseconds*1e-9
+        self.node._tick_navigation()
+        cmd = self.node.pub.publish.call_args.args[0]
+        self.assertEqual(cmd.linear.x,0.)
+        self.assertNotEqual(cmd.angular.z,0.)
+        self.node.estop = True
+        self.node._tick_navigation()
+        cmd = self.node.pub.publish.call_args.args[0]
+        self.assertEqual((cmd.linear.x,cmd.angular.z),(0.,0.))
