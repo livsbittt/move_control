@@ -7,6 +7,7 @@
 goal_node:
   ros__parameters:
     use_sim_time: true
+    mode: explore
     min_size: 2
     rate: 1.0
     # 0.3 m sim corridors seal under clear_m 0.06; retry sealed coverage

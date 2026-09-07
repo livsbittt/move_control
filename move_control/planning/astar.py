@@ -19,8 +19,13 @@ def best_route(m, start, goal, clear_m=0.06):
     clear_m inflates walls so the 5 cm grid can't hug corners (robot ~15 cm
     wide). Inflation from OCC only; unknown blocks by absence.
     """
+    if not (m.ox <= start[0] < m.ox + m.w * m.res and
+            m.oy <= start[1] < m.oy + m.h * m.res):
+        return None
     grid = m.inflate(int(round(clear_m / m.res)))
-    sc = nearest_free(grid, m.world_to_grid(*start), max_occ=2)
+    sc = m.world_to_grid(*start)
+    if not grid.is_free(*sc):
+        return None  # Snapping the robot can create a first leg through a wall.
     gc = nearest_free(grid, m.world_to_grid(*goal), max_occ=2)
     if sc is None or gc is None:
         return None
@@ -36,21 +41,10 @@ def best_route(m, start, goal, clear_m=0.06):
         closed.add(cur)
         if cur == gc:
             cells = _walk(came, cur)
-            extra = 0.0  # the appended raw-goal leg, counted into 'length'
-            raw = m.world_to_grid(*goal)
-            if cells[-1] != raw and m.is_free(*raw):
-                # The goal sat inside the inflation ring and nearest_free
-                # snapped it: the A* route ended at the stand-in cell —
-                # which can sit back toward the robot (measured on the gz
-                # rig: the route ended 2 cm from the robot while the brain
-                # waited 0.19 m away, so the probe latch never released).
-                # Finish the last leg at the true, raw-free goal cell.
-                cells.append(raw)
-                extra = math.hypot(raw[0] - cur[0], raw[1] - cur[1])
             return {
                 'points': [m.grid_to_world(c, r) for c, r in cells],
                 'cells': cells,
-                'length': (g[cur] + extra) * m.res,
+                'length': g[cur] * m.res,
             }
         for dc, dr in _STEPS:
             nx = (cur[0] + dc, cur[1] + dr)

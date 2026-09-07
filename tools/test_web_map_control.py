@@ -61,8 +61,10 @@ class MapControlTest(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertTrue(result['ok'])
         self.assertTrue(self.control.reset.calls[0].pause_new_measurements)
-        for pub in (self.node.wander_pub, self.node.estop_pub, self.node.goal_pub):
+        for pub in (self.node.wander_pub, self.node.estop_pub):
             self.assertEqual(pub.publish.call_args.args[0].data, 'stop')
+        self.assertEqual([c.args[0].data for c in self.node.goal_pub.publish.call_args_list],
+                         ['stop', 'reset'])
         for key in ('map', 'goal_pt', 'route', 'options', 'trail'):
             self.assertNotIn(key, web.STATE)
         self.assertIsNone(web.MAP_PNG['bytes'])

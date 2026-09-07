@@ -86,6 +86,35 @@ class GoalBrain:
         self._target = None     # current goal cell
         self._first = self._best = 0.0
         self._n = 0
+        self._coverage_deferred = {}
+        self._map_lattice = None
+
+    def reset(self):
+        """Clear map-session memory without changing configured geometry."""
+        self.covered.clear()
+        self._coverage_deferred.clear()
+        self._blacklist.clear()
+        self.last_options = []
+        self.clear_manual()
+        self._probe = self._target = self._wide_cell = None
+        self._map_lattice = None
+        self._probe_deadline = self._plan_n = self._n = 0
+
+    def _track_map_lattice(self, m):
+        lattice = (m.res, m.ox, m.oy)
+        if self._map_lattice is not None and lattice != self._map_lattice:
+            res, ox, oy = self._map_lattice
+            remapped = set()
+            for c, r in self.covered:
+                nc = math.floor((ox + (c + .5) * res - m.ox) / m.res)
+                nr = math.floor((oy + (r + .5) * res - m.oy) / m.res)
+                if 0 <= nc < m.w and 0 <= nr < m.h and m.is_free(nc, nr):
+                    remapped.add((nc, nr))
+            self.covered = remapped
+            self._coverage_deferred.clear()
+            self._blacklist.clear()
+            self._target = None
+        self._map_lattice = lattice
 
     def _watchdog(self, m, pose, g):
         """Bench a frontier the robot fails to approach.
@@ -157,7 +186,10 @@ class GoalBrain:
             self._manual = None
             return None, None, 'manual goal reached'
         route = None
-        for cm in (self.clear_m, 0.0):
+        margins = [self.clear_m]
+        if self.retry_unreachable_wp:
+            margins.append(self.retry_clear_m)
+        for cm in margins:
             route = best_route(m, pose, (x, y), clear_m=cm)
             if route:
                 break
@@ -167,6 +199,8 @@ class GoalBrain:
                 return None, None, 'manual goal unreachable, cleared'
             return None, None,                 f'manual goal unreachable ({self._manual_n}/{self.stall_plans})'
         self.last_options = []
+        x, y = route['points'][-1]
+        self._manual = (x, y)
         return (x, y), route, \
             f'manual goal=({x:.2f},{y:.2f}) route={route["length"]:.2f}m'
 
@@ -209,9 +243,13 @@ class GoalBrain:
                 else math.inf
         if self._probe is None:
             return None, None, ''  # nothing reachable >= walk_min yet
-        for cm in (self.clear_m, 0.0):
+        margins = [self.clear_m]
+        if self.retry_unreachable_wp:
+            margins.append(self.retry_clear_m)
+        for cm in margins:
             route = best_route(m, pose, self._probe, clear_m=cm)
             if route and route['length'] >= 0.05:
+                self._probe = route['points'][-1]
                 return self._probe, route, (
                     f'probe goal=({self._probe[0]:.2f},{self._probe[1]:.2f}) '
                     f'route={route["length"]:.2f}m')
@@ -226,6 +264,10 @@ class GoalBrain:
         done) — the driver publishes nothing then.
         """
         self._plan_n += 1
+        self.last_options = []
+        self._track_map_lattice(m)
+        self._coverage_deferred = {c: expiry for c, expiry in self._coverage_deferred.items()
+                                   if expiry > self._plan_n}
         self._gc_blacklist()
         # External (dashboard) goal wins while valid; _manual_plan clears it
         # on expiry/unreachable and returns None -> fall through normally.
@@ -267,8 +309,9 @@ class GoalBrain:
             if self.mode != 'explore':
                 self.mode = 'explore'
         cover_ring(self.covered, m, pose[0], pose[1],
-                   radius_m=self.lane_width / 2 + 0.08)
-        zz = ZigzagPlanner(m, start=pose, covered=self.covered,
+                   radius_m=self.lane_width / 2)
+        zz = ZigzagPlanner(m, start=pose,
+                           covered=self.covered | set(self._coverage_deferred),
                            lane_width=self.lane_width,
                            lane_step=self.lane_step)
         if not zz.region:
@@ -278,25 +321,25 @@ class GoalBrain:
             return None, None, 'coverage idle (no known space)'
         wps = zz.waypoints()
         if not wps:
+            if self._coverage_deferred:
+                return None, None, f'coverage waiting ({len(self._coverage_deferred)} unreachable cells)'
             if self.probe_when_done and self._plan_n >= self._probe_deadline:
                 goal, route, status = self._probe_goal(m, pose, zz)
                 if goal is not None:
                     return goal, route, status
             return None, None, 'coverage done'
-        goal = wps[0]
-        route = best_route(m, pose, goal, clear_m=self.clear_m)
-        if route is None and self.retry_unreachable_wp and \
-                self.retry_clear_m < self.clear_m:
-            # Lane cells hug walls; clear_m inflation seals most of a
-            # 0.3 m corridor so every lane wp read 'unreachable, skip'
-            # and the covered set swallowed the whole region (sim rig:
-            # 526-cell map starved to 'coverage done'). Raw-map retry —
-            # same principle as the frontier's sealed-corridor retry.
-            route = best_route(m, pose, goal, clear_m=self.retry_clear_m)
-        if route is None:
-            self.covered.add(m.world_to_grid(*goal))
-            return None, None, 'coverage wp unreachable, skip'
-        if math.hypot(goal[0] - pose[0], goal[1] - pose[1]) < self.reach_tol:
-            return None, None, 'coverage wp at robot'
-        return goal, route, (f'coverage goal=({goal[0]:.2f},{goal[1]:.2f}) '
-                             f'left={len(wps)}')
+        # Skip a bounded batch of blocked lane endpoints in this plan. A
+        # target snapped back onto the robot must not stall every replan.
+        for requested in wps[:16]:
+            route = best_route(m, pose, requested, clear_m=self.clear_m)
+            if route is None and self.retry_unreachable_wp and \
+                    self.retry_clear_m < self.clear_m:
+                route = best_route(m, pose, requested, clear_m=self.retry_clear_m)
+            goal = route['points'][-1] if route else None
+            if (goal is None or m.world_to_grid(*goal) in self.covered or
+                    math.hypot(goal[0] - pose[0], goal[1] - pose[1]) < self.reach_tol):
+                self._coverage_deferred[m.world_to_grid(*requested)] = self._plan_n + self.blacklist_plans
+                continue
+            return goal, route, (f'coverage goal=({goal[0]:.2f},{goal[1]:.2f}) '
+                                 f'left={len(wps)}')
+        return None, None, 'coverage wp unreachable, deferred'

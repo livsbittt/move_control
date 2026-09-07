@@ -5,6 +5,7 @@ from geometry_msgs.msg import Twist
 from rclpy.parameter import Parameter
 
 from ..sensing.lidar import wrap_pi
+from ..control.recovery_budget import RecoveryBudget
 from ..control.recover import (
     ESCAPE_MIN_TURN,
     STUCK_CLEAR_M,
@@ -18,6 +19,18 @@ from ..control.recover import (
 
 
 class Motion:
+
+    def _allow_recovery(self):
+        budget = getattr(self, '_recovery_budget', None)
+        if budget is None:
+            budget = self._recovery_budget = RecoveryBudget()
+        if budget.attempt(self.odom_x, self.odom_y):
+            return True
+        self.get_logger().error('recovery limit: no progress in this area; operator restart required')
+        self._set_enabled(False)
+        self.stop_reason = 'recovery_limit'
+        self._announce('stop:recovery_limit')
+        return False
 
     def _line_wz(self) -> float:
         """Hold a straight line toward route_yaw. No circling."""
@@ -240,8 +253,8 @@ class Motion:
         self._stuck_n = 0
 
     def _resume_forward(self, use_line=False):
-        if self._from_stuck_now():
-            self._clear_stuck()
+        # A forward command is not evidence of escape. Clear only after
+        # measured displacement in _tick_forward, preserving failed exits.
         self._enter('forward')
         out = Twist()
         out.linear.x = self._fwd_speed()
@@ -251,6 +264,8 @@ class Motion:
 
     def _recover_stuck(self):
         """Do not look-then-forward. Backup if the tail is free, else spin."""
+        if not self._allow_recovery():
+            return
         was_from_stuck = self._from_stuck_now()
         self._stuck_n = int(getattr(self, '_stuck_n', 0)) + 1
         self._from_stuck = True
@@ -290,6 +305,8 @@ class Motion:
             or self.blocked
             or self._on_wall()
         ):
+            if (self.blocked or self._on_wall()) and not self._allow_recovery():
+                return
             self._hold('pause')
             return
         if self._is_stuck():

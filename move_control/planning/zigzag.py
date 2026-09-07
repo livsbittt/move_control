@@ -121,7 +121,7 @@ class ZigzagPlanner:
         horiz = self.m.w >= self.m.h
         keys = sorted({(r if horiz else c) for (c, r) in region})
         for key in keys[::stride]:
-            cells = sorted(c for c, r2 in region
+            cells = sorted((c if horiz else r2) for c, r2 in region
                            if (r2 if horiz else c) == key
                            and (c, r2) not in covered)
             runs = []
@@ -140,7 +140,7 @@ class ZigzagPlanner:
                 if len(run) < min_run:
                     continue
                 wps = list(dict.fromkeys(run[::step] + [run[-1]]))
-                qualifying.append([(c, key) for c in wps])
+                qualifying.append([(c, key) if horiz else (key, c) for c in wps])
             if qualifying:
                 lanes.append({'key': key, 'runs': qualifying})
         return lanes
@@ -185,5 +185,6 @@ def cover_ring(covered, m, x, y, radius_m=0.16):
     rad = int(math.ceil(radius_m / m.res))
     for dc in range(-rad, rad + 1):
         for dr in range(-rad, rad + 1):
-            if dc * dc + dr * dr <= rad * rad and m.is_free(c0 + dc, r0 + dr):
+            wx, wy = m.grid_to_world(c0 + dc, r0 + dr)
+            if math.hypot(wx - x, wy - y) <= radius_m and m.is_free(c0 + dc, r0 + dr):
                 covered.add((c0 + dc, r0 + dr))

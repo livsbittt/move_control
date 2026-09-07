@@ -1,58 +1,150 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>pinky map + control</title>
+<title>pinky console</title>
 <style>
 :root {
   color-scheme: dark;
-  /* surfaces & ink (dataviz reference palette, dark) */
-  --bg: #0d0d0d;  --surface: #1a1a19;  --surface-2: #232322;
+  /* grounds — the page is split by surface, not by card outlines:
+     observe/sense sit flat on the page, act is raised. */
+  --bg: #0d0d0d;  --observe: #131312;  --act: #1f1f1c;  --act-2: #2a2a26;
   --unk: #161615; --grid: #2c2c2a;     --border: rgba(255,255,255,0.10);
+  --rule: rgba(255,255,255,0.07);
   --ink: #ffffff; --ink-2: #c3c2b7;    --muted: #898781;
-  /* map raster */
+  /* map raster — must match render_png in move_control/web_node.py */
   --free: #232322; --wall: #e1e0d9;
   /* categorical overlays (validated trio) + pin */
   --route: #3987e5; --alt: #d95926; --goal: #199e70; --pin: #d55181;
   --hist: #898781; /* de-emphasis, not a series */
-  /* status (reserved - never for series) */
+  /* status (reserved — never for series, never decorative) */
   --good: #0ca30c; --warn: #fab219; --serious: #ec835a; --crit: #d03b3b;
+  /* gauges read as margin: neutral until a threshold is crossed */
+  --gauge: rgba(195,194,183,0.45); --track: rgba(255,255,255,0.06);
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body { margin:0; background:var(--bg); color:var(--ink-2);
-       font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
-       display:flex; flex-direction:column; }
-header { flex:none; display:flex; align-items:center; gap:16px; padding:10px 16px;
-         background:var(--surface); border-bottom:1px solid var(--border); }
-.brand { font-weight:600; color:var(--ink); display:flex; align-items:center; gap:9px; }
-.dot { width:8px; height:8px; border-radius:50%; background:var(--muted); }
+       font: 400 13px/1.5 system-ui, -apple-system, "Segoe UI",
+             "Malgun Gothic", sans-serif;
+       display:flex; flex-direction:column;
+       -webkit-font-smoothing:antialiased; }
+b, strong { font-weight:600; }
+
+/* ---- status bar --------------------------------------------------------- */
+header { flex:none; display:flex; align-items:center; gap:16px;
+         padding:9px 16px 8px; background:var(--observe);
+         border-bottom:1px solid var(--border); }
+.brand { font-size:14px; font-weight:600; color:var(--ink);
+         display:flex; align-items:center; gap:9px; letter-spacing:0.01em; }
+.dot { width:8px; height:8px; border-radius:50%; background:var(--muted);
+       flex:none; }
 .dot.live { background:var(--good); }
-.chips { margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
-.chip { display:inline-flex; align-items:center; gap:6px; font-size:12px;
+.chips { margin-left:auto; display:flex; gap:7px; flex-wrap:wrap;
+         align-items:center; }
+.chip { display:inline-flex; align-items:baseline; gap:6px; font-size:12px;
         color:var(--muted); background:var(--bg);
         border:1px solid var(--border); border-radius:999px; padding:3px 11px; }
 .chip b { color:var(--ink); font-weight:600; }
-.chip.crit { border-color:rgba(208,59,59,0.6); }
+.chip.crit { border-color:rgba(208,59,59,0.6); background:rgba(208,59,59,0.10); }
 .chip.crit b { color:var(--crit); }
-main { flex:1; min-height:0; display:grid;
-       grid-template-columns:minmax(0,1fr) 340px; gap:12px; padding:12px; }
-.mapcard { display:flex; flex-direction:column; min-height:0; min-width:0; }
-.maphead { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-.legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--muted); }
+
+/* ---- three regions: 감지 | 관측 | 조작 ----------------------------------- */
+main { flex:1; min-height:0; display:grid; gap:0;
+       grid-template-columns:296px minmax(0,1fr) 322px;
+       grid-template-areas:"sense observe act"; }
+.region { min-height:0; min-width:0; display:flex; flex-direction:column; }
+.sense  { grid-area:sense;  background:var(--observe);
+          border-right:1px solid var(--rule); overflow-y:auto; }
+.observe{ grid-area:observe; background:var(--bg); }
+.act    { grid-area:act; background:var(--act);
+          border-left:1px solid var(--border); overflow-y:auto;
+          box-shadow:inset 1px 0 0 rgba(255,255,255,0.04); }
+/* region caption: a heading plus a rule that runs to the edge — the rule is
+   the divider, so no boxes are needed to tell the regions apart. */
+.rhead { flex:none; display:flex; align-items:center; gap:10px;
+         padding:11px 14px 9px; }
+.rhead h2 { margin:0; font-size:12px; font-weight:600; color:var(--ink-2); }
+.rhead .gloss { font-size:11px; color:var(--muted); }
+.rhead::after { content:""; flex:1; height:1px; background:var(--rule); }
+.rbody { flex:1; min-height:0; display:flex; flex-direction:column;
+         gap:14px; padding:0 14px 16px; }
+.act .rbody { gap:12px; }
+
+/* ---- block (a grouped set inside a region) ------------------------------ */
+.block > h3 { margin:0 0 7px; font-size:12px; font-weight:600;
+              color:var(--ink-2); }
+.hint { margin:0 0 8px; font-size:11.5px; line-height:1.45; color:var(--muted); }
+.hint:empty { display:none; }
+
+/* ---- 감지: dial --------------------------------------------------------- */
+.dialwrap { position:relative; }
+#scan { display:block; width:100%; height:auto; }
+.dialnote { position:absolute; left:0; right:0; bottom:2px; text-align:center;
+            font-size:11px; color:var(--muted); }
+/* ---- 감지: clearance gauges --------------------------------------------- */
+.gauge { display:grid; grid-template-columns:66px minmax(0,1fr) 58px;
+         align-items:center; gap:9px; padding:3px 0; }
+.gauge .g-k { font-size:12px; color:var(--muted); overflow:hidden;
+              text-overflow:ellipsis; white-space:nowrap; }
+.gauge .g-t { position:relative; height:9px; border-radius:3px;
+              background:var(--track); overflow:hidden; }
+.gauge .g-f { position:absolute; inset:0 auto 0 0; width:0;
+              background:var(--gauge); border-radius:3px;
+              transition:width .18s linear, background-color .18s linear; }
+.gauge .g-x { position:absolute; top:-2px; bottom:-2px; width:2px;
+              background:rgba(255,255,255,0.42); }
+.gauge .g-v { text-align:right; font-size:12.5px; font-weight:600;
+              color:var(--ink); font-variant-numeric:tabular-nums; }
+.gauge.lead .g-v { font-size:17px; }
+.gauge.lead .g-k { color:var(--ink-2); }
+.gauge.lead .g-t { height:12px; }
+.gauge.miss .g-v, .gauge.miss .g-k { color:var(--muted); font-weight:400; }
+.g-f.warn { background:var(--warn); }
+.g-f.crit { background:var(--crit); }
+.g-v.warn { color:var(--warn); }
+.g-v.crit { color:var(--crit); }
+/* ---- 감지: flags -------------------------------------------------------- */
+.flags { display:flex; flex-wrap:wrap; gap:5px; }
+.flag { font-size:11px; color:var(--muted); background:rgba(255,255,255,0.02);
+        border:1px solid var(--rule); border-radius:999px; padding:2px 9px;
+        white-space:nowrap; }
+.flag.hit { color:var(--crit); border-color:rgba(208,59,59,0.6);
+            background:rgba(208,59,59,0.12); font-weight:600; }
+.flag.ok  { color:var(--ink-2); border-color:var(--border); }
+.flag.lost{ color:var(--warn); border-color:rgba(250,178,25,0.45); }
+/* ---- 감지: camera ------------------------------------------------------- */
+.camframe { position:relative; border-radius:8px; overflow:hidden;
+            background:var(--unk); border:1px solid var(--rule); }
+#camimg { width:100%; display:block; }
+#camimg.old { opacity:0.42; filter:saturate(0.4); }
+.camveil { position:absolute; inset:auto 0 0 0; padding:4px 8px;
+           font-size:11px; color:var(--warn);
+           background:linear-gradient(transparent, rgba(13,13,13,0.85)); }
+.camveil:empty { display:none; }
+#camnone { color:var(--muted); font-size:12px; padding:22px 0;
+           text-align:center; }
+.camcap { font-size:11px; color:var(--muted); margin-top:6px;
+          overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.camcap:empty { display:none; }
+
+/* ---- 관측: map ---------------------------------------------------------- */
+.observe .rbody { gap:10px; padding:0 14px 12px; }
+.maphead { flex:none; display:flex; align-items:center; gap:12px;
+           flex-wrap:wrap; }
+.legend { display:flex; gap:13px; flex-wrap:wrap; font-size:11.5px;
+          color:var(--muted); }
 .key { display:inline-flex; align-items:center; gap:6px; }
-.sw { width:14px; height:3px; border-radius:2px; }
+.sw { width:14px; height:3px; border-radius:2px; flex:none; }
 .sw.route { background:var(--route); }
 .sw.alt { background:var(--alt); }
 .sw.hist { background:var(--hist); }
 .sw.goal { width:9px; height:9px; border-radius:2px; background:var(--goal); }
-.pin { font-size:12px; color:var(--ink); margin-left:auto;
+.pin { font-size:12px; color:var(--pin); margin-left:auto;
        font-variant-numeric:tabular-nums; }
-.goal-state { font-size:12px; color:var(--ink-2); flex-basis:100%;
-              overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.mapwrap { position:relative; flex:1; min-height:0; margin-top:8px;
-           background:var(--unk); border:1px solid var(--border);
+.mapwrap { position:relative; flex:1; min-height:180px;
+           background:var(--unk); border:1px solid var(--rule);
            border-radius:8px; overflow:hidden; cursor:crosshair; }
 .mapwrap.grabbing { cursor:grabbing; }
 #map { position:absolute; inset:0; width:100%; height:100%; display:block; }
@@ -60,240 +152,329 @@ main { flex:1; min-height:0; display:grid;
 .coords { position:absolute; left:10px; bottom:8px; font-size:11px;
           color:var(--ink-2); background:rgba(13,13,13,0.78);
           border:1px solid var(--border); border-radius:6px;
-          padding:2px 8px; pointer-events:none; }
+          padding:2px 8px; pointer-events:none;
+          font-variant-numeric:tabular-nums; }
 .viewbar { position:absolute; top:8px; right:8px; display:flex; gap:4px;
            align-items:center; }
 .viewbar button { padding:2px 9px; font-size:12px; border-radius:6px; }
 #zoompct { font-size:11px; color:var(--ink-2); background:rgba(13,13,13,0.78);
-           border:1px solid var(--border); border-radius:6px; padding:2px 8px; }
+           border:1px solid var(--border); border-radius:6px; padding:2px 8px;
+           font-variant-numeric:tabular-nums; }
 .stale { position:absolute; inset:0; display:none; align-items:center;
          justify-content:center; background:rgba(13,13,13,0.55);
          color:var(--warn); font-size:13px; pointer-events:none; }
 .empty-note { position:absolute; inset:0; display:flex; align-items:center;
               justify-content:center; color:var(--muted); font-size:13px;
               pointer-events:none; }
-aside { min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:12px; }
-.card { background:var(--surface); border:1px solid var(--border);
-        border-radius:10px; padding:12px 14px; }
-.card h3 { margin:0 0 8px; font-size:13px; font-weight:600; color:var(--ink-2); }
-.hint { margin:-4px 0 8px; font-size:12px; color:var(--muted); }
+.goal-state { flex:none; font-size:12px; color:var(--ink-2);
+              overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+/* metrics strip: the map's own numbers, under the map, not in a far card */
+.strip { flex:none; display:grid; gap:1px; background:var(--rule);
+         border:1px solid var(--rule); border-radius:8px; overflow:hidden;
+         grid-template-columns:repeat(6, minmax(0,1fr)); }
+.cell { background:var(--observe); padding:6px 10px 7px; min-width:0; }
+.cell .lbl { font-size:11px; color:var(--muted); overflow:hidden;
+             text-overflow:ellipsis; white-space:nowrap; }
+.cell .val { font-size:14px; font-weight:600; color:var(--ink); margin-top:1px;
+             font-variant-numeric:tabular-nums; overflow:hidden;
+             text-overflow:ellipsis; white-space:nowrap; }
+.cell.warnval .val { color:var(--warn); font-size:12px; font-weight:500; }
+
+/* ---- 조작: raised controls ---------------------------------------------- */
+.act .block { background:rgba(255,255,255,0.025);
+              border:1px solid var(--border); border-radius:10px;
+              padding:11px 12px 12px; }
+.act .block.estop { border-color:rgba(208,59,59,0.45);
+                    background:rgba(208,59,59,0.07); }
 .btnrow { display:flex; gap:6px; }
 .btnrow button { flex:1; }
-button { background:var(--surface-2); color:var(--ink);
+.btnrow + .btnrow { margin-top:6px; }
+button { background:var(--act-2); color:var(--ink);
          border:1px solid var(--border); border-radius:8px;
-         padding:8px 10px; font:inherit; font-size:13px; cursor:pointer; }
-button:hover { border-color:var(--muted); }
-button:active { transform:translateY(1px); }
+         padding:8px 10px; font:inherit; font-size:12.5px; cursor:pointer; }
+button:hover:not(:disabled) { border-color:var(--muted); }
+button:active:not(:disabled) { transform:translateY(1px); }
 button:focus-visible { outline:2px solid var(--route); outline-offset:2px; }
-button:disabled { opacity:0.45; cursor:not-allowed; transform:none; }
-.mapping-error { color:var(--serious); font-size:12px; margin-top:8px; }
-.mapping-error:empty { display:none; }
-button.danger { background:rgba(208,59,59,0.16);
-                border-color:rgba(208,59,59,0.55); }
+button:disabled { opacity:0.42; cursor:not-allowed; transform:none; }
+button.danger { background:rgba(208,59,59,0.18);
+                border-color:rgba(208,59,59,0.55); color:#ffd7d7; }
+button.danger:hover:not(:disabled) { border-color:var(--crit); }
+button.halt { padding:13px 10px; font-size:15px; font-weight:600;
+              letter-spacing:0.06em; }
 button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
+.sub { margin-top:10px; padding-top:9px; border-top:1px solid var(--rule); }
+.sub.first { margin-top:0; padding-top:0; border-top:0; }
+.sub > h4 { margin:0 0 5px; font-size:11.5px; font-weight:600;
+            color:var(--ink-2); }
+.mapping-error { color:var(--serious); font-size:11.5px; margin-top:8px; }
+.mapping-error:empty { display:none; }
 .pad { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
-.keys { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:8px; }
+.pad button { padding:11px 0; }
+.keys { display:grid; grid-template-columns:repeat(3,1fr); gap:4px;
+        margin-top:6px; }
 .keys span { display:flex; align-items:center; justify-content:center;
-             background:var(--surface-2); border:1px solid var(--border);
-             border-radius:6px; padding:5px 0; font-size:12px;
-             color:var(--ink-2); user-select:none; }
-.keys span.on { border-color:var(--route); color:var(--ink); }
-.scanrow { display:flex; gap:12px; align-items:center; }
-#scan { width:132px; height:132px; flex:none; border-radius:50%;
-        background:var(--unk); border:1px solid var(--border); }
-#sens { flex:1; min-width:0; }
+             background:rgba(255,255,255,0.03); border:1px solid var(--rule);
+             border-radius:5px; padding:4px 0; font-size:11px;
+             color:var(--muted); user-select:none; }
+.keys span.on { border-color:var(--route); color:var(--ink);
+                background:rgba(57,135,229,0.16); }
 .srow { display:flex; justify-content:space-between; gap:8px;
-        font-size:13px; padding:1px 0; }
+        font-size:12px; padding:2px 0; }
 .srow .k { color:var(--muted); }
 .srow .v { color:var(--ink); font-weight:500;
            font-variant-numeric:tabular-nums; overflow:hidden;
            text-overflow:ellipsis; white-space:nowrap; }
-.bools { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
-.bool { font-size:11px; color:var(--muted);
-        border:1px solid var(--border); border-radius:999px; padding:2px 9px; }
-.bool.on { color:var(--crit); border-color:rgba(208,59,59,0.6); }
-.tiles { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px; }
-.tile { background:var(--bg); border:1px solid var(--border);
-        border-radius:8px; padding:6px 10px; min-width:0; }
-.tile .lbl { font-size:11px; color:var(--muted); }
-.tile .val { font-size:15px; font-weight:600; color:var(--ink);
-             overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-#camimg { width:100%; border-radius:8px; background:var(--unk);
-          border:1px solid var(--border); display:block; }
-#camnone { color:var(--muted); font-size:12px; padding:14px 0; text-align:center; }
-@media (max-width: 940px) {
-  main { grid-template-columns:1fr; flex:none; height:auto; }
-  .mapwrap { flex:none; height:60vh; }
-  aside { overflow:visible; }
+
+@media (max-width: 1279px) {
+  main { grid-template-columns:minmax(0,1fr) 322px;
+         grid-template-areas:"observe act" "sense act";
+         grid-template-rows:minmax(320px,1fr) auto; }
+  .sense { border-right:0; border-top:1px solid var(--rule); overflow:visible; }
+  .sense .rbody { flex-direction:row; flex-wrap:wrap; align-items:flex-start; }
+  .sense .block { flex:1 1 240px; }
+}
+@media (max-width: 900px) {
+  main { grid-template-columns:minmax(0,1fr);
+         grid-template-areas:"observe" "sense" "act";
+         grid-template-rows:auto; }
+  body { height:auto; }
+  .observe .mapwrap { flex:none; height:58vh; }
+  .act { border-left:0; border-top:1px solid var(--border); }
+  .strip { grid-template-columns:repeat(3, minmax(0,1fr)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition:none !important; }
 }
 </style>
 </head>
 <body>
 <header>
-  <div class="brand"><span class="dot" id="live"></span> pinky map + control</div>
+  <div class="brand"><span class="dot" id="live"></span> pinky console</div>
   <div class="chips">
-    <span class="chip">mode <b id="mode">-</b></span>
-    <span class="chip">wander <b id="wander">-</b></span>
-    <span class="chip" id="estopChip">estop <b id="estop">-</b></span>
-    <span class="chip">ok <b id="ok">-</b></span>
+    <span class="chip" id="modeChip">모드 <b id="mode">-</b></span>
+    <span class="chip">주행 <b id="wander">-</b></span>
+    <span class="chip" id="estopChip">비상정지 <b id="estop">-</b></span>
+    <span class="chip" id="okChip">노드 <b id="ok">-</b></span>
+    <span class="chip" title="watch_node /robot/health">진단 <b id="health">-</b></span>
   </div>
 </header>
 <main>
-  <section class="card mapcard">
-    <div class="maphead">
-      <div class="legend">
-        <span class="key"><i class="sw route"></i>route</span>
-        <span class="key"><i class="sw alt"></i>alternatives</span>
-        <span class="key"><i class="sw hist"></i>trail and traveled</span>
-        <span class="key"><i class="sw goal"></i>goal</span>
+
+  <!-- ==================== 감지 ==================== -->
+  <section class="region sense" aria-labelledby="h-sense">
+    <div class="rhead"><h2 id="h-sense">감지</h2>
+      <span class="gloss">로봇이 재는 값</span></div>
+    <div class="rbody">
+      <div class="block">
+        <div class="dialwrap">
+          <canvas id="scan" width="416" height="416" role="img"
+                  aria-label="라이다 극좌표 뷰, 위쪽이 로봇 정면"></canvas>
+          <div class="dialnote" id="dialnote">라이다 대기</div>
+        </div>
       </div>
-      <span class="pin" id="pin"></span>
-      <button type="button" class="mini" id="pinsend" style="display:none"
-              aria-label="send the robot to the pinned point">send robot here</button>
-      <button type="button" class="mini" id="pinclear" style="display:none"
-              aria-label="clear pin">clear</button>
-      <div class="goal-state" id="gstate">-</div>
-    </div>
-    <div class="mapwrap" id="mapwrap">
-      <canvas id="map" role="img" aria-label="occupancy map with route overlays"></canvas>
-      <div class="viewbar">
-        <button type="button" data-view="in" aria-label="zoom in">+</button>
-        <button type="button" data-view="out" aria-label="zoom out">&minus;</button>
-        <button type="button" data-view="fit" aria-label="reset view">fit</button>
-        <span id="zoompct">100%</span>
+      <div class="block">
+        <h3>여유 거리</h3>
+        <p class="hint" id="clearhint">정지선을 넘으면 safety가 모터를 잡습니다.</p>
+        <div id="gauges"></div>
       </div>
-      <div class="stale" id="stale"></div>
-      <div class="empty-note" id="mapnote" style="display:none">waiting for the map</div>
-      <div class="coords" id="coords"></div>
+      <div class="block">
+        <h3>안전 판정</h3>
+        <div class="flags" id="bools"></div>
+      </div>
+      <div class="block" id="camcard" style="display:none">
+        <h3>카메라</h3>
+        <div class="camframe">
+          <img id="camimg" alt="전방 카메라 영상">
+          <div class="camveil" id="camveil"></div>
+        </div>
+        <div id="camnone" style="display:none">영상 없음</div>
+        <div class="camcap" id="camcap"></div>
+        <div class="flags" id="camverdict" style="margin-top:7px"></div>
+      </div>
+      <div class="block" id="rescard" style="display:none">
+        <h3>매핑 품질</h3>
+        <div id="resrows"></div>
+      </div>
     </div>
   </section>
-  <aside>
-    <div class="card" id="mappingcard">
-      <h3>매핑</h3>
-      <p class="hint" id="mappingstatus" role="status">매핑 상태 확인 중…</p>
-      <div class="btnrow">
-        <button type="button" class="danger" id="mapreset" disabled>지도 초기화</button>
-        <button type="button" id="mapresume" disabled>매핑 재개</button>
-      </div>
-      <p class="hint">초기화하면 주행을 정지하고 지도 수집을 일시정지합니다. 다시 배치한 뒤 매핑을 재개하세요.</p>
-      <div class="mapping-error" id="mappingerror" role="alert"></div>
+
+  <!-- ==================== 관측 ==================== -->
+  <section class="region observe" aria-labelledby="h-observe">
+    <div class="rhead"><h2 id="h-observe">관측</h2>
+      <span class="gloss">지도 위 현재 위치와 경로</span>
+      <span class="pin" id="pin"></span>
+      <button type="button" class="mini" id="pinsend" style="display:none"
+              aria-label="찍은 지점으로 로봇 보내기">이 지점으로</button>
+      <button type="button" class="mini" id="pinclear" style="display:none"
+              aria-label="지점 지우기">지우기</button>
     </div>
-    <div class="card">
-      <h3>Goal</h3>
-      <p class="hint">advisory — wander and control drive the robot</p>
-      <div class="btnrow">
-        <button type="button" data-post="/cmd" data-val="explore">explore</button>
-        <button type="button" data-post="/cmd" data-val="coverage">coverage</button>
-        <button type="button" data-post="/cmd" data-val="stop">stop</button>
+    <div class="rbody">
+      <div class="maphead">
+        <div class="legend">
+          <span class="key"><i class="sw route"></i>남은 경로</span>
+          <span class="key"><i class="sw alt"></i>후보 경로</span>
+          <span class="key"><i class="sw hist"></i>지나온 길</span>
+          <span class="key"><i class="sw goal"></i>목표</span>
+        </div>
       </div>
-    </div>
-    <div class="card">
-      <h3>Wander</h3>
-      <p class="hint">motors on or off, node stays up</p>
-      <div class="btnrow">
-        <button type="button" data-post="/wander" data-val="start">start</button>
-        <button type="button" data-post="/wander" data-val="stop">stop</button>
+      <div class="mapwrap" id="mapwrap">
+        <canvas id="map" role="img" aria-label="점유 격자 지도와 경로 오버레이"></canvas>
+        <div class="viewbar">
+          <button type="button" data-view="in" aria-label="확대">+</button>
+          <button type="button" data-view="out" aria-label="축소">&minus;</button>
+          <button type="button" data-view="fit" aria-label="화면 맞춤">맞춤</button>
+          <span id="zoompct">100%</span>
+        </div>
+        <div class="stale" id="stale"></div>
+        <div class="empty-note" id="mapnote" style="display:none">지도 수신 대기</div>
+        <div class="coords" id="coords"></div>
       </div>
-    </div>
-    <div class="card">
-      <h3>E-stop</h3>
-      <p class="hint">latched — safety holds the motors at zero</p>
-      <div class="btnrow">
-        <button type="button" class="danger" data-post="/estop" data-val="stop">STOP</button>
-        <button type="button" data-post="/estop" data-val="release">release</button>
-      </div>
-    </div>
-    <div class="card">
-      <h3>Teleop</h3>
-      <p class="hint">hold the pad or keys, i+j combine, k stops, + and &minus; set speed</p>
-      <div class="pad">
-        <span></span>
-        <button type="button" data-hold="up" aria-label="forward">&#8593;</button>
-        <span></span>
-        <button type="button" data-hold="left" aria-label="rotate left">&#8592;</button>
-        <button type="button" data-hold="stop" aria-label="stop">stop</button>
-        <button type="button" data-hold="right" aria-label="rotate right">&#8594;</button>
-        <span></span>
-        <button type="button" data-hold="down" aria-label="back">&#8595;</button>
-        <span></span>
-      </div>
-      <div class="keys" id="keys">
-        <span data-a="ul">u</span><span data-a="up">i</span><span data-a="ur">o</span>
-        <span data-a="left">j</span><span data-a="stop">k</span><span data-a="right">l</span>
-        <span data-a="dl">m</span><span data-a="down">,</span><span data-a="dr">.</span>
-      </div>
-      <div class="srow" style="margin-top:8px">
-        <span class="k">speed</span><span class="v" id="speed">-</span>
-      </div>
-      <div class="srow">
-        <span class="k">topic</span><span class="v" id="ttopic">-</span>
+      <div class="goal-state" id="gstate">-</div>
+      <div class="strip">
+        <div class="cell" id="poseCell"><div class="lbl">지도 좌표 x, y</div>
+          <div class="val" id="pose">-</div></div>
+        <div class="cell"><div class="lbl">도착 예상</div>
+          <div class="val" id="eta">-</div></div>
+        <div class="cell"><div class="lbl">명령 속도</div>
+          <div class="val" id="vel">-</div></div>
+        <div class="cell"><div class="lbl">남은 경로</div>
+          <div class="val" id="rinfo">-</div></div>
+        <div class="cell"><div class="lbl">지도 크기</div>
+          <div class="val" id="msize">-</div></div>
+        <div class="cell"><div class="lbl">주행 거리</div>
+          <div class="val" id="pathm">-</div></div>
       </div>
     </div>
-    <div class="card" id="camcard" style="display:none">
-      <h3>Camera</h3>
-      <img id="camimg" alt="front camera view">
-      <div id="camnone" style="display:none">no camera yet</div>
-      <div class="bools" id="camverdict"></div>
-    </div>
-    <div class="card">
-      <h3>Sensors</h3>
-      <div class="scanrow">
-        <canvas id="scan" width="264" height="264" role="img"
-                aria-label="lidar polar view, nose up"></canvas>
-        <div id="sens"></div>
+  </section>
+
+  <!-- ==================== 조작 ==================== -->
+  <section class="region act" aria-labelledby="h-act">
+    <div class="rhead"><h2 id="h-act">조작</h2>
+      <span class="gloss">로봇을 움직이는 버튼</span></div>
+    <div class="rbody">
+
+      <div class="block estop">
+        <h3>비상정지</h3>
+        <p class="hint">걸어두면 safety가 모터를 0으로 붙잡습니다.</p>
+        <div class="btnrow">
+          <button type="button" class="danger halt" data-post="/estop"
+                  data-val="stop">정지</button>
+        </div>
+        <div class="btnrow">
+          <button type="button" data-post="/estop" data-val="release">해제</button>
+        </div>
       </div>
-      <div class="bools" id="bools"></div>
-    </div>
-    <div class="card" id="rescard" style="display:none">
-      <h3>Mapping result</h3>
-      <div id="resrows"></div>
-    </div>
-    <div class="card">
-      <h3>State</h3>
-      <div class="srow"><span class="k">health</span><span class="v" id="health">-</span></div>
-      <div class="tiles">
-        <div class="tile"><div class="lbl">pose x, y</div><div class="val" id="pose">-</div></div>
-        <div class="tile"><div class="lbl">eta</div><div class="val" id="eta">-</div></div>
-        <div class="tile"><div class="lbl">cmd vel</div><div class="val" id="vel">-</div></div>
-        <div class="tile"><div class="lbl">route</div><div class="val" id="rinfo">-</div></div>
-        <div class="tile"><div class="lbl">trail pts</div><div class="val" id="trail">-</div></div>
-        <div class="tile"><div class="lbl">map cells</div><div class="val" id="msize">-</div></div>
-        <div class="tile"><div class="lbl">odom path</div><div class="val" id="pathm">-</div></div>
+
+      <div class="block">
+        <h3>주행</h3>
+        <div class="sub first">
+          <h4>지도 기반</h4>
+          <p class="hint" id="navready" role="status">지도와 위치 확인 중…</p>
+          <div class="btnrow">
+            <button type="button" id="navexplore" data-post="/wander"
+                    data-val="explore" disabled>미탐색 탐색</button>
+            <button type="button" id="navcoverage" data-post="/wander"
+                    data-val="coverage" disabled>알려진 영역</button>
+          </div>
+        </div>
+        <div class="sub">
+          <h4>센서 회피</h4>
+          <p class="hint">라이다로 벽을 따라갑니다. 같은 자리 반복 복구는 제한됩니다.</p>
+          <div class="btnrow">
+            <button type="button" data-post="/wander" data-val="start">시작</button>
+          </div>
+        </div>
+        <div class="sub">
+          <div class="btnrow">
+            <button type="button" class="danger" data-post="/wander"
+                    data-val="stop">주행 정지</button>
+          </div>
+        </div>
       </div>
+
+      <div class="block" id="mappingcard">
+        <h3>매핑</h3>
+        <p class="hint" id="mappingstatus" role="status">매핑 상태 확인 중…</p>
+        <div class="btnrow">
+          <button type="button" class="danger" id="mapreset" disabled>지도 초기화</button>
+          <button type="button" id="mapresume" disabled>매핑 재개</button>
+        </div>
+        <p class="hint" style="margin:8px 0 0">초기화하면 주행을 정지하고 지도
+          수집을 일시정지합니다. 다시 배치한 뒤 재개하세요.</p>
+        <div class="mapping-error" id="mappingerror" role="alert"></div>
+      </div>
+
+      <div class="block">
+        <h3>수동 조종</h3>
+        <p class="hint">버튼이나 키를 누르고 있는 동안만 움직입니다. i와 j는
+          같이 눌러 조합, k는 정지, +/&minus;로 속도 단계.</p>
+        <div class="pad">
+          <span></span>
+          <button type="button" data-hold="up" aria-label="전진">&#8593;</button>
+          <span></span>
+          <button type="button" data-hold="left" aria-label="좌회전">&#8592;</button>
+          <button type="button" data-hold="stop" aria-label="정지">정지</button>
+          <button type="button" data-hold="right" aria-label="우회전">&#8594;</button>
+          <span></span>
+          <button type="button" data-hold="down" aria-label="후진">&#8595;</button>
+          <span></span>
+        </div>
+        <div class="keys" id="keys">
+          <span data-a="ul">u</span><span data-a="up">i</span><span data-a="ur">o</span>
+          <span data-a="left">j</span><span data-a="stop">k</span><span data-a="right">l</span>
+          <span data-a="dl">m</span><span data-a="down">,</span><span data-a="dr">.</span>
+        </div>
+        <div class="srow" style="margin-top:8px">
+          <span class="k">속도 단계</span><span class="v" id="speed">-</span>
+        </div>
+        <div class="srow">
+          <span class="k">보내는 중</span><span class="v" id="sending">정지</span>
+        </div>
+        <div class="srow">
+          <span class="k">토픽</span><span class="v" id="ttopic">-</span>
+        </div>
+      </div>
+
     </div>
-  </aside>
+  </section>
 </main>
 <script>
 (() => {
 'use strict';
-// ---- config (all timings/sizes in one place) -----------------------------
+// ---- config (all timings/sizes/limits in one place) -----------------------
 const CFG = {
   poll_ms: 333, result_ms: 5000, map_recheck_ms: 120, stale_ms: 1500,
-  teleop_period_ms: 100,
+  teleop_period_ms: 100, cam_stale_ms: 3000,
   // clamps must match the /teleop handler in move_control/web_node.py
   lin_max: 0.2, ang_max: 1.0,
   lin_steps: [0.02, 0.05, 0.10, 0.20],
   ang_steps: [0.25, 0.50, 0.75, 1.00],
   fit_margin: 0.98, zoom_min: 1, zoom_max: 8, zoom_step: 1.15,
   click_slop_px: 4,
+  // Fallbacks only. web_node publishes state.limits from config/robot.yaml —
+  // the numbers that actually stop the robot. These keep the gauges honest
+  // when the page is opened against a rig that runs no safety node.
+  lim: { stop: 0.12, clear: 0.14, warn: 0.18, us_stop: 0.020,
+         us_clear: 0.028, radius: 0.076, open_max: 0.40 },
 };
 // ---- canvas tokens (mirror the :root CSS custom properties) --------------
 const T = { unk: '#161615', grid: '#2c2c2a', ink: '#ffffff',
             route: '#3987e5', alt: '#d95926', goal: '#199e70',
             hist: '#898781', crit: '#d03b3b', warn: '#fab219',
-            pin: '#d55181' };
+            pin: '#d55181', muted: '#898781', ink2: '#c3c2b7' };
 // ---- state ----------------------------------------------------------------
 const S = {
   data: {},
   img: { gen: -1, im: null, t: 0 },
-  cam: { gen: -1 },
+  cam: { gen: -1, t: 0 },
   view: { z: 1, A: { x: 0, y: 0 }, ok: false,
           k: 1, w: 0, h: 1, res: 0.05, ox: 0, oy: 0, wc: null },
   split: { key: '', bi: 0 },
   pin: null, lastOk: 0, raf: 0,
-  tele: { lin: 1, ang: 1 },
+  tele: { lin: 1, ang: 1, x: 0, z: 0 },
   held: new Set(), kt: null,
   mappingBusy: false, mapEpoch: null,
+  gaugeKey: '',
 };
 // ---- helpers + api ---------------------------------------------------------
 const $ = id => document.getElementById(id);
@@ -307,6 +488,25 @@ async function post(path, body) {
   try { await fetch(API + path, { method: 'POST', body: body }); }
   catch (e) {}
 }
+const api = {
+  cmd: v => post('/cmd', v),
+  wander: v => post('/wander', v),
+  estop: v => post('/estop', v),
+  goal: xy => post('/goal', xy),
+  tw: (x, z) => post('/teleop', JSON.stringify({ x: x, z: z })),
+};
+function setTxt(id, t) {
+  const el = $(id);
+  if (el && el.textContent !== t) el.textContent = t;
+}
+function setCls(id, cls, on) {
+  const el = $(id);
+  if (el) el.classList.toggle(cls, !!on);
+}
+const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+// Limits the robot is actually running on; CFG.lim is the offline fallback.
+const LIM = () => Object.assign({}, CFG.lim, S.data.limits || {});
+
 function renderMapping(control) {
   const ready = !!control && control.available;
   const busy = S.mappingBusy || !!(control && control.busy);
@@ -315,6 +515,14 @@ function renderMapping(control) {
   setTxt('mappingstatus', busy ? '처리 중…' : !ready ? 'SLAM 연결 대기' :
     control.paused === true ? '지도 수집 일시정지' :
     control.paused === false ? '지도 수집 중' : '매핑 상태 확인 중…');
+}
+function renderNavigation(s) {
+  const reason = !s ? '로봇 연결 대기' : s.estop !== false ? '비상정지 상태' :
+    !s.map || !s.map_control || s.map_control.paused !== false ? '매핑을 재개해 주세요' :
+    !s.pose_available ? '지도 내 로봇 위치 확인 대기' : '';
+  $('navexplore').disabled = !!reason;
+  $('navcoverage').disabled = !!reason;
+  setTxt('navready', reason || '준비됨 · 모드를 고르면 주행합니다');
 }
 async function mappingAction(action) {
   if (S.mappingBusy || $(action === 'reset' ? 'mapreset' : 'mapresume').disabled) return;
@@ -340,17 +548,6 @@ async function mappingAction(action) {
     S.mappingBusy = false;
     renderMapping(S.data.map_control);
   }
-}
-const api = {
-  cmd: v => post('/cmd', v),
-  wander: v => post('/wander', v),
-  estop: v => post('/estop', v),
-  goal: xy => post('/goal', xy),
-  tw: (x, z) => post('/teleop', JSON.stringify({ x: x, z: z })),
-};
-function setTxt(id, t) {
-  const el = $(id);
-  if (el && el.textContent !== t) el.textContent = t;
 }
 // ---- map view --------------------------------------------------------------
 // world metres -> cells: u = (x-ox)/res, v = h-1-(y-oy)/res (row 0 = top)
@@ -504,9 +701,18 @@ function draw(s) {
   if (s.pose) {
     const p = w2c(s.pose[0], s.pose[1]);
     const yaw = s.pose[2] || 0;
+    // True-scale body circle: at desk scale the 7.6 cm chassis is the unit
+    // the operator judges gaps in, so draw the body, not a generic marker.
+    const rpx = (LIM().radius / S.view.res) * Sc();
+    if (rpx > 3) {
+      c.fillStyle = 'rgba(57,135,229,0.14)';
+      c.strokeStyle = 'rgba(57,135,229,0.55)'; c.lineWidth = 1 * dpr;
+      c.beginPath(); c.arc(p[0], p[1], rpx, 0, 7); c.fill(); c.stroke();
+    }
+    const arm = Math.max(14 * dpr, rpx + 4 * dpr);
     c.strokeStyle = T.route; c.lineWidth = 2 * dpr;
     c.beginPath(); c.moveTo(p[0], p[1]);
-    c.lineTo(p[0] + 14 * dpr * Math.cos(yaw), p[1] - 14 * dpr * Math.sin(yaw));
+    c.lineTo(p[0] + arm * Math.cos(yaw), p[1] - arm * Math.sin(yaw));
     c.stroke();
     c.fillStyle = T.route;
     c.beginPath(); c.arc(p[0], p[1], 5 * dpr, 0, 7); c.fill();
@@ -521,7 +727,10 @@ function draw(s) {
     c.beginPath(); c.arc(q[0], q[1], 2 * dpr, 0, 7); c.fill();
   }
 }
-// ---- scan dial -------------------------------------------------------------
+// ---- lidar dial ------------------------------------------------------------
+// Nose up. Rings every 10 cm, safety's stop distance drawn as a no-go annulus,
+// and the chassis drawn at true scale inside it — so the picture and the
+// gauges below are visibly the same measurement.
 const NOSE = Math.PI + 10 * Math.PI / 180;   // lidar mount: nose = scan 190deg
 function wrapPi(a) { return Math.atan2(Math.sin(a), Math.cos(a)); }
 function bucket(sc, lo, hi) {
@@ -534,32 +743,191 @@ function bucket(sc, lo, hi) {
   }
   return m;
 }
-const scv = $('scan').getContext('2d');
+const dialCv = $('scan'), scv = dialCv.getContext('2d');
+// [from deg, to deg] in robot frame (nose = 0, left = +): the beams that feed
+// the 정면 / 왼쪽 / 오른쪽 gauge rows.
+const WEDGES = [[-10, 10], [45, 135], [-135, -45]];
 function drawScan(s) {
+  const W = dialCv.width, H = dialCv.height;
+  if (!W || !H) return;
   const sc = s.scan;
-  if (!sc || !sc.rs || !sc.rs.length) return;
-  const cx = 132, cy = 132, R = 118;
-  const view = Math.min(sc.rmax, 0.8);   // desk-maze scale cap
+  const cx = W / 2, cy = H / 2, R = W / 2 - 14;
+  const lim = LIM();
+  const view = Math.max(0.25, Math.min(sc ? sc.rmax : lim.open_max,
+                                       lim.open_max));
   const k = R / view;
-  scv.clearRect(0, 0, 264, 264);
-  scv.strokeStyle = T.grid; scv.lineWidth = 2;
+  scv.clearRect(0, 0, W, H);
+  scv.fillStyle = 'rgba(255,255,255,0.035)';
+  WEDGES.forEach(([lo, hi]) => {
+    scv.beginPath(); scv.moveTo(cx, cy);
+    for (let d = lo; d <= hi; d += 2) {
+      const th = d * Math.PI / 180;
+      scv.lineTo(cx - view * k * Math.sin(th), cy - view * k * Math.cos(th));
+    }
+    scv.closePath(); scv.fill();
+  });
+  scv.strokeStyle = T.grid; scv.lineWidth = 1;
   for (let d = 0.1; d < view - 0.001; d += 0.1) {
     scv.beginPath(); scv.arc(cx, cy, d * k, 0, 7); scv.stroke();
   }
-  for (let i = 0; i < sc.rs.length; i++) {
-    const r = sc.rs[i];
-    if (!(r > sc.rmin && r < sc.rmax)) continue;
-    const th = wrapPi(sc.amin + i * sc.inc - NOSE);
-    const d = Math.min(r, view);
-    const px = cx - d * k * Math.sin(th), py = cy - d * k * Math.cos(th);
-    scv.strokeStyle = 'rgba(57,135,229,0.16)'; scv.lineWidth = 2;
-    scv.beginPath(); scv.moveTo(cx, cy); scv.lineTo(px, py); scv.stroke();
-    scv.fillStyle = r < 0.08 ? T.crit : (r < 0.15 ? T.warn : T.route);
-    scv.beginPath(); scv.arc(px, py, 3.2, 0, 7); scv.fill();
+  // inside this annulus safety halts the robot
+  scv.fillStyle = 'rgba(208,59,59,0.10)';
+  scv.beginPath(); scv.arc(cx, cy, lim.stop * k, 0, 7); scv.fill();
+  scv.strokeStyle = 'rgba(208,59,59,0.5)';
+  scv.setLineDash([4, 4]);
+  scv.beginPath(); scv.arc(cx, cy, lim.stop * k, 0, 7); scv.stroke();
+  scv.setLineDash([]);
+  if (sc && sc.rs && sc.rs.length) {
+    for (let i = 0; i < sc.rs.length; i++) {
+      const r = sc.rs[i];
+      if (!(r > sc.rmin && r < sc.rmax)) continue;
+      const th = wrapPi(sc.amin + i * sc.inc - NOSE);
+      const d = Math.min(r, view);
+      const px = cx - d * k * Math.sin(th), py = cy - d * k * Math.cos(th);
+      scv.strokeStyle = 'rgba(57,135,229,0.13)'; scv.lineWidth = 1.5;
+      scv.beginPath(); scv.moveTo(cx, cy); scv.lineTo(px, py); scv.stroke();
+      scv.fillStyle = r < lim.stop ? T.crit : (r < lim.clear ? T.warn : T.route);
+      scv.beginPath(); scv.arc(px, py, 3.0, 0, 7); scv.fill();
+    }
   }
+  // chassis at true scale, nose marker on its rim
+  const body = lim.radius * k;
+  scv.fillStyle = 'rgba(255,255,255,0.07)';
+  scv.strokeStyle = 'rgba(195,194,183,0.55)'; scv.lineWidth = 1.2;
+  scv.beginPath(); scv.arc(cx, cy, body, 0, 7);
+  scv.fill(); scv.stroke();
   scv.fillStyle = T.ink;
-  scv.beginPath(); scv.moveTo(cx, cy - 9); scv.lineTo(cx - 6, cy + 7);
-  scv.lineTo(cx + 6, cy + 7); scv.closePath(); scv.fill();
+  scv.beginPath();
+  scv.moveTo(cx, cy - body - 9);
+  scv.lineTo(cx - 5.5, cy - body + 2);
+  scv.lineTo(cx + 5.5, cy - body + 2);
+  scv.closePath(); scv.fill();
+  scv.fillStyle = T.muted; scv.font = '11px system-ui, sans-serif';
+  scv.textAlign = 'right';
+  scv.fillText(Math.round(view * 100) + ' cm', W - 4, cy - 5);
+  setTxt('dialnote', (sc && sc.rs && sc.rs.length) ?
+    '정면 위 · 점선 안쪽은 정지 거리 ' + Math.round(lim.stop * 100) + ' cm' :
+    '라이다 대기');
+}
+// ---- 감지: clearance gauges -------------------------------------------------
+// Every channel is a distance the robot is about to run out of, so each gets
+// the same shape: a bar, a fixed threshold tick, a value in centimetres.
+// more:true = bigger is better, so no threshold and no alarm colour.
+const CH = [
+  { k: 'F',        ko: '정면',        topic: '/safety/min_range', lead: true },
+  { k: 'L',        ko: '왼쪽',        topic: '/safety/left_range' },
+  { k: 'R',        ko: '오른쪽',      topic: '/safety/right_range' },
+  { k: 'US',       ko: '초음파',      topic: '/safety/us_range',  us: true },
+  { k: 'rear',     ko: '뒤',          topic: '/safety/rear_range' },
+  { k: 'rear L',   ko: '뒤 왼쪽',     topic: '/safety/rear_left',  opt: true },
+  { k: 'rear R',   ko: '뒤 오른쪽',   topic: '/safety/rear_right', opt: true },
+  { k: 'open',     ko: '최대 개방',   topic: '/safety/open_range', more: true },
+  { k: 'corridor', ko: '통로 폭',     topic: '/safety/corridor',   corridor: true },
+  { k: 'cam side', ko: '카메라 측면', topic: '/camera/side', more: true, opt: true },
+];
+const gid = k => 'g' + k.replace(/[^A-Za-z]/g, '');
+function chLimits(ch) {
+  const L = LIM();
+  if (ch.us) return { scale: 0.10, stop: L.us_stop, clear: L.us_clear };
+  // below two body widths the robot cannot turn around in the corridor
+  if (ch.corridor) return { scale: 0.80, stop: 2 * L.radius,
+                            clear: 2 * L.radius + 0.04 };
+  if (ch.more) return { scale: L.open_max, stop: null, clear: null };
+  return { scale: L.open_max, stop: L.stop, clear: L.clear };
+}
+function buildGauges(shown) {
+  const key = shown.join('|') + '#' + JSON.stringify(S.data.limits || {});
+  if (S.gaugeKey === key) return;
+  S.gaugeKey = key;
+  $('gauges').innerHTML = CH.filter(ch => shown.indexOf(ch.k) >= 0).map(ch => {
+    const L = chLimits(ch);
+    const tick = L.stop == null ? '' :
+      '<i class="g-x" style="left:' +
+      (100 * Math.min(1, L.stop / L.scale)).toFixed(1) + '%"></i>';
+    return '<div class="gauge' + (ch.lead ? ' lead' : '') + '" id="' +
+      gid(ch.k) + '" title="' + ch.topic + '">' +
+      '<span class="g-k">' + ch.ko + '</span>' +
+      '<span class="g-t"><i class="g-f" id="' + gid(ch.k) + 'f"></i>' + tick +
+      '</span><span class="g-v" id="' + gid(ch.k) + 'v">-</span></div>';
+  }).join('');
+}
+function paintGauge(ch, v) {
+  const L = chLimits(ch), row = $(gid(ch.k));
+  const fill = $(gid(ch.k) + 'f'), val = $(gid(ch.k) + 'v');
+  if (!row || !fill || !val) return;
+  const has = v != null && isFinite(v);
+  row.classList.toggle('miss', !has);
+  fill.style.width = has ?
+    (100 * Math.min(1, Math.max(0, v / L.scale))).toFixed(1) + '%' : '0%';
+  const lvl = (!has || L.stop == null) ? '' :
+    (v < L.stop ? 'crit' : (v < L.clear ? 'warn' : ''));
+  fill.classList.toggle('crit', lvl === 'crit');
+  fill.classList.toggle('warn', lvl === 'warn');
+  val.classList.toggle('crit', lvl === 'crit');
+  val.classList.toggle('warn', lvl === 'warn');
+  val.textContent = has ? (v * 100).toFixed(v < 0.1 ? 1 : 0) + ' cm' : '—';
+}
+// ---- 감지: safety flags -----------------------------------------------------
+// Polarity matters: 'rear clear' true is good, 'cliff' true is bad. Off-states
+// stay on screen so "no cliff" is visible rather than merely absent.
+const FLAGS = [
+  { k: 'blocked',     ko: '전방 차단',       topic: '/safety/blocked',   bad: true },
+  { k: 'cliff',       ko: '낭떠러지',        topic: '/safety/cliff',     bad: true },
+  { k: 'tilt',        ko: '기울어짐',        topic: '/safety/tilt',      bad: true },
+  { k: 'pickup',      ko: '들림',            topic: '/safety/pickup',    bad: true },
+  { k: 'cam blocked', ko: '카메라 차단',     topic: '/camera/blocked',   bad: true },
+  { k: 'cam cliff',   ko: '카메라 낭떠러지', topic: '/camera/cliff',     bad: true },
+  { k: 'rear clear',  ko: '후방 여유',       topic: '/safety/rear_clear' },
+  { k: 'can reverse', ko: '후진 가능',       topic: '/safety/can_reverse' },
+];
+function flagHtml(f, v) {
+  const cls = f.bad ? (v ? 'flag hit' : 'flag ok')
+                    : (v ? 'flag ok' : 'flag lost');
+  return '<span class="' + cls + '" title="' + f.topic + '">' +
+         (f.bad && v ? '⚠ ' : '') + f.ko + '</span>';
+}
+function renderSensors(s) {
+  const v = Object.assign({}, s.sensors || {});
+  if (s.scan) {   // no safety node (sim rig): fall back to raw scan buckets
+    if (v.F == null) v.F = bucket(s.scan, -10, 10);
+    if (v.L == null) v.L = bucket(s.scan, 45, 135);
+    if (v.R == null) v.R = bucket(s.scan, -135, -45);
+  }
+  const shown = CH.filter(ch => !ch.opt || v[ch.k] != null).map(ch => ch.k);
+  buildGauges(shown);
+  CH.forEach(ch => { if (shown.indexOf(ch.k) >= 0) paintGauge(ch, v[ch.k]); });
+  const lim = LIM();
+  setTxt('clearhint', v.F == null ? '거리 정보 없음' :
+    v.F < lim.stop ? '정면이 정지 거리 안입니다 — safety가 잡습니다.' :
+    v.F < lim.warn ? '정면 감속 구간입니다.' :
+    '정지 ' + Math.round(lim.stop * 100) + ' cm · 감속 ' +
+      Math.round(lim.warn * 100) + ' cm');
+  const have = FLAGS.filter(f => v[f.k] != null);
+  $('bools').innerHTML = have.length ?
+    have.map(f => flagHtml(f, v[f.k])).join('') :
+    '<span class="flag">safety 노드 대기</span>';
+  renderCamVerdicts(v);
+}
+// ---- camera -----------------------------------------------------------------
+function loadCam(gen) {
+  S.cam.gen = gen;
+  const im = $('camimg');
+  im.onload = () => {
+    S.cam.t = Date.now();
+    im.style.display = '';
+    $('camnone').style.display = 'none';
+    $('camcard').style.display = '';
+  };
+  im.onerror = () => {
+    im.style.display = 'none';
+    $('camnone').style.display = '';
+  };
+  im.src = API + '/camera.jpg?g=' + gen;
+}
+function renderCamVerdicts(v) {
+  const chips = FLAGS.filter(f => f.k.indexOf('cam') === 0 && v[f.k] != null);
+  $('camverdict').innerHTML = chips.map(f => flagHtml(f, v[f.k])).join('');
+  setTxt('camcap', v['cam dbg'] ? String(v['cam dbg']) : '');
 }
 // ---- inputs: teleop keys + pad (one held-set, one ticker) ------------------
 const ACT = {   // action -> [linear, angular] components
@@ -575,7 +943,14 @@ const ang = () => CFG.ang_steps[S.tele.ang];
 function showSpeed() {
   const cms = Math.round(lin() * 100);
   const dps = Math.round(ang() * 180 / Math.PI);
-  setTxt('speed', cms + ' cm/s, ' + dps + '\u00b0/s');
+  setTxt('speed', (S.tele.lin + 1) + '/' + CFG.lin_steps.length + ' · ' +
+    cms + ' cm/s, ' + dps + '°/s');
+}
+function showSending() {
+  const x = S.tele.x, z = S.tele.z;
+  setTxt('sending', (x || z) ?
+    (x * 100).toFixed(0) + ' cm/s, ' +
+    (z * 180 / Math.PI).toFixed(0) + '°/s' : '정지');
 }
 function ktick() {
   let x = 0, z = 0;
@@ -583,12 +958,16 @@ function ktick() {
     const d = ACT[a];
     if (d) { x += d[0] * lin(); z += d[1] * ang(); }
   });
+  S.tele.x = x; S.tele.z = z;
+  showSending();
   api.tw(x, z);
 }
 function ksync() {
   if (S.held.has('stop')) S.held.clear();
   if (S.held.size === 0) {
     if (S.kt) { clearInterval(S.kt); S.kt = null; api.tw(0, 0); }
+    S.tele.x = 0; S.tele.z = 0;
+    showSending();
   } else if (!S.kt) {
     S.kt = setInterval(ktick, CFG.teleop_period_ms);
     ktick();
@@ -682,7 +1061,7 @@ function showZoom() { setTxt('zoompct', Math.round(S.view.z * 100) + '%'); }
 function updatePin() {
   const has = !!S.pin;
   $('pin').textContent = has ?
-    S.pin.x.toFixed(2) + ', ' + S.pin.y.toFixed(2) + ' m' : '';
+    '지점 ' + S.pin.x.toFixed(2) + ', ' + S.pin.y.toFixed(2) + ' m' : '';
   $('pinsend').style.display = has ? '' : 'none';
   $('pinclear').style.display = has ? '' : 'none';
   draw(S.data);
@@ -691,26 +1070,32 @@ function sendPin() {
   if (!S.pin) return;
   api.goal(S.pin.x.toFixed(3) + ',' + S.pin.y.toFixed(3));
   const b = $('pinsend');
-  b.textContent = 'sent';
-  setTimeout(() => { b.textContent = 'send robot here'; }, 1200);
+  b.textContent = '보냄';
+  setTimeout(() => { b.textContent = '이 지점으로'; }, 1200);
 }
 function clearPin() { S.pin = null; updatePin(); }
 // ---- poll: status + bind table ----------------------------------------------
+const POSE_WHY = {
+  stale_odom: '오도메트리 끊김', missing_map_tf: '지도 TF 없음',
+  stale_map_tf: '지도 TF 지연', invalid_map_tf: '지도 TF 오류',
+  mapping_paused: '매핑 일시정지',
+};
 const BIND = [
   ['mode', s => s.mode || '-'],
   ['wander', s => s.wander || '-'],
-  ['estop', s => s.estop === true ? 'LATCHED' : (s.estop === false ? 'off' : '-')],
-  ['ok', s => (s.ok == null) ? '-' : (s.ok ? 'yes' : 'NO')],
+  ['estop', s => s.estop === true ? '걸림' : (s.estop === false ? '해제' : '-')],
+  ['ok', s => (s.ok == null) ? '-' : (s.ok ? '정상' : '이상')],
   ['gstate', s => s.gstate || '-'],
   ['ttopic', s => s.teleop_topic || '-'],
   ['health', s => s.health || '-'],
   ['eta', s => (s.eta != null && s.eta > 0) ? s.eta.toFixed(0) + ' s' : '-'],
   ['vel', s => s.vel ?
-    s.vel[0].toFixed(2) + ' m/s, ' + s.vel[1].toFixed(1) + ' rad/s' : '-'],
+    (s.vel[0] * 100).toFixed(1) + ' cm/s, ' +
+    (s.vel[1] * 180 / Math.PI).toFixed(0) + '°/s' : '-'],
   ['pose', s => s.pose ?
-    s.pose[0].toFixed(2) + ', ' + s.pose[1].toFixed(2) : '-'],
-  ['trail', s => String((s.trail || []).length)],
-  ['msize', s => s.map ? s.map[0] + 'x' + s.map[1] : '-'],
+    s.pose[0].toFixed(2) + ', ' + s.pose[1].toFixed(2) :
+    (POSE_WHY[s.pose_reason] || '위치 없음')],
+  ['msize', s => s.map ? s.map[0] + '×' + s.map[1] : '-'],
   ['pathm', s => (s.path_m != null) ? s.path_m.toFixed(1) + ' m' : '-'],
   ['rinfo', s => {
     const rp = s.route || [];
@@ -718,12 +1103,12 @@ const BIND = [
     let m = 0;
     for (let i = 1; i < rp.length; i++)
       m += Math.hypot(rp[i][0] - rp[i - 1][0], rp[i][1] - rp[i - 1][1]);
-    return m.toFixed(2) + ' m, ' + rp.length + ' pts';
+    return m.toFixed(2) + ' m';
   }],
 ];
 async function poll() {
   const s = await getJson('/state.json');
-  if (!s) { $('live').classList.remove('live'); renderMapping(null); return; }
+  if (!s) { $('live').classList.remove('live'); renderMapping(null); renderNavigation(null); return; }
   $('live').classList.add('live');
   S.lastOk = Date.now();
   S.data = s;
@@ -735,9 +1120,12 @@ async function poll() {
     updatePin();
   }
   renderMapping(s.map_control);
+  renderNavigation(s);
   BIND.forEach(([id, fn]) => setTxt(id, fn(s)));
-  $('estopChip').classList.toggle('crit', s.estop === true);
-  $('mode').parentElement.classList.toggle('crit', s.mode === 'ESTOP');
+  setCls('estopChip', 'crit', s.estop === true);
+  setCls('modeChip', 'crit', s.mode === 'ESTOP');
+  setCls('okChip', 'crit', s.ok === false);
+  setCls('poseCell', 'warnval', !s.pose);
   if (s.map && s.map[5] !== S.img.gen && Date.now() - S.img.t > CFG.map_recheck_ms)
     loadMap(s.map[5]);
   if (s.cam != null && s.cam !== S.cam.gen) loadCam(s.cam);
@@ -745,66 +1133,10 @@ async function poll() {
   drawScan(s);
   draw(s);
 }
-// ---- sensors ----------------------------------------------------------------
-const RANGES = ['F', 'L', 'R', 'US', 'open', 'corridor', 'rear'];
-const BOOLS = ['blocked', 'cliff', 'tilt', 'pickup', 'rear clear',
-               'can reverse', 'cam blocked', 'cam cliff'];
-const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
-function fmtR(x) { return x == null ? '-' : Number(x).toFixed(2); }
-function renderSensors(s) {
-  const v = Object.assign({}, s.sensors || {});
-  if (s.scan) {
-    if (v.F == null) v.F = bucket(s.scan, -10, 10);
-    if (v.L == null) v.L = bucket(s.scan, 45, 135);
-    if (v.R == null) v.R = bucket(s.scan, -135, -45);
-  }
-  const row = (k, val) =>
-    '<div class="srow"><span class="k">' + k + '</span><span class="v">' + val + '</span></div>';
-  let rows = '';
-  RANGES.forEach(k => {
-    if (v[k] != null || k === 'F' || k === 'L' || k === 'R')
-      rows += row(k + ' (m)', fmtR(v[k]));
-  });
-  if (v['rear L'] != null || v['rear R'] != null)
-    rows += row('rear L / R', fmtR(v['rear L']) + ' / ' + fmtR(v['rear R']));
-  if (v['cam side'] != null)
-    rows += row('cam side', fmtR(v['cam side']));
-  if (v['cam dbg'])
-    rows += row('camera', esc(v['cam dbg']));
-  $('sens').innerHTML = rows;
-  $('bools').innerHTML = BOOLS.filter(k => v[k] != null).map(k =>
-    '<span class="bool' + (v[k] ? ' on' : '') + '">' + (v[k] ? '!' : '') + k + '</span>').join('');
-  renderCamVerdicts(v);
-}
-// ---- camera -----------------------------------------------------------------
-let camSeen = 0;
-function loadCam(gen) {
-  S.cam.gen = gen;
-  const im = $('camimg');
-  im.onload = () => {
-    camSeen = Date.now();
-    im.style.display = '';
-    $('camnone').style.display = 'none';
-    $('camcard').style.display = '';
-  };
-  im.onerror = () => {
-    im.style.display = 'none';
-    $('camnone').style.display = '';
-  };
-  im.src = API + '/camera.jpg?g=' + gen;
-}
-function renderCamVerdicts(v) {
-  const chips = [];
-  if (v['cam blocked'] != null)
-    chips.push(['cam blocked', v['cam blocked']]);
-  if (v['cam cliff'] != null)
-    chips.push(['cam cliff', v['cam cliff']]);
-  const el = $('camverdict');
-  if (!chips.length) { el.innerHTML = ''; return; }
-  el.innerHTML = chips.map(([k, on]) =>
-    '<span class="bool' + (on ? ' on' : '') + '">' + (on ? '!' : '') + k + '</span>').join('');
-}
-// ---- result -------------------------------------------------------------------
+// ---- result ------------------------------------------------------------------
+const RES_KO = [['ok', '판정'], ['wall_recall', '벽 재현율'],
+                ['corridor_purity', '통로 순도'], ['phantom_frac', '허상 비율'],
+                ['interior_unknown', '내부 미지']];
 async function pollResult() {
   const s = await getJson('/result.json');
   if (!s) return;
@@ -813,23 +1145,23 @@ async function pollResult() {
   const card = $('rescard');
   if (!m) { card.style.display = 'none'; return; }
   card.style.display = '';
-  const rows = [['ok', m.ok], ['wall recall', m.wall_recall],
-                ['corridor purity', m.corridor_purity],
-                ['phantom', m.phantom_frac],
-                ['interior unknown', m.interior_unknown]];
-  $('resrows').innerHTML = rows.filter(x => x[1] != null).map(x =>
-    '<div class="srow"><span class="k">' + x[0] + '</span><span class="v">' +
-    x[1] + '</span></div>').join('');
+  $('resrows').innerHTML = RES_KO.filter(([k]) => m[k] != null)
+    .map(([k, ko]) => '<div class="srow"><span class="k">' + ko +
+      '</span><span class="v">' + esc(m[k]) + '</span></div>').join('');
 }
-// ---- stale veil ----------------------------------------------------------------
+// ---- freshness veils ---------------------------------------------------------
 setInterval(() => {
   const stale = S.lastOk && (Date.now() - S.lastOk > CFG.stale_ms);
   const el = $('stale');
   el.style.display = stale ? 'flex' : 'none';
-  if (stale) setTxt('stale', 'stale, no data for ' +
-    Math.round((Date.now() - S.lastOk) / 1000) + ' s');
+  if (stale) setTxt('stale', '수신 끊김 ' +
+    Math.round((Date.now() - S.lastOk) / 1000) + '초');
+  const camOld = S.cam.t && (Date.now() - S.cam.t > CFG.cam_stale_ms);
+  setCls('camimg', 'old', camOld);
+  setTxt('camveil', camOld ? '정지된 프레임 ' +
+    Math.round((Date.now() - S.cam.t) / 1000) + '초' : '');
 }, 500);
-// ---- boot: bindings replace the old inline handlers -----------------------------
+// ---- boot: bindings replace the old inline handlers ---------------------------
 document.querySelectorAll('[data-post]').forEach(b =>
   b.addEventListener('click', () => post(b.dataset.post, b.dataset.val)));
 document.querySelectorAll('[data-hold]').forEach(b => {
@@ -874,6 +1206,7 @@ setInterval(pollResult, CFG.result_ms);
 fit();
 showZoom();
 showSpeed();
+showSending();
 })();
 </script>
 </body>

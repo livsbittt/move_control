@@ -124,22 +124,21 @@ class AstarTest(RoomCase):
         self.assertEqual(r['cells'][-1], (2, 2))
 
     def test_route_length_matches_polyline(self):
-        # Review finding: the appended raw-goal leg (goal inside the
-        # inflation ring, snapped out by nearest_free) was missing from
-        # 'length': pick_goal scores size/length and the brain's probe gate
-        # benches on route['length'] >= 0.05, so a real 5 cm route read as
-        # 0.0 and got benched. Length must equal the polyline of points.
+        # A requested goal inside inflation must stop at a safe endpoint;
+        # appending the raw cell bypassed the planner's collision margin.
         m = self.known_room()
         r = best_route(m, (0.125, 0.125), (0.075, 0.125))
         self.assertIsNotNone(r)
-        # The goal cell is 1 off the west wall, inside the clear_m ring:
-        # nearest_free snapped it and the raw cell was appended — the route
-        # must end at the RAW cell and the length must include that leg.
-        self.assertEqual(r['cells'][-1], m.world_to_grid(0.075, 0.125))
+        self.assertNotEqual(r['cells'][-1], m.world_to_grid(0.075, 0.125))
+        inflated = m.inflate(1)
+        self.assertTrue(all(inflated.is_free(*cell) for cell in r['cells']))
         pl = sum(math.hypot(b[0] - a[0], b[1] - a[1])
                  for a, b in zip(r['points'], r['points'][1:]))
         self.assertAlmostEqual(r['length'], pl, places=6)
-        self.assertAlmostEqual(r['length'], 0.05, places=6)
+        self.assertAlmostEqual(r['length'], 0.0, places=6)
+
+    def test_start_inside_inflation_does_not_teleport_to_safe_cell(self):
+        self.assertIsNone(best_route(self.known_room(), self.CORNER, self.EAST))
 
     def test_three_cell_gap_passes(self):
         # 15 cm gap survives clear_m 0.05 (2*0.05 + 1 cell = robot diameter).
@@ -367,11 +366,12 @@ class GoalBrainTest(RoomCase):
         m = self.wall_col(self.known, 4, (1, 2, 4, 5))
         self.brain.mode = 'coverage'
         self.brain.covered = {(c, r) for (c, r) in m.free_cells() if c <= 3}
-        before = len(self.brain.covered)
+        before = set(self.brain.covered)
         goal, route, status = self.brain.plan(m, self.START)
         self.assertIsNone(goal)
-        self.assertIn('skip', status)
-        self.assertGreater(len(self.brain.covered), before)  # wp swept
+        self.assertIn('deferred', status)
+        self.assertEqual(self.brain.covered, before)
+        self.assertTrue(self.brain._coverage_deferred)
 
     def test_idle_not_done_on_unknown_map(self):
         # Regression: pose on unknown space (map still filling) must not

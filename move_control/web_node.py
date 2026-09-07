@@ -13,7 +13,7 @@ Backend API (all CORS *, JSON contract unchanged since v1):
   GET  /result.json  gstate + odom path total + optional check_map metrics
   POST /cmd          explore|coverage|stop        -> /goal/cmd
   POST /goal         "x,y" (map metres)           -> /goal/cmd (manual goal)
-  POST /wander       start|stop                   -> /wander/cmd
+  POST /wander       start|stop|explore|coverage  -> /wander/cmd
   POST /estop        stop|release                 -> /estop/cmd
   POST /map/reset    stop commands + reset SLAM, paused; clear map caches
   POST /map/resume   resume SLAM measurements only (no motion commands)
@@ -40,7 +40,9 @@ from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from rclpy.qos import qos_profile_sensor_data
 from rclpy.time import Time
 from tf2_ros import Buffer, TransformListener, TransformException
-from move_control.sensing.map_pose import update_pose
+from rclpy.clock import Clock, ClockType
+from move_control.sensing.map_pose import record_odom, display_pose
+from move_control.sensing.lidar_mount import nose_from_quaternion
 from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import PoseStamped, Twist
 from nav_msgs.msg import OccupancyGrid, Odometry, Path
@@ -75,6 +77,7 @@ K_OK = 'ok'
 K_HEALTH = 'health'
 K_VEL = 'vel'
 K_CAM = 'cam'
+K_LIMITS = 'limits'
 
 STATE = {}
 LOCK = threading.Lock()
@@ -165,6 +168,7 @@ class MapControl:
                                      if Reset else None)
                 if response.result != Reset.Response.RESULT_SUCCESS:
                     raise RuntimeError('SLAM rejected map reset')
+                self.node.goal_pub.publish(String(data='reset'))
                 self.map_after_ns = self.node.get_clock().now().nanoseconds
                 with LOCK:
                     for key in (K_MAP, K_GOAL, K_ROUTE, K_OPTIONS, K_TRAIL, K_PREV,
@@ -287,6 +291,25 @@ SENSOR_TOPICS = [
 ]
 
 
+# The distances the page draws its gauges and dial thresholds against. Same
+# names as config/robot.yaml, which every launch loads first under the /**
+# wildcard — so the browser shows the numbers safety is actually running on
+# rather than a second copy that can drift.
+LIMIT_PARAMS = [
+    ('stop_distance', 0.12),
+    ('clear_distance', 0.14),
+    ('warn_front', 0.18),
+    ('us_stop_distance', 0.020),
+    ('us_clear_distance', 0.028),
+    ('robot_radius', 0.076),
+    ('open_max', 0.40),
+]
+LIMIT_KEYS = {'stop_distance': 'stop', 'clear_distance': 'clear',
+              'warn_front': 'warn', 'us_stop_distance': 'us_stop',
+              'us_clear_distance': 'us_clear', 'robot_radius': 'radius',
+              'open_max': 'open_max'}
+
+
 def sensor_cb(key):
     """One callback per sensor key: Bool as bool, String truncated, Float32
     rounded to mm."""
@@ -312,21 +335,35 @@ class WebNode(Node):
         # Optional map-QA metrics JSON (check_map.py output) for the result
         # panel; empty = repo map/gz_maze_metrics.json if present.
         self.declare_parameter('metrics_file', '')
+        for name, default in LIMIT_PARAMS:
+            self.declare_parameter(name, default)
         port = int(self.get_parameter('port').value)
         backend_port = int(self.get_parameter('backend_port').value)
         self.scan_step = max(1, int(self.get_parameter('scan_step').value))
         with LOCK:
             STATE[K_SENSORS] = {}
+            STATE[K_LIMITS] = self.read_limits()
         self.teleop_target = None
         self.teleop_pub = None
         self.resolve_teleop()
         self.goal_pub = self.create_publisher(String, '/goal/cmd', 10)
         self.wander_pub = self.create_publisher(String, '/wander/cmd', 10)
         self.estop_pub = self.create_publisher(String, '/estop/cmd', 10)
+        self.calibration_pub = self.create_publisher(String, '/calibration/cmd', 10)
+        with LOCK:
+            STATE['calibration_ready'] = False
+            STATE['calibration'] = {'phase': 'unavailable', 'ready': False,
+                                    'message': 'Waiting for startup calibration', 'sensors': {}}
         self.map_control = MapControl(self)
         self.map_frame = 'map'
+        self.declare_parameter('pose_timeout', 1.0)
+        self.odom_received = None
+        self.odom_stamp = None
+        self.odom_frame = 'odom'
         self.tf = Buffer()
         self.tf_listener = TransformListener(self.tf, self)
+        self.pose_clock = Clock(clock_type=ClockType.STEADY_TIME)
+        self.create_timer(.2, self.refresh_pose, clock=self.pose_clock)
 
         self.create_subscription(
             OccupancyGrid, '/map', self.on_map, qos_profile_sensor_data)
@@ -357,6 +394,8 @@ class WebNode(Node):
             durability=DurabilityPolicy.TRANSIENT_LOCAL,
         )
         self.create_subscription(Bool, '/estop/state', self.on_estop, latched)
+        self.create_subscription(Bool, '/calibration/ready', self.on_calibration_ready, latched)
+        self.create_subscription(String, '/calibration/status', self.on_calibration_status, 10)
         self.create_subscription(Bool, '/robot/ok', self.on_ok, 10)
         self.create_subscription(String, '/robot/health', self.on_health, 10)
         self.create_subscription(Twist, '/cmd_vel', self.on_vel, 10)
@@ -404,25 +443,51 @@ class WebNode(Node):
 
     def on_odom(self, msg):
         p = msg.pose.pose.position
-        q = msg.pose.pose.orientation
-        yaw = math.atan2(2.0 * (q.w * q.z + q.x * q.y),
-                         1.0 - 2.0 * (q.y * q.y + q.z * q.z))
-        transform = None
-        source_frame = msg.header.frame_id or 'odom'
-        if source_frame == self.map_frame:
-            transform = (0.0, 0.0, 0.0)
-        else:
-            try:
-                tf = self.tf.lookup_transform(self.map_frame, source_frame, Time())
-                t, r = tf.transform.translation, tf.transform.rotation
-                angle = math.atan2(2.0 * (r.w * r.z + r.x * r.y),
-                                   1.0 - 2.0 * (r.y * r.y + r.z * r.z))
-                transform = (t.x, t.y, angle)
-            except TransformException:
-                pass  # Drawing odom as map would fabricate an aligned pose.
+        self.odom_received = time.monotonic()
+        self.odom_stamp = msg.header.stamp.sec + msg.header.stamp.nanosec * 1e-9
+        self.odom_frame = msg.header.frame_id or 'odom'
         with LOCK:
-            update_pose(STATE, p.x, p.y, yaw, transform, TRAIL_MAX)
+            record_odom(STATE, p.x, p.y, TRAIL_MAX)
+        self.refresh_pose()
+
+    def refresh_pose(self):
+        """Invalidate stopped publishers even when no odometry callback arrives."""
+        now = self.get_clock().now().nanoseconds * 1e-9
+        age = math.inf if self.odom_received is None else max(
+            time.monotonic() - self.odom_received, now - self.odom_stamp)
+        if self.odom_stamp is not None and now - self.odom_stamp < -.1:
+            age = now - self.odom_stamp
+        pose, transform, tf_age = None, None, math.inf
+        try:
+            base = self.tf.lookup_transform(self.map_frame, 'base_link', Time())
+            transforms = [base]
+            if self.odom_frame == self.map_frame:
+                transform = (0.0, 0.0, 0.0)
+            else:
+                # SLAM future-dates its latest map->odom by transform_timeout.
+                # Match the trail transform to the authoritative base pose time.
+                odom = self.tf.lookup_transform(
+                    self.map_frame, self.odom_frame, Time.from_msg(base.header.stamp))
+                transforms.append(odom)
+                transform = self._tf_pose(odom)
+            pose = self._tf_pose(base)
+            ages = [now - (tf.header.stamp.sec + tf.header.stamp.nanosec * 1e-9)
+                    for tf in transforms]
+            tf_age = min(ages) if min(ages) < -.75 else max(ages)
+        except TransformException:
+            pass
+        with LOCK:
+            reason = 'mapping_paused' if STATE.get('map_control', {}).get('paused') else None
+            display_pose(STATE, pose, transform, odom_age=age, tf_age=tf_age,
+                         timeout=float(self.get_parameter('pose_timeout').value), reason=reason)
             STATE['pose_frame'] = self.map_frame
+
+    @staticmethod
+    def _tf_pose(tf):
+        t, r = tf.transform.translation, tf.transform.rotation
+        angle = math.atan2(2.0 * (r.w * r.z + r.x * r.y),
+                           1.0 - 2.0 * (r.y * r.y + r.z * r.z))
+        return (t.x, t.y, angle)
 
     def on_goal(self, msg):
         with LOCK:
@@ -445,9 +510,19 @@ class WebNode(Node):
             STATE[K_OPTIONS] = pts
 
     def on_scan(self, msg):
-        """Downsampled /scan for the nose-up polar view. Angles stay in the
-        scan frame; the browser rotates by NOSE_YAW (pi + 10 deg) like the
-        stack does (sensing/lidar.robot_yaw)."""
+        """Keep scan angles raw and supply the same TF-derived nose as safety."""
+        try:
+            if not msg.header.frame_id:
+                raise ValueError('Missing scan frame')
+            tf = self.tf.lookup_transform('base_link', msg.header.frame_id,
+                                          Time.from_msg(msg.header.stamp))
+            q = tf.transform.rotation
+            nose = nose_from_quaternion(q.x, q.y, q.z, q.w)
+        except (TransformException, ValueError):
+            with LOCK:
+                STATE[K_SCAN] = None
+                STATE['scan_reason'] = 'missing_mount_tf'
+            return
         rs = list(msg.ranges)[::self.scan_step]
         # Lidar no-return beams are inf; json.dumps would emit bare
         # Infinity, which every browser's JSON.parse rejects — the whole
@@ -459,11 +534,32 @@ class WebNode(Node):
                 'amin': msg.angle_min, 'inc': msg.angle_increment * self.scan_step,
                 'rmin': msg.range_min, 'rmax': msg.range_max,
                 'rs': rs,
+                'nose_yaw': nose,
+                'frame': msg.header.frame_id,
             }
+            STATE['scan_reason'] = 'ready'
 
     def on_mode(self, msg):
         with LOCK:
             STATE[K_MODE] = msg.data
+
+    def on_calibration_ready(self, msg):
+        with LOCK:
+            STATE['calibration_ready'] = bool(msg.data)
+
+    def on_calibration_status(self, msg):
+        try:
+            status = json.loads(msg.data)
+            if not isinstance(status, dict) or not isinstance(status.get('sensors', {}), dict):
+                raise ValueError('Invalid calibration status')
+        except (ValueError, TypeError):
+            with LOCK:
+                STATE['calibration_ready'] = False
+                STATE['calibration'] = {'phase': 'unavailable', 'ready': False,
+                                        'message': 'Invalid calibration status', 'sensors': {}}
+            return
+        with LOCK:
+            STATE['calibration'] = status
 
     def on_wander(self, msg):
         with LOCK:
@@ -492,6 +588,11 @@ class WebNode(Node):
     def on_vel(self, msg):
         with LOCK:
             STATE[K_VEL] = [round(msg.linear.x, 3), round(msg.angular.z, 3)]
+
+    def read_limits(self):
+        """robot.yaml distances -> the JSON keys the page gauges use."""
+        return {LIMIT_KEYS[name]: float(self.get_parameter(name).value)
+                for name, _ in LIMIT_PARAMS}
 
     def load_metrics(self):
         """Map-QA metrics (check_map.py output) for the result panel; None
@@ -562,7 +663,7 @@ class WebNode(Node):
 # POST routes that relay a fixed verb whitelist to one publisher.
 POST_VERBS = {
     '/cmd': ('goal_pub', ('explore', 'coverage', 'stop')),
-    '/wander': ('wander_pub', ('start', 'stop')),
+    '/wander': ('wander_pub', ('start', 'stop', 'explore', 'coverage')),
     '/estop': ('estop_pub', ('stop', 'release')),
 }
 GOAL_BOUND = 50.0   # metres; a dashboard goal beyond this is a typo
@@ -644,6 +745,34 @@ def _handler(node, html, api):
                 return
             ln = int(self.headers.get('Content-Length', 0))
             body = self.rfile.read(ln).decode()
+            def reject(reason):
+                self.send_response(409)
+                self.send_header('Content-Type', 'application/json')
+                self.end_headers()
+                self.wfile.write(json.dumps({'ok': False, 'error': reason}).encode())
+
+            with LOCK:
+                ready = (STATE.get('calibration_ready') is True and
+                         STATE.get('calibration', {}).get('ready') is True)
+                phase = STATE.get('calibration', {}).get('phase')
+                released = STATE.get(K_ESTOP) is False
+                mapping_active = STATE.get('map_control', {}).get('paused') is False
+            if self.path == '/calibration':
+                if body not in ('retry', 'validate_motion', 'abort'):
+                    self.send_response(400)
+                    self.end_headers()
+                    return
+                if body == 'validate_motion' and (
+                        phase != 'waiting_motion' or not released or not mapping_active):
+                    reject('Motion validation requires waiting_motion, active mapping and released emergency stop')
+                    return
+                if body in ('retry', 'abort'):
+                    with LOCK:
+                        STATE['calibration_ready'] = False
+                node.calibration_pub.publish(String(data=body))
+                self.send_response(200)
+                self.end_headers()
+                return
             if self.path in ('/map/reset', '/map/resume'):
                 status, result = node.map_control.execute(self.path.rsplit('/', 1)[1])
                 self.send_response(status)
@@ -655,6 +784,9 @@ def _handler(node, html, api):
             if verb:
                 attr, allowed = verb
                 if body in allowed:
+                    if self.path == '/wander' and body != 'stop' and not ready:
+                        reject('Startup calibration must pass before driving')
+                        return
                     getattr(node, attr).publish(String(data=body))
                     self.send_response(200)
                 else:
@@ -668,6 +800,9 @@ def _handler(node, html, api):
                     tw.linear.x = max(-0.2, min(0.2, float(d.get('x', 0.0))))
                     tw.angular.z = max(-1.0, min(1.0,
                                                  float(d.get('z', 0.0))))
+                    if (tw.linear.x or tw.angular.z) and not ready:
+                        reject('Startup calibration must pass before teleoperation')
+                        return
                     node.teleop_pub.publish(tw)
                     self.send_response(200)
                 except (ValueError, TypeError):
