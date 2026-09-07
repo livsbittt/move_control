@@ -16,6 +16,7 @@ class RouteRecovery:
         self.failed_exit = None
         self.attempts = 0
         self.waiting = self.exhausted = False
+        self.alignment_heading = self.alignment_best_error = None
 
     def update(self, now, pose, reason, goal, route_stamp, safe, route_exit=None):
         if not safe or pose is None:
@@ -28,6 +29,7 @@ class RouteRecovery:
             self.progress_since = now
         if math.dist(xy,self.anchor) >= .02:
             self.anchor, self.progress_since = xy, now
+            self.alignment_heading = self.alignment_best_error = None
         if math.dist(xy,self.budget_anchor) >= .10:
             self.budget_anchor, self.attempts = xy, 0
         if self.waiting:
@@ -37,10 +39,27 @@ class RouteRecovery:
             if different and route_stamp is not None and route_stamp > self.requested:
                 self.waiting = False
                 self.progress_since, self.blocked_since = now, None
+                self.alignment_heading = self.alignment_best_error = None
                 return 'alternative'
             if now-self.requested < self.wait_seconds:
                 return 'waiting'
         else:
+            if reason in ('align', 'turn_away') and len(pose) >= 3:
+                target = route_exit if route_exit is not None else goal
+                if (self.alignment_heading is None and target is not None
+                        and math.dist(xy, target) > .025
+                        and all(math.isfinite(v) for v in (*target, pose[2]))):
+                    # Lock the bearing for this translation episode. A
+                    # refreshed/drifting goal must not manufacture progress.
+                    self.alignment_heading = math.atan2(target[1]-xy[1], target[0]-xy[0])
+                    delta = self.alignment_heading-pose[2]
+                    self.alignment_best_error = abs(math.atan2(math.sin(delta), math.cos(delta)))
+                if self.alignment_heading is not None and math.isfinite(pose[2]):
+                    delta = self.alignment_heading-pose[2]
+                    error = abs(math.atan2(math.sin(delta), math.cos(delta)))
+                    if self.alignment_best_error-error >= .05:
+                        self.alignment_best_error = error
+                        self.progress_since = now
             blocked = reason in ('no_route','hazard','front_blocked','stalled_restart_required',
                                  'stale_route','off_route','arrived')
             if blocked:

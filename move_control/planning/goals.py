@@ -107,6 +107,15 @@ class GoalBrain:
         self.clear_manual()
         self._target = self._probe = None
 
+    def restart_recovery(self):
+        """An explicit new mode request starts a fresh attempt, retaining visits."""
+        self._failed_goals.clear()
+        self._failed_exits.clear()
+        self._blacklist.clear()
+        self._coverage_deferred.clear()
+        self._wide_cell = self._target = None
+        self._n = 0
+
     def complete_goal(self, m, pose, goal):
         """Successful arrival consumes a target, without a failure penalty."""
         self._track_map_lattice(m)

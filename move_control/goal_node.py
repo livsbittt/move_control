@@ -237,6 +237,8 @@ class GoalNode(Node):
             self._clear_route('map reset; stopped')
             return
         if cmd in ('explore', 'coverage', 'stop'):
+            if cmd != 'stop':
+                self.brain.restart_recovery()
             self.mode = cmd
             self.brain.mode = 'explore' if cmd == 'stop' else cmd
             self.brain.clear_manual()

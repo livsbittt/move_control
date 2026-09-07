@@ -1,4 +1,5 @@
 from move_control.control.route_recovery import RouteRecovery
+import math
 
 
 def tick(r,t,reason='front_blocked',goal=(1.,0.),pose=(0.,0.,0.),safe=True,stamp=None):
@@ -48,3 +49,41 @@ def test_new_endpoint_on_same_blocked_exit_is_not_an_alternative_path():
     assert r.update(5,(0,0,0),'front_blocked',(1,0),5,True,(.06,0))=='replan'
     assert r.update(6,(0,0,0),'forward',(2,0),6,True,(.06,0))=='waiting'
     assert r.update(7,(0,0,0),'forward',(1,0),7,True,(0,.06))=='alternative'
+
+
+def test_slow_alignment_improvement_extends_progress_without_resetting_attempts():
+    r = RouteRecovery()
+    r.attempts = 2
+    assert tick(r, 0, 'align', pose=(0., 0., -2.)) == 'following'
+    for t, yaw in ((20, -1.8), (40, -1.6), (60, -1.4)):
+        assert tick(r, t, 'align', pose=(0., 0., yaw)) == 'following'
+    assert r.attempts == 2
+    assert tick(r, 105, 'align', pose=(0., 0., -1.4)) == 'replan'
+
+
+def test_alignment_oscillation_cannot_repeatedly_credit_same_heading():
+    r = RouteRecovery()
+    tick(r, 0, 'turn_away', pose=(0., 0., -1.))
+    tick(r, 5, 'turn_away', pose=(0., 0., -.8))
+    for t, yaw in ((15, -1.), (25, -.8), (35, -1.), (45, -.8)):
+        assert tick(r, t, 'turn_away', pose=(0., 0., yaw)) == 'following'
+    assert tick(r, 50, 'turn_away', pose=(0., 0., -.8)) == 'replan'
+
+
+def test_alignment_target_drift_is_not_angular_progress():
+    r = RouteRecovery()
+    tick(r, 0, 'align', goal=(0., 1.))
+    for t, target in ((10, (.5, .5)), (20, (1., .1)), (30, (.5, .5))):
+        assert tick(r, t, 'align', goal=target) == 'following'
+    assert tick(r, 45, 'align', goal=(1., 0.)) == 'replan'
+
+
+def test_alignment_progress_wraps_pi_boundary():
+    r = RouteRecovery()
+    tick(r, 0, 'align', goal=(-1., 0.), pose=(0., 0., math.pi-.2))
+    assert tick(r, 40, 'align', goal=(-1., 0.),
+                pose=(0., 0., -math.pi+.1)) == 'following'
+    assert tick(r, 60, 'align', goal=(-1., 0.),
+                pose=(0., 0., -math.pi+.1)) == 'following'
+    assert tick(r, 85, 'align', goal=(-1., 0.),
+                pose=(0., 0., -math.pi+.1)) == 'replan'

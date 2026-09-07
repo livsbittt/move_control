@@ -680,3 +680,14 @@ class ArrivalProgressionRegression(unittest.TestCase):
         with mock.patch('move_control.planning.goals.pick_goal', return_value=None) as pick:
             brain.plan(m, target)
             self.assertIn(m.world_to_grid(*target), pick.call_args.kwargs['exclude'])
+
+
+class RecoveryRestartRegression(unittest.TestCase):
+    def test_explicit_restart_discards_failed_exits_but_preserves_visits(self):
+        brain = GoalBrain()
+        brain.covered.add((2,3))
+        brain.avoid_route_exit((.2,.3));brain.avoid_goal((.4,.5))
+        brain.restart_recovery()
+        self.assertEqual(brain._failed_exits, [])
+        self.assertEqual(brain._failed_goals, [])
+        self.assertEqual(brain.covered, {(2,3)})
