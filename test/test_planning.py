@@ -369,9 +369,9 @@ class GoalBrainTest(RoomCase):
         before = set(self.brain.covered)
         goal, route, status = self.brain.plan(m, self.START)
         self.assertIsNone(goal)
-        self.assertIn('deferred', status)
+        self.assertIn('coverage done', status)  # inaccessible lanes are not candidates
         self.assertEqual(self.brain.covered, before)
-        self.assertTrue(self.brain._coverage_deferred)
+        self.assertFalse(self.brain._coverage_deferred)
 
     def test_idle_not_done_on_unknown_map(self):
         # Regression: pose on unknown space (map still filling) must not
@@ -552,3 +552,38 @@ class ManualGoalTest(RoomCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class PlannerBlockedStartRegression(unittest.TestCase):
+    def test_failed_goal_expires_even_while_start_is_blocked(self):
+        m = OccupancyMap(20, 20, .02, fill=FREE)
+        m.set_cell(5, 5, OCC)
+        brain = GoalBrain(clear_m=.12, start_escape_clear_m=.096, blacklist_plans=3)
+        pose = m.grid_to_world(6, 5)
+        brain.avoid_goal(m.grid_to_world(12, 12))
+        for _ in range(3):
+            goal, route, status = brain.plan(m, pose)
+            self.assertIsNone(route)
+            self.assertIn('obstacle clearance', status)
+        self.assertEqual(brain._failed_goals, [])
+
+    def test_occupied_start_is_not_coverage_done_or_snapped(self):
+        m = OccupancyMap(20, 20, .02, fill=FREE)
+        m.set_cell(5, 5, OCC)
+        brain = GoalBrain(clear_m=.04)
+        goal, route, status = brain.plan(m, m.grid_to_world(5, 5))
+        self.assertIsNone(route)
+        self.assertIn('robot cell occupied', status)
+
+    def test_coverage_candidates_use_executable_clearance(self):
+        m = OccupancyMap(30, 20, .02, fill=FREE)
+        for c in range(m.w):
+            m.set_cell(c, 0, OCC); m.set_cell(c, m.h-1, OCC)
+        for r in range(m.h):
+            m.set_cell(0, r, OCC); m.set_cell(m.w-1, r, OCC)
+        brain = GoalBrain(clear_m=.08)
+        brain.mode = 'coverage'
+        pose = m.grid_to_world(10, 10)
+        goal, route, status = brain.plan(m, pose)
+        self.assertIsNotNone(route, status)
+        self.assertTrue(all(m.inflate(.08/m.res).is_free(*c) for c in route['cells']))

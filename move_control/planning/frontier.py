@@ -4,6 +4,8 @@ Clusters boundary cells, snaps each cluster centroid to the nearest free
 cell, sizes clusters, and returns the first reachable one as the point to go.
 """
 from collections import deque
+import heapq
+import math
 
 from .astar import best_route
 from .gridmap import UNKNOWN, nearest_free
@@ -55,6 +57,35 @@ def frontier_points(m, min_size=6):
     return out
 
 
+def _reachable_costs(grid, start):
+    """One search per clearance pass, with the same corner rules as A*."""
+    if not (grid.ox <= start[0] < grid.ox + grid.w * grid.res and
+            grid.oy <= start[1] < grid.oy + grid.h * grid.res):
+        return {}
+    cell = grid.world_to_grid(*start)
+    if not grid.is_free(*cell):
+        return {}
+    costs = {cell: 0.0}
+    queue = [(0.0, cell)]
+    while queue:
+        cost, cell = heapq.heappop(queue)
+        if cost > costs[cell]:
+            continue
+        for dc, dr in ((1, 0), (-1, 0), (0, 1), (0, -1),
+                       (1, 1), (1, -1), (-1, 1), (-1, -1)):
+            nxt = cell[0] + dc, cell[1] + dr
+            if not grid.is_free(*nxt):
+                continue
+            if dc and dr and (not grid.is_free(cell[0] + dc, cell[1]) or
+                              not grid.is_free(cell[0], cell[1] + dr)):
+                continue
+            value = cost + math.hypot(dc, dr) * grid.res
+            if value < costs.get(nxt, math.inf):
+                costs[nxt] = value
+                heapq.heappush(queue, (value, nxt))
+    return costs
+
+
 def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
               min_route_m=0.08, max_options=3, exclude=None):
     """Best frontier by unknown gained per metre driven (size / length).
@@ -77,14 +108,34 @@ def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
     best_safe = None
     best_raw = None
     options = []
-    for cm in (clear_m, retry_clear_m):
+    clusters = frontier_points(m, min_size)
+    # Robot configuration often uses the same margin for both passes.
+    # Repeating it doubles graph work and fills alternatives with duplicates.
+    margins = [clear_m]
+    if retry_clear_m != clear_m:
+        margins.append(retry_clear_m)
+    for cm in margins:
         if cm is None:
             continue
         pass_best = None
-        for f in frontier_points(m, min_size):
-            if f['cell'] in exclude:
+        inflated = m.inflate(cm / m.res)
+        reachable = _reachable_costs(inflated, start)
+        for f in clusters:
+            # Inflation can split a raw cluster across disconnected rooms.
+            # Its centroid must not hide the safely reachable near side.
+            center = nearest_free(inflated, f['cell'], max_occ=2)
+            candidates = [cell for cell in f['cells'] if cell in reachable
+                          and cell not in exclude
+                          and reachable[cell] >= min_route_m]
+            if (center in reachable and center not in exclude
+                    and reachable[center] >= min_route_m):
+                target = center
+            elif candidates:
+                target = min(candidates, key=lambda cell: (
+                    math.dist(cell, f['cell']), reachable[cell], cell))
+            else:
                 continue
-            route = best_route(m, start, (f['x'], f['y']), clear_m=cm)
+            route = best_route(m, start, m.grid_to_world(*target), clear_m=cm)
             if not route or route['length'] < min_route_m:
                 continue
             if route['cells'][-1] in exclude:

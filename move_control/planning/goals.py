@@ -11,7 +11,7 @@ import math
 
 from .astar import best_route
 from .escape import start_escape
-from .frontier import pick_goal
+from .frontier import pick_goal, _reachable_costs
 from .zigzag import ZigzagPlanner, cover_ring
 
 
@@ -281,6 +281,11 @@ class GoalBrain:
 
     def plan(self, m, pose):
         self._route_tick += 1
+        self._plan_n += 1
+        self._track_map_lattice(m)
+        self._gc_blacklist()
+        self._failed_goals = [(xy, expiry) for xy, expiry in self._failed_goals
+                              if expiry > self._plan_n]
         self._failed_exits = [(xy, expiry) for xy, expiry in self._failed_exits if expiry > self._route_tick]
         goal, route, status = self._plan_candidate(m, pose)
         if route and self._failed_exits:
@@ -299,7 +304,15 @@ class GoalBrain:
         return goal, route, status
 
     def _plan_candidate(self, m, pose):
+        if not (m.ox <= pose[0] < m.ox + m.w*m.res and
+                m.oy <= pose[1] < m.oy + m.h*m.res):
+            self.last_options = []
+            return None, None, 'planning blocked: robot outside map'
         start = m.world_to_grid(*pose)
+        if not m.is_free(*start):
+            self.last_options = []
+            reason = 'occupied' if m.cell(*start) >= 65 else 'unknown'
+            return None, None, f'planning idle: robot cell {reason}; check map alignment'
         if m.is_free(*start) and not m.inflate(self.clear_m / m.res).is_free(*start):
             route = start_escape(m, pose, self.clear_m, self.start_escape_clear_m,
                                  self.start_escape_distance_m,
@@ -328,7 +341,6 @@ class GoalBrain:
         goal and route are None for transitional statuses (skipped waypoint,
         done) — the driver publishes nothing then.
         """
-        self._plan_n += 1
         self.last_options = []
         self._track_map_lattice(m)
         self._coverage_deferred = {c: expiry for c, expiry in self._coverage_deferred.items()
@@ -381,10 +393,12 @@ class GoalBrain:
                 self.mode = 'explore'
         cover_ring(self.covered, m, pose[0], pose[1],
                    radius_m=self.lane_width / 2)
-        zz = ZigzagPlanner(m, start=pose,
+        coverage_grid = m.inflate(self.clear_m / m.res)
+        zz = ZigzagPlanner(coverage_grid, start=pose,
                            covered=self.covered | set(self._coverage_deferred),
                            lane_width=self.lane_width,
-                           lane_step=self.lane_step)
+                           lane_step=self.lane_step,
+                           reachable=set(_reachable_costs(coverage_grid, pose)))
         if not zz.region:
             # Pose sits on unknown space (map still filling, or odom~map
             # drift): nothing is drivable yet. done would be a lie — the

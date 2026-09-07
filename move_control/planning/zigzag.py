@@ -21,14 +21,16 @@ class ZigzagPlanner:
     """Ordered coverage waypoints over the reachable free region."""
 
     def __init__(self, m, start=None, lane_width=0.12, lane_step=0.20,
-                 covered=None):
+                 covered=None, reachable=None):
         self.m = m
         res = m.res
         covered = covered if covered is not None else set()
         stride = max(1, int(round(lane_width / res)))
         step = max(2, int(round(lane_step / res)))
         min_run = 3  # below ~15 cm the robot doesn't fit
-        if start is not None:
+        if reachable is not None:
+            region = set(reachable)
+        elif start is not None:
             sc = nearest_free(m, m.world_to_grid(*start))
             region = m.flood(sc) if sc else set()
         else:
