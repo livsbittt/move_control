@@ -3,11 +3,14 @@ import math
 
 from sensor_msgs.msg import LaserScan, Range
 from std_msgs.msg import Float32
+from rclpy.time import Time
+from tf2_ros import TransformException
 
 from ..sensing.body import ignore_m, use_radius
 from ..sensing.lidar import find_frontiers, is_robot_scan, opening_max, sector_range, wrap_pi
 from ..control.route import line_route
 from ..control.lidar_guard import lidar_limits
+from ..sensing.lidar_mount import nose_from_quaternion
 
 
 def parse_us_range(msg: Range, scale: float = 1.0):
@@ -50,6 +53,24 @@ class Bumper:
                     f'rmax={float(msg.range_max):.1f} stamp={msg.header.stamp.sec}'
                 )
             return
+        if bool(self.get_parameter('lidar_use_tf').value):
+            try:
+                if not msg.header.frame_id:
+                    raise ValueError('Missing scan frame')
+                tf = self.lidar_tf.lookup_transform(
+                    'base_link', msg.header.frame_id, Time.from_msg(msg.header.stamp))
+                q = tf.transform.rotation
+                self.lidar_yaw = nose_from_quaternion(q.x, q.y, q.z, q.w)
+                self.lidar_yaw_source = 'tf:' + msg.header.frame_id
+            except (TransformException, ValueError) as error:
+                self.last_scan_time = None
+                self.lidar_yaw_source = 'missing_tf'
+                self.get_logger().warn(f'drop scan without mount TF: {error}',
+                                       throttle_duration_sec=5.0)
+                return
+        else:
+            self.lidar_yaw = float(self.get_parameter('lidar_yaw_offset').value)
+            self.lidar_yaw_source = 'parameter'
         self._scan_ok += 1
         yaw = self.lidar_yaw
         lo = max(
@@ -154,7 +175,8 @@ class Bumper:
         self.half_w = math.radians(float(self.get_parameter('front_half_width_deg').value))
         sign = float(self.get_parameter('cmd_linear_sign').value)
         self.cmd_linear_sign = 1.0 if sign >= 0.0 else -1.0
-        self.lidar_yaw = float(self.get_parameter('lidar_yaw_offset').value)
+        if not bool(self.get_parameter('lidar_use_tf').value):
+            self.lidar_yaw = float(self.get_parameter('lidar_yaw_offset').value)
         if self.has_parameter('robot_radius'):
             self.robot_r = use_radius(self.get_parameter('robot_radius').value)
         self.stop_d, self.clear_d = lidar_limits(

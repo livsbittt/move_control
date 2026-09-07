@@ -13,7 +13,7 @@ function dashboard() {
       classList: {add: noop, remove: noop, toggle: noop},
       parentElement: {classList: {toggle: noop}},
       addEventListener: noop,
-      getContext: () => ({}),
+      getContext: () => ({clearRect: noop}),
       getBoundingClientRect: () => ({width: 0, height: 0}),
     });
     return elements.get(id);
@@ -32,7 +32,7 @@ function dashboard() {
   const html = fs.readFileSync(path.join(__dirname, '../web/dashboard.html'), 'utf8');
   const source = html.match(/<script>([\s\S]*?)<\/script>/)[1];
   vm.runInContext(source.replace(/\}\)\(\);\s*$/, 
-    'globalThis.mappingTest = {S, renderMapping, mappingAction, loadMap};})();'), context);
+    'globalThis.mappingTest = {S, renderMapping, renderNavigation, mappingAction, loadMap, bucket};})();'), context);
   return {context, elements, images, ...context.mappingTest};
 }
 
@@ -55,6 +55,28 @@ test('canceling reset sends no request', async () => {
   d.renderMapping({available: true, paused: true});
   await d.mappingAction('reset');
   assert.equal(requests, 0);
+});
+
+test('scan front follows supplied mount TF instead of hardcoded angle', () => {
+  const d = dashboard();
+  const scan = {amin:0, inc:Math.PI, rs:[.6,.3], rmin:.05,rmax:40,nose_yaw:Math.PI};
+  assert.equal(d.bucket(scan,-5,5),.3);
+  assert.equal(d.bucket({...scan,nose_yaw:0},-5,5),.6);
+  assert.equal(d.bucket({...scan,nose_yaw:null},-5,5),null);
+});
+
+test('map driving requires connection, released stop, active map and map pose', () => {
+  const d = dashboard();
+  const good = {estop: false, map: [10,10,.02], map_control: {paused:false}, pose_available:true,
+    calibration_ready:true, calibration:{ready:true}};
+  for (const bad of [null, {...good, estop:true}, {...good, map:null},
+      {...good, pose_available:false}, {...good, map_control:{paused:true}}]) {
+    d.renderNavigation(bad);
+    assert.equal(d.elements.get('navexplore').disabled, true);
+    assert.equal(d.elements.get('navcoverage').disabled, true);
+  }
+  d.renderNavigation(good);
+  assert.equal(d.elements.get('navexplore').disabled, false);
 });
 
 test('pre-reset image cannot return after reset epoch changes', () => {

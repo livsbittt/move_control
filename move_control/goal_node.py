@@ -13,9 +13,10 @@ Publishes:
 Subscribe /goal/cmd: explore|coverage|stop to switch modes at runtime.
 
 The robot is not driven from here; wander/control stay in charge of motors
-(via the safety gate). If /goal/cmd says stop, only publishing stops.
+(via the safety gate). /goal/cmd stop immediately revokes the published route.
 """
 import math
+import time
 
 import rclpy
 from geometry_msgs.msg import Point, PoseStamped
@@ -30,16 +31,24 @@ from tf2_ros import TransformListener
 from .planning import GoalBrain, OccupancyMap, parse_goal_cmd
 
 
+def grid_clearance(distance, resolution):
+    # OccupancyGrid resolution is float32: 0.02 arrives as 0.01999999955.
+    # Do not inflate a whole extra cell for that representation error.
+    return max(distance, math.ceil(distance / resolution - 1e-6) * resolution)
+
+
 class GoalNode(Node):
     def __init__(self):
         super().__init__('goal_node')
         self.declare_parameter('map_topic', '/map')
         self.declare_parameter('odom_topic', '/odom')
         self.declare_parameter('rate', 1.0)
-        self.declare_parameter('mode', 'explore')
+        self.declare_parameter('mode', 'stop')
+        self.declare_parameter('map_timeout', 10.0)
+        self.declare_parameter('pose_timeout', 1.0)
         self.declare_parameter('min_size', 6)
-        self.declare_parameter('clear_m', 0.06)
-        self.declare_parameter('retry_clear_m', 0.0)
+        self.declare_parameter('clear_m', 0.12)
+        self.declare_parameter('retry_clear_m', 0.12)
         self.declare_parameter('lane_width', 0.12)
         self.declare_parameter('lane_step', 0.20)
         self.declare_parameter('reach_tol', 0.05)
@@ -74,13 +83,15 @@ class GoalNode(Node):
         self.tf = TfBuffer()
         self.tf_listener = TransformListener(self.tf, self)
         self.map_obj = None
+        self._map_received = None
+        self._map_reset_ns = 0
         self._n_options = 0  # last published /goal/options marker count
         self.ox = self.oy = 0.0
         self.have_odom = False
         self._hist = []  # (t, x, y) odom ring for the effective speed
         self.mode = str(self.get_parameter('mode').value)
         if self.mode not in ('explore', 'coverage', 'stop'):
-            self.mode = 'explore'
+            self.mode = 'stop'
         self.brain = GoalBrain(
             min_size=int(self.get_parameter('min_size').value),
             clear_m=float(self.get_parameter('clear_m').value),
@@ -108,7 +119,23 @@ class GoalNode(Node):
 
     def on_map(self, msg):
         # Keep the latest map as a planner object; planning reads it at 1 Hz.
+        stamp_ns = msg.header.stamp.sec * 1000000000 + msg.header.stamp.nanosec
+        if self._map_reset_ns and stamp_ns <= self._map_reset_ns:
+            return  # An old queued map cannot repopulate a reset session.
+        if (msg.header.frame_id != 'map' or msg.info.width <= 0 or
+                msg.info.height <= 0 or not math.isfinite(msg.info.resolution) or
+                msg.info.resolution <= 0 or
+                not math.isfinite(msg.info.origin.position.x) or
+                not math.isfinite(msg.info.origin.position.y) or
+                abs(msg.info.origin.orientation.x) > 1e-6 or
+                abs(msg.info.origin.orientation.y) > 1e-6 or
+                abs(msg.info.origin.orientation.z) > 1e-6 or
+                len(msg.data) != msg.info.width * msg.info.height):
+            self.map_obj = None
+            self._clear_route('waiting for valid map frame')
+            return
         self.map_obj = OccupancyMap.from_msg(msg)
+        self._map_received = time.monotonic()
 
     def on_odom(self, msg):
         p = msg.pose.pose.position
@@ -132,15 +159,26 @@ class GoalNode(Node):
 
     def on_cmd(self, msg):
         cmd = msg.data.strip().lower()
+        if cmd == 'reset':
+            self.mode = 'stop'
+            self.brain.reset()
+            self.map_obj = None
+            self._map_received = None
+            self._map_reset_ns = self.get_clock().now().nanoseconds
+            self._clear_route('map reset; stopped')
+            return
         if cmd in ('explore', 'coverage', 'stop'):
             self.mode = cmd
             self.brain.mode = 'explore' if cmd == 'stop' else cmd
             self.brain.clear_manual()
+            self._clear_route('stopped' if cmd == 'stop' else f'{cmd} waiting for route')
             self.get_logger().info(f'mode -> {cmd}')
             return
         xy = parse_goal_cmd(cmd)
         if xy is not None:
+            self.mode = 'explore'
             self.brain.set_manual(*xy)
+            self._clear_route('manual goal waiting for route')
             self.get_logger().info(
                 f'manual goal -> ({xy[0]:.2f}, {xy[1]:.2f})')
             return
@@ -148,30 +186,45 @@ class GoalNode(Node):
             f'unknown /goal/cmd {cmd!r} (explore|coverage|stop|x,y)')
 
     def pose(self):
-        """Robot pose in the map frame. TF first, odom as fallback."""
+        """Only a fresh map->base transform authorizes map-frame routes."""
         try:
             t = self.tf.lookup_transform(
                 'map', 'base_link', rclpy.time.Time(),
                 timeout=rclpy.duration.Duration(seconds=0.2))
             tr = t.transform.translation
+            age = (self.get_clock().now().nanoseconds -
+                   (t.header.stamp.sec * 1000000000 + t.header.stamp.nanosec)) / 1e9
+            if age < -0.5 or age > float(self.get_parameter('pose_timeout').value):
+                return (None, None), 'stale-tf'
+            if not math.isfinite(tr.x) or not math.isfinite(tr.y):
+                return (None, None), 'invalid-tf'
             return (float(tr.x), float(tr.y)), 'tf'
         except Exception:
-            if self.have_odom:
-                return (self.ox, self.oy), 'odom~map'
             # Nested-unpack safe: (x, y), src = pose() must never see a
             # bare None (crashed goal_node within seconds on this exact line).
             return (None, None), 'none'
 
     def plan(self):
-        m = self.map_obj
-        (x, y), src = self.pose()
-        if m is None or x is None:
-            self.state_pub.publish(
-                String(data=f'waiting map={m is not None} pose={src}'))
-            return
         if self.mode == 'stop':
-            self.state_pub.publish(String(data='stopped'))
+            self._clear_route('stopped')
             return
+        m = self.map_obj
+        if (m is None or self._map_received is None or
+                time.monotonic() - self._map_received >
+                float(self.get_parameter('map_timeout').value)):
+            self._clear_route('waiting for fresh map')
+            return
+        (x, y), src = self.pose()
+        if x is None:
+            self._clear_route(f'waiting pose={src}')
+            return
+        # Generic grid A* rounds cell radii for compatibility with offline
+        # rigs; executable routes always round physical clearance upward.
+        self.brain.clear_m = grid_clearance(float(self.get_parameter('clear_m').value), m.res)
+        self.brain.retry_clear_m = max(self.brain.clear_m, grid_clearance(
+            float(self.get_parameter('retry_clear_m').value), m.res))
+        self.brain.escape_clear_m = max(self.brain.clear_m, grid_clearance(
+            float(self.get_parameter('escape_clear_m').value), m.res))
         goal, route, status = self.brain.plan(m, (x, y))
         if self.get_parameter('debug').value:
             self.get_logger().info(
@@ -181,6 +234,20 @@ class GoalNode(Node):
         self._pub_options()
         if goal is not None and route is not None:
             self._pub_goal(goal[0], goal[1], route)
+        else:
+            self._clear_route()
+
+    def _clear_route(self, status=None):
+        """Revoke old routes immediately; silence is not a stop command."""
+        path = Path()
+        path.header.frame_id = 'map'
+        path.header.stamp = self.get_clock().now().to_msg()
+        self.route_pub.publish(path)
+        self.brain.last_options = []
+        self._pub_options()
+        self.eta_pub.publish(Float32(data=0.0))
+        if status is not None:
+            self.state_pub.publish(String(data=status))
 
     def _pub_status(self, status, route, src):
         """State line + /goal/eta. eta is seconds at the odom-derived speed
@@ -244,6 +311,7 @@ class GoalNode(Node):
         gp.header.stamp = stamp
         gp.pose.position.x = float(x)
         gp.pose.position.y = float(y)
+        gp.pose.orientation.w = 1.0
         self.goal_pub.publish(gp)
         path = Path()
         path.header = gp.header
@@ -252,12 +320,13 @@ class GoalNode(Node):
             ps.header = gp.header
             ps.pose.position.x = float(px)
             ps.pose.position.y = float(py)
+            ps.pose.orientation.w = 1.0
             path.poses.append(ps)
         self.route_pub.publish(path)
 
     def stop(self):
         self.mode = 'stop'
-        self.state_pub.publish(String(data='stopped'))
+        self._clear_route('stopped')
 
 
 def main():
@@ -272,3 +341,7 @@ def main():
         node.destroy_node()
         if rclpy.ok():
             rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()

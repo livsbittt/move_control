@@ -5,15 +5,16 @@ goal_node:
     # Replan rate (Hz). slam map_update_interval is 2 s; faster is waste.
     rate: 0.5
     # explore -> frontier point to go; coverage -> zigzag waypoints.
-    mode: explore
+    mode: stop
+    map_timeout: 10.0
+    pose_timeout: 1.0
     # Real SLAM maps have noise specks; 6 keeps phantom edges out. The sim
     # (tools/explore_sim.py) uses 1 because its raycast reveal is noise-free.
     min_size: 6
-    # 15-18 cm corridors: 2*0.06 + 1 cell leaves the passage passable.
-    clear_m: 0.06
-    # Sealed-corridor retry: raw-map approach to the frontier; the safety
-    # gate still guards the hardware in that last stretch.
-    retry_clear_m: 0.0
+    # Forward routes: 76mm body radius + 17mm lidar offset + 10mm spin
+    # stand-off fit within 120mm base clearance. Safety still gates motion.
+    clear_m: 0.12
+    retry_clear_m: 0.12
     # Robot swath ~15 cm; 12 cm lanes overlap. Waypoint every 20 cm.
     lane_width: 0.12
     lane_step: 0.20
@@ -31,10 +32,9 @@ goal_node:
     blacklist_plans: 20
     # After a stall, routes are planned with this clearance (2-cell
     # inflation seals 15 cm gaps) until the robot leaves the stuck area.
-    escape_clear_m: 0.08
-    # When coverage reports done, keep sending the robot to the farthest
-    # reachable cell: a small fully-known map may still be a tiny corner of
-    # the true world, and only driving grows it.
-    probe_when_done: true
+    escape_clear_m: 0.16
+    # Explicit coverage completion must not silently start repeated probes.
+    # Exploration retries newly visible frontiers on every fresh-map plan.
+    probe_when_done: false
     # Nominal cruise (m/s) for the ETA until odom speed is available.
     speed_mps: 0.014

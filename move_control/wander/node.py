@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Wander ROS node. Subjects: senses, judge, contact, motion, idle."""
 import math
+import time
 
 import rclpy
 from geometry_msgs.msg import Twist
@@ -16,9 +17,10 @@ from .contact import Contact
 from .judge import Judge
 from .motion import Motion
 from .senses import Senses
+from .navigator import Navigator
 
 
-class WanderNode(Node, Senses, Judge, Contact, Motion):
+class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
 
     def __init__(self):
         super().__init__('wander_node')
@@ -37,7 +39,10 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         self.declare_parameter('wall_front', 0.08)
         self.declare_parameter('warn_front', 0.11)
         self.declare_parameter('think_horizon', 0.50)
-        self.declare_parameter('auto_start', True)
+        self.declare_parameter('auto_start', False)
+        self.declare_parameter('calibration_required', False)
+        self.calibration_ready = False
+        self.calibration_received = None
         self.declare_parameter('pause_sec', 0.25)
         self.declare_parameter('look_sec', 0.40)
         self.declare_parameter('calc_sec', 0.20)
@@ -102,6 +107,7 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
             Twist, self.get_parameter('cmd_topic').value, 10
         )
         self.state_pub = self.create_publisher(String, '/wander/state', 10)
+        self._init_navigator()
         self.mode_pub = self.create_publisher(String, '/robot/mode', 10)
         self.safety_mode_pub = self.create_publisher(String, '/safety/mode', 10)
         self.create_subscription(Bool, '/safety/cliff', self.on_cliff, 10)
@@ -117,6 +123,7 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         )
         self.estop = False
         self.create_subscription(Bool, '/estop/state', self.on_estop, latched)
+        self.create_subscription(Bool, '/calibration/ready', self.on_calibration, latched)
         self.create_subscription(Bool, '/safety/rear_clear', self.on_rear, 10)
         self.create_subscription(Float32, '/safety/min_range', self.on_front_range, 10)
         self.create_subscription(Float32, '/safety/rear_range', self.on_rear_range, 10)
@@ -222,30 +229,60 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         return (self.now() - self.t0).nanoseconds * 1e-9
 
     def on_enable(self, msg: Bool):
+        was_navigation = self.navigation_mode is not None
+        self._cancel_navigation()
+        if was_navigation:
+            self.enabled = False
         self._set_enabled(bool(msg.data))
 
     def on_cmd(self, msg: String):
         cmd = msg.data.strip().lower()
+        if cmd not in ('stop', 'halt', 'off') and not self.calibration_ok():
+            self.stop_reason = 'calibration_required'
+            self._set_enabled(False)
+            return
         if cmd in ('stop', 'halt', 'off'):
             self._set_enabled(False)
+        elif cmd in ('explore', 'coverage'):
+            self._start_navigation(cmd)
         elif cmd in ('start', 'go', 'wander', 'resume', 'on', 'forward'):
+            was_navigation = self.navigation_mode is not None
+            self._cancel_navigation()
+            if was_navigation:
+                self.enabled = False
             self._set_enabled(True)
         else:
-            self.get_logger().warn(f'unknown cmd {cmd!r} (use stop|start)')
+            self.get_logger().warn(f'unknown cmd {cmd!r} (use stop|start|explore|coverage)')
 
     def _set_enabled(self, enabled: bool):
+        if enabled and not self.calibration_ok():
+            self.stop_reason = 'calibration_required'
+            enabled = False
         if not enabled:
+            self._cancel_navigation()
             self.enabled = False
             self._stop_n = 0
             if self.state != 'stop':
                 self._enter('stop')
             return
         already = self.enabled and self.state != 'stop'
+        self._recovery_budget = None
+        self.stop_reason = None
         self.enabled = True
         if already:
             return
         # Always start by going forward. Backup only after we have driven.
         self._enter('wait')
+
+    def calibration_ok(self):
+        if not self.get_parameter('calibration_required').value:
+            return True
+        return (self.calibration_ready and self.calibration_received is not None
+                and time.monotonic() - self.calibration_received <= 3.0)
+
+    def on_calibration(self, msg):
+        self.calibration_ready = bool(msg.data)
+        self.calibration_received = time.monotonic()
 
     def _enter(self, state: str):
         prev = self.state
@@ -381,6 +418,9 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         self._publish(cmd, 'turn')
 
     def tick(self):
+        if self.enabled and not self.calibration_ok():
+            self._set_enabled(False)
+            self.stop_reason = 'calibration_required'
         self.vmax = float(self.get_parameter('vmax').value)
         self.vback = float(self.get_parameter('vback').value)
         self.wturn = float(self.get_parameter('wturn').value)
@@ -388,19 +428,23 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         self.pinch_ratio = float(self.get_parameter('pinch_ratio').value)
         self.open_ratio = float(self.get_parameter('open_ratio').value)
         if not self.enabled or self.state == 'stop':
+            label = 'stop:' + self.stop_reason if getattr(self, 'stop_reason', None) else 'stop'
             # A few zero cmds, then release /cmd_vel_raw so teleop can own it.
             n = getattr(self, '_stop_n', 0)
             if n < 4:
                 self._stop_n = n + 1
-                self._publish(Twist(), 'stop')
+                self._publish(Twist(), label)
             else:
-                self._announce('stop')
+                self._announce(label)
             return
         if self.pickup:
             if self.state != 'stop':
                 self.get_logger().error('pickup — stop')
                 self._set_enabled(False)
             self._publish(Twist(), 'stop')
+            return
+        if self.navigation_mode:
+            self._tick_navigation()
             return
         if self.state == 'wait':
             self._tick_wait()
@@ -446,6 +490,7 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
 
     def stop_motors(self):
         try:
+            self._cancel_navigation()
             self.enabled = False
             self.state = 'stop'
             self.pub.publish(Twist())

@@ -29,7 +29,7 @@ EXCLUSIVE = {
 
 # Local extras that are not a fight (safety zeros /cmd_vel_raw on e-stop).
 ALLOWED = {
-    '/cmd_vel_raw': frozenset({'safety_node', 'web_node'}),
+    '/cmd_vel_raw': frozenset({'safety_node', 'web_node', 'startup_calibration_node', 'calib_node'}),
 }
 
 FOREIGN = frozenset({

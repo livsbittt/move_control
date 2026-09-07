@@ -93,7 +93,8 @@ def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
             # cluster and latch-chases one unreachable goal — the map froze
             # at 383 known cells at minute 7 (run 6) vs 1771 with the
             # single-cell bench (run 2). Keep the single-cell bench.
-            cand = {'kind': 'frontier', 'x': f['x'], 'y': f['y'],
+            tx, ty = route['points'][-1]
+            cand = {'kind': 'frontier', 'x': tx, 'y': ty,
                     'size': f['size'], 'route': route, 'clear_m': cm,
                     'score': f['size'] / max(route['length'], 1e-6)}
             options.append(cand)

@@ -84,9 +84,12 @@ def classify_frame(
 
     on_floor = any(c['floor'] >= 0.20 for c in cols)
     cliff = on_floor and any(c['void'] >= void_frac for c in cols)
-    # Narrow maze: side walls fill the mid band. Blocked = CENTER column only
-    # (corner / dead-end ahead), not the walls hugging left/right.
-    blocked = mid_cols[1]['obst'] >= obst_frac
+    # A visible wall in the upper/mid view does not imply nearby contact:
+    # the measured corridor frame had a clear lower half and a wall 0.65 m
+    # ahead. Require obstacle in the near centre, also catching low objects
+    # below the mid band. Lidar owns metric stopping distance; cliff logic
+    # above and mid-band directional scores remain independent.
+    blocked = cols[1]['obst'] >= obst_frac
     lo, lc, lr = mid_cols[0]['obst'], mid_cols[1]['obst'], mid_cols[2]['obst']
     if lr > lo + 0.08:
         side = 1.0

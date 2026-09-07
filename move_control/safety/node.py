@@ -5,6 +5,7 @@ import math
 import rclpy
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
+from tf2_ros import Buffer, TransformListener
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy, qos_profile_sensor_data
 from sensor_msgs.msg import Imu, LaserScan, Range
 from std_msgs.msg import Bool, Float32, String, UInt16MultiArray
@@ -35,6 +36,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.declare_parameter('us_clear_distance', 0.028)
         self.declare_parameter('front_half_width_deg', 45.0)
         self.declare_parameter('lidar_yaw_offset', NOSE_YAW)
+        self.declare_parameter('lidar_use_tf', True)
         self.declare_parameter('scan_pctl', 0.10)
         self.declare_parameter('scan_ignore_m', 0.04)
         self.declare_parameter('sensor_timeout', 1.0)
@@ -75,6 +77,9 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.us_clear = float(self.get_parameter('us_clear_distance').value)
         self.half_w = math.radians(float(self.get_parameter('front_half_width_deg').value))
         self.lidar_yaw = float(self.get_parameter('lidar_yaw_offset').value)
+        self.lidar_tf = Buffer()
+        self.lidar_tf_listener = TransformListener(self.lidar_tf, self)
+        self.lidar_yaw_source = 'waiting_tf'
         self.timeout = float(self.get_parameter('sensor_timeout').value)
         self.cmd_out = self.get_parameter('cmd_out').value
         nmed = max(1, int(self.get_parameter('filt_median').value))
