@@ -91,6 +91,7 @@ class GoalBrain:
         self._failed_goals = []
         self._failed_exits = []
         self._route_tick = 0
+        self.execution_feedback = False
 
     def avoid_route_exit(self, point):
         if point is not None and all(math.isfinite(v) for v in point):
@@ -139,6 +140,12 @@ class GoalBrain:
         exempt) => blacklist it for blacklist_plans plan calls and re-pick
         from the remaining options. Returns (goal | None, status prefix).
         """
+        # The active route executor measures translation and heading progress
+        # and explicitly requests replans. A second XY-only watchdog would
+        # replace its goal during a legitimate safety-limited alignment turn.
+        if self.execution_feedback:
+            self._n = 0
+            return g, ''
         cell = m.world_to_grid(g['x'], g['y'])
         dist = math.hypot(g['x'] - pose[0], g['y'] - pose[1])
         if self._target != cell:

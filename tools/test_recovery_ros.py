@@ -1,12 +1,13 @@
 """Execution failure reaches planning without publishing physical motor commands."""
 import unittest
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 import rclpy
 from rclpy.time import Time
 from geometry_msgs.msg import TransformStamped
 from std_msgs.msg import String
 from move_control.goal_node import GoalNode
 from move_control.wander.node import WanderNode
+from move_control.planning import OccupancyMap
 
 
 class RecoveryIntegrationTest(unittest.TestCase):
@@ -14,6 +15,25 @@ class RecoveryIntegrationTest(unittest.TestCase):
     def setUpClass(cls):rclpy.init(domain_id=223)
     @classmethod
     def tearDownClass(cls):rclpy.shutdown()
+
+    def test_executor_feedback_expires_and_restores_planner_watchdog(self):
+        node = GoalNode()
+        try:
+            node.mode = 'explore'
+            node.map_obj = OccupancyMap(50, 50, .02, fill=0)
+            node._map_received = 100.
+            node.pose = Mock(return_value=((.5, .5), 'tf'))
+            node.brain.plan = Mock(return_value=(None, None, 'idle'))
+            node._pub_status = node._pub_options = node._clear_route = Mock()
+            with patch('move_control.goal_node.time.monotonic', return_value=100.) as clock:
+                node.on_navigation_feedback(String(data='route_explore:align'))
+                node.plan()
+                self.assertTrue(node.brain.execution_feedback)
+                clock.return_value = 102.
+                node.plan()
+                self.assertFalse(node.brain.execution_feedback)
+        finally:
+            node.destroy_node()
 
     def test_planner_excludes_failed_target_and_replans_but_never_starts_from_stop(self):
         node=GoalNode()

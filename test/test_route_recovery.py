@@ -59,3 +59,25 @@ def test_new_endpoint_on_same_blocked_exit_is_not_an_alternative_path():
     assert r.update(5,(0,0,0),'front_blocked',(1,0),5,True,(.06,0))=='replan'
     assert r.update(6,(0,0,0),'forward',(2,0),6,True,(.06,0))=='waiting'
     assert r.update(7,(0,0,0),'forward',(1,0),7,True,(0,.06))=='alternative'
+
+
+def test_slow_measured_alignment_is_progress_but_freeze_still_replans():
+    r = RouteRecovery()
+    for now, yaw in ((0, 0.), (20, .25), (40, .5), (60, .75), (80, 1.), (100, 1.25), (120, 1.5)):
+        assert r.update(now, (0., 0., yaw), 'align', (0., 1.), now, True, (0., .06)) == 'following'
+    assert r.update(166, (0., 0., 1.5), 'align', (0., 1.), 166, True, (0., .06)) == 'replan'
+
+
+def test_active_executor_owns_stall_decision_without_a_second_xy_watchdog():
+    from move_control.planning import GoalBrain, OccupancyMap
+    brain = GoalBrain(stall_plans=2)
+    brain.execution_feedback = True
+    m = OccupancyMap(30, 30, .05, fill=0)
+    candidate = {'x': 1., 'y': 1., 'size': 10}
+    for _ in range(20):
+        assert brain._watchdog(m, (.2, .2), candidate) == (candidate, '')
+    assert not brain._blacklist
+    brain.execution_feedback = False
+    for _ in range(3):
+        brain._watchdog(m, (.2, .2), candidate)
+    assert brain._blacklist

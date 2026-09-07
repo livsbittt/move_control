@@ -88,6 +88,8 @@ class GoalNode(Node):
         self._n_options = 0  # last published /goal/options marker count
         self.last_executable_goal = None
         self.last_executable_exit = None
+        self.navigation_feedback_received = None
+        self.create_subscription(String, '/wander/state', self.on_navigation_feedback, 10)
         self.ox = self.oy = 0.0
         self.have_odom = False
         self._hist = []  # (t, x, y) odom ring for the effective speed
@@ -158,6 +160,9 @@ class GoalNode(Node):
                 d = math.hypot(h[-1][1] - _x, h[-1][2] - _y)
                 return d / dt if dt > 0.2 else 0.0
         return 0.0
+
+    def on_navigation_feedback(self, msg):
+        self.navigation_feedback_received = time.monotonic() if msg.data.startswith('route_') else None
 
     def on_cmd(self, msg):
         cmd = msg.data.strip().lower()
@@ -237,6 +242,8 @@ class GoalNode(Node):
             float(self.get_parameter('retry_clear_m').value), m.res))
         self.brain.escape_clear_m = max(self.brain.clear_m, grid_clearance(
             float(self.get_parameter('escape_clear_m').value), m.res))
+        seen = self.navigation_feedback_received
+        self.brain.execution_feedback = seen is not None and 0 <= time.monotonic()-seen <= 1.
         goal, route, status = self.brain.plan(m, (x, y))
         if self.get_parameter('debug').value:
             self.get_logger().info(

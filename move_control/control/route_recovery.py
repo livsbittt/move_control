@@ -14,6 +14,7 @@ class RouteRecovery:
         self.requested = None
         self.failed_goal = None
         self.failed_exit = None
+        self.heading_target = self.heading_best = None
         self.attempts = 0
         self.waiting = self.exhausted = False
 
@@ -28,6 +29,7 @@ class RouteRecovery:
             self.progress_since = now
         if math.dist(xy,self.anchor) >= .02:
             self.anchor, self.progress_since = xy, now
+            self.heading_target = self.heading_best = None
         if math.dist(xy,self.budget_anchor) >= .10:
             self.budget_anchor, self.attempts = xy, 0
         if self.waiting:
@@ -37,11 +39,24 @@ class RouteRecovery:
             if different and route_stamp is not None and route_stamp > self.requested:
                 self.waiting = False
                 self.progress_since, self.blocked_since = now, None
+                self.heading_target = self.heading_best = None
                 return 'alternative'
             # The planner continuously replans while its temporary exclusions
             # expire. Waiting at zero speed is not a failed physical attempt.
             return 'waiting'
         else:
+            if reason in ('align', 'turn_away') and route_exit is not None:
+                if self.heading_target is None:
+                    self.heading_target = math.atan2(route_exit[1]-xy[1], route_exit[0]-xy[0])
+                    self.heading_best = abs(math.atan2(math.sin(self.heading_target-pose[2]),
+                                                       math.cos(self.heading_target-pose[2])))
+                error = abs(math.atan2(math.sin(self.heading_target-pose[2]),
+                                       math.cos(self.heading_target-pose[2])))
+                # A safety-limited turn can legitimately exceed 45 seconds.
+                # Credit only convergence toward a fixed bearing, never total
+                # yaw travel (which would excuse endless circles).
+                if self.heading_best-error >= .15:
+                    self.heading_best, self.progress_since = error, now
             blocked = reason in ('no_route','hazard','front_blocked','stalled_restart_required',
                                  'stale_route','off_route','arrived')
             if blocked:
