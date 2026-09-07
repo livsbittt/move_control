@@ -1,0 +1,17 @@
+{
+  "wall_recall": 0.312,
+  "n_wall": 48,
+  "n_wall_adj": 15,
+  "wall_detect_adj": 1.0,
+  "corridor_purity": 0.833,
+  "phantom_frac": 0.09,
+  "interior_unknown": 0.388,
+  "n_walkable": 957,
+  "gates": {
+    "wall_detect_adj>=0.85": true,
+    "corridor_purity>=0.9": false,
+    "phantom<0.05": false,
+    "interior_unknown<=0.40": true
+  },
+  "ok": false
+}
