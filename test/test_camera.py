@@ -44,3 +44,25 @@ class CameraNearObstacleTest(unittest.TestCase):
         frame[165:230, :100] = 5
         result = self.classify(frame)
         self.assertTrue(result['cliff'])
+
+    def test_colored_side_tape_is_not_a_dark_drop(self):
+        frame = self.frame()
+        # Blue tape on the measured maze changes hue, but retains 80% of
+        # floor brightness. Color alone cannot establish missing floor.
+        frame[165:230, :100] = (80, 20, 20)
+        result = self.classify(frame)
+        self.assertFalse(result['cliff'])
+        self.assertFalse(result['blocked'])
+        self.assertGreater(result['cols'][0]['obst'], .8)
+
+    def test_colored_near_centre_remains_an_obstacle_cue(self):
+        frame = self.frame()
+        frame[165:230, 106:213] = (80, 20, 20)
+        result = self.classify(frame)
+        self.assertFalse(result['cliff'])
+        self.assertTrue(result['blocked'])
+
+    def test_dark_colored_drop_still_reports_cliff(self):
+        frame = self.frame()
+        frame[165:230, :100] = (20, 5, 5)
+        self.assertTrue(self.classify(frame)['cliff'])

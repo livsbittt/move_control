@@ -46,10 +46,12 @@ def classify_frame(
 
     d_h = np.minimum(np.abs(h_ch - fh), 180.0 - np.abs(h_ch - fh))
     floor = (d_h < floor_h_tol) & (np.abs(v_ch - fv) < floor_v_tol) & (v_ch > fv * 0.55)
-    void = (
-        (v_ch < fv * void_v_ratio)
-        | ((d_h > hue_shift) & (v_ch < fv * 0.90) & (s_ch > 25.0))
-    ) & (~floor)
+    # Blue maze tape can differ in hue while retaining 80% of floor
+    # brightness. Hue alone is not missing-floor evidence: keep those
+    # pixels as obstacle cues, and require the existing darkness ratio
+    # for a visual drop. Floor IR remains an independent safety input.
+    # hue_shift stays in the call signature for existing callers.
+    void = (v_ch < fv * void_v_ratio) & (~floor)
     obst = (~floor) & (~void)
 
     k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
