@@ -1,6 +1,7 @@
 """Subject: contact sensing. Lidar sectors + US. Publish ranges."""
 import math
 from ..control.lidar_guard import scan_body_clearance
+from ..control.footprint_guard import translation_clearance
 
 from sensor_msgs.msg import LaserScan, Range
 from std_msgs.msg import Float32
@@ -77,6 +78,7 @@ class Bumper:
             self.lidar_yaw_source = 'parameter'
             self.lidar_mount = None
         self._scan_ok += 1
+        self.lidar_measurement_time = Time.from_msg(msg.header.stamp)
         yaw = self.lidar_yaw
         lo = max(
             float(self.get_parameter('scan_ignore_m').value),
@@ -95,12 +97,20 @@ class Bumper:
         self.lidar_rear_left = sector_range(msg, wrap_pi(rear + side), side_w, **kw)
         self.lidar_rear_right = sector_range(msg, wrap_pi(rear - side), side_w, **kw)
         self.lidar_rotation_clearance = None
+        self.translation_clearance = None
         if bool(self.get_parameter('lidar_use_tf').value):
             mount = tf.transform.translation
             rotation = math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z))
             self.lidar_rotation_clearance = scan_body_clearance(
                 msg.ranges, msg.angle_min, msg.angle_increment,
                 mount.x, mount.y, rotation, max(lo,msg.range_min), min(12.,msg.range_max))
+            if self.get_parameter('footprint_guard_enabled').value:
+                points = []
+                for i, distance in enumerate(msg.ranges):
+                    if math.isfinite(distance) and max(lo, msg.range_min) < distance <= min(12., msg.range_max):
+                        angle = msg.angle_min + i*msg.angle_increment + rotation
+                        points.append((mount.x+distance*math.cos(angle), mount.y+distance*math.sin(angle)))
+                self.translation_clearance = translation_clearance(points, (.077, .043, .077))
         cap = float(getattr(self, 'open_max', 0.40) or 0.40)
         self.open_range, self.open_yaw = opening_max(
             msg, yaw, math.radians(70.0), max_r=cap

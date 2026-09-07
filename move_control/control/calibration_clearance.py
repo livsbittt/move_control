@@ -14,7 +14,14 @@ def motion_clearance(limits, requested, target=None, forward=0., round_trip=True
     if not isinstance(us, (int, float)) or not math.isfinite(us) or us <= 0:
         return {'reason': 'Missing valid ultrasonic guard range', 'target_m': None}
     margin = .008  # Existing maximum negative home excursion; also reserve stopping headroom.
-    room = min(limits['front_m']-limits['front_stop_m'], us-limits['us_stop_m'])-margin
+    footprint = limits.get('translation_mode') is True
+    if footprint and not all(isinstance(limits.get(k), (int, float)) and
+                             math.isfinite(limits[k]) and limits[k] >= 0
+                             for k in ('forward_travel_m', 'reverse_travel_m')):
+        return {'reason': 'Missing valid chassis travel clearance', 'target_m': None}
+    front_room = limits['forward_travel_m'] if footprint else limits['front_m']-limits['front_stop_m']
+    rear_room = limits['reverse_travel_m'] if footprint else limits['rear_m']-limits['rear_stop_m']
+    room = min(front_room, us-limits['us_stop_m'])-margin
     selected = max(0., min(requested, math.floor((room+1e-9)*1000)/1000)) if target is None else target
     remaining = max(0., selected-forward)
     required = limits['front_stop_m']+remaining+margin
@@ -22,11 +29,14 @@ def motion_clearance(limits, requested, target=None, forward=0., round_trip=True
     reason = None
     if selected < .02:
         reason = 'Insufficient clearance for minimum 2 cm motion evidence'
-    elif limits['front_m'] < required-1e-6 or us < limits['us_stop_m']+remaining+margin-1e-6:
+    elif front_room < remaining+margin-1e-6 or us < limits['us_stop_m']+remaining+margin-1e-6:
         reason = 'Insufficient remaining forward travel clearance'
-    elif round_trip and limits['rear_m'] < rear_required:
+    elif round_trip and rear_room < margin:
         reason = 'Insufficient rear clearance for bounded return'
-    return dict(available_front_m=limits['front_m'], required_front_m=required,
+    return dict(translation_mode=footprint, available_travel_m=front_room,
+                required_travel_m=remaining+margin, reverse_travel_m=rear_room,
+                required_reverse_travel_m=margin,
+                available_front_m=limits['front_m'], required_front_m=required,
                 available_rear_m=limits['rear_m'], required_rear_m=rear_required,
                 front_stop_m=limits['front_stop_m'], rear_stop_m=limits['rear_stop_m'],
                 available_us_m=us, required_us_m=limits['us_stop_m']+remaining+margin,

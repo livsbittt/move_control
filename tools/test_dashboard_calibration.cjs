@@ -16,6 +16,18 @@ test('calibration displays runtime directional space and selected stroke', () =>
   assert.ok(text.includes('이동 목표 2.0cm'));
 });
 
+test('footprint clearance is labeled as travel outside the chassis', () => {
+  const d = dashboard();
+  d.renderCalibration({calibration:{phase:'waiting_motion',motion_clearance:{
+    translation_mode:true,available_travel_m:.04,required_travel_m:.038,
+    reverse_travel_m:.02,required_reverse_travel_m:.008,target_m:.03,
+    front_stop_m:.07,rear_stop_m:.07
+  }}});
+  const text = d.elements.get('calibrationsensors').textContent;
+  assert.ok(text.includes('차체 외곽'));
+  assert.ok(text.includes('4.0cm / 필요 3.8cm'));
+});
+
 function dashboard() {
   const elements = new Map();
   const noop = () => {};

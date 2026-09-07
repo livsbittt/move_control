@@ -242,6 +242,11 @@ class StartupCalibrationNode(Node):
         lidar_raw = self.raw_ranges.get('lidar', (0., 0., False))
         if isinstance(limits.get('front_m'), (int, float)) and lidar_raw[2]:
             limits['front_m'] = min(limits['front_m'], lidar_raw[1])
+        if (limits.get('translation_mode') is True and lidar_raw[2] and
+                isinstance(limits.get('front_stop_m'), (int, float)) and
+                lidar_raw[1] <= limits['front_stop_m']):
+            self.motion_clearance = {'reason': 'Raw nose range inside chassis stop clearance', 'target_m': None}
+            return self.motion_clearance['reason']
         us_raw = self.raw_ranges.get('us', (0., 0., False))
         limits['us_m'] = us_raw[1]
         forward = 0.

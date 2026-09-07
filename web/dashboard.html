@@ -538,7 +538,12 @@ function renderCalibration(s) {
   const clearance = calibration && calibration.motion_clearance;
   if (clearance) {
     const cm = value => Number.isFinite(value) ? (value * 100).toFixed(1) + 'cm' : '미수신';
-    lines.push('왕복 공간 확인 (LiDAR 기준): 전방 ' + cm(clearance.available_front_m) + ' / 필요 ' + cm(clearance.required_front_m) + ' · 후방 ' + cm(clearance.available_rear_m) + ' / 필요 ' + cm(clearance.required_rear_m));
+    if (clearance.translation_mode) {
+      lines.push('차체 외곽·정지 여유 제외 후 이동 가능: 전방 ' + cm(clearance.available_travel_m) + ' / 필요 ' + cm(clearance.required_travel_m) + ' · 후방 ' + cm(clearance.reverse_travel_m) + ' / 필요 ' + cm(clearance.required_reverse_travel_m));
+      lines.push('직선 저속 보정 · 차체 밖 1cm 정지 여유 · 회전은 별도 검사');
+    } else {
+      lines.push('왕복 공간 확인 (LiDAR 기준): 전방 ' + cm(clearance.available_front_m) + ' / 필요 ' + cm(clearance.required_front_m) + ' · 후방 ' + cm(clearance.available_rear_m) + ' / 필요 ' + cm(clearance.required_rear_m));
+    }
     lines.push('이번 보정 이동 목표 ' + cm(clearance.target_m) + ' · 정지 기준: 전방 ' + cm(clearance.front_stop_m) + ' / 후방 ' + cm(clearance.rear_stop_m));
     if (clearance.reason) lines.push('공간 확인: ' + clearance.reason);
   }

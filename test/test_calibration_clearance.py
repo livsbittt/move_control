@@ -8,6 +8,19 @@ def limits(front=.183):
                 us_stop_m=.02,us_m=.3)
 
 
+def test_verified_body_travel_replaces_unrelated_diagonal_range():
+    d = limits(.09)
+    d.update(translation_mode=True, forward_travel_m=.04, reverse_travel_m=.02,
+             front_stop_m=.07, rear_stop_m=.07)
+    result = motion_clearance(d, .03)
+    assert result['reason'] is None
+    assert result['target_m'] == .03
+    d['forward_travel_m'] = .015
+    assert motion_clearance(d, .03)['reason']
+    d['forward_travel_m'] = None
+    assert motion_clearance(d, .03)['reason']
+
+
 def test_actual_gate_limits_reserve_only_planned_travel():
     r=motion_clearance(limits(),.03)
     assert r['reason'] is None and r['target_m']==.03

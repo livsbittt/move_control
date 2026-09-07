@@ -11,6 +11,45 @@ from move_control.safety.node import SafetyNode
 
 
 class SafetyGateTest(unittest.TestCase):
+    def test_verified_translation_uses_body_clearance_but_turning_keeps_circle(self):
+        from rclpy.parameter import Parameter
+        self.node.set_parameters([Parameter('footprint_guard_enabled', value=True),
+                                  Parameter('lidar_use_tf', value=True)])
+        self.node.release_estop()
+        self.node.lidar_mount = (-.017, 0.)
+        self.node.translation_clearance = (.03, .03)
+        self.node.last_scan_time = self.node.now()
+        self.node.lidar_measurement_time = self.node.now()
+        for field in ('lidar_front', 'lidar_rear', 'lidar_left', 'lidar_right',
+                      'lidar_rear_left', 'lidar_rear_right'):
+            setattr(self.node, field, .1)
+        command = Twist()
+        command.linear.x = .008
+        self.node.on_cmd(command)
+        self.node.tick()
+        self.assertGreater(self.node.pub.publish.call_args.args[0].linear.x, 0.)
+        measured = self.node.lidar_measurement_time
+        self.node.lidar_measurement_time = None
+        self.node.tick()
+        self.assertEqual(self.node.pub.publish.call_args.args[0].linear.x, 0.)
+        self.node.lidar_measurement_time = measured
+        self.node.on_drive_scale(Float32MultiArray(data=[1.25, 1.25]))
+        self.node.on_drive_ready(Bool(data=True))
+        command.linear.x = .014
+        self.node.on_cmd(command)
+        self.node.tick()
+        self.assertEqual(self.node.pub.publish.call_args.args[0].linear.x, 0.)
+        command.linear.x = .008
+        self.node.on_cmd(command)
+        self.node.translation_clearance = (0., .03)
+        self.node.tick()
+        self.assertEqual(self.node.pub.publish.call_args.args[0].linear.x, 0.)
+        self.node.translation_clearance = (.03, .03)
+        command.angular.z = .1
+        self.node.on_cmd(command)
+        self.node.tick()
+        self.assertEqual(self.node.pub.publish.call_args.args[0].linear.x, 0.)
+
     @classmethod
     def setUpClass(cls):
         rclpy.init(domain_id=217)
