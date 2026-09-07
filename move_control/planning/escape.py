@@ -9,8 +9,8 @@ def start_escape(m, pose, preferred_m, minimum_m, max_distance_m):
         return None
     if not (m.ox <= pose[0] < m.ox+m.w*m.res and m.oy <= pose[1] < m.oy+m.h*m.res):
         return None
-    hard = m.inflate(math.ceil(minimum_m / m.res - 1e-6))
-    soft = m.inflate(math.ceil(preferred_m / m.res - 1e-6))
+    hard = m.inflate(minimum_m / m.res)
+    soft = m.inflate(preferred_m / m.res)
     start = m.world_to_grid(*pose)
     if not hard.is_free(*start) or soft.is_free(*start):
         return None

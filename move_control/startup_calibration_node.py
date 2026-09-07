@@ -22,6 +22,8 @@ from .sensing.lidar import NOSE_YAW, is_robot_scan, sector_range
 from .sensing.lidar_mount import nose_from_quaternion
 from .sensing.range_filter import CalibrationRangeFilter
 from .control.round_trip import RoundTrip
+from .control.navigation_calibration import environment_profile, map_ray
+from .planning import OccupancyMap
 
 
 class StartupCalibrationNode(Node):
@@ -34,6 +36,7 @@ class StartupCalibrationNode(Node):
         self.declare_parameter('calibration_us_max_range', 3.0)
         self.declare_parameter('calibration_round_trip', False)
         self.declare_parameter('calibration_distance_m', .03)
+        self.declare_parameter('robot_radius', .076)
         self.declare_parameter('result_path', str(Path.home() / '.local/state/move_control/calibration.json'))
         latched = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL,
                              reliability=ReliabilityPolicy.RELIABLE)
@@ -82,6 +85,9 @@ class StartupCalibrationNode(Node):
         self.round_trip = None
         self.motion = None
         self.baseline_values = {}
+        self.environment_samples = []
+        self.environment_map = None
+        self.navigation_profile = None
         self.requested = None
         self.sensors = self.baseline.report(self.started)
         self.last_report = 0.
@@ -128,6 +134,21 @@ class StartupCalibrationNode(Node):
         distance = sector_range(msg, self.lidar_nose,
                                 math.radians(12), pctl=.1) if valid else math.inf
         self.add_range('lidar', distance, valid)
+        if valid and self.phase in ('collecting', 'waiting_motion'):
+            left = sector_range(msg, self.lidar_nose+math.pi/2, math.radians(8), pctl=.5)
+            right = sector_range(msg, self.lidar_nose-math.pi/2, math.radians(8), pctl=.5)
+            mapped = [None, None]
+            try:
+                t = self.tf.lookup_transform('map', msg.header.frame_id, rclpy.time.Time())
+                q, p = t.transform.rotation, t.transform.translation
+                yaw = math.atan2(2*(q.w*q.z+q.x*q.y),1-2*(q.y*q.y+q.z*q.z))
+                if self.environment_map is not None:
+                    mapped = [map_ray(self.environment_map, (p.x,p.y), yaw+self.lidar_nose+side*math.pi/2)
+                              for side in (1,-1)]
+            except Exception:
+                pass
+            self.environment_samples.append((time.monotonic(), (left,right,*mapped)))
+            self.environment_samples = self.environment_samples[-50:]
 
     def on_odom(self, msg):
         p, q, v = msg.pose.pose.position, msg.pose.pose.orientation, msg.twist.twist.linear
@@ -140,6 +161,8 @@ class StartupCalibrationNode(Node):
         valid = (msg.header.frame_id == 'map' and msg.info.width > 0 and msg.info.height > 0 and
                  len(msg.data) == msg.info.width * msg.info.height and msg.info.resolution > 0)
         self.add('map', (known, msg.info.resolution), valid and self.stamped(msg, 5.))
+        if valid:
+            self.environment_map = OccupancyMap.from_msg(msg)
 
     def on_ir(self, msg):
         values = tuple(msg.data[:3])
@@ -233,6 +256,10 @@ class StartupCalibrationNode(Node):
                 return
             self.wander_pub.publish(String(data='stop'))
             self.baseline_values = self.baseline.statistics(now)
+            if self.environment_map is not None:
+                self.navigation_profile = environment_profile(
+                    float(self.get_parameter('robot_radius').value), self.environment_map.res,
+                    [row for stamp,row in self.environment_samples if now-stamp <= 5.])
             self.phase, self.message = 'validating_motion', 'Waiting for wander stop before bounded forward validation'
             self.requested = now
             self.publish()
@@ -325,6 +352,7 @@ class StartupCalibrationNode(Node):
                 'us_precision_required': bool(self.get_parameter('calibration_require_us_agreement').value),
                 'elapsed_s': round(time.monotonic() - self.started, 2),
                 'sensors': self.sensors, 'motion': self.motion, 'baseline': self.baseline_values,
+                'navigation_profile': self.navigation_profile,
                 'estimates': {'imu_gyro_bias_rad_s': imu[3:6], 'imu_gravity_mean_mps2': imu[6:9],
                               'imu_roll_pitch_baseline_rad': imu[9:11],
                               'lidar_us_range_difference_m': lidar[0] - us[0] if lidar and us else None},

@@ -12,6 +12,7 @@ frontier. Unknown still blocks A* by absence (only known-free traverses), so
 a route never crosses unmapped space.
 """
 from collections import deque
+import math
 
 FREE = 0
 OCC = 100
@@ -91,6 +92,7 @@ class OccupancyMap:
         out = OccupancyMap(self.w, self.h, self.res, (self.ox, self.oy), fill=UNKNOWN)
         # Pass 1: classify. Pass 2: grow rings. One loop would let later
         # FREE cells stomp on earlier rings (unit test caught exactly that).
+        extent = math.ceil(r_cells)
         for i, v in enumerate(self.data):
             if v >= OCC_THRESH:
                 out.data[i] = OCC
@@ -102,8 +104,8 @@ class OccupancyMap:
             if v < OCC_THRESH:
                 continue
             c, r = i % self.w, i // self.w
-            for dc in range(-r_cells, r_cells + 1):
-                for dr in range(-r_cells, r_cells + 1):
+            for dc in range(-extent, extent + 1):
+                for dr in range(-extent, extent + 1):
                     if dc * dc + dr * dr <= r_cells * r_cells:
                         out.set_cell(c + dc, r + dr, OCC)
         return out

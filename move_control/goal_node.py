@@ -16,6 +16,7 @@ The robot is not driven from here; wander/control stay in charge of motors
 (via the safety gate). /goal/cmd stop immediately revokes the published route.
 """
 import math
+import json
 import time
 
 import rclpy
@@ -51,6 +52,10 @@ class GoalNode(Node):
         self.declare_parameter('retry_clear_m', 0.12)
         self.declare_parameter('start_escape_clear_m', 0.0)
         self.declare_parameter('start_escape_distance_m', .08)
+        self.declare_parameter('robot_radius', .076)
+        self.navigation_profile = None
+        self.navigation_profile_received = None
+        self.create_subscription(String, '/calibration/status', self.on_calibration_profile, 10)
         self.declare_parameter('lane_width', 0.12)
         self.declare_parameter('lane_step', 0.20)
         self.declare_parameter('reach_tol', 0.05)
@@ -120,6 +125,25 @@ class GoalNode(Node):
             f'goal_node ready | mode={self.mode} '
             f'min_size={self.brain.min_size}')
 
+
+    def on_calibration_profile(self, msg):
+        self.navigation_profile = None
+        try:
+            status = json.loads(msg.data)
+            p = status.get('navigation_profile')
+            radius = float(self.get_parameter('robot_radius').value)
+            if not status.get('ready') or not isinstance(p, dict):
+                return
+            values = [p[k] for k in ('body_radius_m','map_resolution_m','minimum_clearance_m','preferred_clearance_m')]
+            if (not all(math.isfinite(v) for v in values) or abs(values[0]-radius) > .001 or
+                    not .001 <= values[1] <= .1 or
+                    not radius+.01+values[1]/2-1e-6 <= values[2] <= radius+.05 or
+                    not values[2] <= values[3] <= values[2]+.031):
+                return
+            self.navigation_profile = p
+            self.navigation_profile_received = time.monotonic()
+        except (ValueError, TypeError, KeyError):
+            pass
 
     def on_map(self, msg):
         # Keep the latest map as a planner object; planning reads it at 1 Hz.
@@ -229,6 +253,13 @@ class GoalNode(Node):
             float(self.get_parameter('retry_clear_m').value), m.res))
         self.brain.escape_clear_m = max(self.brain.clear_m, grid_clearance(
             float(self.get_parameter('escape_clear_m').value), m.res))
+        self.brain.start_escape_clear_m = float(self.get_parameter('start_escape_clear_m').value)
+        profile = self.navigation_profile
+        if (profile is not None and self.navigation_profile_received is not None and
+                time.monotonic()-self.navigation_profile_received <= 3. and
+                abs(profile['map_resolution_m']-m.res) < 1e-6):
+            self.brain.clear_m = self.brain.retry_clear_m = profile['preferred_clearance_m']
+            self.brain.start_escape_clear_m = profile['minimum_clearance_m']
         goal, route, status = self.brain.plan(m, (x, y))
         if self.get_parameter('debug').value:
             self.get_logger().info(

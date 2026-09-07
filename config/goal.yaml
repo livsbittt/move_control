@@ -12,12 +12,12 @@ goal_node:
     # (tools/explore_sim.py) uses 1 because its raycast reveal is noise-free.
     min_size: 6
     # Routes and footprint are centred on base_link, not the lidar origin.
-    # 76mm circumradius + 20mm margin rounds up to five 20mm map cells.
+    # 76mm circumradius + 20mm margin is measured in metres, without cell rounding.
     # Adding the lidar offset here sealed the robot's own maze start cell.
     clear_m: 0.12
     retry_clear_m: 0.12
     # Hard footprint margin for a bounded escape or a verified narrow route.
-    start_escape_clear_m: 0.10
+    start_escape_clear_m: 0.096
     start_escape_distance_m: 0.08
     # Robot swath ~15 cm; 12 cm lanes overlap. Waypoint every 20 cm.
     lane_width: 0.12

@@ -1,5 +1,6 @@
 """Planner route revocation tests in an isolated local ROS domain."""
 import time
+import json
 import unittest
 from unittest.mock import Mock
 
@@ -48,6 +49,23 @@ class GoalRouteTest(unittest.TestCase):
         self.assert_empty_route()
         self.node.stop()
         self.assert_empty_route()
+
+    def test_environment_profile_applies_only_when_ready_fresh_and_same_map_resolution(self):
+        from move_control.control.navigation_calibration import environment_profile
+        p = environment_profile(.076, .05, [(.14,.13,None,None)]*30)
+        self.node.on_calibration_profile(String(data=json.dumps({'ready':True,'navigation_profile':p})))
+        self.known_map()
+        self.node.pose = Mock(return_value=((.5,.5),'tf'))
+        self.node.brain.plan = Mock(return_value=(None,None,'test'))
+        self.node.mode = 'explore'
+        self.node.plan()
+        self.assertAlmostEqual(self.node.brain.clear_m,p['preferred_clearance_m'])
+        self.assertAlmostEqual(self.node.brain.start_escape_clear_m,p['minimum_clearance_m'])
+        self.node.navigation_profile_received -= 10
+        self.node.plan()
+        self.assertNotEqual(self.node.brain.start_escape_clear_m,p['minimum_clearance_m'])
+        self.node.on_calibration_profile(String(data=json.dumps({'ready':False,'navigation_profile':p})))
+        self.assertIsNone(self.node.navigation_profile)
 
     def test_missing_map_and_failed_tf_never_reuse_odom_coordinates(self):
         self.node.on_cmd(String(data='explore'))

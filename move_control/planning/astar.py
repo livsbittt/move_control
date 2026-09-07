@@ -22,7 +22,7 @@ def best_route(m, start, goal, clear_m=0.06):
     if not (m.ox <= start[0] < m.ox + m.w * m.res and
             m.oy <= start[1] < m.oy + m.h * m.res):
         return None
-    grid = m.inflate(int(round(clear_m / m.res)))
+    grid = m.inflate(clear_m / m.res)
     sc = m.world_to_grid(*start)
     if not grid.is_free(*sc):
         return None  # Snapping the robot can create a first leg through a wall.

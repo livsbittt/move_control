@@ -263,18 +263,18 @@ class GoalBrain:
 
     def plan(self, m, pose):
         start = m.world_to_grid(*pose)
-        if m.is_free(*start) and not m.inflate(round(self.clear_m / m.res)).is_free(*start):
+        if m.is_free(*start) and not m.inflate(self.clear_m / m.res).is_free(*start):
             route = start_escape(m, pose, self.clear_m, self.start_escape_clear_m,
                                  self.start_escape_distance_m)
             if route:
                 self.last_options = []
                 return route['points'][-1], route, 'escape: moving to preferred clearance'
             minimum = self.start_escape_clear_m
-            if 0 < minimum < self.clear_m and m.inflate(math.ceil(minimum/m.res-1e-6)).is_free(*start):
+            if 0 < minimum < self.clear_m and m.inflate(minimum/m.res).is_free(*start):
                 # A long narrow corridor may have no nearby wide escape.
                 # Replan against the explicit hard footprint margin; never raw map.
                 preferred, retry = self.clear_m, self.retry_clear_m
-                self.clear_m = self.retry_clear_m = math.ceil(minimum/m.res-1e-6)*m.res
+                self.clear_m = self.retry_clear_m = minimum
                 try:
                     goal, route, status = self._plan(m, pose)
                     return goal, route, 'narrow passage: ' + status

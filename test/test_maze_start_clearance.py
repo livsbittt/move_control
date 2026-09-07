@@ -29,7 +29,7 @@ def test_robot_profile_can_plan_from_six_cells_off_maze_wall():
     goal, route, status = brain.plan(m, pose)
     assert goal and route and status.startswith('escape:')
     assert route['length'] <= .08
-    grid = m.inflate(round(cfg['start_escape_clear_m'] / m.res))
+    grid = m.inflate(cfg['start_escape_clear_m'] / m.res)
     assert all(grid.is_free(*cell) for cell in route['cells'])
     goal2, route2, status2 = brain.plan(m, goal)
     assert route2 and status2.startswith('explore')
@@ -69,3 +69,16 @@ def test_long_narrow_corridor_replans_at_hard_margin_without_lowering_setting():
     assert route and status.startswith('narrow passage: explore')
     assert brain.clear_m == .12 and brain.retry_clear_m == .12
     assert all(m.inflate(5).is_free(*cell) for cell in route['cells'])
+
+
+def test_metric_footprint_does_not_round_96mm_up_into_100mm_start():
+    m = corridor()
+    pose = m.grid_to_world(12,5)
+    assert not m.inflate(5).is_free(12,5)
+    assert m.inflate(.096/m.res).is_free(12,5)
+    brain = GoalBrain(clear_m=.12, retry_clear_m=.12, start_escape_clear_m=.096)
+    goal, route, status = brain.plan(m, pose)
+    assert route and goal
+    assert all(m.inflate(.096/m.res).is_free(*c) for c in route['cells'])
+    goal, route, status = brain.plan(m, m.grid_to_world(12,4))
+    assert route is None  # 80mm cannot fit the 76mm body + 20mm margin.
