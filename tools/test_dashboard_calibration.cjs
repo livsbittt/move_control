@@ -28,6 +28,15 @@ test('footprint clearance is labeled as travel outside the chassis', () => {
   assert.ok(text.includes('4.0cm / 필요 3.8cm'));
 });
 
+test('estop and sensor qualification are displayed separately', () => {
+  const d = dashboard();
+  d.renderCalibration({estop:true,calibration:{phase:'collecting',message:'Waiting for sensors'}});
+  assert.ok(d.elements.get('calibrationstatus').textContent.includes('센서 검사도 진행 중'));
+  assert.ok(d.elements.get('calibrationstatus').textContent.includes('비상정지 걸림'));
+  d.renderCalibration({estop:false,calibration:{phase:'collecting',message:'Waiting for sensors'}});
+  assert.ok(!d.elements.get('calibrationstatus').textContent.includes('비상정지 걸림'));
+});
+
 function dashboard() {
   const elements = new Map();
   const noop = () => {};

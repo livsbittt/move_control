@@ -67,6 +67,10 @@ class StationaryBaseline:
                     if name == 'us' and not self.require_us_stable:
                         status = 'ok'
                         detail += '; obstacle guard only, not precision motion reference'
+            if name in ('lidar', 'us'):
+                good = [row for row in recent if row[2]]
+                last = f'{good[-1][1][0]:.3f}m' if good else 'none'
+                detail += f'; valid={len(good)}/{len(recent)} last_valid={last}'
             result[name] = {'ok': status == 'ok', 'status': status,
                             'samples': len(recent), 'detail': detail}
         return result

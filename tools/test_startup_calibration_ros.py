@@ -65,6 +65,25 @@ class StartupCalibrationTest(unittest.TestCase):
         self.refresh(100.6)
         self.node.tick()
 
+    def test_invalid_precision_sample_during_motion_stops_without_crashing(self):
+        self.arm()
+        self.node.motion_start = (100.6, self.node.snapshot())
+        self.node.phase = 'validating_motion'
+        self.node.baseline.add('lidar', (math.inf,), 100.6, False)
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'failed')
+        self.assertIn('stale or invalid', self.node.message)
+        self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
+
+    def test_collecting_displays_raw_values_and_clearance_without_motion(self):
+        self.refresh(100.)
+        self.node.phase = 'collecting'
+        self.node.tick()
+        self.assertIn('raw=0.650m', self.node.sensors['lidar']['detail'])
+        self.assertIn('valid=1/1', self.node.sensors['lidar']['detail'])
+        self.assertTrue(self.node.motion_clearance)
+        self.assertEqual(self.node.phase, 'collecting')
+
     def test_driver_degree_units_are_converted_without_hiding_real_rotation(self):
         msg = Imu()
         msg.header.stamp = self.node.get_clock().now().to_msg()
@@ -259,6 +278,7 @@ class StartupCalibrationTest(unittest.TestCase):
         self.assertFalse(self.node.ready_pub.publish.call_args.args[0].data)
 
     def test_lidar_nose_uses_actual_tf_instead_of_legacy_parameter(self):
+        self.refresh(100.)
         transform = TransformStamped()
         transform.transform.rotation.z = 1.
         transform.transform.rotation.w = 0.
@@ -271,9 +291,25 @@ class StartupCalibrationTest(unittest.TestCase):
         scan.range_max = 40.
         ranges = [math.inf] * 720
         # A continuous wall around actual180; legacy190 has no usable plane.
-        for index in range(352, 369):
+        for index in range(350, 371):
             ranges[index] = .65 / math.cos((index-360)*scan.angle_increment)
         scan.ranges = ranges
-        self.node.on_scan(scan)
+        for _ in range(3):
+            self.node.on_scan(scan)
         self.assertAlmostEqual(self.node.lidar_nose, math.pi)
         self.assertAlmostEqual(self.node.baseline.latest('lidar')[0], .65, places=5)
+
+    def test_ready_scan_health_does_not_require_calibration_wall(self):
+        transform = TransformStamped()
+        transform.transform.rotation.w = 1.
+        self.node.tf = Mock()
+        self.node.tf.lookup_transform.return_value = transform
+        self.node.phase = 'ready'
+        scan = LaserScan()
+        scan.header.frame_id = 'laser'
+        scan.header.stamp = self.node.get_clock().now().to_msg()
+        scan.angle_increment = math.pi / 360
+        scan.range_max = 40.
+        scan.ranges = [.4] + [math.inf] * 719
+        self.node.on_scan(scan)
+        self.assertAlmostEqual(self.node.baseline.latest('lidar')[0], .4)

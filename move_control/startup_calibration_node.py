@@ -21,7 +21,7 @@ from .control.calibration import (StationaryBaseline, MOTION_SPEED, MOTION_SECON
 from .sensing.lidar import NOSE_YAW, is_robot_scan, sector_range
 from .sensing.lidar_mount import nose_from_quaternion
 from .sensing.range_filter import CalibrationRangeFilter
-from .sensing.precision_range import precision_axis_range
+from .sensing.wall_tracker import WallTracker
 from .control.round_trip import RoundTrip
 from .control.calibration_clearance import motion_clearance
 from .control.navigation_calibration import environment_profile, map_ray
@@ -81,6 +81,7 @@ class StartupCalibrationNode(Node):
         self.baseline = StationaryBaseline(
             require_us_stable=bool(self.get_parameter('calibration_require_us_agreement').value))
         self.range_filters = {name: CalibrationRangeFilter() for name in ('lidar', 'us')}
+        self.wall_tracker = WallTracker()
         self.raw_ranges = {}
         self.phase, self.message = 'collecting', 'Keep robot stationary on safe level floor'
         self.started = time.monotonic()
@@ -138,7 +139,20 @@ class StartupCalibrationNode(Node):
             valid = False
         distance = sector_range(msg, self.lidar_nose,
                                 math.radians(12), pctl=.1) if valid else math.inf
-        precision = precision_axis_range(msg, self.lidar_nose) if valid else math.inf
+        pose = self.baseline.latest('odom')
+        odom_rows = self.baseline.samples['odom']
+        if not odom_rows or not 0 <= time.monotonic()-odom_rows[-1][0] <= .2:
+            pose = None
+        if self.phase == 'ready':
+            # A navigation turn may leave the calibration wall entirely.
+            # Runtime sensor health uses actual scan returns, not a wall fit.
+            precision = distance
+        elif valid and pose is not None:
+            p = transform.transform.translation
+            precision = self.wall_tracker.update(msg, self.lidar_nose,
+                locked=self.phase == 'validating_motion', pose=pose[:3], mount=(p.x, p.y))
+        else:
+            precision = math.inf
         self.add_range('lidar', precision, valid and math.isfinite(precision))
         # Braking still observes the original raw cone; the fitted wall only
         # supplies measurement evidence and cannot hide a closer obstacle.
@@ -256,7 +270,10 @@ class StartupCalibrationNode(Node):
         limits['us_m'] = us_raw[1]
         forward = 0.
         if self.motion_start is not None:
-            forward = motion_evidence(self.motion_start[1], self.snapshot())['lidar_delta_m']
+            current = self.snapshot()
+            if not self.baseline.fresh(now) or any(value is None for value in current.values()):
+                return 'Sensor data became stale or invalid'
+            forward = motion_evidence(self.motion_start[1], current)['lidar_delta_m']
         round_trip = bool(self.get_parameter('calibration_round_trip').value)
         requested = float(self.get_parameter('calibration_distance_m').value) if round_trip else MOTION_LIMIT
         self.motion_clearance = motion_clearance(limits, requested,
@@ -319,6 +336,15 @@ class StartupCalibrationNode(Node):
             return
         if self.phase in ('collecting', 'waiting_motion'):
             self.sensors = self.baseline.report(now)
+            # Display current clearance even while sensor qualification waits.
+            # This only calculates evidence; it does not authorize movement.
+            self.safe_motion(now)
+            for name in ('lidar', 'us'):
+                stamp, distance, valid_range = self.raw_ranges.get(name, (0., math.inf, False))
+                shown = f'{distance:.3f}m' if math.isfinite(distance) else 'no return'
+                self.sensors[name]['detail'] += f'; raw={shown} valid={valid_range} age={max(0., now-stamp):.2f}s'
+                if name == 'lidar':
+                    self.sensors[name]['detail'] += '; wall=' + str(self.wall_tracker.diagnostic)
             valid = all(sensor['ok'] for sensor in self.sensors.values())
             self.phase = 'waiting_motion' if valid else 'collecting'
             if valid:

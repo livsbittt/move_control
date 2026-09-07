@@ -567,6 +567,10 @@ function renderCalibration(s) {
   setTxt('calibrationsensors', lines.join('\n'));
   setTxt('calibrationstatus', (phases[phase] || '교정 노드 연결 대기') +
     (calibration && calibration.message ? ' · ' + calibration.message : ''));
+  if (s && s.estop === true) {
+    const pending = phase === 'collecting' ? '센서 검사도 진행 중입니다' : '해제 전에는 이동하지 않습니다';
+    setTxt('calibrationstatus', $('calibrationstatus').textContent + ' · 비상정지 걸림: ' + pending);
+  }
   $('calibrationmotion').hidden = !!(calibration && calibration.auto_motion);
   $('calibrationmotion').disabled = !!(calibration && calibration.auto_motion) || phase !== 'waiting_motion' || !s || s.estop !== false ||
     !s.map_control || s.map_control.paused !== false;
