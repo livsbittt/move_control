@@ -167,6 +167,7 @@ class GoalNode(Node):
             self.brain.avoid_goal(self.last_executable_goal)
             self.brain.avoid_route_exit(self.last_executable_exit)
             self.last_executable_goal = None
+            self.last_executable_exit = None
             self._clear_route('replanning: failed target excluded; seeking alternative')
             self.plan()
             return

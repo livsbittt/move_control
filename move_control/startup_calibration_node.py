@@ -454,6 +454,9 @@ class StartupCalibrationNode(Node, CalibrationRotation):
                 'us_precision_required': bool(self.get_parameter('calibration_require_us_agreement').value),
                 'elapsed_s': round(time.monotonic() - self.started, 2),
                 'sensors': self.sensors, 'motion': self.motion, 'baseline': self.baseline_values,
+                'observations': self.observations.report(time.monotonic()),
+                'gate_evidence_remaining_s': (self.gate_decision[0]-time.monotonic()
+                                               if self.gate_decision else None),
                 'rotation': self.rotation_trial.report() if self.rotation_trial else None,
                 'rotation_required': bool(self.get_parameter('calibration_rotation').value),
                 'estimates': {'imu_gyro_bias_rad_s': imu[3:6], 'imu_gravity_mean_mps2': imu[6:9],

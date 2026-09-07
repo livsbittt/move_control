@@ -38,8 +38,9 @@ class RouteRecovery:
                 self.waiting = False
                 self.progress_since, self.blocked_since = now, None
                 return 'alternative'
-            if now-self.requested < self.wait_seconds:
-                return 'waiting'
+            # The planner continuously replans while its temporary exclusions
+            # expire. Waiting at zero speed is not a failed physical attempt.
+            return 'waiting'
         else:
             blocked = reason in ('no_route','hazard','front_blocked','stalled_restart_required',
                                  'stale_route','off_route','arrived')

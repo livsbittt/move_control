@@ -374,10 +374,11 @@ class GoalBrain:
         # Skip a bounded batch of blocked lane endpoints in this plan. A
         # target snapped back onto the robot must not stall every replan.
         for requested in wps[:16]:
-            route = best_route(m, pose, requested, clear_m=self.clear_m)
+            avoided = [xy for xy, _ in self._failed_exits]
+            route = best_route(m, pose, requested, clear_m=self.clear_m, avoid_points=avoided)
             if route is None and self.retry_unreachable_wp and \
                     self.retry_clear_m < self.clear_m:
-                route = best_route(m, pose, requested, clear_m=self.retry_clear_m)
+                route = best_route(m, pose, requested, clear_m=self.retry_clear_m, avoid_points=avoided)
             goal = route['points'][-1] if route else None
             if (goal is None or m.world_to_grid(*goal) in self.covered or
                     math.hypot(goal[0] - pose[0], goal[1] - pose[1]) < self.reach_tol):

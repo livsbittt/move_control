@@ -15,15 +15,26 @@ def test_zero_command_hold_replans_then_requires_a_different_fresh_route():
     assert r.attempts==1
 
 
-def test_no_route_does_not_erase_failed_target_and_retries_are_bounded():
+def test_waiting_for_planner_does_not_consume_physical_recovery_attempts():
     r=RouteRecovery()
     tick(r,0)
     assert tick(r,5)=='replan'
-    assert tick(r,10,goal=None)=='replan'
+    assert tick(r,10,goal=None)=='waiting'
     assert tick(r,11)=='waiting'
-    assert tick(r,15)=='replan'
-    assert tick(r,20)=='exhausted'
-    assert tick(r,50,goal=(2.,0.))=='exhausted'
+    assert tick(r,15)=='waiting'
+    assert tick(r,45,goal=None)=='waiting'
+    assert tick(r,50,goal=(2.,0.))=='alternative'
+    assert r.attempts == 1
+
+
+def test_three_failed_executed_alternatives_exhaust_the_push_budget():
+    r = RouteRecovery()
+    tick(r, 0)
+    assert tick(r, 5) == 'replan'
+    for n in range(1, 4):
+        assert tick(r, n*10, goal=(n+1., 0.)) == 'alternative'
+        tick(r, n*10+1, goal=(n+1., 0.))
+        assert tick(r, n*10+6, goal=(n+1., 0.)) == ('exhausted' if n == 3 else 'replan')
 
 
 def test_normal_alignment_is_allowed_but_endless_rotation_is_not_progress():

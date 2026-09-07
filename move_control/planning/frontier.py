@@ -9,7 +9,7 @@ from .astar import best_route
 from .gridmap import UNKNOWN, nearest_free
 
 
-def frontier_points(m, min_size=6):
+def frontier_points(m, min_size=6, *, _diagonal=False):
     """Frontier clusters, biggest first.
 
     Returns [{'cell': (c,r), 'x': .., 'y': .., 'size': n}, ..] (x/y world m,
@@ -31,7 +31,10 @@ def frontier_points(m, min_size=6):
         q = deque((s,))
         while q:
             c, r = q.popleft()
-            for dc, dr in ((0, 1), (0, -1), (1, 0), (-1, 0)):
+            steps = ((0, 1), (0, -1), (1, 0), (-1, 0))
+            if _diagonal:
+                steps += ((1, 1), (1, -1), (-1, 1), (-1, -1))
+            for dc, dr in steps:
                 nc = (c + dc, r + dr)
                 if nc not in seen and nc in seed_set:
                     seen.add(nc)
@@ -52,6 +55,11 @@ def frontier_points(m, min_size=6):
         out.append({'cell': snap, 'x': x, 'y': y, 'size': len(comp),
                     'cells': comp})
     out.sort(key=lambda f: f['size'], reverse=True)
+    # Preserve distinct orthogonal approach faces when available. If all
+    # were discarded, recover oblique scan staircases as diagonal clusters;
+    # A* still forbids traversing unknown space or cutting its corners.
+    if not out and not _diagonal:
+        return frontier_points(m, min_size, _diagonal=True)
     return out
 
 

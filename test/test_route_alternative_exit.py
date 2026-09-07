@@ -43,3 +43,19 @@ def test_blocked_primary_tries_a_different_ranked_goal():
     b.avoid_route_exit((.11,.11))
     goal, route, _ = b.plan(m,start)
     assert route and math.dist(goal,other)<1e-8
+
+
+def test_coverage_tries_next_waypoint_when_failed_exit_blocks_first():
+    from unittest.mock import patch
+    m = OccupancyMap(12, 9, .02, fill=100)
+    for x in range(1, 11):
+        m.data[5*m.w+x] = 0
+    for y in range(1, 6):
+        m.data[y*m.w+2] = 0
+    start, first, other = (.05, .11), (.19, .11), (.05, .03)
+    b = GoalBrain(clear_m=0., lane_width=.02)
+    b.mode = 'coverage'
+    b.avoid_route_exit((.11, .11))
+    with patch('move_control.planning.goals.ZigzagPlanner.waypoints', return_value=[first, other]):
+        goal, route, _ = b.plan(m, start)
+    assert route and math.dist(goal, other) < 1e-8
