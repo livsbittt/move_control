@@ -130,6 +130,42 @@ class StartupCalibrationTest(unittest.TestCase):
         self.node.tick()
         self.assertEqual(self.node.phase, 'validating_motion')
 
+    def test_round_trip_requires_rear_clearance_and_persists_corrections(self):
+        self.node.set_parameters([Parameter('calibration_round_trip', value=True)])
+        for i in range(21):
+            self.refresh(96. + i*.2)
+        self.node.estop = False
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'waiting_motion')
+        self.node.rear_clear = (100., True)
+        self.node.tick()
+        x = speed = 0.
+        for i in range(1, 700):
+            now = 100. + i*.05
+            x += speed*.05*.92
+            self.refresh(now)
+            self.node.rear_clear = (now, True)
+            for name, value in {'odom': (x,0.,0.,0.), 'map_tf': (x,0.,0.), 'lidar': (.65-x,), 'us': (.65-x,)}.items():
+                self.node.baseline.add(name, value, now)
+            self.node.tick()
+            speed = self.node.raw_pub.publish.call_args.args[0].linear.x
+            if self.node.phase in ('ready', 'failed'):
+                break
+        self.assertEqual(self.node.phase, 'ready', self.node.message)
+        self.assertEqual(speed, 0.)
+        saved = json.loads((Path(self.tmp.name) / 'calibration.json').read_text())
+        self.assertTrue(saved['settings_applied'])
+        self.assertEqual(len(saved['motion']['legs']), 4)
+
+    def test_round_trip_rear_clearance_loss_aborts_before_reverse(self):
+        self.node.set_parameters([Parameter('calibration_round_trip', value=True)])
+        self.node.rear_clear = (100., True)
+        self.arm()
+        self.node.rear_clear = (100.6, False)
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'failed')
+        self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
+
     def test_explicit_trial_is_bounded_stops_and_persists_only_after_agreement(self):
         self.arm()
         self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, .008)

@@ -4,6 +4,7 @@ from unittest.mock import Mock
 
 import rclpy
 from geometry_msgs.msg import Twist
+from std_msgs.msg import Bool, Float32MultiArray
 from move_control.safety.node import SafetyNode
 
 
@@ -33,6 +34,21 @@ class SafetyGateTest(unittest.TestCase):
         for call in self.node.pub.publish.call_args_list:
             self.assertEqual(call.args[0].linear.x, 0.0)
             self.assertEqual(call.args[0].angular.z, 0.0)
+
+    def test_verified_fresh_gains_apply_only_to_low_speed_and_are_revocable(self):
+        self.node.on_drive_scale(Float32MultiArray(data=[1.1, .9]))
+        self.assertEqual(self.node.corrected_drive_speed(.008), .008)
+        self.node.on_drive_ready(Bool(data=True))
+        self.assertAlmostEqual(self.node.corrected_drive_speed(.008), .0088)
+        self.assertAlmostEqual(self.node.corrected_drive_speed(-.008), -.0072)
+        self.assertEqual(self.node.corrected_drive_speed(.05), .05)
+        self.node.on_drive_ready(Bool(data=False))
+        self.assertEqual(self.node.corrected_drive_speed(.008), .008)
+        self.node.on_drive_ready(Bool(data=True))
+        self.node.drive_scale_time = 0.
+        self.assertEqual(self.node.corrected_drive_speed(.008), .008)
+        self.node.on_drive_scale(Float32MultiArray(data=[float('nan'), 1.]))
+        self.assertEqual(self.node.corrected_drive_speed(.008), .008)
 
     def test_missing_scan_blocks_forward_reverse_and_rotation(self):
         self.node.release_estop()
