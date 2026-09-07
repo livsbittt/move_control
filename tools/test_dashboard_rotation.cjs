@@ -31,7 +31,7 @@ function dashboard() {
   });
   const html = fs.readFileSync(path.join(__dirname, '../web/dashboard.html'), 'utf8');
   const source = html.match(/<script>([\s\S]*?)<\/script>/)[1];
-  vm.runInContext(source.replace(/\}\)\(\);\s*$/, 
+  vm.runInContext(source.replace(/\}\)\(\);\s*$/,
     'globalThis.mappingTest = {S, cv, fitView, w2c, c2w, screenPoint, setViewAngle, zoomAt, syncView};})();'), context);
   return {context, elements, images, ...context.mappingTest};
 }
