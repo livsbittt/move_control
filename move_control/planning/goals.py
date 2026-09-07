@@ -10,6 +10,7 @@ and tools/explore_sim.py are thin drivers around this brain.
 import math
 
 from .astar import best_route
+from .escape import start_escape
 from .frontier import pick_goal
 from .zigzag import ZigzagPlanner, cover_ring
 
@@ -36,7 +37,10 @@ class GoalBrain:
                  max_options=3, stall_plans=6, progress_m=0.03,
                  stall_min_dist=0.15, blacklist_plans=20,
                  escape_clear_m=0.08, probe_when_done=False,
-                 retry_unreachable_wp=False, manual_ttl_plans=120):
+                 retry_unreachable_wp=False, manual_ttl_plans=120,
+                 start_escape_clear_m=0.0, start_escape_distance_m=.08):
+        self.start_escape_clear_m = float(start_escape_clear_m)
+        self.start_escape_distance_m = float(start_escape_distance_m)
         self.max_options = max(1, int(max_options))
         # Wide-first escape: after a stall, routes are planned with this
         # clearance (2-cell inflation seals 15 cm gaps) until the robot has
@@ -258,6 +262,29 @@ class GoalBrain:
         return None, None, ''
 
     def plan(self, m, pose):
+        start = m.world_to_grid(*pose)
+        if m.is_free(*start) and not m.inflate(round(self.clear_m / m.res)).is_free(*start):
+            route = start_escape(m, pose, self.clear_m, self.start_escape_clear_m,
+                                 self.start_escape_distance_m)
+            if route:
+                self.last_options = []
+                return route['points'][-1], route, 'escape: moving to preferred clearance'
+            minimum = self.start_escape_clear_m
+            if 0 < minimum < self.clear_m and m.inflate(math.ceil(minimum/m.res-1e-6)).is_free(*start):
+                # A long narrow corridor may have no nearby wide escape.
+                # Replan against the explicit hard footprint margin; never raw map.
+                preferred, retry = self.clear_m, self.retry_clear_m
+                self.clear_m = self.retry_clear_m = math.ceil(minimum/m.res-1e-6)*m.res
+                try:
+                    goal, route, status = self._plan(m, pose)
+                    return goal, route, 'narrow passage: ' + status
+                finally:
+                    self.clear_m, self.retry_clear_m = preferred, retry
+            self.last_options = []
+            return None, None, 'planning blocked: robot inside obstacle clearance'
+        return self._plan(m, pose)
+
+    def _plan(self, m, pose):
         """Next point to go: (goal_xy | None, route | None, status str).
 
         goal and route are None for transitional statuses (skipped waypoint,

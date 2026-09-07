@@ -49,6 +49,8 @@ class GoalNode(Node):
         self.declare_parameter('min_size', 6)
         self.declare_parameter('clear_m', 0.12)
         self.declare_parameter('retry_clear_m', 0.12)
+        self.declare_parameter('start_escape_clear_m', 0.0)
+        self.declare_parameter('start_escape_distance_m', .08)
         self.declare_parameter('lane_width', 0.12)
         self.declare_parameter('lane_step', 0.20)
         self.declare_parameter('reach_tol', 0.05)
@@ -93,6 +95,8 @@ class GoalNode(Node):
         if self.mode not in ('explore', 'coverage', 'stop'):
             self.mode = 'stop'
         self.brain = GoalBrain(
+            start_escape_clear_m=float(self.get_parameter('start_escape_clear_m').value),
+            start_escape_distance_m=float(self.get_parameter('start_escape_distance_m').value),
             min_size=int(self.get_parameter('min_size').value),
             clear_m=float(self.get_parameter('clear_m').value),
             retry_clear_m=float(self.get_parameter('retry_clear_m').value),

@@ -589,11 +589,24 @@ function renderMapping(control) {
     control.paused === false ? '지도 수집 중' : '매핑 상태 확인 중…');
 }
 function renderNavigation(s) {
+  const planningBlocked = s && (s.gstate || '').includes('robot inside obstacle clearance');
   const reason = !s ? '로봇 연결 대기' : s.estop !== false ? '비상정지 상태' :
     !s.map || !s.map_control || s.map_control.paused !== false ? '매핑을 재개해 주세요' :
     !s.pose_available ? '지도 내 로봇 위치 확인 대기' : '';
   $('navexplore').disabled = !!reason || !calibrationReady(s);
   $('navcoverage').disabled = !!reason || !calibrationReady(s);
+  if (!reason && calibrationReady(s) && planningBlocked) {
+    setTxt('navready', '경로 대기 · 현재 위치가 벽의 안전 여유 영역에 걸립니다');
+    return;
+  }
+  if (!reason && calibrationReady(s) && (s.gstate || '').startsWith('escape:')) {
+    setTxt('navready', '탈출 중 · 벽에서 여유를 확보한 뒤 탐색을 이어갑니다');
+    return;
+  }
+  if (!reason && calibrationReady(s) && (s.gstate || '').startsWith('narrow passage:')) {
+    setTxt('navready', '좁은 통로 · 로봇 크기와 최소 여유를 확인한 경로로 탐색합니다');
+    return;
+  }
   setTxt('navready', reason || (!calibrationReady(s) ? '자동 보정을 완료해 주세요' : '') || '준비됨 · 모드를 고르면 주행합니다');
 }
 async function mappingAction(action) {
