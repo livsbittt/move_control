@@ -120,6 +120,16 @@ class StartupCalibrationTest(unittest.TestCase):
             self.assertEqual(self.node.phase, final_phase)
             self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
 
+    def test_tf_collection_time_is_not_mistaken_for_future_sensor_data(self):
+        for i in range(21):
+            self.refresh(96. + i * .2)
+        self.node.estop = False
+        def collect():
+            self.refresh(100.01)
+        self.node.read_tf.side_effect = collect
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'validating_motion')
+
     def test_explicit_trial_is_bounded_stops_and_persists_only_after_agreement(self):
         self.arm()
         self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, .008)

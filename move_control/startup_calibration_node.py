@@ -227,8 +227,9 @@ class StartupCalibrationNode(Node):
         return {name: self.baseline.latest(name) for name in ('odom', 'lidar', 'us', 'map_tf')}
 
     def tick(self):
-        now = time.monotonic()
         self.read_tf()
+        # TF collection timestamps its own samples; evaluate freshness after it.
+        now = time.monotonic()
         if self.phase == 'ready' and not self.baseline.fresh(now):
             self.sensors = self.baseline.report(now)
             self.finish(False, 'Calibration readiness revoked: sensor or map became stale/invalid')
