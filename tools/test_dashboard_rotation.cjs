@@ -7,13 +7,17 @@ const path = require('node:path');
 function dashboard() {
   const elements = new Map();
   const noop = () => {};
+  const draws = [];
+  const canvas = new Proxy({drawImage: (...args) => draws.push(args)}, {
+    get: (target, key) => key in target ? target[key] : noop,
+  });
   const element = id => {
     if (!elements.has(id)) elements.set(id, {
       disabled: false, style: {}, textContent: '', width: 0, height: 0,
       classList: {add: noop, remove: noop, toggle: noop},
       parentElement: {classList: {toggle: noop}},
       addEventListener: noop,
-      getContext: () => ({clearRect: noop}),
+      getContext: () => canvas,
       getBoundingClientRect: () => ({width: 0, height: 0}),
     });
     return elements.get(id);
@@ -32,12 +36,27 @@ function dashboard() {
   const html = fs.readFileSync(path.join(__dirname, '../web/dashboard.html'), 'utf8');
   const source = html.match(/<script>([\s\S]*?)<\/script>/)[1];
   vm.runInContext(source.replace(/\}\)\(\);\s*$/,
-    'globalThis.mappingTest = {S, cv, fitView, w2c, c2w, screenPoint, setViewAngle, zoomAt, syncView};})();'), context);
-  return {context, elements, images, ...context.mappingTest};
+    'globalThis.mappingTest = {S, cv, fitView, w2c, c2w, screenPoint, setViewAngle, zoomAt, syncView, draw, loadMap};})();'), context);
+  return {context, elements, images, draws, ...context.mappingTest};
 }
 
 
 const near = (a,b) => assert.ok(Math.abs(a-b)<1e-8, `${a} != ${b}`);
+test('reload never rotates map to the current robot heading', () => {
+  for (const yaw of [-Math.PI/6, Math.PI/6]) {
+    const d=dashboard();d.cv.width=1000;d.cv.height=700;
+    d.S.data={map:[5,4,.02,0,0,1],pose:[.02,.02,yaw],pose_available:true};
+    d.draw(d.S.data);near(d.S.view.angle,0);
+  }
+});
+test('old raster is not stretched onto an expanded map while decoding', () => {
+  const d=dashboard();d.cv.width=1000;d.cv.height=700;
+  d.S.data={map:[5,4,.02,0,0,1]};d.loadMap(1);d.images.at(-1).onload();
+  assert.equal(d.draws.length,1);
+  d.S.data.map=[8,7,.02,-.06,-.06,2];d.draw(d.S.data);
+  assert.equal(d.draws.length,1);
+  d.loadMap(2);d.images.at(-1).onload();assert.equal(d.draws.length,2);
+});
 test('world cell centers land in raster pixel centers', () => {
   const d=dashboard(); d.cv.width=1000; d.cv.height=700;
   d.S.data.map=[5,4,.02,-.38,-.01,1];d.setViewAngle(0);d.fitView();

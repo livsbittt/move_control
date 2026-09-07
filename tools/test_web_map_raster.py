@@ -14,6 +14,8 @@ class MapRasterTest(unittest.TestCase):
         grid.info.height = 3
         grid.data = [0, 0, -1, -1, 100, 100]
         web.render_png(grid)
+        self.assertEqual(web.STATE[web.K_MAP],
+                         [2, 3, grid.info.resolution, 0.0, 0.0, web.MAP_PNG['gen']])
         raster = cv2.imdecode(np.frombuffer(web.MAP_PNG['bytes'], np.uint8),
                               cv2.IMREAD_COLOR)
         self.assertTrue(np.all(raster[0] > 200), 'North wall must be at image top')

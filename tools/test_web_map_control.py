@@ -32,12 +32,31 @@ class Service:
 
 
 class MapControlTest(unittest.TestCase):
+    def test_png_rejects_obsolete_generation(self):
+        server = http.server.ThreadingHTTPServer(('127.0.0.1', 0),
+                                                web.make_api_handler(self.node, b''))
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            client = http.client.HTTPConnection(*server.server_address)
+            for generation, status in ((9, 409), (10, 200)):
+                client.request('GET', f'/map.png?g={generation}')
+                response = client.getresponse()
+                self.assertEqual(response.status, status)
+                body = response.read()
+                self.assertEqual(body, b'old' if status == 200 else b'')
+            client.close()
+        finally:
+            server.shutdown()
+            server.server_close()
+            thread.join()
+
     def setUp(self):
         web.STATE.clear()
         web.MAP_PNG.update(bytes=b'old', gen=10)
         self.paused = True
         self.node = SimpleNamespace(
-            wander_pub=Mock(), estop_pub=Mock(), goal_pub=Mock(),
+            wander_pub=Mock(), estop_pub=Mock(), goal_pub=Mock(), calibration_pub=Mock(),
             get_clock=lambda: SimpleNamespace(now=lambda: SimpleNamespace(nanoseconds=100)))
         self.control = web.MapControl.__new__(web.MapControl)
         self.control.node = self.node

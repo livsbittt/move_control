@@ -80,6 +80,10 @@ def generate_launch_description():
         respawn=True,
         respawn_delay=1.0,
     )
+    calibration = Node(
+        package='move_control', executable='startup_calibration_node',
+        output='screen', parameters=[robot], respawn=True, respawn_delay=1.0,
+    )
     on_safety_exit = RegisterEventHandler(
         OnProcessExit(
             target_action=safety,
@@ -93,5 +97,6 @@ def generate_launch_description():
         TimerAction(period=1.5, actions=[safety]),
         TimerAction(period=3.0, actions=[wander]),
         TimerAction(period=3.5, actions=[lcd, web, watch]),
+        TimerAction(period=4.0, actions=[calibration]),
         on_safety_exit,
     ])

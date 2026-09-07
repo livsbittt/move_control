@@ -169,6 +169,7 @@ class MapControl:
                 if response.result != Reset.Response.RESULT_SUCCESS:
                     raise RuntimeError('SLAM rejected map reset')
                 self.node.goal_pub.publish(String(data='reset'))
+                self.node.calibration_pub.publish(String(data='retry'))
                 self.map_after_ns = self.node.get_clock().now().nanoseconds
                 with LOCK:
                     for key in (K_MAP, K_GOAL, K_ROUTE, K_OPTIONS, K_TRAIL, K_PREV,
@@ -225,6 +226,10 @@ def render_png(msg, epoch=None):
                 return
             MAP_PNG['bytes'] = buf.tobytes()
             MAP_PNG['gen'] += 1
+            # Publish geometry and pixels together: SLAM can grow either edge.
+            STATE[K_MAP] = [info.width, info.height, info.resolution,
+                            info.origin.position.x, info.origin.position.y,
+                            MAP_PNG['gen']]
 
 
 def render_cam(msg):
@@ -431,12 +436,6 @@ class WebNode(Node):
         info = msg.info
         self.map_frame = msg.header.frame_id or 'map'
         render_png(msg, epoch)
-        with LOCK:
-            if epoch != STATE.get('map_control', {}).get('epoch', 0):
-                return
-            STATE[K_MAP] = [info.width, info.height, info.resolution,
-                            info.origin.position.x, info.origin.position.y,
-                            MAP_PNG['gen']]
 
     def on_odom(self, msg):
         p = msg.pose.pose.position
@@ -455,6 +454,7 @@ class WebNode(Node):
         if self.odom_stamp is not None and now - self.odom_stamp < -.1:
             age = now - self.odom_stamp
         pose, transform, tf_age = None, None, math.inf
+        tf_error = None
         try:
             base = self.tf.lookup_transform(self.map_frame, 'base_link', Time())
             transforms = [base]
@@ -471,13 +471,14 @@ class WebNode(Node):
             ages = [now - (tf.header.stamp.sec + tf.header.stamp.nanosec * 1e-9)
                     for tf in transforms]
             tf_age = min(ages) if min(ages) < -.75 else max(ages)
-        except TransformException:
-            pass
+        except TransformException as exc:
+            tf_error = str(exc)
         with LOCK:
             reason = 'mapping_paused' if STATE.get('map_control', {}).get('paused') else None
             display_pose(STATE, pose, transform, odom_age=age, tf_age=tf_age,
                          timeout=float(self.get_parameter('pose_timeout').value), reason=reason)
             STATE['pose_frame'] = self.map_frame
+            STATE['pose_tf_error'] = tf_error
 
     @staticmethod
     def _tf_pose(tf):
@@ -543,6 +544,7 @@ class WebNode(Node):
     def on_calibration_ready(self, msg):
         with LOCK:
             STATE['calibration_ready'] = bool(msg.data)
+            STATE['calibration_received'] = time.monotonic()
 
     def on_calibration_status(self, msg):
         try:
@@ -706,6 +708,8 @@ def _handler(node, html, api):
                 return
             if path == '/state.json':
                 with LOCK:
+                    if time.monotonic() - STATE.get('calibration_received', -1e9) > 3.0:
+                        STATE['calibration_ready'] = False
                     body = json.dumps(STATE).encode()
                 self.send_response(200)
                 self.send_header('Content-Type', 'application/json')
@@ -713,8 +717,17 @@ def _handler(node, html, api):
                 self.end_headers()
                 self.wfile.write(body)
             elif path == '/map.png':
+                from urllib.parse import parse_qs, urlsplit
+                requested = parse_qs(urlsplit(self.path).query).get('g', [None])[0]
                 with LOCK:
                     png = MAP_PNG['bytes']
+                    generation = MAP_PNG['gen']
+                # A newer image must never masquerade as the requested map.
+                if requested is not None and requested != str(generation):
+                    self.send_response(409)
+                    self.send_header('Cache-Control', 'no-store')
+                    self.end_headers()
+                    return
                 self._png_jpg(png, 'image/png')
             elif path == '/camera.jpg':
                 with LOCK:
@@ -749,7 +762,8 @@ def _handler(node, html, api):
                 self.wfile.write(json.dumps({'ok': False, 'error': reason}).encode())
 
             with LOCK:
-                ready = (STATE.get('calibration_ready') is True and
+                ready = (time.monotonic() - STATE.get('calibration_received', -1e9) <= 3.0 and
+                         STATE.get('calibration_ready') is True and
                          STATE.get('calibration', {}).get('ready') is True)
                 phase = STATE.get('calibration', {}).get('phase')
                 released = STATE.get(K_ESTOP) is False
