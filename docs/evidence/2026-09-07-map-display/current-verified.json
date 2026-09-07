@@ -1,0 +1,35 @@
+{
+  "captured_unix_s": 1788789308.226305,
+  "map_meta": [
+    64,
+    38,
+    0.019999999552965164,
+    0.040809792211802476,
+    -0.05829272219490518
+  ],
+  "same_map_generation": true,
+  "png_matches_ros_north_up": true,
+  "png_is_unflipped_ros_rows": false,
+  "robot_cell": [
+    12,
+    26
+  ],
+  "robot_cell_occupancy": 0,
+  "web_pose_tf_error_m": 0.00039007497464159553,
+  "pose_reason": "ready",
+  "scan_endpoints": 664,
+  "scan_wall_median_m": 0.011081106852387501,
+  "scan_wall_p90_m": 0.017011395490547226,
+  "scan_within_4cm_fraction": 1.0,
+  "estop": true,
+  "velocity": [
+    0.0,
+    0.0
+  ],
+  "files": {
+    "/home/pinky/pinky-calibration-1c40085/src/move_control/move_control/web_node.py": "f36a2557542c51f3da8e43944f962fb5923e9f77aaa85792c61a1465b6924974",
+    "/home/pinky/pinky-calibration-1c40085/src/move_control/web/dashboard.html": "b5793bf8e91dce13e3801ae0cc1e194f27bf1b497639733cf07b306ca6fec8d7",
+    "/home/pinky/pinky-calibration-1c40085/src/move_control/move_control/sensing/map_raster.py": "d47e33601c81f03ef390a61a8b56e0258e2dd407eb310be080b2497dc5778568"
+  },
+  "display_pass": true
+}
