@@ -8,6 +8,13 @@ from rclpy.parameter import Parameter
 class Gate:
 
     def on_cmd(self, msg: Twist):
+        values = (msg.linear.x, msg.linear.y, msg.linear.z,
+                  msg.angular.x, msg.angular.y, msg.angular.z)
+        if not all(math.isfinite(v) for v in values) or any(
+                v != 0. for v in (msg.linear.y, msg.linear.z, msg.angular.x, msg.angular.y)):
+            self.last_cmd, self.last_cmd_time = Twist(), None
+            self.halt_with_reason('invalid_command')
+            return
         if self.estop:
             self._publish_zero()
             return

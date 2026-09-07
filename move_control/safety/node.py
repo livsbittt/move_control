@@ -15,13 +15,15 @@ from ..sensing.filt import IrMedian, MedianLp
 from ..sensing.body import URDF_RADIUS, use_radius
 from ..sensing.lidar import NOSE_YAW
 from ..control.lidar_guard import lidar_blocked, lidar_can_rotate
+from ..control.safety_profile import bounded_command
+from .evidence import Evidence
 from .bumper import Bumper
 from .gate import Gate
 from .hazard import Hazard
 from .scale import Scale
 
 
-class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
+class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
 
     def __init__(self):
         super().__init__('safety_node')
@@ -71,6 +73,11 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.declare_parameter('robot_radius', URDF_RADIUS)
         self.declare_parameter('wall_front', 0.08)
         self.declare_parameter('warn_front', 0.11)
+        self.declare_parameter('safety_stop_floor', 0.12)
+        self.declare_parameter('safety_clear_floor', 0.14)
+        self.declare_parameter('safety_max_linear', 0.014)
+        self.declare_parameter('safety_max_angular', 0.10)
+        self.declare_parameter('imu_angular_velocity_unit', 'rad_s')
 
         self.stop_d = float(self.get_parameter('stop_distance').value)
         self.clear_d = float(self.get_parameter('clear_distance').value)
@@ -131,6 +138,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             durability=DurabilityPolicy.TRANSIENT_LOCAL,
         )
         self.estop_pub = self.create_publisher(Bool, '/estop/state', latched)
+        self.init_evidence(latched)
         self.drive_scales = [1., 1.]
         self.drive_scale_time = 0.
         self.drive_ready = False
@@ -307,23 +315,27 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.can_rev_pub.publish(Bool(data=can_rev))
 
         us_need = max(1, int(self.get_parameter('us_hits').value))
-        if us <= self.us_stop:
-            self._us_hits += 1
-            if self._us_hits >= us_need:
-                if not self.us_blocked:
-                    self.get_logger().warn(f'WALL us={us:.3f} m (stop {self.us_stop:.3f})')
-                self.us_blocked = True
-        else:
-            self._us_hits = 0
-            if us >= self.us_clear and self.us_blocked:
-                self.get_logger().info(f'wall clear us={us:.3f} m')
-                self.us_blocked = False
+        us_generation = self.observations.generation('us')
+        new_us = us_generation != self._us_hit_generation
+        self._us_hit_generation = us_generation
+        raw_us = self.us_distance()
+        if new_us and math.isfinite(raw_us):
+            if raw_us <= self.us_stop:
+                self._us_hits += 1
+                if self._us_hits >= us_need:
+                    self.us_blocked = True
+            else:
+                self._us_hits = 0
+                # Lost/blind-zone echoes cannot prove a contact has cleared.
+                if raw_us >= self.us_clear and math.isfinite(us) and us >= self.us_clear:
+                    self.us_blocked = False
 
-        cam_ok = self.age(self.last_cam_time) < self.timeout
+        cam_ok = self.observations.fresh('camera_cliff', time.monotonic())
+        cam_block_ok = self.observations.fresh('camera_block', time.monotonic())
         use_cam = bool(self.get_parameter('camera_as_wall').value)
         use_cam_block = use_cam or bool(self.get_parameter('camera_block_as_wall').value)
         cam_cliff = bool(self.cam_cliff) if cam_ok and use_cam else False
-        cam_block = bool(self.cam_block) if cam_ok and use_cam_block else False
+        cam_block = bool(self.cam_block) if cam_block_ok and use_cam_block else False
         if cam_block and not self._cam_block_logged:
             self.get_logger().warn('camera obstacle / corner — turn, no reverse')
             self._cam_block_logged = True
@@ -356,13 +368,22 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.block_pub.publish(Bool(data=obstacle))
 
         if self.estop:
+            self.halt_with_reason('estop')
+            return
+
+        if not self.profile_valid:
+            self.halt_with_reason('invalid_profile')
+            return
+        unavailable = self.required_observation_failure()
+        if unavailable:
+            self.halt_with_reason(unavailable)
             return
 
         if pickup:
-            self._publish_zero()
+            self.halt_with_reason('pickup')
             return
         if self.age(self.last_cmd_time) > 0.5 and not tilt:
-            self._publish_zero()
+            self.halt_with_reason('command_stale')
             return
 
         cmd = Twist()
@@ -385,6 +406,13 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
                  self.lidar_right, self.lidar_rear_left, self.lidar_rear_right),
                 self.robot_r, lidar_ok):
             cmd.angular.z = 0.0
+        # A changed twist follows a different path. Ask the caller to replan
+        # instead of silently converting a curved request into straight/spin.
+        if self.last_cmd.linear.x and self.last_cmd.angular.z and (
+                cmd.linear.x != self.last_cmd.linear.x or
+                cmd.angular.z != self.last_cmd.angular.z):
+            self.halt_with_reason('trajectory_changed')
+            return
         if abs(cmd.linear.x) >= 0.004:
             self._auto_linear_sign(us, lidar_d, self.last_cmd.linear.x, self.last_cmd.angular.z)
         else:
@@ -392,7 +420,14 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
             self._sign_front0 = None
             self._sign_hits = 0
         # Apply after semantic halt: +raw means nose-forward.
-        cmd.linear.x = self.corrected_drive_speed(cmd.linear.x)
+        # A straight trial provides no evidence for mixed-motion correction.
+        if not cmd.angular.z:
+            cmd.linear.x = self.corrected_drive_speed(cmd.linear.x)
+        cmd.linear.x, cmd.angular.z, reason = bounded_command(
+            cmd.linear.x, cmd.angular.z, self.profile.max_linear, self.profile.max_angular)
+        if not (cmd.linear.x or cmd.angular.z) and (self.last_cmd.linear.x or self.last_cmd.angular.z):
+            reason = 'obstacle_or_hazard'
+        self.record_decision(cmd.linear.x, cmd.angular.z, reason)
         cmd.linear.x *= self.cmd_linear_sign
         self.pub.publish(cmd)
 

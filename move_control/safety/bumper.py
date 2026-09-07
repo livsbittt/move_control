@@ -1,5 +1,6 @@
 """Subject: contact sensing. Lidar sectors + US. Publish ranges."""
 import math
+import time
 
 from sensor_msgs.msg import LaserScan, Range
 from std_msgs.msg import Float32
@@ -34,14 +35,10 @@ def parse_us_range(msg: Range, scale: float = 1.0):
 class Bumper:
 
     def on_us(self, msg: Range):
-        self.last_us_time = self.now()
         parsed = parse_us_range(msg, self.us_scale)
-        if parsed is None:
-            self._us_invalid += 1
-            if self._us_invalid >= self.us_invalid_hold:
-                self.us_front = float('inf')
+        if not self.observe('us', msg, valid=parsed is not None):
             return
-        self._us_invalid = 0
+        self.last_us_time = self.now()
         self.us_front = parsed
 
     def on_scan(self, msg: LaserScan):
@@ -53,6 +50,8 @@ class Bumper:
                     f'rmax={float(msg.range_max):.1f} stamp={msg.header.stamp.sec}'
                 )
             return
+        if not self.observe('lidar', msg):
+            return
         if bool(self.get_parameter('lidar_use_tf').value):
             try:
                 if not msg.header.frame_id:
@@ -63,6 +62,7 @@ class Bumper:
                 self.lidar_yaw = nose_from_quaternion(q.x, q.y, q.z, q.w)
                 self.lidar_yaw_source = 'tf:' + msg.header.frame_id
             except (TransformException, ValueError) as error:
+                self.observe('lidar', valid=False)
                 self.last_scan_time = None
                 self.lidar_yaw_source = 'missing_tf'
                 self.get_logger().warn(f'drop scan without mount TF: {error}',
@@ -160,25 +160,25 @@ class Bumper:
         return float('inf')
 
     def sensors_ok(self) -> bool:
-        return self.age(self.last_scan_time) < self.timeout
+        return self.observations.fresh('lidar', time.monotonic())
 
     def us_distance(self) -> float:
-        if self.age(self.last_us_time) < self.timeout:
+        if self.observations.fresh('us', time.monotonic()):
             return self.us_front
         return float('inf')
 
     def _refresh_distances(self):
-        self.stop_d = float(self.get_parameter('stop_distance').value)
-        self.clear_d = float(self.get_parameter('clear_distance').value)
+        self.refresh_profile()
+        self.stop_d, self.clear_d = self.profile.stop, self.profile.clear
         self.us_stop = float(self.get_parameter('us_stop_distance').value)
         self.us_clear = float(self.get_parameter('us_clear_distance').value)
-        self.half_w = math.radians(float(self.get_parameter('front_half_width_deg').value))
+        self.half_w = math.radians(self.profile.half_width_deg)
         sign = float(self.get_parameter('cmd_linear_sign').value)
         self.cmd_linear_sign = 1.0 if sign >= 0.0 else -1.0
         if not bool(self.get_parameter('lidar_use_tf').value):
             self.lidar_yaw = float(self.get_parameter('lidar_yaw_offset').value)
         if self.has_parameter('robot_radius'):
-            self.robot_r = use_radius(self.get_parameter('robot_radius').value)
+            self.robot_r = self.profile.radius
         self.stop_d, self.clear_d = lidar_limits(
             self.stop_d, self.clear_d, self.robot_r)
         # The 8-degree centre cone missed corners in the chassis path.
@@ -188,6 +188,14 @@ class Bumper:
             lp.set_cutoff(fc, 0.05)
 
     def _filt(self, name, raw):
+        stream = 'us' if name == 'us' else 'lidar'
+        generation = self.observations.generation(stream)
+        if not self.observations.fresh(stream, time.monotonic()):
+            return float('inf')
+        if self._filtered_generations.get(name) == generation:
+            value = self._lp[name].value()
+            return raw if value is None else value
+        self._filtered_generations[name] = generation
         v = raw if math.isfinite(raw) and raw > 0.0 else None
         y = self._lp[name].push(v)
         return y if y is not None else raw

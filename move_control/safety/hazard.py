@@ -56,17 +56,29 @@ class Hazard:
 
     def on_ir(self, msg: UInt16MultiArray):
         self.ir_raw = tuple(int(v) for v in msg.data[:3])
+        self.observe('ir', valid=len(self.ir_raw) == 3 and all(0 < v < 4000 for v in self.ir_raw))
         self.last_ir_time = self.now()
 
     def on_cam_cliff(self, msg: Bool):
+        self.observe('camera_cliff')
         self.cam_cliff = bool(msg.data)
         self.last_cam_time = self.now()
 
     def on_cam_block(self, msg: Bool):
+        self.observe('camera_block')
         self.cam_block = bool(msg.data)
         self.last_cam_time = self.now()
 
     def on_imu(self, msg: Imu):
+        unit = self.get_parameter('imu_angular_velocity_unit').value
+        vals = (msg.linear_acceleration.x, msg.linear_acceleration.y, msg.linear_acceleration.z,
+                msg.angular_velocity.x, msg.angular_velocity.y, msg.angular_velocity.z,
+                msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w)
+        q = msg.orientation
+        norm = math.sqrt(q.x*q.x+q.y*q.y+q.z*q.z+q.w*q.w)
+        if not self.observe('imu', msg, valid=all(math.isfinite(v) for v in vals) and
+                            unit in ('rad_s', 'deg_s') and .9 <= norm <= 1.1):
+            return
         ax, ay, az = (
             msg.linear_acceleration.x,
             msg.linear_acceleration.y,
@@ -75,12 +87,14 @@ class Hazard:
         acc = math.sqrt(ax * ax + ay * ay + az * az)
         # Dead / uninit IMU (0xa0 fail → zeros). Do not treat as pickup or tilt.
         if acc < 1.0:
+            self.observe('imu', valid=False)
             self.tilt = False
             self.pickup = False
             return
         if 6.0 <= acc <= 14.0:
             self._imu_has_g = True
         if not self._imu_has_g:
+            self.observe('imu', valid=False)
             self.tilt = False
             self.pickup = False
             return
@@ -88,6 +102,7 @@ class Hazard:
         roll, pitch = roll_pitch(msg.orientation)
         self._imu_n += 1
         if self._imu_n < 40:
+            self.observe('imu', valid=False)
             self.tilt = False
             self.pickup = False
             return
@@ -99,7 +114,7 @@ class Hazard:
         gx = float(msg.angular_velocity.x)
         gy = float(msg.angular_velocity.y)
         gyro = math.hypot(gx, gy)
-        gyro_dps = gyro if gyro > 20.0 else math.degrees(gyro)
+        gyro_dps = gyro if unit == 'deg_s' else math.degrees(gyro)
         angled = (droll > lim) or (dpitch > lim)
         spinning = gyro_dps > float(self.get_parameter('gyro_dps').value)
         self.tilt = angled and (spinning or droll > lim * 1.2 or dpitch > lim * 1.2)
@@ -111,7 +126,11 @@ class Hazard:
         if self.age(self.last_ir_time) > self.timeout or len(self.ir_raw) < 3:
             # Hold last value if IR drops mid-edge; never invent a cliff from silence.
             return self.cliff
-        ir_f = self._ir_f.push(self.ir_raw)
+        generation = self.observations.generation('ir')
+        if generation != self._ir_generation:
+            self._ir_generation = generation
+            self._ir_filtered = self._ir_f.push(self.ir_raw)
+        ir_f = self._ir_filtered
         # 4095 = lifted / ADC sat. Need 2 real sensors to declare a cliff.
         ir = tuple(v for v in ir_f if v < 4000)
         sat = sum(1 for v in ir_f if v >= 4000)

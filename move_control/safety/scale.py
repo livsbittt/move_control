@@ -64,14 +64,20 @@ class Scale:
         if w is None:
             self.map_pub.publish(Float32(data=float(self.map_range)))
             self.open_max_pub.publish(Float32(data=float(self.open_max)))
-            # Fresh sentinel every tick: no measured corridor = open behavior.
-            self.narrow_pub.publish(Float32(data=-1.0))
+            # Finite far walls mean open; missing walls mean unknown, not fast.
+            known_open = (_finite(left, .05, 12.) and _finite(right, .05, 12.)
+                          and left+right > .70 and min(left, right) > self.profile.turn_clear)
+            self.narrow_pub.publish(Float32(data=-1.0 if known_open else 0.0))
+            self._corr_buf.clear()
             return
-        self._corr_buf.append(w)
+        generation = self.observations.generation('lidar')
+        if generation != self._corr_generation:
+            self._corr_generation = generation
+            self._corr_buf.append(w)
         if len(self._corr_buf) > 40:
             del self._corr_buf[0]
         if len(self._corr_buf) < 8:
-            self.narrow_pub.publish(Float32(data=-1.0))
+            self.narrow_pub.publish(Float32(data=0.0))
             return
         s = sorted(self._corr_buf)
         med = s[len(s) // 2]
