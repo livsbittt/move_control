@@ -112,6 +112,8 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.frontier_pub = self.create_publisher(Float32, '/safety/frontier_range', 10)
         self.route_yaw_pub = self.create_publisher(Float32, '/safety/route_yaw', 10)
         self.route_pub = self.create_publisher(Float32, '/safety/route_range', 10)
+        self.exit_yaw_pub = self.create_publisher(Float32, '/safety/exit_yaw', 10)
+        self.exit_pub = self.create_publisher(Float32, '/safety/exit_range', 10)
         self.radius_pub = self.create_publisher(Float32, '/safety/robot_radius', 10)
         self.wander_cmd = self.create_publisher(String, '/wander/cmd', 10)
         self.calib_step = self.create_publisher(String, '/calib/step', 10)
@@ -164,6 +166,8 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.frontier_range = float('inf')
         self.route_yaw = 0.0
         self.route_range = float('inf')
+        self.exit_yaw = 0.0
+        self.exit_range = float('inf')
         self.map_range = float(self.get_parameter('map_range').value)
         self.open_max = float(self.get_parameter('open_max').value)
         self.robot_r = use_radius(self.get_parameter('robot_radius').value)
@@ -253,6 +257,8 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale):
         self.frontier_pub.publish(Float32(data=_m(self.frontier_range)))
         self.route_yaw_pub.publish(Float32(data=float(self.route_yaw)))
         self.route_pub.publish(Float32(data=_m(self.route_range)))
+        self.exit_yaw_pub.publish(Float32(data=float(self.exit_yaw)))
+        self.exit_pub.publish(Float32(data=_m(self.exit_range)))
         self.radius_pub.publish(Float32(data=float(self.robot_r)))
 
         # Cliff is independent of lidar. Always evaluate IR even if /scan is missing.

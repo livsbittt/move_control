@@ -86,6 +86,23 @@ class Bumper:
         else:
             self.frontier_yaw = self.open_yaw
             self.frontier_range = self.open_range
+        # Full-circle exit judge for the stuck robot: the same frontier runs
+        # but all-around (front fan is ±110° — it cannot see the way the
+        # robot came in, which is often the only way out of a pocket).
+        # max_r 1.2 m: desk-maze scale, beyond that reads as runway.
+        exits = find_frontiers(
+            msg,
+            yaw_offset=yaw,
+            occ=max(0.10, occ),
+            free=max(occ + 0.04, min(free, 1.2)),
+            max_r=1.2,
+            front_half=math.pi,
+        )
+        if exits:
+            self.exit_yaw = float(exits[0]['yaw'])
+            self.exit_range = float(exits[0]['depth'])
+        else:
+            self.exit_yaw, self.exit_range = self.open_yaw, 0.0
         line = line_route(
             msg,
             yaw_offset=yaw,

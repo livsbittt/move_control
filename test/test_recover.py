@@ -4,6 +4,7 @@ import unittest
 
 from move_control.control.recover import (
     ESCAPE_MIN_TURN,
+    ExitSteer,
     backup_limit_m,
     escape_may_abort,
     escape_may_desense,
@@ -20,6 +21,7 @@ from move_control.control.recover import (
     side_sign,
     stuck_flip,
     stuck_kind,
+    turn_toward_sign,
     wall_first_move,
 )
 
@@ -190,6 +192,155 @@ class RecoverTest(unittest.TestCase):
         # convention: never slow on a broken sensor.
         self.assertEqual(guard_speed(float('inf'), 0.12, 0.18), 0.18)
         self.assertEqual(guard_speed(float('nan'), 0.12, 0.18), 0.18)
+
+
+class ExitSteerTest(unittest.TestCase):
+    """Exit steering: the escape spin judges from safety's full-circle exit
+    (/safety/exit_yaw/range) instead of a blind fixed sign, and never repeats
+    a direction that already failed. Pure drivers for wander's stuck response.
+    """
+
+    def test_turn_toward_sign_points_at_the_gap(self):
+        # Gap at +90° (left) → CCW (+1); gap at −90° (right) → CW (−1).
+        self.assertEqual(turn_toward_sign(math.radians(90)), 1.0)
+        self.assertEqual(turn_toward_sign(math.radians(-90)), -1.0)
+
+    def test_turn_toward_sign_wraps_the_short_way(self):
+        # +190° wraps to −170°: a 190° CCW grind is not the short way.
+        self.assertEqual(turn_toward_sign(math.radians(190)), -1.0)
+        self.assertEqual(turn_toward_sign(math.radians(-190)), 1.0)
+
+    def test_turn_toward_sign_no_call_inside_deadband_or_broken(self):
+        # Inside the deadband there is nothing to steer (aligned-ish; the
+        # resume gate decides); NaN/inf/None never steer — repo convention.
+        self.assertEqual(turn_toward_sign(math.radians(5), deadband=math.radians(8)), 0.0)
+        self.assertEqual(turn_toward_sign(math.radians(9), deadband=math.radians(8)), 1.0)
+        self.assertEqual(turn_toward_sign(float('nan')), 0.0)
+        self.assertEqual(turn_toward_sign(float('inf')), 0.0)
+        self.assertEqual(turn_toward_sign(None), 0.0)
+
+    def test_exit_latch_shortest_sign_and_target(self):
+        # Rear exit (−170°): the shortest way is CW, not a 190° grind.
+        e = ExitSteer()
+        s = e.latch(0.0, 0.0, 0.0, math.radians(-170), 0.30,
+                    min_range=0.08, elapsed_s=0.0)
+        self.assertEqual(s, -1.0)
+        self.assertAlmostEqual(e.target, math.radians(-170), places=6)
+        e = ExitSteer()
+        s = e.latch(0.0, 0.0, 0.0, math.radians(90), 0.30,
+                    min_range=0.08, elapsed_s=0.0)
+        self.assertEqual(s, 1.0)
+        self.assertAlmostEqual(e.target, math.radians(90), places=6)
+
+    def test_exit_latch_refuses_small_or_invalid_gaps(self):
+        # Below the escape_front floor there is no gap worth steering to.
+        e = ExitSteer()
+        s = e.latch(0.0, 0.0, 0.0, math.radians(90), 0.05,
+                    min_range=0.08, elapsed_s=0.0)
+        self.assertEqual(s, 0.0)
+        self.assertIsNone(e.target)
+        # inf = safety dead / no judge yet → no call, legacy spin.
+        e = ExitSteer()
+        s = e.latch(0.0, 0.0, 0.0, 0.0, float('inf'),
+                    min_range=0.08, elapsed_s=0.0)
+        self.assertEqual(s, 0.0)
+        self.assertIsNone(e.target)
+
+    def test_exit_latch_refuses_benched_bearing(self):
+        e = ExitSteer()
+        e.bench(0.0, 0.0, math.radians(90))
+        s = e.latch(0.0, 0.0, 0.0, math.radians(90), 0.30,
+                    min_range=0.08, elapsed_s=0.0)
+        self.assertEqual(s, 0.0)
+        self.assertIsNone(e.target)
+
+    def test_exit_steer_drives_toward_latched_target(self):
+        e = ExitSteer()
+        e.latch(0.0, 0.0, 0.0, math.radians(90), 0.30,
+                min_range=0.08, elapsed_s=0.0)
+        self.assertEqual(
+            e.steer(0.0, 0.0, 0.0, math.radians(90), 0.30, 0.1), 1.0
+        )
+        # 5° left of facing the target: inside the 8° deadband → hold sign.
+        self.assertEqual(
+            e.steer(0.0, 0.0, math.radians(85), math.radians(5), 0.30, 0.2),
+            1.0,
+        )
+
+    def test_exit_steer_debounces_flip_requests(self):
+        # A re-latch jump must not jitter the spin: the opposite sign must
+        # persist 3 ticks before the spin flips.
+        e = ExitSteer()
+        e.latch(0.0, 1.0, 0.0, math.radians(90), 0.30,
+                min_range=0.08, elapsed_s=0.0)
+        self.assertEqual(e.steer(0.0, 1.0, 0.0, math.radians(90), 0.30, 0.1), 1.0)
+        # Target jumps to −90°: opposite desired sign. Ticks 1-2 hold, 3 flips.
+        e.target = math.radians(-90)
+        self.assertEqual(e.steer(0.0, 1.0, 0.0, math.radians(90), 0.30, 0.2), 1.0)
+        self.assertEqual(e.steer(0.0, 1.0, 0.0, math.radians(90), 0.30, 0.3), 1.0)
+        self.assertEqual(e.steer(0.0, 1.0, 0.0, math.radians(90), 0.30, 0.4), -1.0)
+
+    def test_exit_steer_refresh_reanchors_to_live_judge(self):
+        # Odom drifts during the spin: every refresh_s the world target
+        # re-anchors from the live full-circle judge.
+        e = ExitSteer()
+        e.latch(0.0, 0.0, 0.0, math.radians(90), 0.30,
+                min_range=0.08, elapsed_s=0.0)
+        e.steer(0.0, 0.0, 0.0, math.radians(90), 0.30, 0.1)
+        e.steer(0.0, 0.0, math.radians(5), math.radians(75), 0.30, 2.1)
+        self.assertAlmostEqual(e.target, math.radians(80), places=6)
+
+    def test_exit_steer_refresh_never_reanchors_to_a_benched_bearing(self):
+        e = ExitSteer()
+        e.bench(0.0, 0.0, math.radians(120))
+        e.latch(0.0, 0.0, 0.0, math.radians(90), 0.30,
+                min_range=0.08, elapsed_s=0.0)
+        # Live judge says +115° — within 25° of the benched +120° → refused,
+        # the +90° target survives.
+        e.steer(0.0, 0.0, 0.0, math.radians(115), 0.30, 2.1)
+        self.assertAlmostEqual(e.target, math.radians(90), places=6)
+
+    def test_exit_steer_drops_target_at_timeout(self):
+        # A target that never confirms is dropped at timeout_s so the legacy
+        # timeout flips take over instead of an infinite steered spin.
+        e = ExitSteer()
+        e.latch(0.0, 0.0, 0.0, math.radians(90), 0.30,
+                min_range=0.08, elapsed_s=0.0)
+        self.assertEqual(e.steer(0.0, 0.0, 0.0, math.radians(90), 0.30, 14.9), 1.0)
+        self.assertIsNone(e.steer(0.0, 0.0, 0.0, math.radians(90), 0.30, 15.1))
+        self.assertIsNone(e.target)
+
+    def test_bench_blocks_repeat_directions_near_the_anchor(self):
+        e = ExitSteer()
+        e.bench(1.0, 2.0, 0.5)
+        self.assertTrue(e.blocked(1.0, 2.0, 0.5))
+        # 11° away, same pocket → still blocked (±25° tol).
+        self.assertTrue(e.blocked(1.0, 2.0, 0.7))
+        # 40° away → a different direction, allowed.
+        self.assertFalse(e.blocked(1.0, 2.0, 0.5 + math.radians(40)))
+
+    def test_bench_forgives_after_leaving_the_pocket(self):
+        # Same bearing 0.5 m from the anchor → left the stuck spot → fresh
+        # judgment.
+        e = ExitSteer()
+        e.bench(1.0, 2.0, 0.5)
+        self.assertFalse(e.blocked(1.5, 2.0, 0.5))
+
+    def test_bench_fifo_keep(self):
+        # keep=2: the oldest failed direction is forgotten, the newest block.
+        e = ExitSteer(bench_keep=2)
+        e.bench(0.0, 0.0, 0.0)
+        e.bench(0.0, 0.0, math.radians(120))
+        e.bench(0.0, 0.0, 3.5)
+        self.assertFalse(e.blocked(0.0, 0.0, 0.0))
+        self.assertTrue(e.blocked(0.0, 0.0, 3.5))
+
+    def test_bench_reset_on_success(self):
+        # A real drive between stucks is a new pocket → forget failures.
+        e = ExitSteer()
+        e.bench(0.0, 0.0, 0.0)
+        e.reset_bench()
+        self.assertFalse(e.blocked(0.0, 0.0, 0.0))
 
 
 if __name__ == '__main__':

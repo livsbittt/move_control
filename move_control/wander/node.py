@@ -11,6 +11,7 @@ from std_msgs.msg import Bool, Float32, String, UInt16MultiArray
 
 from ..sensing.body import URDF_RADIUS
 from ..control.modes import pick_mode
+from ..control.recover import ExitSteer
 from .contact import Contact
 from .judge import Judge
 from .motion import Motion
@@ -73,6 +74,13 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         self.declare_parameter('turn_clear_m', 0.08)
         self.declare_parameter('turn_back_max', 2)
         self.declare_parameter('robot_radius', URDF_RADIUS)
+        # Exit steering (stuck inspect→judge→escape): safety publishes the
+        # best all-around gap (/safety/exit_yaw/range); escape spins the
+        # shortest way to it and benches a bearing that already failed.
+        # exit_steering=False restores the legacy fixed-sign spin + timeout flips.
+        self.declare_parameter('exit_steering', True)
+        self.declare_parameter('exit_bench_tol_deg', 25.0)
+        self.declare_parameter('exit_anchor_m', 0.30)
 
         self.vmax = float(self.get_parameter('vmax').value)
         self.vback = float(self.get_parameter('vback').value)
@@ -82,6 +90,13 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         self.backup_clear_sec = float(self.get_parameter('backup_clear_sec').value)
         self.backup_max_sec = float(self.get_parameter('backup_max_sec').value)
         self.turn_sec = float(self.get_parameter('turn_sec').value)
+        # The stuck-escape judge: latches safety's full-circle best exit as a
+        # world bearing, steers the spin the short way, benches failed bearings.
+        self._exit = ExitSteer(
+            bench_tol_rad=math.radians(
+                float(self.get_parameter('exit_bench_tol_deg').value)),
+            bench_anchor_m=float(self.get_parameter('exit_anchor_m').value),
+        )
 
         self.pub = self.create_publisher(
             Twist, self.get_parameter('cmd_topic').value, 10
@@ -116,6 +131,8 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         self.create_subscription(Float32, '/safety/frontier_range', self.on_frontier_range, 10)
         self.create_subscription(Float32, '/safety/route_yaw', self.on_route_yaw, 10)
         self.create_subscription(Float32, '/safety/route_range', self.on_route_range, 10)
+        self.create_subscription(Float32, '/safety/exit_yaw', self.on_exit_yaw, 10)
+        self.create_subscription(Float32, '/safety/exit_range', self.on_exit_range, 10)
         self.create_subscription(UInt16MultiArray, '/ir_sensor/range', self.on_ir, 10)
         self.create_subscription(Float32, '/camera/side', self.on_cam_side, 10)
         self.create_subscription(Bool, '/camera/blocked', self.on_cam_block, 10)
@@ -144,6 +161,8 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
         self.frontier_range = float('inf')
         self.route_yaw = 0.0
         self.route_range = float('inf')
+        self.exit_yaw = 0.0
+        self.exit_range = float('inf')
         self.ir = ()
         self.cam_side = 0.0
         self.cam_block = False
@@ -339,8 +358,20 @@ class WanderNode(Node, Senses, Judge, Contact, Motion):
 
     def _start_escape(self, sign=None):
         self._enter('escape')
+        # Judge, then spin: the full-circle exit beats the front-fan pick.
+        # 0.0 = no call (invalid/benched/dead-ahead exit) — the legacy sign
+        # then stands and _tick_escape uses the fixed-sign spin + timeout flips.
+        latched = 0.0
+        if self.get_parameter('exit_steering').value:
+            latched = self._exit.latch(
+                self.odom_x, self.odom_y, self.odom_yaw,
+                self.exit_yaw, self.exit_range,
+                min_range=self.escape_front, elapsed_s=0.0,
+            )
+        if latched:
+            self.turn_sign = float(latched)
         cmd = Twist()
-        cmd.angular.z = self._spin_wz(sign)
+        cmd.angular.z = self._spin_wz(None if latched else sign)
         self._publish(cmd, 'escape')
 
     def _start_turn(self, sign=None):

@@ -251,9 +251,19 @@ class Motion:
 
     def _recover_stuck(self):
         """Do not look-then-forward. Backup if the tail is free, else spin."""
+        was_from_stuck = self._from_stuck_now()
         self._stuck_n = int(getattr(self, '_stuck_n', 0)) + 1
         self._from_stuck = True
         self._escape_need()
+        # Failed-escape memory: from_stuck still set means the previous escape
+        # never moved us STUCK_CLEAR_M forward — its bearing is proven bad.
+        # A fresh stuck (a real drive happened between) is a new pocket →
+        # forget the bench. (Wander-local analogue of goal_node's frontier
+        # benching; see ExitSteer.)
+        if was_from_stuck and self._exit.target is not None:
+            self._exit.bench(self.odom_x, self.odom_y, self._exit.target)
+        elif not was_from_stuck:
+            self._exit.reset_bench()
         if self._stuck_n == 1:
             self.turn_sign = self._pick_turn_sign()
         elif stuck_flip(self._stuck_n):
@@ -362,6 +372,18 @@ class Motion:
             return
         cmd = Twist()
         cmd.angular.z = self._spin_wz()
+        # Exit steering: spin the SHORT way toward the latched full-circle
+        # exit. steer() returns None (no target, or just dropped at its 15 s
+        # timeout) → the legacy fixed-sign spin + timeout flips run instead.
+        steered = None
+        if self.get_parameter('exit_steering').value:
+            steered = self._exit.steer(
+                self.odom_x, self.odom_y, self.odom_yaw,
+                self.exit_yaw, self.exit_range, self.elapsed(),
+            )
+        steering = steered is not None
+        if steering:
+            cmd.angular.z = self.wturn * steered
         self.get_logger().info(
             f'turn objects F={self.front_range:.2f} L={self.left_range:.2f} '
             f'R={self.right_range:.2f} rear={self.rear_range:.2f} '
@@ -393,18 +415,19 @@ class Motion:
             and self._try_turn_backup('escape still on wall')
         ):
             return
-        if self._on_wall() and (turned >= math.radians(80.0) or self.elapsed() > 8.0):
+        if not steering and self._on_wall() and (
+                turned >= math.radians(80.0) or self.elapsed() > 8.0):
             self.turn_sign = -self.turn_sign
             self._mark_pose()
             self.t0 = self.now()
             cmd.angular.z = self._spin_wz()
             self.get_logger().warn(f'wall still — flip escape sign={self.turn_sign:.0f}')
-        if escape_may_abort(
+        if not steering and escape_may_abort(
             turned, self._on_wall(), self.blocked, pinched=pinched
         ):
             self._resume_forward()
             return
-        if self.elapsed() > 12.0:
+        if not steering and self.elapsed() > 12.0:
             if self._on_wall() or pinched or self.blocked:
                 self.turn_sign = -self.turn_sign
                 self._mark_pose()

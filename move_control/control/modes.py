@@ -72,7 +72,7 @@ MODES = (
          'stop, look again, new plan'),
     Mode('PAUSE', Subject.JUDGE, 'brief stop', 'tell cliff vs wall'),
     Mode('BACK', Subject.MOTION, 'reversing', 'short reverse, rear must be clear'),
-    Mode('ESCAPE', Subject.MOTION, 'spin to the locked opening',
+    Mode('ESCAPE', Subject.MOTION, 'spin to the inspected exit',
          'maze corner or camera obstacle; not a bumper wall'),
     Mode('TURN', Subject.MOTION, 'spin after a cliff', 'fixed angle, locked sign'),
     Mode('FWD', Subject.MOTION, 'path open', 'drive and hug'),

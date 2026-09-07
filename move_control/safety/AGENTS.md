@@ -10,7 +10,7 @@ The safety velocity gate: fuses lidar sectors, US, IR, IMU, camera into ~20 `/sa
 | File | Description |
 |------|-------------|
 | `node.py` | SafetyNode(Node, Bumper, Hazard, Gate, Scale), 20 ms tick; latched `/estop/state` (depth 1, RELIABLE, TRANSIENT_LOCAL); dual same-value aliases `/safety/can_reverse` ≡ `/safety/rear_clear` (deprecated pattern, like `/safety/mode`) |
-| `bumper.py` | Lidar sector ranges (10th-percentile to kill single-beam spikes), US, rear sectors → `/safety/*` range topics |
+| `bumper.py` | Lidar sector ranges (10th-percentile to kill single-beam spikes), US, rear sectors, full-circle exit judge (best all-around gap) → `/safety/*` range topics incl. `/safety/exit_yaw`/`exit_range` |
 | `hazard.py` | ESTOP/CLIFF/TILT/PICK detection: latched e-stop (`/estop`, `/estop/cmd`), `ir_looks_like_cliff` (4095-saturation ignore + hysteresis); on engage zeros commands and cross-publishes `/wander/cmd 'stop'` + `/calib/step 'abort'`
 | `gate.py` | The command gate: halt on obstacle/cliff/tilt/pickup/estop/stale>0.5 s, tilt-reverse creep, `cmd_linear_sign` flip, re-publishes last raw command every 20 ms |
 | `scale.py` | Narrow-map auto-cal: corridor width L+R → `map_range`/`open_max` HUD scaling |

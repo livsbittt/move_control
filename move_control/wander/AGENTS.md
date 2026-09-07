@@ -13,7 +13,7 @@ The wander autonomy: a 20 ms FSM (`wait forward pause look calc recon wall backu
 | `senses.py` | Topic callbacks + geometry helpers: `_on_wall` (delegates to `modes.nose_on_wall`), `_pick_turn_sign` (via `recover.side_sign`/`ratio_sign`), `_ir_ready` floor-band check |
 | `judge.py` | LOOK/CALC/RECON/PAUSE: look sampling → `_calc_plan` (kind/sign/why), `_commit_plan` enters the plan; hazard answers come from `recover.hazard_action` |
 | `contact.py` | WALL/BACK: `_can_reverse`, `_back_cmd`, `_tick_wall` (policy via `wall_first_move`), `_tick_backup` (raw hazard persistence → disable) |
-| `motion.py` | FWD/ESCAPE/TURN + stuck detection: speeds/blends, `_recover_stuck` (`recover.stuck_kind`/`stuck_flip`), escape auto-sensitivity |
+| `motion.py` | FWD/ESCAPE/TURN + stuck detection: speeds/blends, `_recover_stuck` (`recover.stuck_kind`/`stuck_flip`, failed-exit bench), escape steers to the latched full-circle exit (`recover.ExitSteer`; `exit_steering=false` = legacy fixed-sign spin), escape auto-sensitivity |
 
 ## For AI Agents
 

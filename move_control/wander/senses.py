@@ -95,6 +95,13 @@ class Senses:
         v = float(msg.data)
         self.route_range = v if v >= 0.0 else float('inf')
 
+    def on_exit_yaw(self, msg: Float32):
+        self.exit_yaw = float(msg.data)
+
+    def on_exit_range(self, msg: Float32):
+        v = float(msg.data)
+        self.exit_range = v if v >= 0.0 else float('inf')
+
     def on_narrow(self, msg: Float32):
         # /safety/narrow = corridor median − 2×robot_radius; negative sentinel
         # = no measured corridor → open behavior, same convention as ranges.

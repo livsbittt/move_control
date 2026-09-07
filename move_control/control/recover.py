@@ -2,8 +2,18 @@
 signs. Pure — no ROS."""
 import math
 
+from ..sensing.lidar import wrap_pi
+
 ESCAPE_MIN_TURN = math.radians(45.0)
 STUCK_CLEAR_M = 0.03
+
+# Exit steering (see ExitSteer): re-anchor the latched world bearing from
+# the live full-circle judge every refresh_s — wheel slip during an
+# in-place spin drifts wheel odom yaw by tens of degrees. A target the
+# resume gate never confirms is dropped at timeout_s so the legacy timeout
+# flips take over instead of an endless steered spin (wturn 0.10 rad/s).
+EXIT_REFRESH_S = 2.0
+EXIT_TARGET_TIMEOUT_S = 15.0
 
 
 def backup_limit_m(rear, stop=0.018, cap=0.12):
@@ -208,3 +218,138 @@ def ratio_sign(left, right, ratio=1.15):
     if r > l * float(ratio):
         return -1.0
     return 0.0
+
+
+def turn_toward_sign(err, deadband=0.0):
+    """Spin sign (+1 CCW) that shortens the bearing error to a target.
+
+    err is the robot-frame bearing of the latched exit (±π-wrapped). Shortest
+    way only: +190° must be driven as −170°. 0 inside deadband (aligned-ish;
+    the resume gate decides), 0 on NaN/inf/None — never steer on a broken
+    reading (repo convention).
+    """
+    try:
+        e = float(err)
+    except (TypeError, ValueError):
+        return 0.0
+    if not math.isfinite(e):
+        return 0.0
+    e = math.atan2(math.sin(e), math.cos(e))
+    if abs(e) <= float(deadband):
+        return 0.0
+    return 1.0 if e > 0.0 else -1.0
+
+
+class ExitSteer:
+    """Judge the escape direction from the full-circle exit picture.
+
+    wander's legacy stuck response picked a spin sign from the front fan
+    (L/R ratio) and only flipped it after 8/12 s timeouts — one wrong-way
+    spin at wturn 0.10 rad/s burns ~45 s. The C1 lidar already sees the
+    whole circle every scan; what was missing is the judge. This latches
+    the best full-circle exit (safety /safety/exit_yaw/range) as a
+    world-frame bearing, spins the shortest way to it, re-anchors from the
+    live judge every refresh_s (wheel-slip yaw drift), and benches a
+    bearing that already failed near the stuck spot — the wander-local
+    analogue of goal_node's frontier benching.
+
+    Plain floats in, so it is unit-testable without ROS.
+    """
+
+    FLIP_TICKS = 3  # opposite-sign ticks before the spin flips (~150 ms at 20 Hz)
+
+    def __init__(self, deadband_rad=math.radians(8.0), refresh_s=EXIT_REFRESH_S,
+                 timeout_s=EXIT_TARGET_TIMEOUT_S,
+                 bench_tol_rad=math.radians(25.0), bench_anchor_m=0.30,
+                 bench_keep=3):
+        self.deadband = float(deadband_rad)
+        self.refresh_s = float(refresh_s)
+        self.timeout_s = float(timeout_s)
+        self.tol_rad = float(bench_tol_rad)
+        self.anchor_m = float(bench_anchor_m)
+        self.bench_keep = int(bench_keep)
+        self.sign = 0.0
+        self.target = None   # world-frame bearing of the latched exit
+        self.min_range = 0.0
+        self._last_refresh = 0.0
+        self._flip_n = 0
+        self._bench = []     # [(x, y, benched world bearing)]
+
+    def latch(self, x, y, odom_yaw, exit_yaw, exit_range, min_range,
+              elapsed_s=0.0):
+        """Pick the spin sign from the exit judge at escape entry.
+
+        Returns ±1.0 (store as turn_sign; tick steering chases the latched
+        world bearing) or 0.0 — no call: invalid/small exit, benched
+        bearing, or the exit is dead ahead (|yaw| ≤ deadband; the aligned
+        resume gate covers that). Caller keeps its legacy sign then.
+        """
+        self.target = None
+        self.sign = 0.0
+        self._last_refresh = float(elapsed_s)
+        self._flip_n = 0
+        if not (math.isfinite(exit_range) and exit_range >= min_range):
+            return 0.0
+        self.min_range = float(min_range)
+        self.target = wrap_pi(float(odom_yaw) + float(exit_yaw))
+        if self.blocked(x, y, self.target):
+            self.target = None
+            return 0.0
+        self.sign = turn_toward_sign(
+            wrap_pi(self.target - float(odom_yaw)), self.deadband
+        )
+        if self.sign == 0.0:
+            self.target = None  # exit dead ahead: aligned resume covers it
+        return self.sign
+
+    def steer(self, x, y, odom_yaw, exit_yaw, exit_range, elapsed_s):
+        """Tick spin sign toward the latched target; None = no active target
+        (caller uses the legacy sign).
+
+        Re-anchors the target from the live judge every refresh_s, drops it
+        at timeout_s, and debounces sign flips — a re-latch jump must not
+        jitter the spin, so FLIP_TICKS opposite ticks pass before flipping.
+        """
+        if self.target is None:
+            return None
+        if float(elapsed_s) >= self.timeout_s:
+            self.target = None
+            return None
+        if float(elapsed_s) - self._last_refresh >= self.refresh_s:
+            self._last_refresh = float(elapsed_s)
+            if math.isfinite(exit_range) and exit_range >= self.min_range:
+                cand = wrap_pi(float(odom_yaw) + float(exit_yaw))
+                if not self.blocked(x, y, cand):
+                    self.target = cand
+        desired = turn_toward_sign(
+            wrap_pi(self.target - float(odom_yaw)), self.deadband
+        )
+        if desired == 0.0:
+            return self.sign  # facing the target: hold, resume gate decides
+        if desired != self.sign:
+            self._flip_n += 1
+        else:
+            self._flip_n = 0
+        if self._flip_n >= self.FLIP_TICKS:
+            self.sign = desired
+            self._flip_n = 0
+        return self.sign
+
+    def bench(self, x, y, bearing):
+        """Remember a failed escape bearing near (x, y). FIFO-bounded."""
+        self._bench.append((float(x), float(y), wrap_pi(float(bearing))))
+        while len(self._bench) > self.bench_keep:
+            self._bench.pop(0)
+
+    def blocked(self, x, y, bearing):
+        """True when bearing sits within tol of a benched one while the
+        robot is within anchor_m of that bench's stuck spot."""
+        for bx, by, bb in self._bench:
+            if (math.hypot(x - bx, y - by) <= self.anchor_m
+                    and abs(wrap_pi(float(bearing) - bb)) <= self.tol_rad):
+                return True
+        return False
+
+    def reset_bench(self):
+        """Fresh pocket (a real drive happened since the last stuck)."""
+        self._bench = []

@@ -10,7 +10,7 @@ Robot-frame geometry → motion policy. Pure logic, **no ROS imports** — the u
 | File | Description |
 |------|-------------|
 | `modes.py` | The one canonical `/robot/mode` label: 16 labels, precedence hazard > wander action > contact bands; `pick_mode()` fuses hazard bools + FSM state + `nose_on_wall()`; `NON_FORWARD_STATES` single-sources the state list; `US_NOSE_MAX_M`/`LIDAR_NOSE_MAX_M` hold the hardware cutoffs |
-| `recover.py` | Stuck/backup/escape policy + `hazard_action` (the one cliff/tilt answer: tilt always trusted, cliff only after first forward drive, rear clear → backup else spin) + `wall_first_move` + turn-sign rules `side_sign`/`ratio_sign` |
+| `recover.py` | Stuck/backup/escape policy + `hazard_action` (the one cliff/tilt answer: tilt always trusted, cliff only after first forward drive, rear clear → backup else spin) + `wall_first_move` + turn-sign rules `side_sign`/`ratio_sign` + `ExitSteer`/`turn_toward_sign` (escape spins the shortest way to the full-circle exit, benches failed bearings) |
 | `route.py` | Longest free straight line through sector ranges (line route, not circular) |
 
 ## For AI Agents

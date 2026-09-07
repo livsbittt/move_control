@@ -80,10 +80,7 @@ class Contact:
     def _finish_backup(self):
         """Stuck recovery spins next. Otherwise look and re-plan."""
         if getattr(self, '_from_stuck', False):
-            self._enter('escape')
-            cmd = Twist()
-            cmd.angular.z = self._spin_wz()
-            self._publish(cmd, 'escape')
+            self._start_escape()  # latch the full-circle exit target here too
             return
         self._enter('look')
         self._publish(Twist(), 'look')
