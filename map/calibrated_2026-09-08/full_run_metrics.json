@@ -1,0 +1,31 @@
+{
+  "w": 196,
+  "h": 196,
+  "res": 0.019999999552965164,
+  "ox": -0.004088528213696818,
+  "oy": -0.003914492218705545,
+  "walls": 48,
+  "occ_px": 2110,
+  "known_px": 17938,
+  "wall_recall": 1.0,
+  "n_wall": 48,
+  "n_wall_adj": 48,
+  "wall_detect_adj": 1.0,
+  "corridor_purity": 0.966,
+  "phantom_frac": 0.0,
+  "interior_unknown": 0.0,
+  "walkable_px": 15808,
+  "gates": {
+    "wall_detect_adj>=0.85": true,
+    "corridor_purity>=0.9": true,
+    "phantom<0.05": true,
+    "interior_unknown<=0.40": true
+  },
+  "mapping_complete": true,
+  "sim_s": 2834.3,
+  "motion": {
+    "path_m": 22.718999240675497,
+    "min_center_wall_m": 0.12071076627779236,
+    "max_linear_mps": 0.014000000413857926
+  }
+}

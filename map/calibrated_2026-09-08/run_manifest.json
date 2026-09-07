@@ -1,0 +1,16 @@
+{
+    "run_id":  "calmap227-25284",
+    "scope":  "incremental Gazebo velocity-plant integration",
+    "recorded_at":  "2026-09-07T17:30:14.1652260Z",
+    "world_sha256":  "a8e0abcb960dcf9780c0086b5655e50782027e349f29aa28c83986ae4a076aeb",
+    "source_at_start":  "5e03ab8a4a90001096ee6ef7566ca9dc2ff307dc",
+    "navigation_revision":  "cdbb3d0",
+    "navigation_reloaded_near_sim_s":  640,
+    "ros_domain":  227,
+    "gazebo_partition":  "pinky_calmap227",
+    "gazebo_pid":  25284,
+    "auxiliary_sensors":  "synthetic camera and IR; IMU from GT odometry; US from lidar",
+    "physical_robot_verified":  false,
+    "mapping_complete":  false,
+    "robot_radius_m":  0.105
+}
