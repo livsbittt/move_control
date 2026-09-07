@@ -14,3 +14,8 @@ log/
 .omc/
 .claude/settings.local.json
 artifacts/
+
+# CI/CD (tools/ci, tools/deploy)
+.venv-ci/
+dist/
+tools/deploy/deploy.local.env

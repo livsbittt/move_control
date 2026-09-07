@@ -1,0 +1,8 @@
+# Local CI dependencies for the pure-logic test suite (test/).
+# The robot does NOT use this file: there numpy/opencv come from apt
+# (python3-numpy / python3-opencv, see package.xml exec_depend), and
+# run_tests.sh --system uses the system interpreter directly.
+pytest>=8.0
+numpy>=1.24
+opencv-python-headless>=4.8
+PyYAML>=6.0
