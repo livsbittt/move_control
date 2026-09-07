@@ -92,9 +92,13 @@ class Navigator:
             v, w, reason = 0.0, 0.0, 'stalled_restart_required'
         recoverable = (not hazard and not self.estop and not self.pickup and self._ir_ready()
                        and 0 <= tf_age <= float(self.get_parameter('route_tf_timeout').value))
+        exit_point = None
+        if pose is not None and self.navigation_route:
+            exit_point = next((point for point in self.navigation_route
+                               if math.dist(point, pose[:2]) >= .06), self.navigation_route[-1])
         recovery = self.navigation_recovery.update(
             now, pose, reason, self.navigation_route[-1] if self.navigation_route else None,
-            self.navigation_stamp, recoverable)
+            self.navigation_stamp, recoverable, exit_point)
         if recovery == 'replan':
             v = w = 0.0
             self.navigation_goal_pub.publish(String(data='replan'))

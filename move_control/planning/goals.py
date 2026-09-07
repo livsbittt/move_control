@@ -89,6 +89,12 @@ class GoalBrain:
         self._coverage_deferred = {}
         self._map_lattice = None
         self._failed_goals = []
+        self._failed_exits = []
+        self._route_tick = 0
+
+    def avoid_route_exit(self, point):
+        if point is not None and all(math.isfinite(v) for v in point):
+            self._failed_exits.append((tuple(point), self._route_tick+self.blacklist_plans))
 
     def avoid_goal(self, goal):
         if goal is not None and all(math.isfinite(v) for v in goal):
@@ -100,6 +106,7 @@ class GoalBrain:
         """Clear map-session memory without changing configured geometry."""
         self.covered.clear()
         self._failed_goals.clear()
+        self._failed_exits.clear()
         self._coverage_deferred.clear()
         self._blacklist.clear()
         self.last_options = []
@@ -269,6 +276,25 @@ class GoalBrain:
         return None, None, ''
 
     def plan(self, m, pose):
+        self._route_tick += 1
+        self._failed_exits = [(xy, expiry) for xy, expiry in self._failed_exits if expiry > self._route_tick]
+        goal, route, status = self._plan_candidate(m, pose)
+        if route and self._failed_exits:
+            candidates = [(goal, route)] + [((opt['x'], opt['y']), opt['route']) for opt in self.last_options]
+            self.last_options = []
+            route = None
+            for candidate, original in candidates:
+                route = best_route(m, pose, candidate, clear_m=original.get('clearance_m', self.clear_m),
+                                   avoid_points=[xy for xy, _ in self._failed_exits])
+                if route:
+                    goal = route['points'][-1]
+                    break
+            if route is None:
+                return None, None, 'replanning: no route outside failed exits'
+            status = 'alternative exit: ' + status
+        return goal, route, status
+
+    def _plan_candidate(self, m, pose):
         """Next point to go: (goal_xy | None, route | None, status str).
 
         goal and route are None for transitional statuses (skipped waypoint,

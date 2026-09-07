@@ -40,3 +40,11 @@ def test_safety_hold_cannot_request_recovery_and_progress_then_freeze_is_detecte
     tick(r,61,'forward')
     tick(r,70,'forward',pose=(.03,0.,0.))
     assert tick(r,115,'forward',pose=(.03,0.,0.))=='replan'
+
+
+def test_new_endpoint_on_same_blocked_exit_is_not_an_alternative_path():
+    r=RouteRecovery()
+    r.update(0,(0,0,0),'front_blocked',(1,0),0,True,(.06,0))
+    assert r.update(5,(0,0,0),'front_blocked',(1,0),5,True,(.06,0))=='replan'
+    assert r.update(6,(0,0,0),'forward',(2,0),6,True,(.06,0))=='waiting'
+    assert r.update(7,(0,0,0),'forward',(1,0),7,True,(0,.06))=='alternative'
