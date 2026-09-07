@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pinky map + control</title>
+<style>
+:root {
+  color-scheme: dark;
+  /* surfaces & ink (dataviz reference palette, dark) */
+  --bg: #0d0d0d;  --surface: #1a1a19;  --surface-2: #232322;
+  --unk: #161615; --grid: #2c2c2a;     --border: rgba(255,255,255,0.10);
+  --ink: #ffffff; --ink-2: #c3c2b7;    --muted: #898781;
+  /* map raster */
+  --free: #232322; --wall: #e1e0d9;
+  /* categorical overlays (validated trio) + pin */
+  --route: #3987e5; --alt: #d95926; --goal: #199e70; --pin: #d55181;
+  --hist: #898781; /* de-emphasis, not a series */
+  /* status (reserved - never for series) */
+  --good: #0ca30c; --warn: #fab219; --serious: #ec835a; --crit: #d03b3b;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { margin:0; background:var(--bg); color:var(--ink-2);
+       font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+       display:flex; flex-direction:column; }
+header { flex:none; display:flex; align-items:center; gap:16px; padding:10px 16px;
+         background:var(--surface); border-bottom:1px solid var(--border); }
+.brand { font-weight:600; color:var(--ink); display:flex; align-items:center; gap:9px; }
+.dot { width:8px; height:8px; border-radius:50%; background:var(--muted); }
+.dot.live { background:var(--good); }
+.chips { margin-left:auto; display:flex; gap:8px; flex-wrap:wrap; }
+.chip { display:inline-flex; align-items:center; gap:6px; font-size:12px;
+        color:var(--muted); background:var(--bg);
+        border:1px solid var(--border); border-radius:999px; padding:3px 11px; }
+.chip b { color:var(--ink); font-weight:600; }
+.chip.crit { border-color:rgba(208,59,59,0.6); }
+.chip.crit b { color:var(--crit); }
+main { flex:1; min-height:0; display:grid;
+       grid-template-columns:minmax(0,1fr) 340px; gap:12px; padding:12px; }
+.mapcard { display:flex; flex-direction:column; min-height:0; min-width:0; }
+.maphead { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.legend { display:flex; gap:14px; flex-wrap:wrap; font-size:12px; color:var(--muted); }
+.key { display:inline-flex; align-items:center; gap:6px; }
+.sw { width:14px; height:3px; border-radius:2px; }
+.sw.route { background:var(--route); }
+.sw.alt { background:var(--alt); }
+.sw.hist { background:var(--hist); }
+.sw.goal { width:9px; height:9px; border-radius:2px; background:var(--goal); }
+.pin { font-size:12px; color:var(--ink); margin-left:auto;
+       font-variant-numeric:tabular-nums; }
+.goal-state { font-size:12px; color:var(--ink-2); flex-basis:100%;
+              overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mapwrap { position:relative; flex:1; min-height:0; margin-top:8px;
+           background:var(--unk); border:1px solid var(--border);
+           border-radius:8px; overflow:hidden; cursor:crosshair; }
+.mapwrap.grabbing { cursor:grabbing; }
+#map { position:absolute; inset:0; width:100%; height:100%; display:block; }
+.coords:empty { display:none; }
+.coords { position:absolute; left:10px; bottom:8px; font-size:11px;
+          color:var(--ink-2); background:rgba(13,13,13,0.78);
+          border:1px solid var(--border); border-radius:6px;
+          padding:2px 8px; pointer-events:none; }
+.viewbar { position:absolute; top:8px; right:8px; display:flex; gap:4px;
+           align-items:center; }
+.viewbar button { padding:2px 9px; font-size:12px; border-radius:6px; }
+#zoompct { font-size:11px; color:var(--ink-2); background:rgba(13,13,13,0.78);
+           border:1px solid var(--border); border-radius:6px; padding:2px 8px; }
+.stale { position:absolute; inset:0; display:none; align-items:center;
+         justify-content:center; background:rgba(13,13,13,0.55);
+         color:var(--warn); font-size:13px; pointer-events:none; }
+.empty-note { position:absolute; inset:0; display:flex; align-items:center;
+              justify-content:center; color:var(--muted); font-size:13px;
+              pointer-events:none; }
+aside { min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:12px; }
+.card { background:var(--surface); border:1px solid var(--border);
+        border-radius:10px; padding:12px 14px; }
+.card h3 { margin:0 0 8px; font-size:13px; font-weight:600; color:var(--ink-2); }
+.hint { margin:-4px 0 8px; font-size:12px; color:var(--muted); }
+.btnrow { display:flex; gap:6px; }
+.btnrow button { flex:1; }
+button { background:var(--surface-2); color:var(--ink);
+         border:1px solid var(--border); border-radius:8px;
+         padding:8px 10px; font:inherit; font-size:13px; cursor:pointer; }
+button:hover { border-color:var(--muted); }
+button:active { transform:translateY(1px); }
+button:focus-visible { outline:2px solid var(--route); outline-offset:2px; }
+button.danger { background:rgba(208,59,59,0.16);
+                border-color:rgba(208,59,59,0.55); }
+button.mini { flex:none; padding:2px 9px; font-size:11px; border-radius:6px; }
+.pad { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.keys { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; margin-top:8px; }
+.keys span { display:flex; align-items:center; justify-content:center;
+             background:var(--surface-2); border:1px solid var(--border);
+             border-radius:6px; padding:5px 0; font-size:12px;
+             color:var(--ink-2); user-select:none; }
+.keys span.on { border-color:var(--route); color:var(--ink); }
+.scanrow { display:flex; gap:12px; align-items:center; }
+#scan { width:132px; height:132px; flex:none; border-radius:50%;
+        background:var(--unk); border:1px solid var(--border); }
+#sens { flex:1; min-width:0; }
+.srow { display:flex; justify-content:space-between; gap:8px;
+        font-size:13px; padding:1px 0; }
+.srow .k { color:var(--muted); }
+.srow .v { color:var(--ink); font-weight:500;
+           font-variant-numeric:tabular-nums; overflow:hidden;
+           text-overflow:ellipsis; white-space:nowrap; }
+.bools { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.bool { font-size:11px; color:var(--muted);
+        border:1px solid var(--border); border-radius:999px; padding:2px 9px; }
+.bool.on { color:var(--crit); border-color:rgba(208,59,59,0.6); }
+.tiles { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:6px; }
+.tile { background:var(--bg); border:1px solid var(--border);
+        border-radius:8px; padding:6px 10px; min-width:0; }
+.tile .lbl { font-size:11px; color:var(--muted); }
+.tile .val { font-size:15px; font-weight:600; color:var(--ink);
+             overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#camimg { width:100%; border-radius:8px; background:var(--unk);
+          border:1px solid var(--border); display:block; }
+#camnone { color:var(--muted); font-size:12px; padding:14px 0; text-align:center; }
+@media (max-width: 940px) {
+  main { grid-template-columns:1fr; flex:none; height:auto; }
+  .mapwrap { flex:none; height:60vh; }
+  aside { overflow:visible; }
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><span class="dot" id="live"></span> pinky map + control</div>
+  <div class="chips">
+    <span class="chip">mode <b id="mode">-</b></span>
+    <span class="chip">wander <b id="wander">-</b></span>
+    <span class="chip" id="estopChip">estop <b id="estop">-</b></span>
+    <span class="chip">ok <b id="ok">-</b></span>
+  </div>
+</header>
+<main>
+  <section class="card mapcard">
+    <div class="maphead">
+      <div class="legend">
+        <span class="key"><i class="sw route"></i>route</span>
+        <span class="key"><i class="sw alt"></i>alternatives</span>
+        <span class="key"><i class="sw hist"></i>trail and traveled</span>
+        <span class="key"><i class="sw goal"></i>goal</span>
+      </div>
+      <span class="pin" id="pin"></span>
+      <button type="button" class="mini" id="pinsend" style="display:none"
+              aria-label="send the robot to the pinned point">send robot here</button>
+      <button type="button" class="mini" id="pinclear" style="display:none"
+              aria-label="clear pin">clear</button>
+      <div class="goal-state" id="gstate">-</div>
+    </div>
+    <div class="mapwrap" id="mapwrap">
+      <canvas id="map" role="img" aria-label="occupancy map with route overlays"></canvas>
+      <div class="viewbar">
+        <button type="button" data-view="in" aria-label="zoom in">+</button>
+        <button type="button" data-view="out" aria-label="zoom out">&minus;</button>
+        <button type="button" data-view="fit" aria-label="reset view">fit</button>
+        <span id="zoompct">100%</span>
+      </div>
+      <div class="stale" id="stale"></div>
+      <div class="empty-note" id="mapnote" style="display:none">waiting for the map</div>
+      <div class="coords" id="coords"></div>
+    </div>
+  </section>
+  <aside>
+    <div class="card">
+      <h3>Goal</h3>
+      <p class="hint">advisory — wander and control drive the robot</p>
+      <div class="btnrow">
+        <button type="button" data-post="/cmd" data-val="explore">explore</button>
+        <button type="button" data-post="/cmd" data-val="coverage">coverage</button>
+        <button type="button" data-post="/cmd" data-val="stop">stop</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Wander</h3>
+      <p class="hint">motors on or off, node stays up</p>
+      <div class="btnrow">
+        <button type="button" data-post="/wander" data-val="start">start</button>
+        <button type="button" data-post="/wander" data-val="stop">stop</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>E-stop</h3>
+      <p class="hint">latched — safety holds the motors at zero</p>
+      <div class="btnrow">
+        <button type="button" class="danger" data-post="/estop" data-val="stop">STOP</button>
+        <button type="button" data-post="/estop" data-val="release">release</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Teleop</h3>
+      <p class="hint">hold the pad or keys, i+j combine, k stops, + and &minus; set speed</p>
+      <div class="pad">
+        <span></span>
+        <button type="button" data-hold="up" aria-label="forward">&#8593;</button>
+        <span></span>
+        <button type="button" data-hold="left" aria-label="rotate left">&#8592;</button>
+        <button type="button" data-hold="stop" aria-label="stop">stop</button>
+        <button type="button" data-hold="right" aria-label="rotate right">&#8594;</button>
+        <span></span>
+        <button type="button" data-hold="down" aria-label="back">&#8595;</button>
+        <span></span>
+      </div>
+      <div class="keys" id="keys">
+        <span data-a="ul">u</span><span data-a="up">i</span><span data-a="ur">o</span>
+        <span data-a="left">j</span><span data-a="stop">k</span><span data-a="right">l</span>
+        <span data-a="dl">m</span><span data-a="down">,</span><span data-a="dr">.</span>
+      </div>
+      <div class="srow" style="margin-top:8px">
+        <span class="k">speed</span><span class="v" id="speed">-</span>
+      </div>
+      <div class="srow">
+        <span class="k">topic</span><span class="v" id="ttopic">-</span>
+      </div>
+    </div>
+    <div class="card" id="camcard" style="display:none">
+      <h3>Camera</h3>
+      <img id="camimg" alt="front camera view">
+      <div id="camnone" style="display:none">no camera yet</div>
+      <div class="bools" id="camverdict"></div>
+    </div>
+    <div class="card">
+      <h3>Sensors</h3>
+      <div class="scanrow">
+        <canvas id="scan" width="264" height="264" role="img"
+                aria-label="lidar polar view, nose up"></canvas>
+        <div id="sens"></div>
+      </div>
+      <div class="bools" id="bools"></div>
+    </div>
+    <div class="card" id="rescard" style="display:none">
+      <h3>Mapping result</h3>
+      <div id="resrows"></div>
+    </div>
+    <div class="card">
+      <h3>State</h3>
+      <div class="srow"><span class="k">health</span><span class="v" id="health">-</span></div>
+      <div class="tiles">
+        <div class="tile"><div class="lbl">pose x, y</div><div class="val" id="pose">-</div></div>
+        <div class="tile"><div class="lbl">eta</div><div class="val" id="eta">-</div></div>
+        <div class="tile"><div class="lbl">cmd vel</div><div class="val" id="vel">-</div></div>
+        <div class="tile"><div class="lbl">route</div><div class="val" id="rinfo">-</div></div>
+        <div class="tile"><div class="lbl">trail pts</div><div class="val" id="trail">-</div></div>
+        <div class="tile"><div class="lbl">map cells</div><div class="val" id="msize">-</div></div>
+        <div class="tile"><div class="lbl">odom path</div><div class="val" id="pathm">-</div></div>
+      </div>
+    </div>
+  </aside>
+</main>
+<script>
+(() => {
+'use strict';
+// ---- config (all timings/sizes in one place) -----------------------------
+const CFG = {
+  poll_ms: 333, result_ms: 5000, map_recheck_ms: 120, stale_ms: 1500,
+  teleop_period_ms: 100,
+  // clamps must match the /teleop handler in move_control/web_node.py
+  lin_max: 0.2, ang_max: 1.0,
+  lin_steps: [0.02, 0.05, 0.10, 0.20],
+  ang_steps: [0.25, 0.50, 0.75, 1.00],
+  fit_margin: 0.98, zoom_min: 1, zoom_max: 8, zoom_step: 1.15,
+  click_slop_px: 4,
+};
+// ---- canvas tokens (mirror the :root CSS custom properties) --------------
+const T = { unk: '#161615', grid: '#2c2c2a', ink: '#ffffff',
+            route: '#3987e5', alt: '#d95926', goal: '#199e70',
+            hist: '#898781', crit: '#d03b3b', warn: '#fab219',
+            pin: '#d55181' };
+// ---- state ----------------------------------------------------------------
+const S = {
+  data: {},
+  img: { gen: -1, im: null, t: 0 },
+  cam: { gen: -1 },
+  view: { z: 1, A: { x: 0, y: 0 }, ok: false,
+          k: 1, w: 0, h: 1, res: 0.05, ox: 0, oy: 0, wc: null },
+  split: { key: '', bi: 0 },
+  pin: null, lastOk: 0, raf: 0,
+  tele: { lin: 1, ang: 1 },
+  held: new Set(), kt: null,
+};
+// ---- helpers + api ---------------------------------------------------------
+const $ = id => document.getElementById(id);
+const API = (location.port === '__BACKEND_PORT__') ? '' :
+  location.protocol + '//' + location.hostname + ':__BACKEND_PORT__';
+async function getJson(path) {
+  try { const r = await fetch(API + path); return await r.json(); }
+  catch (e) { return null; }
+}
+async function post(path, body) {
+  try { await fetch(API + path, { method: 'POST', body: body }); }
+  catch (e) {}
+}
+const api = {
+  cmd: v => post('/cmd', v),
+  wander: v => post('/wander', v),
+  estop: v => post('/estop', v),
+  goal: xy => post('/goal', xy),
+  tw: (x, z) => post('/teleop', JSON.stringify({ x: x, z: z })),
+};
+function setTxt(id, t) {
+  const el = $(id);
+  if (el && el.textContent !== t) el.textContent = t;
+}
+// ---- map view --------------------------------------------------------------
+// world metres -> cells: u = (x-ox)/res, v = h-1-(y-oy)/res (row 0 = top)
+// cells -> device px:    X = A.x + u*S, S = k*z (k = base fit, z = user zoom)
+// A is the screen position of cell (0,0); pan/zoom move A, meta changes are
+// absorbed by re-anchoring the world point at the canvas center.
+const cv = $('map'), c = cv.getContext('2d'), wrap = $('mapwrap');
+const Sc = () => S.view.k * S.view.z;
+function fitView() {
+  const W = cv.width, H = cv.height;
+  if (!W || !H || !S.data.map) return;
+  const m = S.data.map;
+  S.view.w = m[0]; S.view.h = m[1]; S.view.res = m[2];
+  S.view.ox = m[3]; S.view.oy = m[4];
+  S.view.k = Math.min(W / S.view.w, H / S.view.h) * CFG.fit_margin;
+  S.view.A.x = (W - S.view.w * Sc()) / 2;
+  S.view.A.y = (H - S.view.h * Sc()) / 2;
+  S.view.ok = true;
+}
+function clampPan() {
+  const V = S.view, W = cv.width, H = cv.height, s = Sc();
+  const fix = (ext, C, a) =>
+    (ext * s >= C) ? Math.min(0, Math.max(C - ext * s, a)) : (C - ext * s) / 2;
+  V.A.x = fix(V.w, W, V.A.x);
+  V.A.y = fix(V.h, H, V.A.y);
+}
+function zoomAt(cx, cy, f) {
+  if (!S.view.ok) return;
+  const V = S.view, s = Sc();
+  const u0 = (cx - V.A.x) / s, v0 = (cy - V.A.y) / s;
+  V.z = Math.min(CFG.zoom_max, Math.max(CFG.zoom_min, V.z * f));
+  const s2 = Sc();
+  V.A.x = cx - u0 * s2; V.A.y = cy - v0 * s2;
+  clampPan(); showZoom(); requestDraw();
+}
+function viewMetaChanged(m) {
+  return !S.view.ok || S.view.w !== m[0] || S.view.h !== m[1] ||
+         S.view.res !== m[2] || S.view.ox !== m[3] || S.view.oy !== m[4];
+}
+function syncView() {
+  const m = S.data.map, W = cv.width, H = cv.height;
+  if (!m || !W || !H) { S.view.ok = false; return; }
+  if (viewMetaChanged(m)) {
+    const world = S.view.ok && S.view.z > 1 && S.view.wc ?
+      S.view.wc : null;                    // keep the center world point
+    const z = S.view.z;
+    S.view.ok = false;                     // force fresh base fit
+    fitView();
+    S.view.z = z;
+    if (world && z > 1) {                  // re-anchor the center point
+      const u = (world[0] - S.view.ox) / S.view.res;
+      const v = S.view.h - 1 - (world[1] - S.view.oy) / S.view.res;
+      S.view.A.x = W / 2 - u * Sc();
+      S.view.A.y = H / 2 - v * Sc();
+    }
+    clampPan();
+  }
+  const V = S.view;
+  V.wc = [ V.ox + (W / 2 - V.A.x) / Sc() * V.res,
+           V.oy + (V.h - 1 - (H / 2 - V.A.y) / Sc()) * V.res ];
+}
+function w2c(x, y) {
+  const V = S.view;
+  return [ V.A.x + ((x - V.ox) / V.res) * Sc(),
+           V.A.y + (V.h - 1 - (y - V.oy) / V.res) * Sc() ];
+}
+function c2w(X, Y) {
+  const V = S.view;
+  return [ V.ox + ((X - V.A.x) / Sc()) * V.res,
+           V.oy + (V.h - 1 - (Y - V.A.y) / Sc()) * V.res ];
+}
+function requestDraw() {
+  if (!S.raf) S.raf = requestAnimationFrame(() => { S.raf = 0; draw(S.data); });
+}
+// ---- draw: raster + overlays ----------------------------------------------
+function draw(s) {
+  const W = cv.width, H = cv.height;
+  if (!W || !H) return;
+  const dpr = window.devicePixelRatio || 1;
+  c.fillStyle = T.unk;
+  c.fillRect(0, 0, W, H);
+  if (!s.map) {
+    S.view.ok = false;
+    $('mapnote').style.display = '';
+    return;
+  }
+  $('mapnote').style.display = 'none';
+  syncView();
+  if (S.img.im) {
+    // stale-while-revalidate: the previous raster stays until the next one
+    // has decoded — a fresh gen must never blank the map (the blink).
+    c.imageSmoothingEnabled = false;
+    const V = S.view;
+    c.drawImage(S.img.im, V.A.x, V.A.y, V.w * Sc(), V.h * Sc());
+  }
+  const W2C = w2c;
+  function line(pts, color, width) {
+    if (!pts || pts.length < 2) return;
+    c.strokeStyle = color; c.lineWidth = width;
+    c.lineJoin = 'round'; c.lineCap = 'round';
+    c.beginPath();
+    pts.forEach((p, i) => {
+      const q = W2C(p[0], p[1]);
+      if (i === 0) c.moveTo(q[0], q[1]); else c.lineTo(q[0], q[1]);
+    });
+    c.stroke();
+  }
+  line(s.trail, T.hist, 1.5 * dpr);
+  const haveRoute = s.route && s.route.length > 1;
+  (s.options || []).forEach((o, i) => {
+    if (i === 0 && haveRoute) return;   // chosen option == the route
+    line(o, T.alt, (i === 0 ? 3 : 1.5) * dpr);
+  });
+  if (haveRoute && s.pose) {
+    let bi = 0, bd = Infinity;
+    s.route.forEach((p, i) => {
+      const d = (p[0] - s.pose[0]) ** 2 + (p[1] - s.pose[1]) ** 2;
+      if (d < bd) { bd = d; bi = i; }
+    });
+    const rkey = s.route.length + '@' + s.route[0][0].toFixed(2) + ',' +
+      s.route[0][1].toFixed(2) + '-' + s.route[s.route.length - 1][0].toFixed(2) +
+      ',' + s.route[s.route.length - 1][1].toFixed(2);
+    if (S.split.key !== rkey) S.split = { key: rkey, bi: bi };
+    else {
+      const po = s.pose, ps = s.route[S.split.bi];
+      const dOld = (ps[0] - po[0]) ** 2 + (ps[1] - po[1]) ** 2;
+      if (bd * 2.5 < dOld) S.split.bi = bi;
+    }
+    bi = S.split.bi;    line(s.route.slice(0, bi + 1), T.hist, 1.5 * dpr);  // traveled
+    line(s.route.slice(bi), T.route, 2 * dpr);          // to-go
+    const step = s.route.length > 40 ? 3 : 1;
+    for (let i = bi + 1; i < s.route.length; i += step) {
+      const q = w2c(s.route[i][0], s.route[i][1]);
+      c.fillStyle = T.route;
+      c.beginPath(); c.arc(q[0], q[1], 2.5 * dpr, 0, 7); c.fill();
+      c.strokeStyle = T.unk; c.lineWidth = 2;           // surface ring
+      c.beginPath(); c.arc(q[0], q[1], 2.5 * dpr + 2, 0, 7); c.stroke();
+    }
+  } else {
+    line(s.route, T.route, 2 * dpr);
+  }
+  if (s.goal_pt) {
+    const g = w2c(s.goal_pt[0], s.goal_pt[1]);
+    const a = 5 * dpr;
+    c.strokeStyle = T.goal; c.lineWidth = 2.5 * dpr; c.lineCap = 'round';
+    c.beginPath();
+    c.moveTo(g[0] - a, g[1] - a); c.lineTo(g[0] + a, g[1] + a);
+    c.moveTo(g[0] + a, g[1] - a); c.lineTo(g[0] - a, g[1] + a);
+    c.stroke();
+  }
+  if (s.pose) {
+    const p = w2c(s.pose[0], s.pose[1]);
+    const yaw = s.pose[2] || 0;
+    c.strokeStyle = T.route; c.lineWidth = 2 * dpr;
+    c.beginPath(); c.moveTo(p[0], p[1]);
+    c.lineTo(p[0] + 14 * dpr * Math.cos(yaw), p[1] - 14 * dpr * Math.sin(yaw));
+    c.stroke();
+    c.fillStyle = T.route;
+    c.beginPath(); c.arc(p[0], p[1], 5 * dpr, 0, 7); c.fill();
+    c.strokeStyle = T.unk; c.lineWidth = 2 * dpr;
+    c.beginPath(); c.arc(p[0], p[1], 5 * dpr + 2 * dpr, 0, 7); c.stroke();
+  }
+  if (S.pin) {
+    const q = w2c(S.pin.x, S.pin.y);
+    c.strokeStyle = T.pin; c.lineWidth = 2 * dpr;
+    c.beginPath(); c.arc(q[0], q[1], 6 * dpr, 0, 7); c.stroke();
+    c.fillStyle = T.pin;
+    c.beginPath(); c.arc(q[0], q[1], 2 * dpr, 0, 7); c.fill();
+  }
+}
+// ---- scan dial -------------------------------------------------------------
+const NOSE = Math.PI + 10 * Math.PI / 180;   // lidar mount: nose = scan 190deg
+function wrapPi(a) { return Math.atan2(Math.sin(a), Math.cos(a)); }
+function bucket(sc, lo, hi) {
+  let m = null;
+  for (let i = 0; i < sc.rs.length; i++) {
+    const deg = wrapPi(sc.amin + i * sc.inc - NOSE) * 180 / Math.PI;
+    if (deg < lo || deg > hi) continue;
+    const r = sc.rs[i];
+    if (r > sc.rmin && r < sc.rmax && (m == null || r < m)) m = r;
+  }
+  return m;
+}
+const scv = $('scan').getContext('2d');
+function drawScan(s) {
+  const sc = s.scan;
+  if (!sc || !sc.rs || !sc.rs.length) return;
+  const cx = 132, cy = 132, R = 118;
+  const view = Math.min(sc.rmax, 0.8);   // desk-maze scale cap
+  const k = R / view;
+  scv.clearRect(0, 0, 264, 264);
+  scv.strokeStyle = T.grid; scv.lineWidth = 2;
+  for (let d = 0.1; d < view - 0.001; d += 0.1) {
+    scv.beginPath(); scv.arc(cx, cy, d * k, 0, 7); scv.stroke();
+  }
+  for (let i = 0; i < sc.rs.length; i++) {
+    const r = sc.rs[i];
+    if (!(r > sc.rmin && r < sc.rmax)) continue;
+    const th = wrapPi(sc.amin + i * sc.inc - NOSE);
+    const d = Math.min(r, view);
+    const px = cx - d * k * Math.sin(th), py = cy - d * k * Math.cos(th);
+    scv.strokeStyle = 'rgba(57,135,229,0.16)'; scv.lineWidth = 2;
+    scv.beginPath(); scv.moveTo(cx, cy); scv.lineTo(px, py); scv.stroke();
+    scv.fillStyle = r < 0.08 ? T.crit : (r < 0.15 ? T.warn : T.route);
+    scv.beginPath(); scv.arc(px, py, 3.2, 0, 7); scv.fill();
+  }
+  scv.fillStyle = T.ink;
+  scv.beginPath(); scv.moveTo(cx, cy - 9); scv.lineTo(cx - 6, cy + 7);
+  scv.lineTo(cx + 6, cy + 7); scv.closePath(); scv.fill();
+}
+// ---- inputs: teleop keys + pad (one held-set, one ticker) ------------------
+const ACT = {   // action -> [linear, angular] components
+  up: [1, 0], down: [-1, 0], left: [0, 1], right: [0, -1],
+  ul: [1, 1], ur: [1, -1], dl: [-1, 1], dr: [-1, -1],
+};
+const KEYMAP = { u: ['ul'], i: ['up'], o: ['ur'], j: ['left'], k: ['stop'],
+                 l: ['right'], m: ['dl'], n: ['down'], ',': ['down'],
+                 '.': ['dr'], ArrowUp: ['up'], ArrowDown: ['down'],
+                 ArrowLeft: ['left'], ArrowRight: ['right'] };
+const lin = () => CFG.lin_steps[S.tele.lin];
+const ang = () => CFG.ang_steps[S.tele.ang];
+function showSpeed() {
+  const cms = Math.round(lin() * 100);
+  const dps = Math.round(ang() * 180 / Math.PI);
+  setTxt('speed', cms + ' cm/s, ' + dps + '\u00b0/s');
+}
+function ktick() {
+  let x = 0, z = 0;
+  S.held.forEach(a => {
+    const d = ACT[a];
+    if (d) { x += d[0] * lin(); z += d[1] * ang(); }
+  });
+  api.tw(x, z);
+}
+function ksync() {
+  if (S.held.has('stop')) S.held.clear();
+  if (S.held.size === 0) {
+    if (S.kt) { clearInterval(S.kt); S.kt = null; api.tw(0, 0); }
+  } else if (!S.kt) {
+    S.kt = setInterval(ktick, CFG.teleop_period_ms);
+    ktick();
+  }
+  document.querySelectorAll('#keys span').forEach(el =>
+    el.classList.toggle('on', S.held.has(el.dataset.a)));
+}
+function hold(a) {
+  if (a === 'stop') { S.held.clear(); ksync(); return; }
+  const comp = ACT[a];
+  if (!comp) return;
+  S.held.add(a);
+  ksync();
+}
+function release(a) {
+  const comp = ACT[a];
+  if (!comp) return;
+  S.held.delete(a);
+  ksync();
+}
+window.addEventListener('keydown', e => {
+  if (e.target instanceof HTMLInputElement) return;
+  const k = e.key;
+  if (k === '-' || k === '_') { stepSpeed(-1); return; }
+  if (k === '+' || k === '=' || k === 'ArrowUp' && e.shiftKey) { stepSpeed(1); return; }
+  if (k === 'f') { fitReset(); return; }
+  const a = KEYMAP[k];
+  if (!a || e.repeat) return;
+  e.preventDefault();
+  a.forEach(hold);
+});
+window.addEventListener('keyup', e => {
+  const a = KEYMAP[e.key];
+  if (a) a.forEach(release);
+});
+window.addEventListener('blur', () => { S.held.clear(); ksync(); });
+function stepSpeed(d) {
+  const cl = CFG.lin_steps.length - 1;
+  S.tele.lin = Math.min(cl, Math.max(0, S.tele.lin + d));
+  S.tele.ang = Math.min(cl, Math.max(0, S.tele.ang + d));
+  showSpeed();
+}
+// ---- map interactions: wheel zoom, drag pan, click pin, hover coords -------
+let drag = null;
+cv.addEventListener('wheel', e => {
+  e.preventDefault();
+  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  zoomAt((e.clientX - r.left) * dpr, (e.clientY - r.top) * dpr,
+         e.deltaY < 0 ? CFG.zoom_step : 1 / CFG.zoom_step);
+}, { passive: false });
+cv.addEventListener('pointerdown', e => {
+  drag = { x: e.clientX, y: e.clientY, moved: false };
+  cv.setPointerCapture(e.pointerId);
+});
+cv.addEventListener('pointermove', e => {
+  const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  const cx = (e.clientX - r.left) * dpr, cy = (e.clientY - r.top) * dpr;
+  if (S.view.ok) {
+    const w = c2w(cx, cy);
+    setTxt('coords', w[0].toFixed(2) + ', ' + w[1].toFixed(2) + ' m');
+  }
+  if (!drag) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y;
+  if (!drag.moved && Math.hypot(dx, dy) > CFG.click_slop_px) drag.moved = true;
+  if (drag.moved && S.view.ok && S.view.z > 1) {
+    S.view.A.x += (e.clientX - drag.x) * dpr;
+    S.view.A.y += (e.clientY - drag.y) * dpr;
+    drag.x = e.clientX; drag.y = e.clientY;
+    clampPan(); requestDraw();
+    wrap.classList.add('grabbing');
+  }
+});
+cv.addEventListener('pointerup', e => {
+  if (drag && !drag.moved && S.view.ok) {
+    const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    const w = c2w((e.clientX - r.left) * dpr, (e.clientY - r.top) * dpr);
+    S.pin = { x: w[0], y: w[1] };
+    updatePin();
+  }
+  drag = null;
+  wrap.classList.remove('grabbing');
+});
+cv.addEventListener('pointerleave', () => setTxt('coords', ''));
+function fitReset() {
+  S.view.z = 1;
+  if (S.data.map) fitView();
+  clampPan(); showZoom(); requestDraw();
+}
+function showZoom() { setTxt('zoompct', Math.round(S.view.z * 100) + '%'); }
+// ---- pin: click to pin, send relays to /goal/cmd ----------------------------
+function updatePin() {
+  const has = !!S.pin;
+  $('pin').textContent = has ?
+    S.pin.x.toFixed(2) + ', ' + S.pin.y.toFixed(2) + ' m' : '';
+  $('pinsend').style.display = has ? '' : 'none';
+  $('pinclear').style.display = has ? '' : 'none';
+  draw(S.data);
+}
+function sendPin() {
+  if (!S.pin) return;
+  api.goal(S.pin.x.toFixed(3) + ',' + S.pin.y.toFixed(3));
+  const b = $('pinsend');
+  b.textContent = 'sent';
+  setTimeout(() => { b.textContent = 'send robot here'; }, 1200);
+}
+function clearPin() { S.pin = null; updatePin(); }
+// ---- poll: status + bind table ----------------------------------------------
+const BIND = [
+  ['mode', s => s.mode || '-'],
+  ['wander', s => s.wander || '-'],
+  ['estop', s => s.estop === true ? 'LATCHED' : (s.estop === false ? 'off' : '-')],
+  ['ok', s => (s.ok == null) ? '-' : (s.ok ? 'yes' : 'NO')],
+  ['gstate', s => s.gstate || '-'],
+  ['ttopic', s => s.teleop_topic || '-'],
+  ['health', s => s.health || '-'],
+  ['eta', s => (s.eta != null && s.eta > 0) ? s.eta.toFixed(0) + ' s' : '-'],
+  ['vel', s => s.vel ?
+    s.vel[0].toFixed(2) + ' m/s, ' + s.vel[1].toFixed(1) + ' rad/s' : '-'],
+  ['pose', s => s.pose ?
+    s.pose[0].toFixed(2) + ', ' + s.pose[1].toFixed(2) : '-'],
+  ['trail', s => String((s.trail || []).length)],
+  ['msize', s => s.map ? s.map[0] + 'x' + s.map[1] : '-'],
+  ['pathm', s => (s.path_m != null) ? s.path_m.toFixed(1) + ' m' : '-'],
+  ['rinfo', s => {
+    const rp = s.route || [];
+    if (rp.length < 2) return '-';
+    let m = 0;
+    for (let i = 1; i < rp.length; i++)
+      m += Math.hypot(rp[i][0] - rp[i - 1][0], rp[i][1] - rp[i - 1][1]);
+    return m.toFixed(2) + ' m, ' + rp.length + ' pts';
+  }],
+];
+async function poll() {
+  const s = await getJson('/state.json');
+  if (!s) { $('live').classList.remove('live'); return; }
+  $('live').classList.add('live');
+  S.lastOk = Date.now();
+  S.data = s;
+  BIND.forEach(([id, fn]) => setTxt(id, fn(s)));
+  $('estopChip').classList.toggle('crit', s.estop === true);
+  $('mode').parentElement.classList.toggle('crit', s.mode === 'ESTOP');
+  if (s.map && s.map[5] !== S.img.gen && Date.now() - S.img.t > CFG.map_recheck_ms)
+    loadMap(s.map[5]);
+  if (s.cam != null && s.cam !== S.cam.gen) loadCam(s.cam);
+  renderSensors(s);
+  drawScan(s);
+  draw(s);
+}
+// ---- sensors ----------------------------------------------------------------
+const RANGES = ['F', 'L', 'R', 'US', 'open', 'corridor', 'rear'];
+const BOOLS = ['blocked', 'cliff', 'tilt', 'pickup', 'rear clear',
+               'can reverse', 'cam blocked', 'cam cliff'];
+const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;');
+function fmtR(x) { return x == null ? '-' : Number(x).toFixed(2); }
+function renderSensors(s) {
+  const v = Object.assign({}, s.sensors || {});
+  if (s.scan) {
+    if (v.F == null) v.F = bucket(s.scan, -10, 10);
+    if (v.L == null) v.L = bucket(s.scan, 45, 135);
+    if (v.R == null) v.R = bucket(s.scan, -135, -45);
+  }
+  const row = (k, val) =>
+    '<div class="srow"><span class="k">' + k + '</span><span class="v">' + val + '</span></div>';
+  let rows = '';
+  RANGES.forEach(k => {
+    if (v[k] != null || k === 'F' || k === 'L' || k === 'R')
+      rows += row(k + ' (m)', fmtR(v[k]));
+  });
+  if (v['rear L'] != null || v['rear R'] != null)
+    rows += row('rear L / R', fmtR(v['rear L']) + ' / ' + fmtR(v['rear R']));
+  if (v['cam side'] != null)
+    rows += row('cam side', fmtR(v['cam side']));
+  if (v['cam dbg'])
+    rows += row('camera', esc(v['cam dbg']));
+  $('sens').innerHTML = rows;
+  $('bools').innerHTML = BOOLS.filter(k => v[k] != null).map(k =>
+    '<span class="bool' + (v[k] ? ' on' : '') + '">' + (v[k] ? '!' : '') + k + '</span>').join('');
+  renderCamVerdicts(v);
+}
+// ---- camera -----------------------------------------------------------------
+let camSeen = 0;
+function loadCam(gen) {
+  S.cam.gen = gen;
+  const im = $('camimg');
+  im.onload = () => {
+    camSeen = Date.now();
+    im.style.display = '';
+    $('camnone').style.display = 'none';
+    $('camcard').style.display = '';
+  };
+  im.onerror = () => {
+    im.style.display = 'none';
+    $('camnone').style.display = '';
+  };
+  im.src = API + '/camera.jpg?g=' + gen;
+}
+function renderCamVerdicts(v) {
+  const chips = [];
+  if (v['cam blocked'] != null)
+    chips.push(['cam blocked', v['cam blocked']]);
+  if (v['cam cliff'] != null)
+    chips.push(['cam cliff', v['cam cliff']]);
+  const el = $('camverdict');
+  if (!chips.length) { el.innerHTML = ''; return; }
+  el.innerHTML = chips.map(([k, on]) =>
+    '<span class="bool' + (on ? ' on' : '') + '">' + (on ? '!' : '') + k + '</span>').join('');
+}
+// ---- result -------------------------------------------------------------------
+async function pollResult() {
+  const s = await getJson('/result.json');
+  if (!s) return;
+  setTxt('pathm', (s.path_m != null) ? s.path_m.toFixed(1) + ' m' : '-');
+  const m = s.metrics;
+  const card = $('rescard');
+  if (!m) { card.style.display = 'none'; return; }
+  card.style.display = '';
+  const rows = [['ok', m.ok], ['wall recall', m.wall_recall],
+                ['corridor purity', m.corridor_purity],
+                ['phantom', m.phantom_frac],
+                ['interior unknown', m.interior_unknown]];
+  $('resrows').innerHTML = rows.filter(x => x[1] != null).map(x =>
+    '<div class="srow"><span class="k">' + x[0] + '</span><span class="v">' +
+    x[1] + '</span></div>').join('');
+}
+// ---- stale veil ----------------------------------------------------------------
+setInterval(() => {
+  const stale = S.lastOk && (Date.now() - S.lastOk > CFG.stale_ms);
+  const el = $('stale');
+  el.style.display = stale ? 'flex' : 'none';
+  if (stale) setTxt('stale', 'stale, no data for ' +
+    Math.round((Date.now() - S.lastOk) / 1000) + ' s');
+}, 500);
+// ---- boot: bindings replace the old inline handlers -----------------------------
+document.querySelectorAll('[data-post]').forEach(b =>
+  b.addEventListener('click', () => post(b.dataset.post, b.dataset.val)));
+document.querySelectorAll('[data-hold]').forEach(b => {
+  const a = b.dataset.hold;
+  b.addEventListener('pointerdown', () => hold(a));
+  b.addEventListener('pointerup', () => release(a));
+  b.addEventListener('pointerleave', () => release(a));
+});
+document.querySelectorAll('[data-view]').forEach(b =>
+  b.addEventListener('click', () => {
+    if (b.dataset.view === 'in') zoomAt(cv.width / 2, cv.height / 2, CFG.zoom_step);
+    if (b.dataset.view === 'out') zoomAt(cv.width / 2, cv.height / 2, 1 / CFG.zoom_step);
+    if (b.dataset.view === 'fit') fitReset();
+  }));
+$('pinsend').addEventListener('click', sendPin);
+$('pinclear').addEventListener('click', clearPin);
+function fit() {
+  const dpr = window.devicePixelRatio || 1;
+  const r = wrap.getBoundingClientRect();
+  if (r.width < 2 || r.height < 2) return;
+  cv.width = Math.round(r.width * dpr);
+  cv.height = Math.round(r.height * dpr);
+  draw(S.data);
+}
+new ResizeObserver(fit).observe(wrap);
+function loadMap(gen) {
+  S.img.t = Date.now();
+  const image = new Image();
+  image.onload = () => { S.img.gen = gen; S.img.im = image; draw(S.data); };
+  image.src = API + '/map.png?g=' + gen;
+}
+setInterval(poll, CFG.poll_ms);
+poll();
+pollResult();
+setInterval(pollResult, CFG.result_ms);
+fit();
+showZoom();
+showSpeed();
+})();
+</script>
+</body>
+</html>
