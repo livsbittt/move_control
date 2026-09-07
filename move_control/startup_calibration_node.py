@@ -13,7 +13,7 @@ from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy, qos_profi
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry, OccupancyGrid
 from sensor_msgs.msg import LaserScan, Range, Imu, Image
-from std_msgs.msg import Bool, String, UInt16MultiArray
+from std_msgs.msg import Bool, String, UInt16MultiArray, Float32MultiArray
 from tf2_ros import Buffer, TransformListener
 
 from .control.calibration import (StationaryBaseline, MOTION_SPEED, MOTION_SECONDS,
@@ -21,6 +21,7 @@ from .control.calibration import (StationaryBaseline, MOTION_SPEED, MOTION_SECON
 from .sensing.lidar import NOSE_YAW, is_robot_scan, sector_range
 from .sensing.lidar_mount import nose_from_quaternion
 from .sensing.range_filter import CalibrationRangeFilter
+from .control.round_trip import RoundTrip
 
 
 class StartupCalibrationNode(Node):
@@ -31,11 +32,14 @@ class StartupCalibrationNode(Node):
         self.declare_parameter('calibration_auto_motion', True)
         self.declare_parameter('calibration_require_us_agreement', True)
         self.declare_parameter('calibration_us_max_range', 3.0)
+        self.declare_parameter('calibration_round_trip', False)
+        self.declare_parameter('calibration_distance_m', .03)
         self.declare_parameter('result_path', str(Path.home() / '.local/state/move_control/calibration.json'))
         latched = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL,
                              reliability=ReliabilityPolicy.RELIABLE)
         self.status_pub = self.create_publisher(String, '/calibration/status', latched)
         self.ready_pub = self.create_publisher(Bool, '/calibration/ready', latched)
+        self.scale_pub = self.create_publisher(Float32MultiArray, '/calibration/drive_scale', latched)
         self.raw_pub = self.create_publisher(Twist, '/cmd_vel_raw', 10)
         self.wander_pub = self.create_publisher(String, '/wander/cmd', 10)
         self.create_subscription(String, '/calibration/cmd', self.on_command, 10)
@@ -49,6 +53,9 @@ class StartupCalibrationNode(Node):
         self.create_subscription(Imu, '/imu_raw', self.on_imu, 10)
         self.create_subscription(Image, '/camera/front', self.on_camera, qos_profile_sensor_data)
         self.hazards = {}
+        self.rear_clear = (0., False)
+        self.create_subscription(Bool, '/safety/can_reverse',
+            lambda msg: setattr(self, 'rear_clear', (time.monotonic(), msg.data)), 10)
         for topic in ('/safety/blocked', '/safety/cliff', '/safety/tilt', '/safety/pickup',
                       '/camera/blocked', '/camera/cliff'):
             self.create_subscription(Bool, topic,
@@ -72,6 +79,7 @@ class StartupCalibrationNode(Node):
         self.phase, self.message = 'collecting', 'Keep robot stationary on safe level floor'
         self.started = time.monotonic()
         self.motion_start = None
+        self.round_trip = None
         self.motion = None
         self.baseline_values = {}
         self.requested = None
@@ -192,6 +200,10 @@ class StartupCalibrationNode(Node):
     def safe_motion(self, now):
         if self.estop is not False:
             return 'Emergency stop must be explicitly released'
+        if self.get_parameter('calibration_round_trip').value:
+            stamp, clear = self.rear_clear
+            if not clear or now - stamp > .75:
+                return 'Round-trip requires fresh rear clearance for safe return'
         if not self.baseline.fresh(now):
             return 'Sensor data became stale or invalid'
         for stamp, distance, valid in self.raw_ranges.values():
@@ -265,6 +277,25 @@ class StartupCalibrationNode(Node):
                 if now - self.requested < .5:
                     return
                 self.motion_start = (now, self.snapshot())
+                if self.get_parameter('calibration_round_trip').value:
+                    self.round_trip = RoundTrip(now, self.snapshot(),
+                        float(self.get_parameter('calibration_distance_m').value))
+            if self.round_trip is not None:
+                speed = self.round_trip.update(now, self.snapshot())
+                self.motion = self.round_trip.report()
+                self.message = f"Round trip {self.round_trip.cycle + 1}/2: {self.round_trip.stage}"
+                if self.round_trip.error:
+                    self.finish(False, self.round_trip.error)
+                    return
+                if self.round_trip.done:
+                    self.finish(True, 'Round-trip correction verified and saved')
+                    return
+                cmd = Twist()
+                cmd.linear.x = speed
+                self.raw_pub.publish(cmd)
+                if now - self.last_report >= .5:
+                    self.publish()
+                return
             evidence = motion_evidence(self.motion_start[1], self.snapshot())
             self.motion = evidence
             if (evidence['forward_m'] < -.005 or abs(evidence['lateral_m']) > .02 or
@@ -296,12 +327,16 @@ class StartupCalibrationNode(Node):
                               'imu_roll_pitch_baseline_rad': imu[9:11],
                               'lidar_us_range_difference_m': lidar[0] - us[0] if lidar and us else None},
                 'recorded_unix_s': time.time(),
-                'limits': {'motion_speed_mps': MOTION_SPEED, 'motion_seconds': MOTION_SECONDS,
-                           'motion_distance_m': MOTION_LIMIT},
-                'settings_applied': False}
+                'limits': {'motion_speed_mps': MOTION_SPEED,
+                           'motion_seconds': 35. if self.get_parameter('calibration_round_trip').value else MOTION_SECONDS,
+                           'motion_distance_m': MOTION_LIMIT,
+                           'round_trip_target_m': float(self.get_parameter('calibration_distance_m').value)},
+                'settings_applied': self.phase == 'ready' and self.round_trip is not None and self.round_trip.done}
 
     def publish(self):
         self.last_report = time.monotonic()
+        scales = self.round_trip.scales if self.phase == 'ready' and self.round_trip and self.round_trip.done else [1., 1.]
+        self.scale_pub.publish(Float32MultiArray(data=scales))
         self.status_pub.publish(String(data=json.dumps(self.report(), allow_nan=False)))
         self.ready_pub.publish(Bool(data=self.phase == 'ready'))
 
