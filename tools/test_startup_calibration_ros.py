@@ -141,6 +141,13 @@ class StartupCalibrationTest(unittest.TestCase):
         self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
         self.assertFalse(self.node.ready_pub.publish.call_args.args[0].data)
 
+    def test_close_raw_range_stops_even_when_median_still_looks_clear(self):
+        self.arm()
+        self.node.raw_ranges['lidar'] = (100.6, .1, True)
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'failed')
+        self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
+
     def test_ready_is_revoked_when_required_map_or_sensor_disappears(self):
         self.arm()
         self.refresh(104.7, moving=True)

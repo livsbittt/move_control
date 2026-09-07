@@ -16,7 +16,8 @@ def wrap(angle):
 
 
 class StationaryBaseline:
-    def __init__(self):
+    def __init__(self, require_us_stable=True):
+        self.require_us_stable = require_us_stable
         self.samples = {name: [] for name in SENSORS}
 
     def add(self, name, values, now, valid=True):
@@ -63,6 +64,9 @@ class StationaryBaseline:
                 else:
                     values = [row[1] for row in recent]
                     status, detail = self._quality(name, values)
+                    if name == 'us' and not self.require_us_stable:
+                        status = 'ok'
+                        detail += '; obstacle guard only, not precision motion reference'
             result[name] = {'ok': status == 'ok', 'status': status,
                             'samples': len(recent), 'detail': detail}
         return result
@@ -75,8 +79,15 @@ class StationaryBaseline:
         ok, detail = True, 'Stable baseline'
         if name in ('lidar', 'us'):
             limit = .03 if name == 'lidar' else .04
-            ok = min(columns[0]) > .02 and span(0) <= limit
-            detail = f'range={med(0):.3f}m span={span(0):.3f}m'
+            ordered = sorted(columns[0])
+            trim = max(0, int(len(ordered) * .05))
+            core = ordered[trim:len(ordered)-trim] if trim else ordered
+            robust_span = max(core) - min(core)
+            third = max(1, len(values)//3)
+            drift = abs(median(columns[0][:third]) - median(columns[0][-third:]))
+            ok = min(columns[0]) > .02 and robust_span <= limit and drift <= limit
+            detail = (f'range={med(0):.3f}m span={span(0):.3f}m '
+                      f'central90_span={robust_span:.3f}m drift={drift:.3f}m')
         elif name in ('odom', 'map_tf'):
             drift = max(math.hypot(v[0] - values[0][0], v[1] - values[0][1]) for v in values)
             yaw = max(abs(wrap(v[2] - values[0][2])) for v in values)
@@ -123,7 +134,7 @@ def motion_evidence(start, current):
             'map_yaw_drift_rad': wrap(myaw - myaw0)}
 
 
-def motion_result(evidence):
+def motion_result(evidence, require_us=True):
     forward = evidence['forward_m']
     tolerance = max(.018, .6 * abs(forward))
     checks = {
@@ -136,4 +147,6 @@ def motion_result(evidence):
                            abs(evidence['map_lateral_m'] - evidence['lateral_m']) <= .02 and
                            abs(wrap(evidence['map_yaw_drift_rad'] - evidence['yaw_drift_rad'])) <= .1),
     }
+    if not require_us:
+        del checks['us_agrees']
     return all(checks.values()), checks

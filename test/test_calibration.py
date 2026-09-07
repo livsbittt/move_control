@@ -48,6 +48,9 @@ class CalibrationTest(unittest.TestCase):
         self.assertTrue(motion_result(evidence)[0])
         current['us'] = (.70,)
         self.assertFalse(motion_result(motion_evidence(start, current))[0])
+        self.assertTrue(motion_result(motion_evidence(start, current), require_us=False)[0])
+        current['lidar'] = (.65,)
+        self.assertFalse(motion_result(motion_evidence(start, current), require_us=False)[0])
 
     def test_reverse_stall_and_excess_yaw_never_become_ready(self):
         start = {key: VALUES[key] for key in ('odom', 'lidar', 'us', 'map_tf')}

@@ -20,6 +20,7 @@ from .control.calibration import (StationaryBaseline, MOTION_SPEED, MOTION_SECON
                                   MOTION_LIMIT, motion_evidence, motion_result, wrap)
 from .sensing.lidar import NOSE_YAW, is_robot_scan, sector_range
 from .sensing.lidar_mount import nose_from_quaternion
+from .sensing.range_filter import CalibrationRangeFilter
 
 
 class StartupCalibrationNode(Node):
@@ -28,6 +29,8 @@ class StartupCalibrationNode(Node):
         self.declare_parameter('lidar_yaw_offset', NOSE_YAW)
         self.declare_parameter('imu_angular_velocity_unit', 'rad_s')
         self.declare_parameter('calibration_auto_motion', True)
+        self.declare_parameter('calibration_require_us_agreement', True)
+        self.declare_parameter('calibration_us_max_range', 3.0)
         self.declare_parameter('result_path', str(Path.home() / '.local/state/move_control/calibration.json'))
         latched = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL,
                              reliability=ReliabilityPolicy.RELIABLE)
@@ -62,7 +65,10 @@ class StartupCalibrationNode(Node):
     def reset(self):
         self.zero()
         self.wander_pub.publish(String(data='stop'))
-        self.baseline = StationaryBaseline()
+        self.baseline = StationaryBaseline(
+            require_us_stable=bool(self.get_parameter('calibration_require_us_agreement').value))
+        self.range_filters = {name: CalibrationRangeFilter() for name in ('lidar', 'us')}
+        self.raw_ranges = {}
         self.phase, self.message = 'collecting', 'Keep robot stationary on safe level floor'
         self.started = time.monotonic()
         self.motion_start = None
@@ -88,6 +94,12 @@ class StartupCalibrationNode(Node):
     def add(self, name, values, valid=True):
         self.baseline.add(name, values, time.monotonic(), valid)
 
+    def add_range(self, name, distance, valid):
+        now = time.monotonic()
+        self.raw_ranges[name] = (now, distance, valid and math.isfinite(distance))
+        filtered = self.range_filters[name].update(distance, now, valid)
+        self.add(name, (filtered,), valid)
+
     def on_estop(self, msg):
         self.estop = bool(msg.data)
         if self.estop and self.phase == 'validating_motion':
@@ -107,7 +119,7 @@ class StartupCalibrationNode(Node):
             valid = False
         distance = sector_range(msg, self.lidar_nose,
                                 math.radians(12), pctl=.1) if valid else math.inf
-        self.add('lidar', (distance,), valid)
+        self.add_range('lidar', distance, valid)
 
     def on_odom(self, msg):
         p, q, v = msg.pose.pose.position, msg.pose.pose.orientation, msg.twist.twist.linear
@@ -127,7 +139,8 @@ class StartupCalibrationNode(Node):
                  len(values) == 3 and all(0 < value < 4000 for value in values))
 
     def on_us(self, msg):
-        self.add('us', (msg.range,), self.stamped(msg) and max(.02, msg.min_range) < msg.range < .8)
+        maximum = min(msg.max_range, float(self.get_parameter('calibration_us_max_range').value))
+        self.add_range('us', msg.range, self.stamped(msg) and max(.02, msg.min_range) < msg.range < maximum)
 
     def on_imu(self, msg):
         a, g, q = msg.linear_acceleration, msg.angular_velocity, msg.orientation
@@ -181,6 +194,9 @@ class StartupCalibrationNode(Node):
             return 'Emergency stop must be explicitly released'
         if not self.baseline.fresh(now):
             return 'Sensor data became stale or invalid'
+        for stamp, distance, valid in self.raw_ranges.values():
+            if not valid or now - stamp > 1. or distance < .20:
+                return 'Raw range unsafe or stale; filtered values cannot authorize motion'
         if len(self.hazards) != 6 or any(now - t > .75 or active for t, active in self.hazards.values()):
             return 'Safety/camera hazard or missing fresh safety state'
         if min(self.baseline.latest('lidar')[0], self.baseline.latest('us')[0]) < .20:
@@ -255,7 +271,8 @@ class StartupCalibrationNode(Node):
                 self.finish(False, 'Unexpected motion direction or yaw drift')
                 return
             if now - self.motion_start[0] >= MOTION_SECONDS or evidence['distance_m'] >= MOTION_LIMIT:
-                passed, checks = motion_result(evidence)
+                passed, checks = motion_result(evidence,
+                    require_us=bool(self.get_parameter('calibration_require_us_agreement').value))
                 self.motion['checks'] = checks
                 self.finish(passed, 'Motion sensors agree' if passed else 'Motion validation failed; inspect sensor agreement')
                 return
@@ -271,6 +288,7 @@ class StartupCalibrationNode(Node):
         us = self.baseline_values.get('us', {}).get('mean', [])
         return {'phase': self.phase, 'ready': self.phase == 'ready', 'message': self.message,
                 'auto_motion': bool(self.get_parameter('calibration_auto_motion').value),
+                'us_precision_required': bool(self.get_parameter('calibration_require_us_agreement').value),
                 'elapsed_s': round(time.monotonic() - self.started, 2),
                 'sensors': self.sensors, 'motion': self.motion, 'baseline': self.baseline_values,
                 'estimates': {'imu_gyro_bias_rad_s': imu[3:6], 'imu_gravity_mean_mps2': imu[6:9],
