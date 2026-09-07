@@ -46,3 +46,36 @@ class PrecisionRangeTest(unittest.TestCase):
         scan = wall()
         scan.ranges = [v + (i % 3-1)*.0005 for i, v in enumerate(scan.ranges)]
         self.assertAlmostEqual(precision_axis_range(scan, math.pi), .3, delta=.001)
+
+    def test_duplicate_scan_endpoint_uses_valid_counterpart(self):
+        scan = wall()
+        scan.ranges.append(math.inf)
+        self.assertAlmostEqual(precision_axis_range(scan, math.pi), .3, places=7)
+        scan.ranges[0] = math.inf
+        self.assertTrue(math.isinf(precision_axis_range(scan, math.pi)))
+
+    def test_conflicting_duplicate_returns_are_rejected(self):
+        scan = wall(slope=0.)
+        scan.ranges.append(.304)
+        self.assertTrue(math.isinf(precision_axis_range(scan, math.pi)))
+
+    def test_oblique_duplicate_difference_uses_wall_normal(self):
+        scan = wall(slope=-1.)
+        scan.ranges.append(.304)
+        self.assertAlmostEqual(precision_axis_range(scan, math.pi), .3, delta=.001)
+        scan.ranges[-1] = .307
+        self.assertTrue(math.isinf(precision_axis_range(scan, math.pi)))
+
+    def test_duplicate_average_cannot_hide_individual_wall_outlier(self):
+        scan = wall(slope=0.)
+        scan.ranges[0] = .302
+        scan.ranges.append(.304)
+        self.assertTrue(math.isinf(precision_axis_range(scan, math.pi)))
+
+    def test_wall_residual_is_perpendicular_distance(self):
+        scan = wall(slope=-1.)
+        # 3.5mm x residual is only 2.5mm perpendicular to this 45deg wall.
+        scan.ranges[0] += .0035
+        self.assertAlmostEqual(precision_axis_range(scan, math.pi), .3, delta=.001)
+        scan.ranges[0] += .003
+        self.assertTrue(math.isinf(precision_axis_range(scan, math.pi)))

@@ -12,15 +12,31 @@ def precision_axis_range(scan, nose):
     travel beside an oblique wall. Reject ambiguous surfaces rather than
     interpreting their edge or an isolated return as a speed correction.
     """
-    points = []
+    rays = []
     for i, value in enumerate(scan.ranges):
         angle = robot_yaw(scan.angle_min + i * scan.angle_increment, nose)
         if abs(angle) > math.radians(4) + 1e-9:
             continue
-        if not math.isfinite(value) or not max(.05, scan.range_min) < value < min(8., scan.range_max):
+        rays.append((angle, value))
+    rays.sort()
+    points = []
+    duplicates = []
+    groups = []
+    for ray in rays:
+        # C1 includes both ends of [-pi, pi]; floating point metadata leaves
+        # their robot-frame headings a few microradians apart.
+        if groups and abs(ray[0] - groups[-1][0][0]) < 1e-5:
+            groups[-1].append(ray)
+        else:
+            groups.append([ray])
+    for group in groups:
+        valid = [(a, v) for a, v in group if math.isfinite(v)
+                 and max(.05, scan.range_min) < v < min(8., scan.range_max)]
+        if not valid:
             return math.inf
+        duplicates.append([(v*math.sin(a), v*math.cos(a)) for a, v in valid])
+        angle, value = median(a for a, _ in valid), median(v for _, v in valid)
         points.append((angle, value * math.sin(angle), value * math.cos(angle)))
-    points.sort()
     if len(points) < 3 or points[0][0] >= 0 or points[-1][0] <= 0:
         return math.inf
     # A gap at the axis could be a doorway; never interpolate across it.
@@ -33,8 +49,15 @@ def precision_axis_range(scan, nose):
         return math.inf
     slope = median(slopes)
     intercept = median(x - slope*y for _, y, x in points)
+    # Duplicate beam differences use the same physical wall-normal metric as
+    # residuals; radial error is amplified on an oblique wall.
+    for group in duplicates:
+        offsets = [(x-slope*y)/math.hypot(1., slope) for y, x in group]
+        if max(offsets)-min(offsets) > .003 + 1e-9:
+            return math.inf
     # Median fit prevents a single outlier distorting the model, but every
     # return must still support it: fitting one of two walls is not evidence.
-    if abs(slope) > 2.5 or any(abs(x - slope*y - intercept) > .003 for _, y, x in points):
+    if abs(slope) > 2.5 or any(abs(x - slope*y - intercept) / math.hypot(1., slope) > .003
+                             for group in duplicates for y, x in group):
         return math.inf
     return intercept if math.isfinite(intercept) and .05 < intercept < 8. else math.inf
