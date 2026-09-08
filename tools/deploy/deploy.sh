@@ -58,8 +58,9 @@ WHO="$(git config user.email 2>/dev/null || true)"
 if [ -z "$WHO" ]; then
   WHO="${USER:-${USERNAME:-unknown}}"
   echo "deploy: WARNING git user.email is unset -- logging you as '$WHO'." >&2
-  echo "deploy: set it so the robot's deploy log names a person:" >&2
-  echo "deploy:   git config --global user.email you@example.com" >&2
+  echo "deploy: set it so the robot's deploy log names a person. This repo is" >&2
+  echo "deploy: public, so prefer your GitHub noreply address over a real one:" >&2
+  echo "deploy:   git config user.email <id>+<user>@users.noreply.github.com" >&2
 fi
 DEPLOYED_BY="$WHO@$(hostname 2>/dev/null || echo unknown-host)"
 
