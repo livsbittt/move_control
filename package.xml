@@ -4,7 +4,7 @@
   <name>move_control</name>
   <version>0.1.0</version>
   <description>Pinky Pro forward/back control node. Subscribes /odom, publishes /cmd_vel.</description>
-  <maintainer email="you@example.com">you</maintainer>
+  <maintainer email="56295815+livsbittt@users.noreply.github.com">livsbittt</maintainer>
   <license>Apache-2.0</license>
 
   <depend>rclpy</depend>

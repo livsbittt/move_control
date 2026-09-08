@@ -19,8 +19,8 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='you',
-    maintainer_email='you@example.com',
+    maintainer='livsbittt',
+    maintainer_email='56295815+livsbittt@users.noreply.github.com',
     description='Pinky Pro forward/back control node using odom and cmd_vel',
     license='Apache-2.0',
     entry_points={
