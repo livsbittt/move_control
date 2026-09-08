@@ -29,7 +29,7 @@ run_id=uuid.uuid4().hex
 for name in ('map.pgm','map.yaml','map_grid.npz','calibration.json','calibration.certificate.json','live_evidence.json',
              'track_samples.json','track_last_status.json','track_result.json',
              'track_map.npz','track_map.pgm','track_map.yaml','track_map_quality.json',
-             'track_map_audit.json','track_result.png'):
+             'track_map_audit.json','track_result.png','track_odometry.json','track_footprint_audit.json'):
     (out/name).unlink(missing_ok=True)
 (out/'mapping_metrics.json').write_text(json.dumps({'run_id':run_id, 'status':'pending',
     'map_raster_complete':False, 'raster_and_sampled_clearance_ok':False}))
