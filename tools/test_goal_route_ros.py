@@ -12,6 +12,32 @@ from move_control.goal_node import GoalNode, grid_clearance
 
 
 class GoalRouteTest(unittest.TestCase):
+    def test_stale_map_revokes_separate_escape_intent(self):
+        self.known_map(); n=self.node
+        n.mode='explore'; n.escape_pub=Mock()
+        n.escape_intent={'id':'one'}; n.escape_used=True
+        n._map_received=time.monotonic()-20.
+        n.plan()
+        self.assertIsNone(n.escape_intent)
+        self.assertTrue(n.escape_used)
+        self.assertEqual(n.escape_pub.publish.call_args.args[0].data,'null')
+
+    def test_escape_candidate_loss_cannot_automatically_rearm(self):
+        n=self.node; n.escape_pub=Mock()
+        n.escape_intent={'id':'one'}; n.escape_used=True
+        self.assertTrue(n.escape_plan(None,(0.,0.,0.)))
+        self.assertIsNone(n.escape_intent)
+        self.assertFalse(n.escape_plan(None,(0.,0.,0.),'planning blocked: robot inside obstacle clearance'))
+
+    def test_new_manual_goal_revokes_previous_escape(self):
+        n=self.node; n.escape_pub=Mock()
+        n.escape_intent={'id':'one'}; n.escape_used=True
+        n.on_cmd(String(data='0.2,0.1'))
+        self.assertIsNone(n.escape_intent)
+        self.assertFalse(n.escape_used)
+        self.assertEqual(n.mode,'manual')
+        self.assertEqual(n.escape_pub.publish.call_args.args[0].data,'null')
+
     def test_nearest_command_selects_strategy_and_regular_explore_restores_gain(self):
         self.node.on_cmd(String(data='explore_nearest'))
         self.assertEqual(self.node.mode, 'explore')

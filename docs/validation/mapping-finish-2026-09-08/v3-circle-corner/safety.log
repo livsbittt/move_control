@@ -1,0 +1,9 @@
+[WARN] [1788858299.982092500] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788858299.982200222] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1788858300.943414073] [safety_node]: safety_node ready | lidar_stop=0.14m us_stop=0.02m linear_sign=1 cam_wall=0 cam_block=0 cliff_mode=low th=800 lidar_yaw=0deg radius=11.4cm filt=5/1.5Hz | E-STOP /estop Bool or /estop/cmd stop|release
+[WARN] [1788858301.033771625] [safety_node]: drop scan without mount TF: "base_link" passed to lookupTransform argument target_frame does not exist. 
+[WARN] [1788858301.038875396] [safety_node]: no IR — cliff unknown
+[WARN] [1788858301.040968016] [safety_node]: no lidar — motion disabled until scan
+[WARN] [1788858312.053331712] [safety_node]: E-STOP released — motors stay 0 until a new command
+[INFO] [1788858585.376622452] [safety_node]: auto map corridor=68cm → map=40cm open_max=50cm
+[ERROR] [1788859992.715220372] [safety_node]: EMERGENCY STOP topic

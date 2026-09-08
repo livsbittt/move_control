@@ -1,6 +1,7 @@
 """Subject: map route execution through wander's existing safety-gated output."""
 import math
 import json
+import os
 
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Path
@@ -14,6 +15,7 @@ from ..control.route_recovery import RouteRecovery
 from ..control.rotation_relocation import RotationRelocation
 from ..control.safe_trail import SafeTrail
 from ..control.trail_retreat import TrailRetreat
+from ..control.straight_escape import StraightEscape
 from ..sensing.pose import planar_pose
 
 
@@ -37,6 +39,10 @@ class Navigator:
         self.trail_retreat = TrailRetreat()
         self.trail_retreat_used = False
         self.trail_retreat_hold = None
+        self.straight_escape=StraightEscape()
+        self.straight_escape_intent=None
+        self.straight_escape_seen=None
+        self.create_subscription(String,'/goal/straight_escape',self._on_straight_escape,10)
         self.navigation_tf = Buffer()
         self.navigation_listener = TransformListener(self.navigation_tf, self)
         self.navigation_goal_pub = self.create_publisher(String, '/goal/cmd', 10)
@@ -62,6 +68,9 @@ class Navigator:
         self.trail_retreat.reset()
         self.trail_retreat_used = False
         self.trail_retreat_hold = None
+        self.straight_escape=StraightEscape()
+        self.straight_escape_intent=None
+        self.straight_escape_seen=None
 
     def _start_navigation(self, mode, goal_command=None):
         self._cancel_navigation()
@@ -114,6 +123,21 @@ class Navigator:
                 and math.dist(self.navigation_route[-1], self.navigation_arrived_target) > .005):
             self.navigation_arrived_target = None
 
+    def _on_straight_escape(self,msg):
+        try:
+            intent=json.loads(msg.data)
+            now=self.now().nanoseconds*1e-9
+            if intent is not None and (not isinstance(intent,dict) or
+                    not self.navigation_mode or not 0<=now-intent['issued_s']<=3. or
+                    intent['issued_s']<self.navigation_started):
+                return
+            self.straight_escape_intent=intent
+            self.straight_escape_seen=now
+            if intent is None and self.straight_escape.identity is not None:
+                self.straight_escape.failed=True
+        except (TypeError,ValueError,KeyError):
+            self.straight_escape_intent=None
+
     def _tick_navigation(self):
         now = self.now().nanoseconds * 1e-9
         pose, tf_age = None, math.inf
@@ -129,6 +153,23 @@ class Navigator:
         blocked = (hazard or self.estop or self.pickup or not self._ir_ready())
         age = math.inf if self.navigation_received is None else max(
             now - self.navigation_received, now - self.navigation_stamp)
+        intent=self.straight_escape_intent
+        if intent is not None:
+            limits=self.motion_limits
+            safe=(os.environ.get('ROS_DOMAIN_ID')=='227' and os.environ.get('GZ_PARTITION')=='pinky_calmap227'
+                and not blocked and pose is not None and 0<=tf_age<=1. and self._odom_fresh()
+                and self._motion_limits_fresh() and limits.get('bounded_motion_enabled') is True
+                and limits.get('bounded_geometry')=='trusted_footprint'
+                and limits.get('geometry_revision')==intent.get('geometry')
+                and self.straight_escape_seen is not None and 0<=now-self.straight_escape_seen<=3.
+                and 0<=now-intent.get('issued_s',-1e9)<=3.)
+            velocity,reason=self.straight_escape.update(now,pose,intent,safe,
+                (self.odom_x,self.odom_y,self.odom_yaw))
+            command=Twist()
+            command.linear.x=velocity or 0.
+            self.state='forward' if velocity else 'wait'
+            self._publish(command,'route_'+str(self.navigation_mode)+':'+reason)
+            return
         if self.trail_retreat.active or self.trail_retreat_hold is not None:
             v, w, reason = 0., 0., 'trail_retreat'
         else:

@@ -1,7 +1,7 @@
 """Execution failure reaches planning without publishing physical motor commands."""
 import unittest
 import math
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 import rclpy
 from rclpy.time import Time
 from geometry_msgs.msg import TransformStamped
@@ -11,6 +11,36 @@ from move_control.wander.node import WanderNode
 
 
 class RecoveryIntegrationTest(unittest.TestCase):
+    def test_straight_escape_bypasses_no_route_but_not_freshness_or_final_gate(self):
+        node=WanderNode()
+        try:
+            self.assertEqual(node.pub.topic_name,'/cmd_vel_raw')
+            node.pub=Mock(); node.navigation_mode='explore'; node.navigation_started=100.
+            node._ir_ready=Mock(return_value=True); node._odom_fresh=Mock(return_value=True)
+            node._motion_limits_fresh=Mock(return_value=True)
+            node.blocked=node.estop=node.pickup=node.tilt=node.cliff=False
+            node.navigation_tf=Mock()
+            transform=TransformStamped(); transform.header.stamp=Time(seconds=101.).to_msg()
+            transform.transform.rotation.w=1.
+            node.navigation_tf.lookup_transform.return_value=transform
+            node.now=Mock(return_value=Time(seconds=101.))
+            node.motion_limits=dict(bounded_motion_enabled=True,bounded_geometry='trusted_footprint',geometry_revision='g')
+            import json
+            packet=dict(id='one',issued_s=101.,target=[.1,0.],yaw=0.,geometry='g')
+            node._on_straight_escape(String(data=json.dumps(packet)))
+            with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}):
+                node._tick_navigation()
+                out=node.pub.publish.call_args.args[0]
+                self.assertEqual((out.linear.x,out.angular.z),(.006,0.))
+                node._motion_limits_fresh.return_value=False
+                node._tick_navigation()
+                out=node.pub.publish.call_args.args[0]
+                self.assertEqual((out.linear.x,out.angular.z),(0.,0.))
+                node._motion_limits_fresh.return_value=True
+                node._tick_navigation()
+                self.assertEqual(node.pub.publish.call_args.args[0].linear.x,0.)
+        finally:node.destroy_node()
+
     def trail_fixture(self):
         node=WanderNode()
         self.assertEqual(node.pub.topic_name,'/cmd_vel_raw')

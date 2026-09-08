@@ -32,6 +32,7 @@ from tf2_ros import TransformListener
 from .planning import GoalBrain, OccupancyMap, parse_goal_cmd
 from .sensing.localization import lease_ready
 from .sensing.pose import planar_pose
+from .goal_escape import GoalEscape
 
 
 def grid_clearance(distance, resolution):
@@ -40,7 +41,7 @@ def grid_clearance(distance, resolution):
     return max(distance, math.ceil(distance / resolution - 1e-6) * resolution)
 
 
-class GoalNode(Node):
+class GoalNode(Node, GoalEscape):
     def __init__(self):
         super().__init__('goal_node')
         self.declare_parameter('map_topic', '/map')
@@ -60,6 +61,7 @@ class GoalNode(Node):
         self.declare_parameter('start_escape_clear_m', 0.0)
         self.declare_parameter('start_escape_distance_m', .08)
         self.declare_parameter('robot_radius', .076)
+        self.init_escape()
         self.navigation_profile = None
         self.navigation_profile_received = None
         self.create_subscription(String, '/calibration/status', self.on_calibration_profile, 10)
@@ -272,6 +274,9 @@ class GoalNode(Node):
             self.plan()
             return
         if cmd == 'reset':
+            self.escape_intent=None
+            self.escape_used=False
+            self.publish_escape(None)
             self.mode = 'stop'
             self.brain.reset()
             self.map_obj = None
@@ -282,6 +287,9 @@ class GoalNode(Node):
             self._clear_route('map reset; stopped')
             return
         if cmd in ('explore', 'explore_nearest', 'coverage', 'stop'):
+            self.escape_intent=None
+            self.escape_used=False
+            self.publish_escape(None)
             if cmd in ('explore','explore_nearest'):
                 self.brain.frontier_strategy='nearest' if cmd=='explore_nearest' else 'gain'
             if cmd=='explore_nearest':
@@ -296,6 +304,9 @@ class GoalNode(Node):
             return
         xy = parse_goal_cmd(cmd)
         if xy is not None:
+            self.escape_intent=None
+            self.escape_used=False
+            self.publish_escape(None)
             self.mode = 'manual'
             self.brain.mode = 'manual'
             self.manual_started_ns = self.get_clock().now().nanoseconds
@@ -325,6 +336,7 @@ class GoalNode(Node):
             q = t.transform.rotation
             if planar_pose(tr.x, tr.y, (q.x, q.y, q.z, q.w)) is None:
                 return (None, None), 'invalid-tf'
+            self.map_yaw=planar_pose(tr.x,tr.y,(q.x,q.y,q.z,q.w))[2]
             return (float(tr.x), float(tr.y)), 'tf'
         except Exception:
             # Nested-unpack safe: (x, y), src = pose() must never see a
@@ -367,7 +379,12 @@ class GoalNode(Node):
             self.brain.start_escape_clear_m = profile['minimum_clearance_m']
         seen = self.navigation_feedback_received
         self.brain.execution_feedback = seen is not None and 0 <= time.monotonic() - seen <= 1.
+        escape_pose=(x,y,getattr(self,'map_yaw',float('nan')))
+        if self.escape_intent is not None and self.escape_plan(m,escape_pose):
+            return
         goal, route, status = self.brain.plan(m, (x, y))
+        if route is None and self.escape_plan(m,escape_pose,status):
+            return
         if self.mode == 'manual' and self.brain._manual is None:
             self.mode = 'stop'
             self._clear_route(status)
@@ -387,6 +404,9 @@ class GoalNode(Node):
             self._clear_route()
 
     def _clear_route(self, status=None):
+        if status != 'escape: fixed-heading translation to planning clearance' and self.escape_intent is not None:
+            self.escape_intent=None
+            self.publish_escape(None)
         """Revoke old routes immediately; silence is not a stop command."""
         self.issued_routes.clear()
         path = Path()
