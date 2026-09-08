@@ -1,0 +1,122 @@
+[
+  {
+    "phase": "validating_rotation",
+    "message": "Rotation leg 1/8",
+    "ready": false,
+    "map_tf": {
+      "valid": true,
+      "reason": "ok",
+      "source_age_s": 0.06099999999999994,
+      "source_stamp_s": 29.6,
+      "quaternion_norm": 1.0
+    },
+    "precision_pause_total_s": 0.09999999999999964,
+    "elapsed_s": 29.66,
+    "rotation_verified": false
+  },
+  {
+    "phase": "validating_rotation",
+    "message": "Rotation leg 2/8",
+    "ready": false,
+    "map_tf": {
+      "valid": true,
+      "reason": "ok",
+      "source_age_s": 0.054000000000002046,
+      "source_stamp_s": 32.25,
+      "quaternion_norm": 1.0
+    },
+    "precision_pause_total_s": 0.09999999999999964,
+    "elapsed_s": 32.3,
+    "rotation_verified": false
+  },
+  {
+    "phase": "validating_rotation",
+    "message": "Rotation leg 3/8",
+    "ready": false,
+    "map_tf": {
+      "valid": true,
+      "reason": "ok",
+      "source_age_s": 0.07099999999999795,
+      "source_stamp_s": 36.45,
+      "quaternion_norm": 1.0
+    },
+    "precision_pause_total_s": 0.09999999999999964,
+    "elapsed_s": 36.52,
+    "rotation_verified": false
+  },
+  {
+    "phase": "validating_rotation",
+    "message": "Rotation leg 4/8",
+    "ready": false,
+    "map_tf": {
+      "valid": true,
+      "reason": "ok",
+      "source_age_s": 0.1700000000000017,
+      "source_stamp_s": 39.5,
+      "quaternion_norm": 1.0
+    },
+    "precision_pause_total_s": 0.09999999999999964,
+    "elapsed_s": 39.67,
+    "rotation_verified": false
+  },
+  {
+    "phase": "validating_rotation",
+    "message": "Rotation leg 5/8",
+    "ready": false,
+    "map_tf": {
+      "valid": true,
+      "reason": "ok",
+      "source_age_s": 0.05000000000000426,
+      "source_stamp_s": 43.4,
+      "quaternion_norm": 1.0
+    },
+    "precision_pause_total_s": 0.09999999999999964,
+    "elapsed_s": 43.45,
+    "rotation_verified": false
+  },
+  {
+    "phase": "validating_rotation",
+    "message": "Rotation leg 6/8",
+    "ready": false,
+    "map_tf": {
+      "valid": true,
+      "reason": "ok",
+      "source_age_s": 0.05600000000000449,
+      "source_stamp_s": 47.1,
+      "quaternion_norm": 1.0
+    },
+    "precision_pause_total_s": 0.09999999999999964,
+    "elapsed_s": 47.16,
+    "rotation_verified": false
+  },
+  {
+    "phase": "validating_rotation",
+    "message": "Rotation leg 7/8",
+    "ready": false,
+    "map_tf": {
+      "valid": true,
+      "reason": "ok",
+      "source_age_s": 0.05100000000000904,
+      "source_stamp_s": 50.8,
+      "quaternion_norm": 0.9999999999999999
+    },
+    "precision_pause_total_s": 0.09999999999999964,
+    "elapsed_s": 50.85,
+    "rotation_verified": false
+  },
+  {
+    "phase": "validating_rotation",
+    "message": "Rotation leg 8/8",
+    "ready": false,
+    "map_tf": {
+      "valid": true,
+      "reason": "ok",
+      "source_age_s": 0.05000000000000426,
+      "source_stamp_s": 54.55,
+      "quaternion_norm": 0.9999999999999999
+    },
+    "precision_pause_total_s": 0.09999999999999964,
+    "elapsed_s": 54.6,
+    "rotation_verified": false
+  }
+]

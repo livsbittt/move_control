@@ -1,0 +1,3 @@
+[WARN] [1788876250.876780652] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788876250.876871800] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+{"elapsed_sim_s": 95.196, "calibration_phase": "ready", "calibration_ready": true, "message": "Translation and bilateral rotation verified; swept envelope estimated", "map_received": true, "mapping_complete": false, "observation_error": null, "cmd_vel_publishers": ["safety_node"], "run_id": "ebdd7c7c894c440d91adb7e4a96c039d", "path_m": 0.24891471290497771, "min_center_to_wall_m": 0.29685266508055547, "map_geometry_and_time_valid": true, "known_cells": 3423}
