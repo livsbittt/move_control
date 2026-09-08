@@ -2,6 +2,65 @@
 from move_control.planning import FREE, OCC, OccupancyMap, GoalBrain
 
 
+def committed_escape_fixture():
+    m=OccupancyMap(50,30,.02,fill=FREE)
+    for col in range(m.w):m.set_cell(col,0,OCC)
+    for col in range(45,50):
+        for row in range(m.h):m.set_cell(col,row,-1)
+    brain=GoalBrain(clear_m=.16,retry_clear_m=.12,start_escape_clear_m=.12)
+    brain.execution_feedback=True
+    start=m.grid_to_world(10,7)
+    target,route,status=brain.plan(m,start)
+    assert status.startswith('escape:')
+    return m,brain,start,target
+
+
+def test_escape_target_commits_until_matching_execution_completion():
+    m,brain,start,target=committed_escape_fixture()
+    pose=m.grid_to_world(10,8)
+    for _ in range(3):
+        goal,route,status=brain.plan(m,pose)
+        assert goal==target
+        assert status.startswith('escape:')
+        assert route['clearance_m']==.12
+        assert all(m.inflate(.12/m.res).is_free(*cell) for cell in route['cells'])
+    brain.execution_feedback=False  # A missed feedback heartbeat is not arrival.
+    assert brain.plan(m,pose)[0]==target
+    brain.execution_feedback=True
+    brain.complete_goal(m,pose,(.8,.4))
+    assert brain.plan(m,pose)[0]==target
+    brain.complete_goal(m,target,target)
+    assert not brain.plan(m,target)[2].startswith('escape:')
+
+
+def test_new_obstacle_blocks_committed_escape_instead_of_switching_goal():
+    m,brain,start,target=committed_escape_fixture()
+    m.set_cell(*m.world_to_grid(*target),OCC)
+    goal,route,status=brain.plan(m,start)
+    assert goal is None and route is None
+    assert 'committed escape' in status
+    assert brain._committed_escape[0]==target
+
+
+def test_offline_planning_does_not_require_execution_arrival_feedback():
+    m,brain,start,_=committed_escape_fixture()
+    brain.reset()
+    brain.execution_feedback=False
+    assert brain.plan(m,start)[2].startswith('escape:')
+    assert brain._committed_escape is None
+
+
+def test_explicit_new_manual_or_reset_cancels_escape_commitment():
+    for action in ('manual','reset','restart','avoid_goal','avoid_exit'):
+        m,brain,start,target=committed_escape_fixture()
+        if action=='manual':brain.set_manual(*m.grid_to_world(40,8))
+        elif action=='reset':brain.reset()
+        elif action=='restart':brain.restart_recovery()
+        elif action=='avoid_goal':brain.avoid_goal(target)
+        else:brain.avoid_route_exit(target)
+        assert brain._committed_escape is None
+
+
 def test_minimum_safe_manual_target_wins_over_nearby_comfort_escape():
     m = OccupancyMap(50, 30, .02, fill=FREE)
     for col in range(m.w):

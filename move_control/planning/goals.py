@@ -98,13 +98,16 @@ class GoalBrain:
         self._route_tick = 0
         self.execution_feedback = False
         self._explore_viewpoint = None
+        self._committed_escape = None
 
     def avoid_route_exit(self, point):
+        self._committed_escape = None
         self._explore_viewpoint = None
         if point is not None and all(math.isfinite(v) for v in point):
             self._failed_exits.append((tuple(point), self._route_tick+self.blacklist_plans))
 
     def avoid_goal(self, goal):
+        self._committed_escape = None
         self._explore_viewpoint = None
         if goal is not None and all(math.isfinite(v) for v in goal):
             self._failed_goals.append((tuple(goal), self._plan_n+self.blacklist_plans))
@@ -113,6 +116,7 @@ class GoalBrain:
 
     def restart_recovery(self):
         """An explicit new mode request starts a fresh attempt, retaining visits."""
+        self._committed_escape = None
         self._explore_viewpoint = None
         self._failed_goals.clear()
         self._failed_exits.clear()
@@ -123,6 +127,8 @@ class GoalBrain:
 
     def complete_goal(self, m, pose, goal):
         """Successful arrival consumes a target, without a failure penalty."""
+        if self._committed_escape is not None and math.dist(goal,self._committed_escape[0]) <= .005:
+            self._committed_escape = None
         self._track_map_lattice(m)
         self._explore_viewpoint = None
         self._completed_goals.append((tuple(goal), self._plan_n + self.blacklist_plans))
@@ -133,6 +139,7 @@ class GoalBrain:
 
     def reset(self):
         """Clear map-session memory without changing configured geometry."""
+        self._committed_escape = None
         self.covered.clear()
         self._completed_goals.clear()
         self._explore_viewpoint = None
@@ -222,6 +229,7 @@ class GoalBrain:
 
     def set_manual(self, x, y):
         """Latch an external goal; replaces any previous one."""
+        self._committed_escape = None
         self._manual = (float(x), float(y))
         self._explore_viewpoint = None
         self._manual_n = 0
@@ -372,6 +380,18 @@ class GoalBrain:
             self.last_options = []
             reason = 'occupied' if m.cell(*start) >= 65 else 'unknown'
             return None, None, f'planning idle: robot cell {reason}; check map alignment'
+        if self._committed_escape is not None:
+            target,minimum = self._committed_escape
+            # Crossing the comfort boundary while rotating is not completion.
+            # Revalidate the same target at its original hard margin, without
+            # silently replacing a leftward escape with a rightward mission.
+            route = best_route(m,pose,target,clear_m=minimum,
+                avoid_points=[xy for xy,_ in self._failed_exits])
+            self.last_options = []
+            if (route is None or not m.inflate(minimum/m.res).is_free(*m.world_to_grid(*target)) or
+                    math.dist(route['points'][-1],target)>.005):
+                return None,None,'planning blocked: committed escape unavailable'
+            return target,route,'escape: moving to preferred clearance'
         if m.is_free(*start) and not m.inflate(self.clear_m / m.res).is_free(*start):
             minimum = self.start_escape_clear_m
             if ((self._manual is not None or self._explore_viewpoint is not None)
@@ -394,6 +414,8 @@ class GoalBrain:
                                   if expiry > self._plan_n])
             if route:
                 self.last_options = []
+                if self.execution_feedback:
+                    self._committed_escape = (tuple(route['points'][-1]),route['clearance_m'])
                 return route['points'][-1], route, 'escape: moving to preferred clearance'
             minimum = self.start_escape_clear_m
             if 0 < minimum < self.clear_m and m.inflate(minimum/m.res).is_free(*start):

@@ -541,9 +541,16 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
                 # Include the old command's possible settling displacement at
                 # a sign change, not only continuation of the requested arc.
                 stale_padding = max_center_speed*(scan_age + .15)
-                sweep = bounded_sweep_clearance(self.lidar_rotation_points,
-                    rotation_estimate['center_m'], uncertainty,
-                    body_radius + stale_padding, cmd.linear.x, cmd.angular.z, .8)
+                if (cmd.linear.x == 0. and abs(cmd.angular.z) <= .1 and can_rotate and
+                        pivot_margin is not None and pivot_margin > .010 + stale_padding):
+                    # The validated full footprint envelope already covers
+                    # every pure-spin pose. A moving body-circle approximation
+                    # is larger and must not veto this stronger geometry proof.
+                    sweep = pivot_margin - .010 - stale_padding
+                else:
+                    sweep = bounded_sweep_clearance(self.lidar_rotation_points,
+                        rotation_estimate['center_m'], uncertainty,
+                        body_radius + stale_padding, cmd.linear.x, cmd.angular.z, .8)
             if sweep is None or sweep <= 0:
                 self.halt_with_reason('bounded_sweep_unavailable' if sweep is None else 'bounded_sweep_blocked')
                 return

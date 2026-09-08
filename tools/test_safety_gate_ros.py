@@ -107,6 +107,65 @@ class SafetyGateTest(unittest.TestCase):
             self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
             sweep.assert_not_called()
 
+    def test_full_pivot_shape_allows_pure_spin_despite_circle_approximation(self):
+        with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
+                patch('move_control.safety.node.bounded_sweep_clearance',return_value=0.), \
+                patch('move_control.safety.node.pivot_clearance',return_value=.03):
+            self.prepare_bounded_sweep()
+            actual=self.bounded_command(0.,.04)
+            self.assertEqual(actual.linear.x,0.)
+            self.assertGreater(actual.angular.z,0.)
+
+    def test_pure_spin_still_requires_latency_padded_pivot_clearance(self):
+        with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
+                patch('move_control.safety.node.bounded_sweep_clearance',return_value=0.) as sweep, \
+                patch('move_control.safety.node.pivot_clearance',return_value=.011):
+            self.prepare_bounded_sweep()
+            actual=self.bounded_command(0.,.04)
+            self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+            sweep.assert_called()
+
+    def test_tiny_final_translation_cannot_use_full_spin_shortcut(self):
+        with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
+                patch('move_control.safety.node.bounded_sweep_clearance',return_value=0.) as sweep, \
+                patch('move_control.safety.node.pivot_clearance',return_value=.03):
+            self.prepare_bounded_sweep()
+            actual=self.bounded_command(1e-7,.04)
+            self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+            self.assertGreater(sweep.call_args.args[4],0.)
+
+    def test_full_spin_shortcut_never_authorized_by_stale_or_partial_scan(self):
+        with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
+                patch('move_control.safety.node.bounded_sweep_clearance',return_value=0.), \
+                patch('move_control.safety.node.pivot_clearance',return_value=.03):
+            self.prepare_bounded_sweep()
+            self.node.lidar_rotation_observed=False
+            actual=self.bounded_command(0.,.04)
+            self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+            self.node.lidar_rotation_observed=True
+            self.node.lidar_measurement_time=None
+            actual=self.bounded_command(0.,.04)
+            self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+
+    def test_full_spin_shortcut_stays_within_measured_angular_domain(self):
+        with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
+                patch('move_control.safety.node.bounded_sweep_clearance',return_value=None) as sweep, \
+                patch('move_control.safety.node.pivot_clearance',return_value=.03):
+            self.prepare_bounded_sweep()
+            n=self.node
+            # Inject a wider downstream cap to ensure this optimization has
+            # its own measured-domain bound even if profile rules change.
+            n.profile.max_angular=.2
+            rotation=n.calibration_lease.active['rotation']
+            with patch.object(n,'refresh_profile'):
+                packet=make_profile('bounded-test',n.calibration_lease.sequence+1,
+                    n.now().nanoseconds*1e-9,True,(1.,1.),n.profile.revision,rotation)
+                n.on_calibration_profile(String(data=json.dumps(packet)))
+                self.assertTrue(n.calibration_lease.live(__import__('time').monotonic()))
+                actual=self.bounded_command(0.,.2)
+            self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+            self.assertAlmostEqual(sweep.call_args.args[5],.2)
+
     def test_recalibration_retains_sweep_restriction_without_restoring_gains(self):
         from types import SimpleNamespace
         from move_control.calibration_atomic import CalibrationAtomic
