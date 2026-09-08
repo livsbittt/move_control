@@ -1,0 +1,1687 @@
+﻿{
+    "sensors":  {
+                    "F":  0.281,
+                    "L":  0.28,
+                    "R":  0.268,
+                    "US":  0.408,
+                    "rear":  0.194,
+                    "rear L":  0.225,
+                    "rear R":  0.633,
+                    "open":  0.497,
+                    "blocked":  false,
+                    "cliff":  false,
+                    "tilt":  false,
+                    "pickup":  false,
+                    "rear clear":  true,
+                    "can reverse":  true,
+                    "corridor":  0.545,
+                    "cam blocked":  false,
+                    "cam cliff":  false
+                },
+    "limits":  {
+                   "stop":  0.14940496612640713,
+                   "clear":  0.16,
+                   "warn":  0.18,
+                   "us_stop":  0.02,
+                   "us_clear":  0.028,
+                   "radius":  0.11440496612640715,
+                   "open_max":  0.4
+               },
+    "teleop_topic":  "/cmd_vel_raw",
+    "calibration_ready":  true,
+    "calibration":  {
+                        "phase":  "ready",
+                        "ready":  true,
+                        "rotation":  {
+                                         "done":  true,
+                                         "error":  null,
+                                         "legs":  [
+                                                      {
+                                                          "direction":  1,
+                                                          "measured_rad":  0.18325957003980875,
+                                                          "commanded_rad":  0.17405999999999985,
+                                                          "ratio":  0.9498003294572256
+                                                      },
+                                                      {
+                                                          "direction":  -1,
+                                                          "measured_rad":  0.1745329238474369,
+                                                          "commanded_rad":  0.1680000000000001,
+                                                          "ratio":  0.9625691032761968
+                                                      },
+                                                      {
+                                                          "direction":  -1,
+                                                          "measured_rad":  0.18325957003980875,
+                                                          "commanded_rad":  0.17700000000000024,
+                                                          "ratio":  0.9658431478451642
+                                                      },
+                                                      {
+                                                          "direction":  1,
+                                                          "measured_rad":  0.16580627765506506,
+                                                          "commanded_rad":  0.16500000000000006,
+                                                          "ratio":  0.9951372308306544
+                                                      },
+                                                      {
+                                                          "direction":  1,
+                                                          "measured_rad":  0.18325957003980875,
+                                                          "commanded_rad":  0.17796178676634133,
+                                                          "ratio":  0.9710913690765693
+                                                      },
+                                                      {
+                                                          "direction":  -1,
+                                                          "measured_rad":  0.1745329238474369,
+                                                          "commanded_rad":  0.16487924747087637,
+                                                          "ratio":  0.9446885082553306
+                                                      },
+                                                      {
+                                                          "direction":  -1,
+                                                          "measured_rad":  0.1745329238474369,
+                                                          "commanded_rad":  0.17639186861007072,
+                                                          "ratio":  1.010650969007193
+                                                      },
+                                                      {
+                                                          "direction":  1,
+                                                          "measured_rad":  0.16580627765506506,
+                                                          "commanded_rad":  0.16635050953142236,
+                                                          "ratio":  1.0032823357719272
+                                                      }
+                                                  ],
+                                         "angular_gains":  [
+                                                               0.97246878014394,
+                                                               0.9642061255606805
+                                                           ],
+                                         "max_angular_rad_s":  0.06,
+                                         "geometry_commissioned":  false,
+                                         "envelope":  {
+                                                          "valid":  true,
+                                                          "center_m":  [
+                                                                           -0.03982340904690162,
+                                                                           -0.010236581321639956
+                                                                       ],
+                                                          "center_uncertainty_m":  0.003115710293919981,
+                                                          "body_radius_m":  0.11440496612640715,
+                                                          "required_radius_m":  0.17260768067892646,
+                                                          "footprint_xy":  [
+                                                                               [
+                                                                                   -0.07,
+                                                                                   -0.05
+                                                                               ],
+                                                                               [
+                                                                                   -0.07,
+                                                                                   -0.05
+                                                                               ],
+                                                                               [
+                                                                                   -0.07,
+                                                                                   0.05
+                                                                               ],
+                                                                               [
+                                                                                   -0.07,
+                                                                                   0.05
+                                                                               ],
+                                                                               [
+                                                                                   0.07,
+                                                                                   -0.05
+                                                                               ],
+                                                                               [
+                                                                                   0.07,
+                                                                                   -0.05
+                                                                               ],
+                                                                               [
+                                                                                   0.07,
+                                                                                   0.05
+                                                                               ],
+                                                                               [
+                                                                                   0.07,
+                                                                                   0.05
+                                                                               ],
+                                                                               [
+                                                                                   -0.07250000000000001,
+                                                                                   -0.03
+                                                                               ],
+                                                                               [
+                                                                                   -0.07250000000000001,
+                                                                                   -0.03
+                                                                               ],
+                                                                               [
+                                                                                   -0.07250000000000001,
+                                                                                   0.03
+                                                                               ],
+                                                                               [
+                                                                                   -0.07250000000000001,
+                                                                                   0.03
+                                                                               ],
+                                                                               [
+                                                                                   -0.0575,
+                                                                                   -0.03
+                                                                               ],
+                                                                               [
+                                                                                   -0.0575,
+                                                                                   -0.03
+                                                                               ],
+                                                                               [
+                                                                                   -0.0575,
+                                                                                   0.03
+                                                                               ],
+                                                                               [
+                                                                                   -0.0575,
+                                                                                   0.03
+                                                                               ],
+                                                                               [
+                                                                                   -0.068,
+                                                                                   0.07199730289614133
+                                                                               ],
+                                                                               [
+                                                                                   -0.068,
+                                                                                   0.09199730280335282
+                                                                               ],
+                                                                               [
+                                                                                   -0.068,
+                                                                                   0.07200269719664719
+                                                                               ],
+                                                                               [
+                                                                                   -0.068,
+                                                                                   0.09200269710385868
+                                                                               ],
+                                                                               [
+                                                                                   -0.012,
+                                                                                   0.07199730289614133
+                                                                               ],
+                                                                               [
+                                                                                   -0.012,
+                                                                                   0.09199730280335282
+                                                                               ],
+                                                                               [
+                                                                                   -0.012,
+                                                                                   0.07200269719664719
+                                                                               ],
+                                                                               [
+                                                                                   -0.012,
+                                                                                   0.09200269710385868
+                                                                               ],
+                                                                               [
+                                                                                   -0.068,
+                                                                                   -0.09200269710385868
+                                                                               ],
+                                                                               [
+                                                                                   -0.068,
+                                                                                   -0.07200269719664719
+                                                                               ],
+                                                                               [
+                                                                                   -0.068,
+                                                                                   -0.09199730280335282
+                                                                               ],
+                                                                               [
+                                                                                   -0.068,
+                                                                                   -0.07199730289614133
+                                                                               ],
+                                                                               [
+                                                                                   -0.012,
+                                                                                   -0.09200269710385868
+                                                                               ],
+                                                                               [
+                                                                                   -0.012,
+                                                                                   -0.07200269719664719
+                                                                               ],
+                                                                               [
+                                                                                   -0.012,
+                                                                                   -0.09199730280335282
+                                                                               ],
+                                                                               [
+                                                                                   -0.012,
+                                                                                   -0.07199730289614133
+                                                                               ]
+                                                                           ],
+                                                          "pivot_radius_m":  0.1314896614504739,
+                                                          "sample_count":  4,
+                                                          "directional_counts":  {
+                                                                                     "positive":  2,
+                                                                                     "negative":  2
+                                                                                 },
+                                                          "reason":  "sensor_consistent_estimate",
+                                                          "uncertainty_model":  "empirical_residual_over_excitation_v1",
+                                                          "trials":  [
+                                                                         {
+                                                                             "scan_delta":  [
+                                                                                                -0.0023556966787698064,
+                                                                                                0.0066959007232754685,
+                                                                                                0.17363815805186916
+                                                                                            ],
+                                                                             "odom_delta":  [
+                                                                                                -0.0023315505618491665,
+                                                                                                0.006767405955880233,
+                                                                                                0.17381991771297362
+                                                                                            ],
+                                                                             "imu_yaw":  0.17381991771297362,
+                                                                             "residual_m":  0.0004481392976970596
+                                                                         },
+                                                                         {
+                                                                             "scan_delta":  [
+                                                                                                0.0011635826326557312,
+                                                                                                -0.006952817577858131,
+                                                                                                -0.17092983374796777
+                                                                                            ],
+                                                                             "odom_delta":  [
+                                                                                                0.0011189737913639486,
+                                                                                                -0.006959889949582657,
+                                                                                                -0.17117991917197625
+                                                                                            ],
+                                                                             "imu_yaw":  -0.17117991917197625,
+                                                                             "residual_m":  0.00046690787408917286
+                                                                         },
+                                                                         {
+                                                                             "scan_delta":  [
+                                                                                                -0.0022801910583574135,
+                                                                                                0.006518151163257029,
+                                                                                                0.16874765907449343
+                                                                                            ],
+                                                                             "odom_delta":  [
+                                                                                                -0.0022500840280570288,
+                                                                                                0.006585197681965162,
+                                                                                                0.16898264640001423
+                                                                                            ],
+                                                                             "imu_yaw":  0.16898264640001423,
+                                                                             "residual_m":  0.0004408628601541871
+                                                                         },
+                                                                         {
+                                                                             "scan_delta":  [
+                                                                                                0.001167034443195612,
+                                                                                                -0.006977559305597055,
+                                                                                                -0.17159432584583403
+                                                                                            ],
+                                                                             "odom_delta":  [
+                                                                                                0.0011218933896315643,
+                                                                                                -0.006988617997685729,
+                                                                                                -0.1718833359545833
+                                                                                            ],
+                                                                             "imu_yaw":  -0.1718833359545833,
+                                                                             "residual_m":  0.00046735653081042983
+                                                                         }
+                                                                     ]
+                                                      }
+                                     },
+                        "rotation_verified":  true,
+                        "rotation_required_for_new_trial":  true,
+                        "profile_revision":  "25db9600511d78e2",
+                        "calibration_verified":  true,
+                        "message":  "Translation and bilateral rotation verified; swept envelope estimated",
+                        "auto_motion":  true,
+                        "us_precision_required":  false,
+                        "elapsed_s":  134.0,
+                        "sensors":  {
+                                        "lidar":  {
+                                                      "ok":  true,
+                                                      "eligible":  true,
+                                                      "status":  "ok",
+                                                      "samples":  51,
+                                                      "detail":  "Live sensor data valid; stationary limits do not apply during driving"
+                                                  },
+                                        "odom":  {
+                                                     "ok":  true,
+                                                     "eligible":  true,
+                                                     "status":  "ok",
+                                                     "samples":  101,
+                                                     "detail":  "Live sensor data valid; stationary limits do not apply during driving"
+                                                 },
+                                        "ir":  {
+                                                   "ok":  true,
+                                                   "eligible":  true,
+                                                   "status":  "ok",
+                                                   "samples":  101,
+                                                   "detail":  "Live sensor data valid; stationary limits do not apply during driving"
+                                               },
+                                        "imu":  {
+                                                    "ok":  true,
+                                                    "eligible":  true,
+                                                    "status":  "ok",
+                                                    "samples":  101,
+                                                    "detail":  "Live sensor data valid; stationary limits do not apply during driving"
+                                                },
+                                        "us":  {
+                                                   "ok":  true,
+                                                   "eligible":  true,
+                                                   "status":  "ok",
+                                                   "samples":  51,
+                                                   "detail":  "Live sensor data valid; stationary limits do not apply during driving"
+                                               },
+                                        "camera":  {
+                                                       "ok":  true,
+                                                       "eligible":  true,
+                                                       "status":  "ok",
+                                                       "samples":  101,
+                                                       "detail":  "Live sensor data valid; stationary limits do not apply during driving"
+                                                   },
+                                        "tf":  {
+                                                   "ok":  true,
+                                                   "eligible":  true,
+                                                   "status":  "ok",
+                                                   "samples":  100,
+                                                   "detail":  "Live sensor data valid; stationary limits do not apply during driving"
+                                               },
+                                        "map":  {
+                                                    "ok":  true,
+                                                    "eligible":  true,
+                                                    "status":  "ok",
+                                                    "samples":  19,
+                                                    "detail":  "Live sensor data valid; stationary limits do not apply during driving"
+                                                },
+                                        "map_tf":  {
+                                                       "ok":  true,
+                                                       "eligible":  true,
+                                                       "status":  "ok",
+                                                       "samples":  100,
+                                                       "detail":  "Live sensor data valid; stationary limits do not apply during driving"
+                                                   }
+                                    },
+                        "motion":  {
+                                       "stage":  "settle_home",
+                                       "cycle":  2,
+                                       "target_m":  0.03,
+                                       "forward_scale":  1.0118058695882775,
+                                       "reverse_scale":  1.0005996723849102,
+                                       "legs":  [
+                                                    {
+                                                        "cycle":  0,
+                                                        "direction":  "forward",
+                                                        "measured_m":  0.03161871359079793,
+                                                        "odom_m":  0.03161839577108316,
+                                                        "commanded_m":  0.031991999999999986,
+                                                        "home_error_m":  0.03161871359079793,
+                                                        "evidence":  {
+                                                                         "forward_m":  0.03161839577108316,
+                                                                         "lateral_m":  5.1157586502167378E-10,
+                                                                         "distance_m":  0.03161839577108317,
+                                                                         "yaw_drift_rad":  7.336451752381862E-09,
+                                                                         "lidar_delta_m":  0.03161871359079793,
+                                                                         "us_delta_m":  0.031624555587768555,
+                                                                         "map_forward_m":  0.03161839575743852,
+                                                                         "map_lateral_m":  5.1157253435253435E-10,
+                                                                         "map_yaw_drift_rad":  7.3364551767960716E-09
+                                                                     }
+                                                    },
+                                                    {
+                                                        "cycle":  0,
+                                                        "direction":  "reverse",
+                                                        "measured_m":  0.03321208363060141,
+                                                        "odom_m":  0.03321231728815475,
+                                                        "commanded_m":  0.033232000000000005,
+                                                        "home_error_m":  -0.0015933700398034767,
+                                                        "evidence":  {
+                                                                         "forward_m":  -0.03321231728815475,
+                                                                         "lateral_m":  -3.0208917923920927E-10,
+                                                                         "distance_m":  0.03321231728815475,
+                                                                         "yaw_drift_rad":  -8.0377359157941344E-09,
+                                                                         "lidar_delta_m":  -0.03321208363060141,
+                                                                         "us_delta_m":  -0.03321823477745056,
+                                                                         "map_forward_m":  -0.03321231727382224,
+                                                                         "map_lateral_m":  -3.0208551289788019E-10,
+                                                                         "map_yaw_drift_rad":  -8.0377448217610526E-09
+                                                                     }
+                                                    },
+                                                    {
+                                                        "cycle":  1,
+                                                        "direction":  "forward",
+                                                        "measured_m":  0.03309841610268671,
+                                                        "odom_m":  0.03309825275059905,
+                                                        "commanded_m":  0.033195326969452175,
+                                                        "home_error_m":  0.031505046062883235,
+                                                        "evidence":  {
+                                                                         "forward_m":  0.03309825275059905,
+                                                                         "lateral_m":  5.3053382474185286E-10,
+                                                                         "distance_m":  0.03309825275059906,
+                                                                         "yaw_drift_rad":  7.394173600821257E-09,
+                                                                         "lidar_delta_m":  0.03309841610268671,
+                                                                         "us_delta_m":  0.033104583621025085,
+                                                                         "map_forward_m":  0.03309825273631575,
+                                                                         "map_lateral_m":  5.3053045344790579E-10,
+                                                                         "map_yaw_drift_rad":  7.3941711141506249E-09
+                                                                     }
+                                                    },
+                                                    {
+                                                        "cycle":  1,
+                                                        "direction":  "reverse",
+                                                        "measured_m":  0.033640706130374065,
+                                                        "odom_m":  0.033640471034366494,
+                                                        "commanded_m":  0.03362014899213301,
+                                                        "home_error_m":  -0.00213566006749083,
+                                                        "evidence":  {
+                                                                         "forward_m":  -0.033640471034366494,
+                                                                         "lateral_m":  -3.0799004276487E-10,
+                                                                         "distance_m":  0.033640471034366494,
+                                                                         "yaw_drift_rad":  -8.1081726035471136E-09,
+                                                                         "lidar_delta_m":  -0.033640706130374065,
+                                                                         "us_delta_m":  -0.03364695608615875,
+                                                                         "map_forward_m":  -0.033640471019849245,
+                                                                         "map_lateral_m":  -3.0798675820307019E-10,
+                                                                         "map_yaw_drift_rad":  -8.1081701169541289E-09
+                                                                     }
+                                                    }
+                                                ],
+                                       "done":  true,
+                                       "error":  null,
+                                       "last_leg_evidence":  {
+                                                                 "direction":  "reverse",
+                                                                 "measured_m":  0.033640706130374065,
+                                                                 "odom_m":  0.033640471034366494,
+                                                                 "commanded_m":  0.03362014899213301,
+                                                                 "ratio":  0.9993889207271278,
+                                                                 "evidence":  {
+                                                                                  "forward_m":  -0.033640471034366494,
+                                                                                  "lateral_m":  -3.0799004276487E-10,
+                                                                                  "distance_m":  0.033640471034366494,
+                                                                                  "yaw_drift_rad":  -8.1081726035471136E-09,
+                                                                                  "lidar_delta_m":  -0.033640706130374065,
+                                                                                  "us_delta_m":  -0.03364695608615875,
+                                                                                  "map_forward_m":  -0.033640471019849245,
+                                                                                  "map_lateral_m":  -3.0798675820307019E-10,
+                                                                                  "map_yaw_drift_rad":  -8.1081701169541289E-09
+                                                                              }
+                                                             }
+                                   },
+                        "baseline":  {
+                                         "lidar":  {
+                                                       "samples":  50,
+                                                       "span_s":  4.9,
+                                                       "mean":  [
+                                                                    0.3474571360178244
+                                                                ],
+                                                       "std":  [
+                                                                   0.0
+                                                               ]
+                                                   },
+                                         "odom":  {
+                                                      "samples":  100,
+                                                      "span_s":  4.952,
+                                                      "mean":  [
+                                                                   -0.2000000000339651,
+                                                                   0.26999999999973184,
+                                                                   -4.8008527266246757E-12,
+                                                                   0.0
+                                                               ],
+                                                      "std":  [
+                                                                  2.7755575615628914E-17,
+                                                                  0.0,
+                                                                  8.0779356694631609E-28,
+                                                                  0.0
+                                                              ]
+                                                  },
+                                         "ir":  {
+                                                    "samples":  100,
+                                                    "span_s":  4.952999999999999,
+                                                    "mean":  [
+                                                                 2000.0,
+                                                                 2100.0,
+                                                                 2200.0
+                                                             ],
+                                                    "std":  [
+                                                                0.0,
+                                                                0.0,
+                                                                0.0
+                                                            ]
+                                                },
+                                         "imu":  {
+                                                     "samples":  100,
+                                                     "span_s":  4.952999999999999,
+                                                     "mean":  [
+                                                                  9.81,
+                                                                  0.0,
+                                                                  2.9378265173928984E-05,
+                                                                  0.0,
+                                                                  0.0,
+                                                                  0.0,
+                                                                  0.0,
+                                                                  0.0,
+                                                                  9.81,
+                                                                  3.642866478546548E-09,
+                                                                  -2.9378265173928984E-05
+                                                              ],
+                                                     "std":  [
+                                                                 0.0,
+                                                                 0.0,
+                                                                 0.0,
+                                                                 0.0,
+                                                                 0.0,
+                                                                 0.0,
+                                                                 0.0,
+                                                                 0.0,
+                                                                 0.0,
+                                                                 0.0,
+                                                                 0.0
+                                                             ]
+                                                 },
+                                         "us":  {
+                                                    "samples":  50,
+                                                    "span_s":  4.907,
+                                                    "mean":  [
+                                                                 0.3475218415260315
+                                                             ],
+                                                    "std":  [
+                                                                0.0
+                                                            ]
+                                                },
+                                         "camera":  {
+                                                        "samples":  100,
+                                                        "span_s":  4.952999999999999,
+                                                        "mean":  [
+                                                                     120.0,
+                                                                     48.98979485566356
+                                                                 ],
+                                                        "std":  [
+                                                                    0.0,
+                                                                    0.0
+                                                                ]
+                                                    },
+                                         "tf":  {
+                                                    "samples":  101,
+                                                    "span_s":  5.0,
+                                                    "mean":  [
+                                                                 0.0,
+                                                                 0.0
+                                                             ],
+                                                    "std":  [
+                                                                0.0,
+                                                                0.0
+                                                            ]
+                                                },
+                                         "map":  {
+                                                     "samples":  24,
+                                                     "span_s":  4.773,
+                                                     "mean":  [
+                                                                  2654.0,
+                                                                  0.019999999552965164
+                                                              ],
+                                                     "std":  [
+                                                                 0.0,
+                                                                 0.0
+                                                             ]
+                                                 },
+                                         "map_tf":  {
+                                                        "samples":  101,
+                                                        "span_s":  5.0,
+                                                        "mean":  [
+                                                                     -0.20000000003396504,
+                                                                     0.2699999999997317,
+                                                                     -4.8008527266246789E-12
+                                                                 ],
+                                                        "std":  [
+                                                                    0.0,
+                                                                    0.0,
+                                                                    0.0
+                                                                ]
+                                                    }
+                                     },
+                        "navigation_profile":  {
+                                                   "body_radius_m":  0.11440496612640715,
+                                                   "map_resolution_m":  0.019999999552965164,
+                                                   "samples":  50,
+                                                   "left_m":  0.35327908396720886,
+                                                   "right_m":  0.8933303356170654,
+                                                   "corridor_width_m":  1.2466094195842743,
+                                                   "range_noise_m":  0.0,
+                                                   "uncertainty_margin_m":  0.019999999776482584,
+                                                   "minimum_clearance_m":  0.13440496590288972,
+                                                   "preferred_clearance_m":  0.16440496590288972,
+                                                   "passage_fits":  true,
+                                                   "map_lidar_difference_m":  [
+                                                                                  null,
+                                                                                  0.013330355286598206
+                                                                              ],
+                                                   "map_lidar_mismatch":  false
+                                               },
+                        "motion_clearance":  {
+                                                 "translation_mode":  false,
+                                                 "available_travel_m":  0.2001893288984647,
+                                                 "required_travel_m":  0.04013566006749083,
+                                                 "reverse_travel_m":  0.3540971643820157,
+                                                 "required_reverse_travel_m":  0.008,
+                                                 "available_front_m":  0.3495942950248718,
+                                                 "required_front_m":  0.18954062619389797,
+                                                 "available_rear_m":  0.5035021305084229,
+                                                 "required_rear_m":  0.15740496612640714,
+                                                 "front_stop_m":  0.14940496612640713,
+                                                 "rear_stop_m":  0.14940496612640713,
+                                                 "available_us_m":  0.3496582806110382,
+                                                 "required_us_m":  0.06013566006749083,
+                                                 "target_m":  0.03,
+                                                 "reason":  null
+                                             },
+                        "estimates":  {
+                                          "imu_gyro_bias_rad_s":  [
+                                                                      0.0,
+                                                                      0.0,
+                                                                      0.0
+                                                                  ],
+                                          "imu_gravity_mean_mps2":  [
+                                                                        0.0,
+                                                                        0.0,
+                                                                        9.81
+                                                                    ],
+                                          "imu_roll_pitch_baseline_rad":  [
+                                                                              3.642866478546548E-09,
+                                                                              -2.9378265173928984E-05
+                                                                          ],
+                                          "lidar_us_range_difference_m":  -6.470550820708576E-05
+                                      },
+                        "recorded_unix_s":  1788848566.5908546,
+                        "limits":  {
+                                       "motion_speed_mps":  0.008,
+                                       "motion_seconds":  35.0,
+                                       "motion_distance_m":  0.04,
+                                       "round_trip_target_m":  0.03
+                                   },
+                        "settings_applied":  true
+                    },
+    "map_control":  {
+                        "available":  true,
+                        "paused":  false,
+                        "busy":  false,
+                        "error":  "",
+                        "epoch":  0
+                    },
+    "pose_frame":  "map",
+    "pose_available":  true,
+    "pose_reason":  "ready",
+    "pose":  [
+                 -0.416,
+                 -0.257,
+                 -0.952
+             ],
+    "trail":  [
+                  [
+                      -0.365,
+                      -0.158
+                  ],
+                  [
+                      -0.372,
+                      -0.166
+                  ],
+                  [
+                      -0.379,
+                      -0.173
+                  ],
+                  [
+                      -0.387,
+                      -0.181
+                  ],
+                  [
+                      -0.394,
+                      -0.189
+                  ],
+                  [
+                      -0.401,
+                      -0.196
+                  ],
+                  [
+                      -0.409,
+                      -0.204
+                  ],
+                  [
+                      -0.416,
+                      -0.212
+                  ],
+                  [
+                      -0.423,
+                      -0.219
+                  ],
+                  [
+                      -0.431,
+                      -0.227
+                  ],
+                  [
+                      -0.438,
+                      -0.234
+                  ],
+                  [
+                      -0.445,
+                      -0.242
+                  ],
+                  [
+                      -0.453,
+                      -0.249
+                  ],
+                  [
+                      -0.46,
+                      -0.257
+                  ],
+                  [
+                      -0.467,
+                      -0.265
+                  ],
+                  [
+                      -0.458,
+                      -0.27
+                  ],
+                  [
+                      -0.448,
+                      -0.271
+                  ],
+                  [
+                      -0.438,
+                      -0.27
+                  ],
+                  [
+                      -0.429,
+                      -0.267
+                  ],
+                  [
+                      -0.421,
+                      -0.261
+                  ]
+              ],
+    "pose_tf_error":  null,
+    "scan":  {
+                 "amin":  -3.1415927410125732,
+                 "inc":  0.03490658476948738,
+                 "rmin":  0.019999999552965164,
+                 "rmax":  8.0,
+                 "rs":  [
+                            0.198,
+                            0.196,
+                            0.196,
+                            0.195,
+                            0.195,
+                            0.194,
+                            0.194,
+                            0.195,
+                            0.195,
+                            0.196,
+                            0.197,
+                            0.199,
+                            0.2,
+                            0.202,
+                            0.204,
+                            0.207,
+                            0.209,
+                            0.213,
+                            0.216,
+                            0.22,
+                            0.224,
+                            0.229,
+                            0.234,
+                            0.24,
+                            0.246,
+                            0.253,
+                            0.261,
+                            0.27,
+                            0.279,
+                            0.291,
+                            0.303,
+                            0.314,
+                            0.33,
+                            0.325,
+                            0.318,
+                            0.312,
+                            0.306,
+                            0.3,
+                            0.295,
+                            0.292,
+                            0.287,
+                            0.284,
+                            0.281,
+                            0.278,
+                            0.276,
+                            0.274,
+                            0.273,
+                            0.272,
+                            0.271,
+                            0.27,
+                            0.27,
+                            0.27,
+                            0.27,
+                            0.271,
+                            0.272,
+                            0.274,
+                            0.276,
+                            0.278,
+                            0.281,
+                            0.284,
+                            0.287,
+                            0.291,
+                            0.295,
+                            0.3,
+                            0.306,
+                            0.311,
+                            0.318,
+                            0.325,
+                            0.333,
+                            0.342,
+                            0.352,
+                            0.362,
+                            0.366,
+                            0.366,
+                            0.366,
+                            0.367,
+                            0.368,
+                            0.37,
+                            0.373,
+                            0.375,
+                            0.378,
+                            0.382,
+                            0.387,
+                            0.392,
+                            0.397,
+                            0.403,
+                            0.411,
+                            0.418,
+                            0.427,
+                            0.435,
+                            0.445,
+                            0.457,
+                            0.468,
+                            0.484,
+                            0.497,
+                            0.516,
+                            0.536,
+                            0.554,
+                            0.579,
+                            0.606,
+                            0.635,
+                            0.668,
+                            0.66,
+                            0.645,
+                            0.633,
+                            0.623,
+                            0.614,
+                            0.604,
+                            0.597,
+                            0.59,
+                            0.281,
+                            0.291,
+                            0.34,
+                            0.416,
+                            0.526,
+                            1.771,
+                            1.767,
+                            0.869,
+                            0.869,
+                            0.87,
+                            0.872,
+                            0.875,
+                            0.879,
+                            0.885,
+                            0.892,
+                            0.899,
+                            0.908,
+                            1.236,
+                            1.253,
+                            1.268,
+                            1.289,
+                            0.634,
+                            0.644,
+                            0.659,
+                            0.672,
+                            0.686,
+                            0.705,
+                            0.723,
+                            0.746,
+                            0.767,
+                            0.796,
+                            0.827,
+                            0.855,
+                            0.893,
+                            0.934,
+                            0.98,
+                            1.03,
+                            1.029,
+                            1.006,
+                            0.986,
+                            0.972,
+                            0.957,
+                            0.942,
+                            0.931,
+                            0.919,
+                            0.911,
+                            0.903,
+                            0.896,
+                            0.891,
+                            0.886,
+                            0.883,
+                            0.881,
+                            0.88,
+                            0.88,
+                            0.261,
+                            0.254,
+                            0.247,
+                            0.241,
+                            0.234,
+                            0.229,
+                            0.225,
+                            0.22,
+                            0.216,
+                            0.213,
+                            0.21,
+                            0.207,
+                            0.204,
+                            0.202,
+                            0.2,
+                            0.199
+                        ],
+                 "nose_yaw":  0.0,
+                 "frame":  "pinky/base/lidar"
+             },
+    "scan_reason":  "ready",
+    "safety_profile":  {
+                           "schema_version":  1,
+                           "revision":  "c2c20fa6c61c6949",
+                           "effective":  {
+                                             "rotation_body_radius":  0.11440496612640715,
+                                             "rotation_footprint_xy":  [
+                                                                           -0.07,
+                                                                           -0.05,
+                                                                           -0.07,
+                                                                           -0.05,
+                                                                           -0.07,
+                                                                           0.05,
+                                                                           -0.07,
+                                                                           0.05,
+                                                                           0.07,
+                                                                           -0.05,
+                                                                           0.07,
+                                                                           -0.05,
+                                                                           0.07,
+                                                                           0.05,
+                                                                           0.07,
+                                                                           0.05,
+                                                                           -0.07250000000000001,
+                                                                           -0.03,
+                                                                           -0.07250000000000001,
+                                                                           -0.03,
+                                                                           -0.07250000000000001,
+                                                                           0.03,
+                                                                           -0.07250000000000001,
+                                                                           0.03,
+                                                                           -0.0575,
+                                                                           -0.03,
+                                                                           -0.0575,
+                                                                           -0.03,
+                                                                           -0.0575,
+                                                                           0.03,
+                                                                           -0.0575,
+                                                                           0.03,
+                                                                           -0.068,
+                                                                           0.07199730289614133,
+                                                                           -0.068,
+                                                                           0.09199730280335282,
+                                                                           -0.068,
+                                                                           0.07200269719664719,
+                                                                           -0.068,
+                                                                           0.09200269710385868,
+                                                                           -0.012,
+                                                                           0.07199730289614133,
+                                                                           -0.012,
+                                                                           0.09199730280335282,
+                                                                           -0.012,
+                                                                           0.07200269719664719,
+                                                                           -0.012,
+                                                                           0.09200269710385868,
+                                                                           -0.068,
+                                                                           -0.09200269710385868,
+                                                                           -0.068,
+                                                                           -0.07200269719664719,
+                                                                           -0.068,
+                                                                           -0.09199730280335282,
+                                                                           -0.068,
+                                                                           -0.07199730289614133,
+                                                                           -0.012,
+                                                                           -0.09200269710385868,
+                                                                           -0.012,
+                                                                           -0.07200269719664719,
+                                                                           -0.012,
+                                                                           -0.09199730280335282,
+                                                                           -0.012,
+                                                                           -0.07199730289614133
+                                                                       ],
+                                             "radius":  0.11440496612640715,
+                                             "turn_clear":  0.12440496612640714,
+                                             "stop":  0.14940496612640713,
+                                             "clear":  0.16,
+                                             "rear_stop":  0.14940496612640713,
+                                             "rear_clear":  0.16,
+                                             "max_linear":  0.014,
+                                             "max_angular":  0.1,
+                                             "lidar_yaw":  0.0,
+                                             "linear_sign":  1.0,
+                                             "half_width":  0.7853981633974483,
+                                             "us_stop":  0.02,
+                                             "us_clear":  0.028,
+                                             "footprint_guard":  true,
+                                             "simulation_motion_sweep":  true,
+                                             "mount":  [
+                                                           0.0,
+                                                           0.0
+                                                       ],
+                                             "imu_unit":  "rad_s"
+                                         },
+                           "valid":  true,
+                           "error":  null
+                       },
+    "safety_profile_received":  105960.046094529,
+    "motion_limits":  {
+                          "can_rotate":  true,
+                          "bounded_motion_enabled":  true,
+                          "geometry_revision":  "c2c20fa6c61c6949",
+                          "front_stop_m":  0.14940496612640713,
+                          "front_clear_m":  0.16,
+                          "rear_stop_m":  0.14940496612640713,
+                          "rear_clear_m":  0.16,
+                          "translation_mode":  false,
+                          "rotation_radius_m":  0.17260768067892646,
+                          "body_radius_m":  0.11440496612640715,
+                          "rotation_estimate":  {
+                                                    "valid":  true,
+                                                    "center_m":  [
+                                                                     -0.03982340904690162,
+                                                                     -0.010236581321639956
+                                                                 ],
+                                                    "center_uncertainty_m":  0.003115710293919981,
+                                                    "body_radius_m":  0.11440496612640715,
+                                                    "required_radius_m":  0.17260768067892646,
+                                                    "footprint_xy":  [
+                                                                         [
+                                                                             -0.07,
+                                                                             -0.05
+                                                                         ],
+                                                                         [
+                                                                             -0.07,
+                                                                             -0.05
+                                                                         ],
+                                                                         [
+                                                                             -0.07,
+                                                                             0.05
+                                                                         ],
+                                                                         [
+                                                                             -0.07,
+                                                                             0.05
+                                                                         ],
+                                                                         [
+                                                                             0.07,
+                                                                             -0.05
+                                                                         ],
+                                                                         [
+                                                                             0.07,
+                                                                             -0.05
+                                                                         ],
+                                                                         [
+                                                                             0.07,
+                                                                             0.05
+                                                                         ],
+                                                                         [
+                                                                             0.07,
+                                                                             0.05
+                                                                         ],
+                                                                         [
+                                                                             -0.07250000000000001,
+                                                                             -0.03
+                                                                         ],
+                                                                         [
+                                                                             -0.07250000000000001,
+                                                                             -0.03
+                                                                         ],
+                                                                         [
+                                                                             -0.07250000000000001,
+                                                                             0.03
+                                                                         ],
+                                                                         [
+                                                                             -0.07250000000000001,
+                                                                             0.03
+                                                                         ],
+                                                                         [
+                                                                             -0.0575,
+                                                                             -0.03
+                                                                         ],
+                                                                         [
+                                                                             -0.0575,
+                                                                             -0.03
+                                                                         ],
+                                                                         [
+                                                                             -0.0575,
+                                                                             0.03
+                                                                         ],
+                                                                         [
+                                                                             -0.0575,
+                                                                             0.03
+                                                                         ],
+                                                                         [
+                                                                             -0.068,
+                                                                             0.07199730289614133
+                                                                         ],
+                                                                         [
+                                                                             -0.068,
+                                                                             0.09199730280335282
+                                                                         ],
+                                                                         [
+                                                                             -0.068,
+                                                                             0.07200269719664719
+                                                                         ],
+                                                                         [
+                                                                             -0.068,
+                                                                             0.09200269710385868
+                                                                         ],
+                                                                         [
+                                                                             -0.012,
+                                                                             0.07199730289614133
+                                                                         ],
+                                                                         [
+                                                                             -0.012,
+                                                                             0.09199730280335282
+                                                                         ],
+                                                                         [
+                                                                             -0.012,
+                                                                             0.07200269719664719
+                                                                         ],
+                                                                         [
+                                                                             -0.012,
+                                                                             0.09200269710385868
+                                                                         ],
+                                                                         [
+                                                                             -0.068,
+                                                                             -0.09200269710385868
+                                                                         ],
+                                                                         [
+                                                                             -0.068,
+                                                                             -0.07200269719664719
+                                                                         ],
+                                                                         [
+                                                                             -0.068,
+                                                                             -0.09199730280335282
+                                                                         ],
+                                                                         [
+                                                                             -0.068,
+                                                                             -0.07199730289614133
+                                                                         ],
+                                                                         [
+                                                                             -0.012,
+                                                                             -0.09200269710385868
+                                                                         ],
+                                                                         [
+                                                                             -0.012,
+                                                                             -0.07200269719664719
+                                                                         ],
+                                                                         [
+                                                                             -0.012,
+                                                                             -0.09199730280335282
+                                                                         ],
+                                                                         [
+                                                                             -0.012,
+                                                                             -0.07199730289614133
+                                                                         ]
+                                                                     ],
+                                                    "pivot_radius_m":  0.1314896614504739,
+                                                    "sample_count":  4,
+                                                    "directional_counts":  {
+                                                                               "positive":  2,
+                                                                               "negative":  2
+                                                                           },
+                                                    "reason":  "sensor_consistent_estimate",
+                                                    "uncertainty_model":  "empirical_residual_over_excitation_v1",
+                                                    "trials":  [
+                                                                   {
+                                                                       "scan_delta":  [
+                                                                                          -0.0023556966787698064,
+                                                                                          0.0066959007232754685,
+                                                                                          0.17363815805186916
+                                                                                      ],
+                                                                       "odom_delta":  [
+                                                                                          -0.0023315505618491665,
+                                                                                          0.006767405955880233,
+                                                                                          0.17381991771297362
+                                                                                      ],
+                                                                       "imu_yaw":  0.17381991771297362,
+                                                                       "residual_m":  0.0004481392976970596
+                                                                   },
+                                                                   {
+                                                                       "scan_delta":  [
+                                                                                          0.0011635826326557312,
+                                                                                          -0.006952817577858131,
+                                                                                          -0.17092983374796777
+                                                                                      ],
+                                                                       "odom_delta":  [
+                                                                                          0.0011189737913639486,
+                                                                                          -0.006959889949582657,
+                                                                                          -0.17117991917197625
+                                                                                      ],
+                                                                       "imu_yaw":  -0.17117991917197625,
+                                                                       "residual_m":  0.00046690787408917286
+                                                                   },
+                                                                   {
+                                                                       "scan_delta":  [
+                                                                                          -0.0022801910583574135,
+                                                                                          0.006518151163257029,
+                                                                                          0.16874765907449343
+                                                                                      ],
+                                                                       "odom_delta":  [
+                                                                                          -0.0022500840280570288,
+                                                                                          0.006585197681965162,
+                                                                                          0.16898264640001423
+                                                                                      ],
+                                                                       "imu_yaw":  0.16898264640001423,
+                                                                       "residual_m":  0.0004408628601541871
+                                                                   },
+                                                                   {
+                                                                       "scan_delta":  [
+                                                                                          0.001167034443195612,
+                                                                                          -0.006977559305597055,
+                                                                                          -0.17159432584583403
+                                                                                      ],
+                                                                       "odom_delta":  [
+                                                                                          0.0011218933896315643,
+                                                                                          -0.006988617997685729,
+                                                                                          -0.1718833359545833
+                                                                                      ],
+                                                                       "imu_yaw":  -0.1718833359545833,
+                                                                       "residual_m":  0.00046735653081042983
+                                                                   }
+                                                               ]
+                                                },
+                          "rotation_pivot_clearance_m":  0.021867170669311875,
+                          "rotation_scan_observed":  true,
+                          "rotation_trial":  false,
+                          "rotation_recovery_m":  null,
+                          "rotation_translation_limits_m":  [
+                                                                0.03,
+                                                                0.03
+                                                            ],
+                          "footprint_half_width_m":  null,
+                          "forward_travel_m":  null,
+                          "reverse_travel_m":  null,
+                          "us_stop_m":  0.02,
+                          "front_m":  0.27974411845207214,
+                          "rear_m":  0.19436649978160858,
+                          "mount_source":  "tf:pinky/base/lidar"
+                      },
+    "motion_limits_received":  105960.056828984,
+    "safety_decision":  {
+                            "action":  "allow",
+                            "issued_s":  134.001,
+                            "requested_v":  0.0,
+                            "requested_omega":  0.1,
+                            "reason":  "allow",
+                            "safe_v":  0.0,
+                            "safe_omega":  0.1,
+                            "profile_revision":  "c2c20fa6c61c6949",
+                            "observation_generation":  1336
+                        },
+    "safety_decision_received":  105960.057782811,
+    "vel":  [
+                0.0,
+                0.1
+            ],
+    "estop":  false,
+    "estop_sequence":  1,
+    "map":  [
+                135,
+                63,
+                0.019999999552965164,
+                -1.3489460122028016,
+                -0.6277742723241166,
+                88
+            ],
+    "pose_prev":  [
+                      -0.41616850464485733,
+                      -0.2566137427196041
+                  ],
+    "path_exact_m":  0.20596198317270747,
+    "path_m":  0.21,
+    "trail_odom":  [
+                       [
+                           -0.3652902298883966,
+                           -0.15788983482342545
+                       ],
+                       [
+                           -0.3724667925122299,
+                           -0.16563752008433733
+                       ],
+                       [
+                           -0.37947202579916023,
+                           -0.17346751495557802
+                       ],
+                       [
+                           -0.38691266246467804,
+                           -0.18104744611063012
+                       ],
+                       [
+                           -0.3940696865020152,
+                           -0.18875877512577283
+                       ],
+                       [
+                           -0.4012732105502088,
+                           -0.19644126971418838
+                       ],
+                       [
+                           -0.40865364413089517,
+                           -0.20400569392192827
+                       ],
+                       [
+                           -0.4158501298070195,
+                           -0.2116631444869485
+                       ],
+                       [
+                           -0.423216920691301,
+                           -0.21921989175986767
+                       ],
+                       [
+                           -0.4305271802288433,
+                           -0.2267924316436313
+                       ],
+                       [
+                           -0.4377659762413301,
+                           -0.23440223998349977
+                       ],
+                       [
+                           -0.4451944673768833,
+                           -0.24189599629389474
+                       ],
+                       [
+                           -0.4525012411067933,
+                           -0.24945015383737623
+                       ],
+                       [
+                           -0.45978010124333757,
+                           -0.25701915581923784
+                       ],
+                       [
+                           -0.4670558968634779,
+                           -0.264589799094709
+                       ],
+                       [
+                           -0.45836057866999064,
+                           -0.26962140394910195
+                       ],
+                       [
+                           -0.44838767654845757,
+                           -0.2710619030754882
+                       ],
+                       [
+                           -0.43836319116104416,
+                           -0.2700403955533734
+                       ],
+                       [
+                           -0.42888583666049507,
+                           -0.2666178916746939
+                       ],
+                       [
+                           -0.42052164954351007,
+                           -0.2609988011499968
+                       ]
+                   ],
+    "cam":  254,
+    "mode":  "TURN",
+    "wander":  "route_explore:align",
+    "wander_sequence":  489,
+    "calibration_received":  105960.056897474,
+    "gstate":  "explore goal=(0.78,-0.30) score=8.9 size=13 route=1.41m alts=0 eta~346s(odo) v=0.4cm/s pose~tf",
+    "eta":  346.3,
+    "goal_pt":  [
+                    0.781,
+                    -0.298
+                ],
+    "route":  [
+                  [
+                      -0.419,
+                      -0.258
+                  ],
+                  [
+                      -0.399,
+                      -0.258
+                  ],
+                  [
+                      -0.379,
+                      -0.258
+                  ],
+                  [
+                      -0.359,
+                      -0.258
+                  ],
+                  [
+                      -0.339,
+                      -0.238
+                  ],
+                  [
+                      -0.319,
+                      -0.218
+                  ],
+                  [
+                      -0.299,
+                      -0.198
+                  ],
+                  [
+                      -0.279,
+                      -0.198
+                  ],
+                  [
+                      -0.259,
+                      -0.198
+                  ],
+                  [
+                      -0.239,
+                      -0.198
+                  ],
+                  [
+                      -0.219,
+                      -0.178
+                  ],
+                  [
+                      -0.199,
+                      -0.178
+                  ],
+                  [
+                      -0.179,
+                      -0.178
+                  ],
+                  [
+                      -0.159,
+                      -0.178
+                  ],
+                  [
+                      -0.139,
+                      -0.178
+                  ],
+                  [
+                      -0.119,
+                      -0.178
+                  ],
+                  [
+                      -0.099,
+                      -0.178
+                  ],
+                  [
+                      -0.079,
+                      -0.178
+                  ],
+                  [
+                      -0.059,
+                      -0.178
+                  ],
+                  [
+                      -0.039,
+                      -0.178
+                  ],
+                  [
+                      -0.019,
+                      -0.178
+                  ],
+                  [
+                      0.001,
+                      -0.178
+                  ],
+                  [
+                      0.021,
+                      -0.178
+                  ],
+                  [
+                      0.041,
+                      -0.178
+                  ],
+                  [
+                      0.061,
+                      -0.178
+                  ],
+                  [
+                      0.081,
+                      -0.178
+                  ],
+                  [
+                      0.101,
+                      -0.178
+                  ],
+                  [
+                      0.121,
+                      -0.178
+                  ],
+                  [
+                      0.141,
+                      -0.178
+                  ],
+                  [
+                      0.161,
+                      -0.178
+                  ],
+                  [
+                      0.181,
+                      -0.178
+                  ],
+                  [
+                      0.201,
+                      -0.178
+                  ],
+                  [
+                      0.221,
+                      -0.178
+                  ],
+                  [
+                      0.241,
+                      -0.178
+                  ],
+                  [
+                      0.261,
+                      -0.198
+                  ],
+                  [
+                      0.281,
+                      -0.218
+                  ],
+                  [
+                      0.301,
+                      -0.238
+                  ],
+                  [
+                      0.321,
+                      -0.258
+                  ],
+                  [
+                      0.321,
+                      -0.278
+                  ],
+                  [
+                      0.321,
+                      -0.298
+                  ],
+                  [
+                      0.321,
+                      -0.318
+                  ],
+                  [
+                      0.321,
+                      -0.338
+                  ],
+                  [
+                      0.341,
+                      -0.358
+                  ],
+                  [
+                      0.361,
+                      -0.378
+                  ],
+                  [
+                      0.381,
+                      -0.398
+                  ],
+                  [
+                      0.401,
+                      -0.398
+                  ],
+                  [
+                      0.421,
+                      -0.398
+                  ],
+                  [
+                      0.441,
+                      -0.398
+                  ],
+                  [
+                      0.461,
+                      -0.398
+                  ],
+                  [
+                      0.481,
+                      -0.398
+                  ],
+                  [
+                      0.501,
+                      -0.398
+                  ],
+                  [
+                      0.521,
+                      -0.398
+                  ],
+                  [
+                      0.541,
+                      -0.398
+                  ],
+                  [
+                      0.561,
+                      -0.398
+                  ],
+                  [
+                      0.581,
+                      -0.398
+                  ],
+                  [
+                      0.601,
+                      -0.378
+                  ],
+                  [
+                      0.621,
+                      -0.378
+                  ],
+                  [
+                      0.641,
+                      -0.358
+                  ],
+                  [
+                      0.661,
+                      -0.358
+                  ],
+                  [
+                      0.681,
+                      -0.338
+                  ],
+                  [
+                      0.701,
+                      -0.338
+                  ],
+                  [
+                      0.721,
+                      -0.318
+                  ],
+                  [
+                      0.741,
+                      -0.318
+                  ],
+                  [
+                      0.761,
+                      -0.318
+                  ],
+                  [
+                      0.781,
+                      -0.298
+                  ]
+              ],
+    "options":  [
+
+                ],
+    "battery":  {
+                    "available":  false,
+                    "reason":  "missing"
+                },
+    "motion_limits_fresh":  true,
+    "runtime_id":  "c63d2f5d7f7645449ec151058f21176b"
+}

@@ -1,0 +1,96 @@
+{
+  "world_sha256": "8475464857322d71f6e492171419bf285e7bd034089b90ad59d6f106b0941072",
+  "spawn": [
+    -0.19999999999999907,
+    0.2700000000000007
+  ],
+  "sampling_m": 0.002,
+  "definition": "base_origin_circle_configuration_space",
+  "not_exact_robot_reachability": true,
+  "not_visibility": true,
+  "formula_inputs": {
+    "body_radius_m": 0.114405,
+    "center_uncertainty_m": 0.003087,
+    "pivot_offset_m": 0.041109,
+    "latency_s": 0.15,
+    "speed_mps": 0.014,
+    "angular_radps": 0.1
+  },
+  "cases": [
+    {
+      "radius_m": 0.124405,
+      "component_count": 2,
+      "spawn_component": 1,
+      "free_area_m2": 1.011716,
+      "spawn_connected_area_m2": 1.011692,
+      "components": [
+        {
+          "label": 1,
+          "spawn_connected": true,
+          "area_m2": 1.011692,
+          "centroid_m": [
+            -0.18291611083214948,
+            0.034958052450746506
+          ],
+          "bounds_m": [
+            [
+              -1.2225,
+              -0.49749999999999983
+            ],
+            [
+              1.2215000000000023,
+              0.49650000000000105
+            ]
+          ]
+        },
+        {
+          "label": 2,
+          "spawn_connected": false,
+          "area_m2": 2.4e-05,
+          "centroid_m": [
+            -0.7514999999999995,
+            -0.4968333333333332
+          ],
+          "bounds_m": [
+            [
+              -0.7544999999999995,
+              -0.49749999999999983
+            ],
+            [
+              -0.7484999999999995,
+              -0.49549999999999983
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "radius_m": 0.133388245,
+      "component_count": 1,
+      "spawn_component": 1,
+      "free_area_m2": 0.8638440000000001,
+      "spawn_connected_area_m2": 0.8638440000000001,
+      "components": [
+        {
+          "label": 1,
+          "spawn_connected": true,
+          "area_m2": 0.8638440000000001,
+          "centroid_m": [
+            -0.22941397983895148,
+            0.041915357402494614
+          ],
+          "bounds_m": [
+            [
+              -1.2125,
+              -0.4874999999999998
+            ],
+            [
+              1.2135000000000022,
+              0.48850000000000104
+            ]
+          ]
+        }
+      ]
+    }
+  ]
+}
