@@ -1,0 +1,16 @@
+{
+  "elapsed_sim_s": 14.55,
+  "calibration_phase": "failed",
+  "calibration_ready": false,
+  "message": "Sensor data became stale or invalid: map_tf: valid=False, age=0.000s",
+  "map_received": true,
+  "mapping_complete": false,
+  "cmd_vel_publishers": [
+    "safety_node"
+  ],
+  "run_id": "e6677686024040efb1c924335792a384",
+  "path_m": 0.04227991243206867,
+  "min_center_to_wall_m": 0.15999999997615844,
+  "map_geometry_and_time_valid": true,
+  "known_cells": 3508
+}

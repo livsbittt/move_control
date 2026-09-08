@@ -1,0 +1,5 @@
+# Keep recorded evidence byte-for-byte so provenance hashes survive checkout.
+* -text
+# Windows-written JSON uses CRLF; raw ROS logs retain emitted whitespace.
+*.json whitespace=cr-at-eol
+*.log -whitespace

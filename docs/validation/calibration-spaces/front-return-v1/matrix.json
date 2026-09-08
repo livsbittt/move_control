@@ -1,0 +1,39 @@
+[
+  {
+    "case": "front_wall",
+    "runner_exit": 0,
+    "pass": false,
+    "run_id": "d6dee928f3564c78a8589cd34ce19558",
+    "phase": "aborted",
+    "ready": false,
+    "message": "Calibration aborted",
+    "relocation": {
+      "start_pose": [
+        -2.3841555166462034e-11,
+        -4.1701549514035237e-13,
+        -6.621837571077862e-12
+      ],
+      "direction": -1,
+      "travel_m": 0.014999919261222202,
+      "path_distance_m": 0.014999919261222293,
+      "target_estimate_m": 0.02,
+      "done": true,
+      "error": null,
+      "bootstrap": true,
+      "bootstrap_verified": true,
+      "pilot_commanded_m": 0.0024,
+      "max_distance_m": 0.2,
+      "max_duration_s": 75.0,
+      "max_speed_mps": 0.003
+    },
+    "after": "return_origin",
+    "return_motion": null,
+    "elapsed_sim_s": 62.035000000000004,
+    "path_m": 0.0149999192668249,
+    "final_safe": [
+      0.0,
+      0.0
+    ],
+    "min_center_to_wall_m": 0.16000000001823916
+  }
+]

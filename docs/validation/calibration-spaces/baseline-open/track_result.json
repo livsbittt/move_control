@@ -1,0 +1,16 @@
+{
+  "elapsed_sim_s": 55.160000000000004,
+  "calibration_phase": "ready",
+  "calibration_ready": true,
+  "message": "Translation and bilateral rotation verified; swept envelope estimated",
+  "map_received": true,
+  "mapping_complete": false,
+  "cmd_vel_publishers": [
+    "safety_node"
+  ],
+  "run_id": "88a85aaa9c9543e4b8b1e92857503125",
+  "path_m": 0.18900030350172173,
+  "min_center_to_wall_m": 0.6872695477618516,
+  "map_geometry_and_time_valid": true,
+  "known_cells": 5049
+}

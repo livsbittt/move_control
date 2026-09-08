@@ -1,0 +1,2239 @@
+[
+  {
+    "sim_s": 0.5750000000000001,
+    "calibration": null,
+    "goal": "",
+    "wander": "",
+    "pose": null,
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": null,
+    "message": null
+  },
+  {
+    "sim_s": 1.085,
+    "calibration": null,
+    "goal": "",
+    "wander": "stop",
+    "pose": [
+      -9.275775492253339e-12,
+      -2.63012597855874e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": null,
+    "message": null
+  },
+  {
+    "sim_s": 1.5850000000000002,
+    "calibration": "collecting",
+    "goal": "",
+    "wander": "stop",
+    "pose": [
+      -1.6435539798470014e-11,
+      -3.513809359290868e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 2.0900000000000003,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.150433608475369e-11,
+      -3.982237178672933e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 2.5900000000000003,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.2985934198724134e-11,
+      -4.1031049378558374e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 3.0900000000000003,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3464473809474174e-11,
+      -4.1408438830212356e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 3.5900000000000003,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.374745408232058e-11,
+      -4.162872685795169e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 4.095000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.374745408232058e-11,
+      -4.162872685795169e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 4.605,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3841555166462034e-11,
+      -4.1701549514035237e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 5.11,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3841555166462034e-11,
+      -4.1701549514035237e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 5.615,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3841555166462034e-11,
+      -4.1701549514035237e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 6.115,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3841555166462034e-11,
+      -4.1701549514035237e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 6.630000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3841555166462034e-11,
+      -4.1701549514035237e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 7.130000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3841555166462034e-11,
+      -4.1701549514035237e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 7.635000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3841555166462034e-11,
+      -4.1701549514035237e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 8.14,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3841555166462034e-11,
+      -4.1701549514035237e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Seeking calibration space with bounded direction probe"
+  },
+  {
+    "sim_s": 8.64,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.0007199955593115315,
+      -1.1064948545796615e-10
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 9.14,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.002219987547147714,
+      -3.039825027616909e-10
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 9.64,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.003719979535272157,
+      -4.916969841872566e-10
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 10.14,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.0052199715236836974,
+      -6.738771993980264e-10
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 10.64,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.006719963512379183,
+      -8.506063205861546e-10
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 11.14,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.008219955501354771,
+      -1.021966333305444e-09
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 11.64,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.009719947490606397,
+      -1.1880380114781316e-09
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 12.14,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.011219939480129965,
+      -1.3489009194257298e-09
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 12.64,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.012719931469921413,
+      -1.504633430805775e-09
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 13.14,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014219923459976705,
+      -1.6553127425769542e-09
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 13.66,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.01571991545029189,
+      -1.8010148859186206e-09
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 14.16,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.017369906639934093,
+      -1.955627961558331e-09
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 14.66,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.018869898630782367,
+      -2.0911204730616655e-09
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 15.16,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.020219891422757926,
+      -2.2090015855414195e-09
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 15.66,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021014887178125274,
+      -2.2766420401166313e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: confirming_rotation_clearance"
+  },
+  {
+    "sim_s": 16.16,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021014887178125274,
+      -2.2766420401166313e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Suitable space reached; acquiring a new stationary calibration baseline"
+  },
+  {
+    "sim_s": 16.66,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021014887178125274,
+      -2.2766420401166313e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 17.165000000000003,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021014887178125274,
+      -2.2766420401166313e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 17.665000000000003,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021014887178125274,
+      -2.2766420401166313e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 18.17,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021014887178125274,
+      -2.2766420401166313e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 18.67,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021014887178125274,
+      -2.2766420401166313e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 19.17,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021014887178125274,
+      -2.2766420401166313e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 19.67,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021014887178125274,
+      -2.2766420401166313e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 20.17,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021014887178125274,
+      -2.2766420401166313e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 20.67,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021014887178125274,
+      -2.2766420401166313e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 21.17,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021014887178125274,
+      -2.2766420401166313e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Waiting for wander stop before bounded forward validation"
+  },
+  {
+    "sim_s": 21.67,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.019934891571796714,
+      -2.2174792115857793e-09
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 22.175,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.015934898742018633,
+      -2.2875645108532037e-09
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 22.675,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.011934906240150391,
+      -2.344366266623004e-09
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 23.175,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.00793491393756763,
+      -2.3752917298515372e-09
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 23.675,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.003934921756286056,
+      -2.3761604102734905e-09
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 24.175,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      6.507035142730525e-05,
+      -2.3551684778515796e-09
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 24.675,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      0.0005450694009212434,
+      -2.3514349172378223e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: settle_out"
+  },
+  {
+    "sim_s": 25.175,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.0017349227996270584,
+      -2.4646231131302542e-09
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 25.675,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.005734914796016016,
+      -2.4944738453406942e-09
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 26.175,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.009734906792823671,
+      -2.516007854905975e-09
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 26.675,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.013734898790042797,
+      -2.529552619617151e-09
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 27.175,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.01773489078766051,
+      -2.5354239698562745e-09
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 27.675,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02173488278566225,
+      -2.5339257063414503e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 28.175,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.0218948824655901,
+      -2.5337166566325914e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: settle_home"
+  },
+  {
+    "sim_s": 28.675,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.019570607981375644,
+      -2.4778768679827162e-09
+    ],
+    "safe": [
+      0.00801476530092421,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 29.175,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.015563232267358734,
+      -2.5705658569431506e-09
+    ],
+    "safe": [
+      0.00801476530092421,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 29.675,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.011555856973181169,
+      -2.6493259735078633e-09
+    ],
+    "safe": [
+      0.00801476530092421,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 30.175,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.007548481933437336,
+      -2.7106499031918024e-09
+    ],
+    "safe": [
+      0.00801476530092421,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 30.680000000000003,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.003541107048754312,
+      -2.7393669720850665e-09
+    ],
+    "safe": [
+      0.00801476530092421,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 31.180000000000003,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      0.0002258252563228515,
+      -2.743639365115646e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: settle_out"
+  },
+  {
+    "sim_s": 31.680000000000003,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      0.0002258252563228515,
+      -2.743639365115646e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: settle_out"
+  },
+  {
+    "sim_s": 32.185,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.002984830083736377,
+      -2.8468839400820346e-09
+    ],
+    "safe": [
+      -0.008128265641998393,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 32.685,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.007048954902386118,
+      -2.852486035615561e-09
+    ],
+    "safe": [
+      -0.008128265641998393,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 33.185,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.011113079721413349,
+      -2.850616150398895e-09
+    ],
+    "safe": [
+      -0.008128265641998393,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 33.685,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.01517720454081048,
+      -2.841573302408816e-09
+    ],
+    "safe": [
+      -0.008128265641998393,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 34.185,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.019241329360565405,
+      -2.8256455725637052e-09
+    ],
+    "safe": [
+      -0.008128265641998393,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 34.685,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023020965443246867,
+      -2.8048968105412257e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: settle_home"
+  },
+  {
+    "sim_s": 35.185,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023020965443246867,
+      -2.8048968105412257e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: settle_home"
+  },
+  {
+    "sim_s": 35.685,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023020965443246867,
+      -2.8048968105412257e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: settle_home"
+  },
+  {
+    "sim_s": 36.185,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023103207905764426,
+      0.000323682821738039
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 36.685,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02343057329351123,
+      0.001516458069157058
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 37.185,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023793569209174026,
+      0.0026988771936252054
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 37.685,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02419186896554854,
+      0.003869876147363701
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 38.185,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.024625114117406297,
+      0.005028401149420465
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 38.685,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.025092914778124642,
+      0.006173409634452309
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 39.185,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.025476405369699008,
+      0.007045206532597805
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 39.685,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.025476405369699008,
+      0.007045206532597805
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 40.185,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02498671844974329,
+      0.005922867398443752
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 40.685,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02452614058851683,
+      0.004774934564178058
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 41.185,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02410020266281186,
+      0.0036137031767716128
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 41.685,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023709287982154676,
+      0.002440218237040912
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 42.185,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023353748334603665,
+      0.001255535764271283
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 42.690000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02306122024956841,
+      0.00016864201056534806
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 43.190000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02306122024956841,
+      0.00016864201056534806
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 43.690000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.0228620559916917,
+      -0.0006485354416948934
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 44.190000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02259954595002173,
+      -0.001857241111227126
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 44.690000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02237340960668438,
+      -0.003073277076193032
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 45.190000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02218385048039505,
+      -0.004295549030472096
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 45.690000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.022031039174370954,
+      -0.0055229570489850905
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 46.190000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021915113222233606,
+      -0.0067543965765993405
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 46.690000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021869444781513998,
+      -0.007395970616387427
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 47.190000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021875789297143747,
+      -0.007297220264295675
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 47.690000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02197508080972015,
+      -0.006064327920712368
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 48.190000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.022111308745819083,
+      -0.004834968788877848
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 48.695,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.022284350496767892,
+      -0.0036102491828229103
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 49.195,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.022494050326008975,
+      -0.00239127123306504
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 49.695,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.022740219510499524,
+      -0.0011791318950032117
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 50.195,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023007658568264148,
+      -3.4927375583123236e-05
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 50.695,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023007658568264148,
+      -3.4927375583123236e-05
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 51.195,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023215154709714834,
+      0.0007647283354790476
+    ],
+    "safe": [
+      0.0,
+      0.058932802241399775
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 51.695,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023549300255928076,
+      0.0019327577427181468
+    ],
+    "safe": [
+      0.0,
+      0.058932802241399775
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 52.195,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02391771326762525,
+      0.003090435568416675
+    ],
+    "safe": [
+      0.0,
+      0.058932802241399775
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 52.695,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.024320073899061993,
+      0.004236756749998728
+    ],
+    "safe": [
+      0.0,
+      0.058932802241399775
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 53.195,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.024756032833169028,
+      0.005370726076423175
+    ],
+    "safe": [
+      0.0,
+      0.058932802241399775
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 53.695,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.025225211582502072,
+      0.006491359052540669
+    ],
+    "safe": [
+      0.0,
+      0.058932802241399775
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 54.195,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02543707145272761,
+      0.006968888248543901
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 54.695,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02543707145272761,
+      0.006968888248543901
+    ],
+    "safe": [
+      0.0,
+      -0.05927657692114133
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 55.195,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.024955377099895856,
+      0.005859171231741726
+    ],
+    "safe": [
+      0.0,
+      -0.05927657692114133
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 55.695,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02450207997774107,
+      0.004724386324256032
+    ],
+    "safe": [
+      0.0,
+      -0.05927657692114133
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 56.195,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.024082609969218762,
+      0.00357666698581466
+    ],
+    "safe": [
+      0.0,
+      -0.05927657692114133
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 56.695,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023697335515026688,
+      0.0024170213030085927
+    ],
+    "safe": [
+      0.0,
+      -0.05927657692114133
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 57.195,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023346595017260507,
+      0.0012464678294556236
+    ],
+    "safe": [
+      0.0,
+      -0.05927657692114133
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 57.695,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023084974099714668,
+      0.0002791954641127588
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 58.195,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.023084974099714668,
+      0.0002791954641127588
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 58.695,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.022863550697869016,
+      -0.0006227351413240874
+    ],
+    "safe": [
+      0.0,
+      -0.05927657692114133
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 59.195,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02260325604608252,
+      -0.0018166618318391948
+    ],
+    "safe": [
+      0.0,
+      -0.05927657692114133
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 59.695,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.022378456322986698,
+      -0.003017777779725556
+    ],
+    "safe": [
+      0.0,
+      -0.05927657692114133
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 60.195,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.022189348995217146,
+      -0.004225028011591719
+    ],
+    "safe": [
+      0.0,
+      -0.05927657692114133
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 60.695,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.022036100180065785,
+      -0.005437352159224618
+    ],
+    "safe": [
+      0.0,
+      -0.05927657692114133
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 61.195,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021918844499032468,
+      -0.0066536853899881385
+    ],
+    "safe": [
+      0.0,
+      -0.05927657692114133
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 61.69500000000001,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021872131488571367,
+      -0.007287408512127493
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 62.19500000000001,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02188362738802815,
+      -0.007117707868789505
+    ],
+    "safe": [
+      0.0,
+      0.058932802241399775
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 62.69500000000001,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.021986085553763274,
+      -0.005907150329108246
+    ],
+    "safe": [
+      0.0,
+      0.058932802241399775
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 63.19500000000001,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02212416473442141,
+      -0.004700137080741716
+    ],
+    "safe": [
+      0.0,
+      0.058932802241399775
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 63.69500000000001,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.022297745036636948,
+      -0.0034977160336013397
+    ],
+    "safe": [
+      0.0,
+      0.058932802241399775
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 64.19500000000001,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02250667574694543,
+      -0.0023009311027704263
+    ],
+    "safe": [
+      0.0,
+      0.058932802241399775
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 64.69500000000001,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.022750775463671016,
+      -0.0011108213024572397
+    ],
+    "safe": [
+      0.0,
+      0.058932802241399775
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 65.19500000000001,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02294818612333947,
+      -0.0002586557947757082
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 65.69500000000001,
+    "calibration": "returning_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02294818612333947,
+      -0.0002586557947757082
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration measured; checking observed path back to the recorded origin"
+  },
+  {
+    "sim_s": 66.19500000000001,
+    "calibration": "returning_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.02210820749677665,
+      -0.0002641274141641765
+    ],
+    "safe": [
+      0.006,
+      0.0
+    ],
+    "ready": false,
+    "message": "Returning to calibration origin: returning"
+  },
+  {
+    "sim_s": 66.69500000000001,
+    "calibration": "returning_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.01910827832659423,
+      -0.0002836699751501353
+    ],
+    "safe": [
+      0.006,
+      0.0
+    ],
+    "ready": false,
+    "message": "Returning to calibration origin: returning"
+  },
+  {
+    "sim_s": 67.19500000000001,
+    "calibration": "returning_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.01610834940920491,
+      -0.00030321258857894217
+    ],
+    "safe": [
+      0.006,
+      0.0
+    ],
+    "ready": false,
+    "message": "Returning to calibration origin: returning"
+  },
+  {
+    "sim_s": 67.69500000000001,
+    "calibration": "returning_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.013108420644975438,
+      -0.0003227552731680321
+    ],
+    "safe": [
+      0.006,
+      0.0
+    ],
+    "ready": false,
+    "message": "Returning to calibration origin: returning"
+  },
+  {
+    "sim_s": 68.19500000000001,
+    "calibration": "returning_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.0101084919736429,
+      -0.0003422980402108843
+    ],
+    "safe": [
+      0.006,
+      0.0
+    ],
+    "ready": false,
+    "message": "Returning to calibration origin: returning"
+  },
+  {
+    "sim_s": 68.69500000000001,
+    "calibration": "returning_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.007108563358756983,
+      -0.0003618408965224933
+    ],
+    "safe": [
+      0.006,
+      0.0
+    ],
+    "ready": false,
+    "message": "Returning to calibration origin: returning"
+  },
+  {
+    "sim_s": 69.19500000000001,
+    "calibration": "returning_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.004348629063797997,
+      -0.00037982040673790557
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Returning to calibration origin: confirming_origin"
+  },
+  {
+    "sim_s": 69.69500000000001,
+    "calibration": "returning_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.004348629063797997,
+      -0.00037982040673790557
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Returning to calibration origin: confirming_origin"
+  },
+  {
+    "sim_s": 70.19500000000001,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.004348629063797997,
+      -0.00037982040673790557
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Calibration verified and recorded origin reached"
+  }
+]

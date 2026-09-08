@@ -1,0 +1,39 @@
+[
+  {
+    "case": "front_wall",
+    "runner_exit": 0,
+    "pass": false,
+    "run_id": "a1c4352d3d2e4546aa6214a52006a319",
+    "phase": "failed",
+    "ready": false,
+    "message": "Insufficient remaining forward travel clearance",
+    "relocation": {
+      "start_pose": [
+        -2.3841555166462034e-11,
+        -4.1701549514035237e-13,
+        -6.621837571077862e-12
+      ],
+      "direction": -1,
+      "travel_m": 0.020984887306691197,
+      "path_distance_m": 0.020984887306691298,
+      "target_estimate_m": 0.03,
+      "done": true,
+      "error": null,
+      "bootstrap": true,
+      "bootstrap_verified": true,
+      "pilot_commanded_m": 0.0024,
+      "max_distance_m": 0.2,
+      "max_duration_s": 75.0,
+      "max_speed_mps": 0.003
+    },
+    "after": "return_origin",
+    "return_motion": null,
+    "elapsed_sim_s": 19.565,
+    "path_m": 0.020984887321257938,
+    "final_safe": [
+      0.008,
+      0.0
+    ],
+    "min_center_to_wall_m": 0.16000000000927578
+  }
+]

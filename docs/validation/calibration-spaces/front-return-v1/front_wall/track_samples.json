@@ -1,0 +1,1999 @@
+[
+  {
+    "sim_s": 1.135,
+    "calibration": null,
+    "goal": "",
+    "wander": "",
+    "pose": null,
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": null,
+    "message": null
+  },
+  {
+    "sim_s": 1.635,
+    "calibration": "collecting",
+    "goal": "",
+    "wander": "stop",
+    "pose": [
+      -1.823916479712917e-11,
+      -3.6914612279916944e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 2.1350000000000002,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.170470963786235e-11,
+      -3.998953193845304e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 2.6350000000000002,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3078508681968046e-11,
+      -4.1104559141229563e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 3.1350000000000002,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3559256436913424e-11,
+      -4.1482437801650953e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 3.6350000000000002,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.374745408232058e-11,
+      -4.162872685795169e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 4.135000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.374745408232058e-11,
+      -4.162872685795169e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 4.635000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3841555166462034e-11,
+      -4.1701549514035237e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 5.135000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3841555166462034e-11,
+      -4.1701549514035237e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 5.635000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3841555166462034e-11,
+      -4.1701549514035237e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 6.135000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3841555166462034e-11,
+      -4.1701549514035237e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 6.635000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3841555166462034e-11,
+      -4.1701549514035237e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 7.135000000000001,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -2.3841555166462034e-11,
+      -4.1701549514035237e-13
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Seeking calibration space with bounded direction probe"
+  },
+  {
+    "sim_s": 7.635000000000001,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.0011849930656600042,
+      -1.7154573021699054e-10
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 8.14,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.002684985053586135,
+      -3.631163574192051e-10
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 8.64,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.0041849770418004644,
+      -5.490948567795369e-10
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 9.14,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.005684969030301011,
+      -7.295651697049294e-10
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 9.64,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.007184961019084334,
+      -9.046101026579833e-10
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 10.14,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.008684953008146494,
+      -1.0743112636649567e-09
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 10.64,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.010184944997483418,
+      -1.2387490472620866e-09
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 11.14,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.01168493698709102,
+      -1.3980026451960631e-09
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 11.64,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.01318492897696523,
+      -1.5521500615037303e-09
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 12.14,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014684920967102034,
+      -1.7012681269928494e-09
+    ],
+    "safe": [
+      -0.003,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: relocating"
+  },
+  {
+    "sim_s": 12.64,
+    "calibration": "relocating_calibration",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Calibration relocation: confirming_rotation_clearance"
+  },
+  {
+    "sim_s": 13.14,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Suitable space reached; acquiring a new stationary calibration baseline"
+  },
+  {
+    "sim_s": 13.64,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 14.14,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 14.64,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 15.14,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 15.64,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 16.14,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 16.64,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 17.14,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 17.64,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 18.14,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 18.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 19.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 19.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 20.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 20.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 21.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 21.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 22.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 22.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 23.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 23.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 24.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 24.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 25.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 25.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 26.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 26.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 27.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 27.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 28.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 28.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 29.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 29.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 30.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 30.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 31.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 31.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 32.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 32.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 33.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 33.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 34.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 34.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 35.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 35.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 36.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 36.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 37.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 37.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 38.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 38.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 39.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 39.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 40.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 40.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 41.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 41.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 42.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 42.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 43.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 43.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 44.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 44.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 45.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 45.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 46.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 46.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 47.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 47.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 48.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 48.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 49.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 49.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 50.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 50.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 51.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 51.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 52.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 52.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 53.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 53.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 54.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 54.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 55.14,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 55.64,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 56.160000000000004,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 56.660000000000004,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 57.160000000000004,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 57.660000000000004,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 58.165000000000006,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 58.665000000000006,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 59.165000000000006,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 59.665000000000006,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 60.165000000000006,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 60.665000000000006,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 61.165000000000006,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 61.665000000000006,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 62.165000000000006,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 62.67,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  },
+  {
+    "sim_s": 63.17,
+    "calibration": "waiting_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.014999919285063758,
+      -1.7319510454387203e-09
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Insufficient clearance for minimum 2 cm motion evidence"
+  }
+]

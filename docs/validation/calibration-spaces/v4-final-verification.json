@@ -1,0 +1,23 @@
+[
+  {
+    "case": "front_wall",
+    "run_id": "83c503edddad4898a61f95dc74ee1831",
+    "origin_error_m": 0.004201598411842356,
+    "source_hashes_match": true,
+    "sampled_body_circle_gap_m": 0.04510494779806183
+  },
+  {
+    "case": "rear_wall",
+    "run_id": "dbb8bc924c944bd6b041f1e1becf0220",
+    "origin_error_m": 0.004308293629883198,
+    "source_hashes_match": true,
+    "sampled_body_circle_gap_m": 0.04439240356781614
+  },
+  {
+    "case": "corridor_exit",
+    "run_id": "1bee4a6573d34f3d8b54f7f0df975b25",
+    "origin_error_m": 0.004367870447581183,
+    "source_hashes_match": true,
+    "sampled_body_circle_gap_m": 0.0354674393995358
+  }
+]

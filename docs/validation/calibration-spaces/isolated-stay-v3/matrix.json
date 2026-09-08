@@ -1,0 +1,64 @@
+[
+  {
+    "case": "open",
+    "runner_exit": 0,
+    "pass": true,
+    "run_id": "185eaf9cefe94de4bbff9136b681679e",
+    "phase": "ready",
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated",
+    "relocation": null,
+    "after": "stay",
+    "return_motion": null,
+    "elapsed_sim_s": 56.54500000000001,
+    "path_m": 0.1902357038369808,
+    "final_safe": [
+      0.0,
+      0.0
+    ],
+    "min_center_to_wall_m": 0.6864962715704147
+  },
+  {
+    "case": "rear_wall",
+    "runner_exit": 130,
+    "pass": false,
+    "error": "[Errno 2] No such file or directory: '/tmp/pinky-calibration-matrix/isolated-stay-v3/rear_wall/track_result.json'"
+  },
+  {
+    "case": "corridor_exit",
+    "runner_exit": 0,
+    "pass": false,
+    "run_id": "f0ce7ef1db9d455fa98f3c7c3fdddf66",
+    "phase": "failed",
+    "ready": false,
+    "message": "Rotation needs fresh fully observed clearance around the body",
+    "relocation": {
+      "start_pose": [
+        -0.0015261334579206825,
+        -2.6304991224757204e-10,
+        -4.6567826799636095e-09
+      ],
+      "direction": 1,
+      "travel_m": 0.13112964831703663,
+      "path_distance_m": 0.13112964831703966,
+      "target_estimate_m": 0.14,
+      "done": true,
+      "error": null,
+      "bootstrap": false,
+      "bootstrap_verified": false,
+      "pilot_commanded_m": 0.0,
+      "max_distance_m": 0.2,
+      "max_duration_s": 45.0,
+      "max_speed_mps": 0.006
+    },
+    "after": "stay",
+    "return_motion": null,
+    "elapsed_sim_s": 50.03,
+    "path_m": 0.26341036285054265,
+    "final_safe": [
+      0.0,
+      0.0
+    ],
+    "min_center_to_wall_m": 0.14999999695475
+  }
+]

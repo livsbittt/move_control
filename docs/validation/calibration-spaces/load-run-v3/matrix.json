@@ -1,0 +1,96 @@
+[
+  {
+    "case": "open",
+    "runner_exit": 0,
+    "pass": false,
+    "run_id": "cdc3d39b672c4f4e8c58c887b52f2f3d",
+    "phase": "failed",
+    "ready": false,
+    "message": "Sensor data became stale or invalid: lidar: valid=False, age=0.000s, wall={'status': 'ok', 'locked': True, 'slope': 4.972321076436375e-05, 'intercept': 0.9713781183883577, 'lo': -0.6021386990323663, 'hi': 0.5323253059759736, 'rays': 131, 'residual_m': 0.0016479191800414718, 'excluded_rays': 0, 'raw_residual_m': 0.0016479191800414718, 'outlier_cap_m': 0.01, 'prediction': {'predicted_b': 0.9713770039464148, 'forward_step_m': 0.0007989679495003683, 'dt_s': 0.09499999999999886, 'innovation_m': 1.1144419429509611e-06}, 'compensation': {'yaw_rad': 2.5165597547004026e-08, 'lateral_m': 1.5067449775773126e-09, 'mount_m': [0.0, 0.0], 'forward_odom_used': False}}",
+    "relocation": null,
+    "after": "stay",
+    "return_motion": null,
+    "elapsed_sim_s": 20.580000000000002,
+    "path_m": 0.09799760309248305,
+    "final_safe": [
+      0.0,
+      0.0
+    ],
+    "min_center_to_wall_m": 0.6866426700156804
+  },
+  {
+    "case": "rear_wall",
+    "runner_exit": 0,
+    "pass": false,
+    "run_id": "e6677686024040efb1c924335792a384",
+    "phase": "failed",
+    "ready": false,
+    "message": "Sensor data became stale or invalid: map_tf: valid=False, age=0.000s",
+    "relocation": null,
+    "after": "stay",
+    "return_motion": null,
+    "elapsed_sim_s": 14.55,
+    "path_m": 0.04227991243206867,
+    "final_safe": [
+      0.0,
+      0.0
+    ],
+    "min_center_to_wall_m": 0.15999999997615844
+  },
+  {
+    "case": "corridor_exit",
+    "runner_exit": 0,
+    "pass": false,
+    "run_id": "1e9276f26e294cf088fca45624a578f7",
+    "phase": "failed",
+    "ready": false,
+    "message": "Sensor data became stale or invalid: lidar: valid=False, age=0.025s, wall={'status': 'invalid', 'reason': 'Prediction pose step or interval implausible'}",
+    "relocation": null,
+    "after": "stay",
+    "return_motion": null,
+    "elapsed_sim_s": 13.500000000000002,
+    "path_m": 0.04379990931735299,
+    "final_safe": [
+      0.0,
+      0.0
+    ],
+    "min_center_to_wall_m": 0.14999999799365765
+  },
+  {
+    "case": "trapped",
+    "runner_exit": 0,
+    "pass": true,
+    "run_id": "111af7845bbb4106bc946cd000ddc382",
+    "phase": "waiting_space",
+    "ready": false,
+    "message": "Calibration relocation stopped: bootstrap_bilateral_clearance",
+    "relocation": {
+      "start_pose": [
+        -2.3841555166462034e-11,
+        -4.1701549514035237e-13,
+        -6.621837571077862e-12
+      ],
+      "direction": 0,
+      "travel_m": 0.0,
+      "path_distance_m": 0.0,
+      "target_estimate_m": null,
+      "done": false,
+      "error": "bootstrap_bilateral_clearance",
+      "bootstrap": true,
+      "bootstrap_verified": false,
+      "pilot_commanded_m": 0.0,
+      "max_distance_m": 0.2,
+      "max_duration_s": 75.0,
+      "max_speed_mps": 0.003
+    },
+    "after": "stay",
+    "return_motion": null,
+    "elapsed_sim_s": 11.065000000000001,
+    "path_m": 1.6892868921019578e-11,
+    "final_safe": [
+      0.0,
+      0.0
+    ],
+    "min_center_to_wall_m": 0.07999999997615845
+  }
+]

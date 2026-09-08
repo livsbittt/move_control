@@ -1,0 +1,173 @@
+[
+  {
+    "case": "rear_wall",
+    "runner_exit": 0,
+    "pass": true,
+    "run_id": "dbb8bc924c944bd6b041f1e1becf0220",
+    "phase": "ready",
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered",
+    "relocation": {
+      "start_pose": [
+        -0.0012026303057767113,
+        -1.7359043542072442e-10,
+        -3.6516922884786216e-09
+      ],
+      "direction": 1,
+      "travel_m": 0.027629925519022828,
+      "path_distance_m": 0.02762992551902288,
+      "target_estimate_m": 0.03,
+      "done": true,
+      "error": null,
+      "bootstrap": false,
+      "bootstrap_verified": false,
+      "pilot_commanded_m": 0.0,
+      "max_distance_m": 0.2,
+      "max_duration_s": 45.0,
+      "max_speed_mps": 0.006
+    },
+    "after": "return_origin",
+    "return_motion": {
+      "origin_pose": [
+        -2.3841555166462034e-11,
+        -4.1701549514035237e-13,
+        -6.621837571077862e-12
+      ],
+      "start_pose": [
+        0.026477415798352267,
+        -0.00016669726146998091,
+        -0.004217552499466255
+      ],
+      "done": true,
+      "error": null,
+      "travel_m": 0.022169941196779293,
+      "path_distance_m": 0.022169941196779466,
+      "max_start_distance_m": 0.22,
+      "max_path_distance_m": 0.23,
+      "max_duration_s": 60.0,
+      "max_speed_mps": 0.006
+    },
+    "elapsed_sim_s": 68.045,
+    "path_m": 0.23825797033729335,
+    "observation_error": null,
+    "final_safe": [
+      0.0,
+      0.0
+    ],
+    "min_center_to_wall_m": 0.15879736969422328
+  },
+  {
+    "case": "corridor_exit",
+    "runner_exit": 0,
+    "pass": true,
+    "run_id": "1bee4a6573d34f3d8b54f7f0df975b25",
+    "phase": "ready",
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered",
+    "relocation": {
+      "start_pose": [
+        -0.0006434411161032745,
+        -1.572794784321273e-10,
+        -3.314176500668133e-09
+      ],
+      "direction": 1,
+      "travel_m": 0.14958803588893102,
+      "path_distance_m": 0.149588035888936,
+      "target_estimate_m": 0.15,
+      "done": true,
+      "error": null,
+      "bootstrap": false,
+      "bootstrap_verified": false,
+      "pilot_commanded_m": 0.0,
+      "max_distance_m": 0.2,
+      "max_duration_s": 45.0,
+      "max_speed_mps": 0.006
+    },
+    "after": "return_origin",
+    "return_motion": {
+      "origin_pose": [
+        -2.3841555166462034e-11,
+        -4.1701549514035237e-13,
+        -6.621837571077862e-12
+      ],
+      "start_pose": [
+        0.14896552508349428,
+        -4.575480307248447e-05,
+        -0.0011995994819851035
+      ],
+      "done": true,
+      "error": null,
+      "travel_m": 0.14459962261349246,
+      "path_distance_m": 0.14459962261350837,
+      "max_start_distance_m": 0.22,
+      "max_path_distance_m": 0.23,
+      "max_duration_s": 60.0,
+      "max_speed_mps": 0.006
+    },
+    "elapsed_sim_s": 109.01,
+    "path_m": 0.4855463910682686,
+    "observation_error": null,
+    "final_safe": [
+      0.0,
+      0.0
+    ],
+    "min_center_to_wall_m": 0.14987240552594294
+  },
+  {
+    "case": "front_wall",
+    "runner_exit": 0,
+    "pass": true,
+    "run_id": "83c503edddad4898a61f95dc74ee1831",
+    "phase": "ready",
+    "ready": true,
+    "message": "Calibration verified and recorded origin reached",
+    "relocation": {
+      "start_pose": [
+        -2.3841555166462034e-11,
+        -4.1701549514035237e-13,
+        -6.621837571077862e-12
+      ],
+      "direction": -1,
+      "travel_m": 0.025949860804488516,
+      "path_distance_m": 0.02594986080448861,
+      "target_estimate_m": 0.03,
+      "done": true,
+      "error": null,
+      "bootstrap": true,
+      "bootstrap_verified": true,
+      "pilot_commanded_m": 0.0024,
+      "max_distance_m": 0.2,
+      "max_duration_s": 75.0,
+      "max_speed_mps": 0.003
+    },
+    "after": "return_origin",
+    "return_motion": {
+      "origin_pose": [
+        -2.3841555166462034e-11,
+        -4.1701549514035237e-13,
+        -6.621837571077862e-12
+      ],
+      "start_pose": [
+        -0.0278820446915095,
+        -0.00025003888516447845,
+        -0.0063000488630897316
+      ],
+      "done": true,
+      "error": null,
+      "travel_m": 0.02369993847180251,
+      "path_distance_m": 0.02369993847180273,
+      "max_start_distance_m": 0.22,
+      "max_path_distance_m": 0.23,
+      "max_duration_s": 60.0,
+      "max_speed_mps": 0.006
+    },
+    "elapsed_sim_s": 73.505,
+    "path_m": 0.22022743541630613,
+    "observation_error": null,
+    "final_safe": [
+      0.0,
+      0.0
+    ],
+    "min_center_to_wall_m": 0.15950991392446898
+  }
+]

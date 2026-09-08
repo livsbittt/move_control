@@ -1,0 +1,16 @@
+{
+  "elapsed_sim_s": 19.565,
+  "calibration_phase": "failed",
+  "calibration_ready": false,
+  "message": "Insufficient remaining forward travel clearance",
+  "map_received": true,
+  "mapping_complete": false,
+  "cmd_vel_publishers": [
+    "safety_node"
+  ],
+  "run_id": "a1c4352d3d2e4546aa6214a52006a319",
+  "path_m": 0.020984887321257938,
+  "min_center_to_wall_m": 0.16000000000927578,
+  "map_geometry_and_time_valid": true,
+  "known_cells": 3570
+}

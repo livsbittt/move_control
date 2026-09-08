@@ -1,0 +1,91 @@
+{
+  "phase": "collecting",
+  "ready": false,
+  "rotation": null,
+  "relocation": null,
+  "calibration_origin": null,
+  "after_relocation": "stay",
+  "return_motion": null,
+  "rotation_verified": false,
+  "rotation_required_for_new_trial": true,
+  "profile_revision": null,
+  "calibration_verified": false,
+  "message": "Keep robot stationary on safe level floor",
+  "auto_motion": true,
+  "us_precision_required": false,
+  "elapsed_s": 0.0,
+  "sensors": {
+    "lidar": {
+      "ok": false,
+      "status": "stale",
+      "samples": 0,
+      "detail": "No fresh sensor sample; valid=0/0 last_valid=none"
+    },
+    "odom": {
+      "ok": false,
+      "status": "stale",
+      "samples": 0,
+      "detail": "No fresh sensor sample"
+    },
+    "ir": {
+      "ok": false,
+      "status": "stale",
+      "samples": 0,
+      "detail": "No fresh sensor sample"
+    },
+    "imu": {
+      "ok": false,
+      "status": "stale",
+      "samples": 0,
+      "detail": "No fresh sensor sample"
+    },
+    "us": {
+      "ok": false,
+      "status": "stale",
+      "samples": 0,
+      "detail": "No fresh sensor sample; valid=0/0 last_valid=none"
+    },
+    "camera": {
+      "ok": false,
+      "status": "stale",
+      "samples": 0,
+      "detail": "No fresh sensor sample"
+    },
+    "tf": {
+      "ok": false,
+      "status": "stale",
+      "samples": 0,
+      "detail": "No fresh sensor sample"
+    },
+    "map": {
+      "ok": false,
+      "status": "stale",
+      "samples": 0,
+      "detail": "No fresh sensor sample"
+    },
+    "map_tf": {
+      "ok": false,
+      "status": "stale",
+      "samples": 0,
+      "detail": "No fresh sensor sample"
+    }
+  },
+  "motion": null,
+  "baseline": {},
+  "navigation_profile": null,
+  "motion_clearance": {},
+  "estimates": {
+    "imu_gyro_bias_rad_s": [],
+    "imu_gravity_mean_mps2": [],
+    "imu_roll_pitch_baseline_rad": [],
+    "lidar_us_range_difference_m": null
+  },
+  "recorded_unix_s": 1788853956.6067173,
+  "limits": {
+    "motion_speed_mps": 0.008,
+    "motion_seconds": 35.0,
+    "motion_distance_m": 0.04,
+    "round_trip_target_m": 0.03
+  },
+  "settings_applied": false
+}

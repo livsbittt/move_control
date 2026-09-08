@@ -1,0 +1,26 @@
+{
+  "code_commit": "df5609bfa08cef2d86201e94739311e9dcb112a6",
+  "rig_files": {
+    "tools/gz/calibration_mapping_rig.py": {
+      "working_sha256": "d8408e282665daa553bb7bc233717f0868e48bcb984c123ccbae2df2c41e359d",
+      "staged_sha256": "d8408e282665daa553bb7bc233717f0868e48bcb984c123ccbae2df2c41e359d"
+    },
+    "tools/gz/calibration_spaces.py": {
+      "working_sha256": "7a0e1699cf2413f20fea894851957a5e4ef542138a642e594d86699d76132a7d",
+      "staged_sha256": "7a0e1699cf2413f20fea894851957a5e4ef542138a642e594d86699d76132a7d"
+    },
+    "tools/gz/run_track260905.sh": {
+      "working_sha256": "cab7197509cdc2cf3f0f34a583827bfdc5215ef03be74061fb5921e092ba7d64",
+      "staged_sha256": "cab7197509cdc2cf3f0f34a583827bfdc5215ef03be74061fb5921e092ba7d64"
+    },
+    "tools/gz/track_run_monitor.py": {
+      "working_sha256": "a71d9ca0d161270f211d224a40d5ff22e123183b8fcfbf4ca049802c1babb509",
+      "staged_sha256": "a71d9ca0d161270f211d224a40d5ff22e123183b8fcfbf4ca049802c1babb509"
+    },
+    "tools/gz/run_calibration_spaces.py": {
+      "working_sha256": "2e8b3c319357e9c29f418c2ff1e1035742a138f6012fce893046c55b801623d3",
+      "staged_sha256": "2e8b3c319357e9c29f418c2ff1e1035742a138f6012fce893046c55b801623d3"
+    }
+  },
+  "all_equal": true
+}

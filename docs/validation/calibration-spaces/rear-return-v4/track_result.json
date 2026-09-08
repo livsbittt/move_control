@@ -1,0 +1,17 @@
+{
+  "elapsed_sim_s": 68.045,
+  "calibration_phase": "ready",
+  "calibration_ready": true,
+  "message": "Saved calibration retained; sensor checks recovered",
+  "map_received": true,
+  "mapping_complete": false,
+  "observation_error": null,
+  "cmd_vel_publishers": [
+    "safety_node"
+  ],
+  "run_id": "dbb8bc924c944bd6b041f1e1becf0220",
+  "path_m": 0.23825797033729335,
+  "min_center_to_wall_m": 0.15879736969422328,
+  "map_geometry_and_time_valid": true,
+  "known_cells": 3508
+}

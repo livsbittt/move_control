@@ -1,0 +1,27 @@
+[WARN] [1788853494.099750524] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788853494.146962636] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1788853495.538865803] [safety_node]: safety_node ready | lidar_stop=0.14m us_stop=0.02m linear_sign=1 cam_wall=0 cam_block=0 cliff_mode=low th=800 lidar_yaw=0deg radius=11.4cm filt=5/1.5Hz | E-STOP /estop Bool or /estop/cmd stop|release
+[WARN] [1788853496.152941883] [safety_node]: no IR — cliff unknown
+[WARN] [1788853496.154605982] [safety_node]: no lidar — motion disabled until scan
+[WARN] [1788853496.280191935] [safety_node]: drop scan without mount TF: "base_link" passed to lookupTransform argument target_frame does not exist. 
+[WARN] [1788853498.159475635] [safety_node]: no IR — cliff unknown
+[WARN] [1788853498.165178982] [safety_node]: no lidar — motion disabled until scan
+[INFO] [1788853502.789804774] [safety_node]: auto map corridor=30cm → map=40cm open_max=47cm
+[WARN] [1788853505.223406198] [safety_node]: E-STOP released — motors stay 0 until a new command
+Traceback (most recent call last):
+  File "/tmp/pinky-calibration-spaces/tools/gz/calibration_mapping_rig.py", line 208, in <module>
+    main()
+  File "/tmp/pinky-calibration-spaces/tools/gz/calibration_mapping_rig.py", line 199, in main
+    executor.spin()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 359, in spin
+    self._spin_once_impl()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 757, in _wait_for_ready_callbacks
+    wait_set = _rclpy.WaitSet(
+               ^^^^^^^^^^^^^^^
+rclpy._rclpy_pybind11.RCLError: failed to initialize wait set: the given context is not valid, either rcl_init() was not called or rcl_shutdown() was called., at ./src/rcl/wait.c:130

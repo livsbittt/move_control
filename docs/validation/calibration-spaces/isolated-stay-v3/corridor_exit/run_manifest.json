@@ -1,0 +1,267 @@
+{
+  "run_id": "f0ce7ef1db9d455fa98f3c7c3fdddf66",
+  "recorded_unix_s": 1788854363.9130378,
+  "plant": "wheel",
+  "calibration_case": "corridor_exit",
+  "ros_domain": 227,
+  "gazebo_partition": "pinky_calmap227",
+  "world_sha256": "b48dd239e2ba06e777abdbef455bbaf1c1209b029e9a16c65363b31f688d5d7d",
+  "source_at_start": "2aeeb16+calibration-space-return-v3",
+  "source_sha256": {
+    "config/auto_calib.yaml": "b38fd7c32458c2d6b9542735807aa31a84f67f72b9d6473f855404402883d87e",
+    "config/camera.yaml": "781ce512919d959ffe5cb77decb3447a5f18a53c3a44bb39221ce50fc79ce16a",
+    "config/cliff_calib.yaml": "d3530410654e7599817d46b093305f35844bc07195a1882130034aa63a4ad22d",
+    "config/control.yaml": "0d581c777b02bd5ca77c5dabb33e76da144e50922b130f633139c194a0ca15e2",
+    "config/goal.yaml": "f74a61bd958434ea8a159092b7c0a1f9910562a56f650ca86408c68b074abd52",
+    "config/localization.yaml": "b3e98b60d89d3e48847d14b8a4f5f8f2bad7ace4469d972c7f27cb578b83a825",
+    "config/mapper.yaml": "d259b5412b751d0f43b95f3fc3a667150660871e65b311e3f7d5e1d3354bf37e",
+    "config/robot.yaml": "06bd79550165016b4742a6a4ba79b8466808c163504c7d5d8c025d50bd638d10",
+    "config/safety.yaml": "3b320ce9cf426ace718a2a2ae7e08caddc1d68eb0f620f95e268639ffe8fa5e7",
+    "config/wander.yaml": "8cda78f7d1ff1fbdcdbefd9157649db9639cc3ba2ce07d7b216e72f812e48522",
+    "config/web.yaml": "e50f745f0ccd27cc3df172368e371c4c2a008b609856079e67c37e41701cb5f3",
+    "move_control/__init__.py": "3dae3a2f3d9f1e87d90d4d8bc4e1f3d92d54bd732da9786ef087c8fa42186c37",
+    "move_control/calib_node.py": "fdf3d4c55c4efd019cd9d9d25b6bc8780b7d671070a933390d7bd4e87a9893f9",
+    "move_control/calibration_atomic.py": "6dc08886a867c102af1fc0f0bc48be362c2066bcc6d8f513535143c15892bd45",
+    "move_control/calibration_relocation.py": "d59f3ec55a0921743cbdf67b1d9da499e63e84606d3f51767e75c656c998ae60",
+    "move_control/calibration_rotation.py": "7c2ea55f9aa2424995e0e9b78ee06cb86c7537570b19e837e2127327ed5af67f",
+    "move_control/camera_detect_node.py": "7a6abc6f88ff53559587e0e91c2d78089391d3240dece07ec975e08c1d7ccbdd",
+    "move_control/control/__init__.py": "f3ccf725e6188b39231ad537c6e0db7efe8ebf9447f0d6550df18735d871061d",
+    "move_control/control/calibration.py": "393b8987edf5a449b83c154155894679fc3d1c6df82a08e09e8745c2bb6e9c94",
+    "move_control/control/calibration_certificate.py": "b9445cd7c19f1cc84fc33039b48de237c8a61e4da4092b82a57e8baa9bba0e2d",
+    "move_control/control/calibration_clearance.py": "9891d99e0f8748d9e227bd2beea8ba2ca82b502edf9591c220c4b33356f3d1c1",
+    "move_control/control/calibration_profile.py": "7007afa53df0bbcad68a1be8af3e957ee32a1937541891c0e9d67b3174ef6632",
+    "move_control/control/calibration_relocation.py": "160148fabd31ff0b35d669fcd66d2dda2e8dd44ffd86d2d4e8db1e7ffb3f4de6",
+    "move_control/control/calibration_return.py": "bf5d27b6a7a3e4505edcb88bef9c721d5fe020710c3ffdb45df12326a8b1ab80",
+    "move_control/control/footprint_guard.py": "78788431d454d4e2f2929833c17f7a735180a438cb08f104422c278167766784",
+    "move_control/control/lidar_guard.py": "a49084d4c22fd93a2ab3d0989faa282cf7f5eeeb6b3bda9d5b3960615d06701e",
+    "move_control/control/modes.py": "519aaf984bf400ba2d7e0c45c91011f39b8c506bd286a56db463708d826a85d3",
+    "move_control/control/motion_sweep.py": "052819ecd5f00baf506a4f16f23c705f359509ed17fd23f0a6727306f5287e38",
+    "move_control/control/navigation_calibration.py": "32c2ed6a56c105dc52a874bdae2bb1ec821c74d54c315258335d5de0fa541574",
+    "move_control/control/navigation_session.py": "73a324f5010f1e4629d4a20b545b281e808c8bfbb019028eed8102bc79dd5138",
+    "move_control/control/path_follow.py": "dc7c0e618af98c3c0b38076d5eb061e730f9506004e789f4581467955a9a2bab",
+    "move_control/control/pursuit.py": "1604729ffcdf4560fbc7551342af112d33a75e5c515b4f51beefef6a0c0b38a6",
+    "move_control/control/recover.py": "4d0a1d67a6f6eb63ea1a39d0b7bd3ac27a6a84e74757b03992fa0bd816c4a569",
+    "move_control/control/recovery_budget.py": "ac434ecad527ed61491a8aaf0303b19dd14a400568cffc327f5ddd3e441414dc",
+    "move_control/control/rotation_envelope.py": "2eae3b738710e70bc6e6c6fd8d8e9a36b9ae96da4ece5f5d99c542cff22efb07",
+    "move_control/control/rotation_relocation.py": "5589791924f8e12915ec1e8308ff7eb121fa2e6f58e94661cdc8de629dcc821d",
+    "move_control/control/rotation_trial.py": "4804d712c558e2eab18b90d38fd8806c2410af4eaee9e63334a0a88ac315e245",
+    "move_control/control/round_trip.py": "8ca1693a09b269bdc788067df12b0a683090e5383982b343e52c70d277c175be",
+    "move_control/control/route.py": "7dd664acd7802bc98a50fe28c61a889d87952e6dc2b2509d4cc0855c1fb06d15",
+    "move_control/control/route_recovery.py": "d0ba58f6cdbcff090d4a9506dbbea01b6a64a0f73789e3ea66ed2d0a2d379b59",
+    "move_control/control/safe_trail.py": "f5862abbb4694d794a8001baf73186d6074d3e46a7758320b89f2f55abcd1bb4",
+    "move_control/control/safety_profile.py": "e9799d9523fadbfbacdd2eb1ad754b1db0f7b70ad854cce0feb5d3410aa996d3",
+    "move_control/control/space_speed.py": "565bf5f7bf8af37f9a6a71b3f9a7811205fbe8e3875c3955759356c99f014ec6",
+    "move_control/control/trail_retreat.py": "9df9798374dcf4bf041b1555347165437e1073e6d615a36f3828f9e3d2adb829",
+    "move_control/control_node.py": "1caa91008ef96de1deeec3e97783911a4991ae015544d3c350cc050476495750",
+    "move_control/goal_node.py": "947641fffe20faf3390f2d735270875fbdc0f190fd94a6fc2413bcffbfbd9ae2",
+    "move_control/localization_node.py": "12a7527ac924ba6ebcba7d878acc1659a34b55c178a6ceb9454732771abab8fa",
+    "move_control/planning/__init__.py": "1c18d3d6d10f9206b18f78e8b5f5365a05cdc193282fb7c711c45cdf57abbde6",
+    "move_control/planning/astar.py": "e780b6c70b149f888bf366d3bfa5523042951b4318e556b2fce80853f0e57c33",
+    "move_control/planning/escape.py": "03b51d13c88d90dfe889e28578a18d49fa8bfd6141a8536223ad862803288910",
+    "move_control/planning/frontier.py": "3d1b823371a7c9b8c67d8a1764304e67726b169a298fed3d69789441f20441ff",
+    "move_control/planning/goals.py": "13be4d8d45411afd99667ce6183462cc736e43aace7aad8adda26730f17f0223",
+    "move_control/planning/gridmap.py": "4be712e5ad38e0f77f15cefcd3e575bfe25db75792e8fee695e202ad55e7df1d",
+    "move_control/planning/zigzag.py": "2a414f6e7e179ed5e1cd5a540fe53baddda8071b6a85004f7c4e3d2f2b9adfa3",
+    "move_control/safety/__init__.py": "79955685ea7fc17435d58c8bb13494202c37cc69df24991c70a9f1ef0e422ef3",
+    "move_control/safety/bumper.py": "3db9d305d90f53eda93c1c5948608e21aa73e721c37326cc26e569478712c797",
+    "move_control/safety/evidence.py": "171bc47202e88ee026b6978f4d5185c843a5c4d5042bd9f3d924b9d4486fe58b",
+    "move_control/safety/gate.py": "1a4ceb730ed66b09f1a328bd2fff2040d948f086c43137ecfa4837a574e18050",
+    "move_control/safety/hazard.py": "e5abb5427e41d452d7816a598f5937455c5f275a66d18bb1d780f681a80cd8bb",
+    "move_control/safety/node.py": "0c01475ebde8812b08b56676c0495c58c0675066c90722dfd64c4e1fbe1ba2b6",
+    "move_control/safety/scale.py": "8c2e9b271d755d4be7695a778963652330942e1c4fd413a06fe25e48cb67a41b",
+    "move_control/safety_node.py": "ce25e25f8f5cdf3d100b2c89cc99da06a1e44006adf1f36db62e0df5a0a14bc6",
+    "move_control/sensing/__init__.py": "8549e36075d8078955db834c4ddd5a1af2a378262752e2e13685e286f394be85",
+    "move_control/sensing/battery.py": "fb9ccb1f4e739fa51d39e8cce9878e81f8154c4e01c20c74ad4ec26bb31dabb5",
+    "move_control/sensing/body.py": "079f408b57b8d0c32e450b437d50b393ec773999e9f040b3c748951417357c6b",
+    "move_control/sensing/camera.py": "0331f4144c5b148de5b5c92300c8c66b5eb9a100bcdb26a9d499bb3112c5fc0f",
+    "move_control/sensing/filt.py": "4f8c1fe7a82747696fcc3f163d143110315acc26c5015a34c4e3c9cab6c695a4",
+    "move_control/sensing/lidar.py": "c8ec25044f7f01775ba64c97d44881b3e5b808a90574ee3fb99602cbdc21ae5d",
+    "move_control/sensing/lidar_mount.py": "5df524551939a0251561d4701cba3544bff2d10056f46512a0fdaa2e3ec49dcf",
+    "move_control/sensing/localization.py": "e9ffb557a6e3564d7fd94de0645807727047ce15d9b9148aa09246b54715ec8f",
+    "move_control/sensing/map_pose.py": "74b1ebe59f448bf4e83b32aff190538e293fc5ff2b414f66fa1133dc7b44cdc9",
+    "move_control/sensing/map_raster.py": "eefdd1301c6900df299abb788d194a3438de602fb468b9575ca1f33dc014db2b",
+    "move_control/sensing/observation.py": "430e55a3dc215f8aabc4bf784d5ccf6dc9331c13aeef4cd3c92268f495fcba0f",
+    "move_control/sensing/pose.py": "f24016541bf33134bfd3bbb260ecddff9e2138fd08be83fd487bc62eb3cb3f4f",
+    "move_control/sensing/precision_range.py": "2f6a739c26549dfdbfc91510d6c363932651f1825806bd490d5927cc52603eae",
+    "move_control/sensing/range_filter.py": "c620385b76a9927ffce13714ef2591174d051b80baa3d64ed6ebc45797322238",
+    "move_control/sensing/scan_motion.py": "a0471fbd1d3ec310d12a4136b9d12212a091dcf1e145ec547c33722110bf2ea4",
+    "move_control/sensing/scan_rotation.py": "fa6fe7e8518a82e000b4891404dd17397e79b547c3e661f1d6be8943340f7e6a",
+    "move_control/sensing/wall_tracker.py": "2f8bc18491fc0098e3393c9b85547ea8695a8bb316529ac915c3868721906738",
+    "move_control/startup_calibration_node.py": "0db0167db1544db8feb8c612aa9fd2c5af33eb7d95d21fc3ec5a8d8c956bedb2",
+    "move_control/wander/__init__.py": "c58a97249f00f92e3af2b83792858df167691c5e493c919662a0fca76f4395db",
+    "move_control/wander/contact.py": "2e2bb119980d12d1ba54ba7a026e76abb9cf834f169cccd3708c3524a4ff5858",
+    "move_control/wander/judge.py": "7ad717c4b86219c6a40e237679486e8b50f0b4922ebb49abb61a373e8e90f8b4",
+    "move_control/wander/motion.py": "32241238bd03169abb8a5f1cea123ed926387d971525f4e0416fa8547411416b",
+    "move_control/wander/navigator.py": "4eac139c13e58858d4baf3a87525acddc5d4f3c193df4a37ac749398a1ee3bd6",
+    "move_control/wander/node.py": "1684d61209ac197304f0e13d62c3822b48c35b5295dbc50b718c0104e68f127b",
+    "move_control/wander/senses.py": "9486aea5da5ed205908c0c5c9ee972f092cec9370591d8cf6c3b8ab0f5f3b87a",
+    "move_control/wander_node.py": "4fe57c213de5ac0e981aa7985a80c65183bb11b2d0264516d7e938fa8b16963a",
+    "move_control/watch.py": "6ad009de58817fd91f2feef4390e92f5656c59be7e3d2617db06c0e91344062a",
+    "move_control/watch_node.py": "587632a7642ad20a628a0301abaa2256f6f8c357c9fe5973f810ab33d6cc7e38",
+    "move_control/web_node.py": "ff159584cb1bbc4000bd0559aab7c13da9f66ef8d9fce6bb75adc2662eddd7d0"
+  },
+  "robot_radius_m": 0.11440496612640715,
+  "robot_geometry": {
+    "frame": "model_origin",
+    "method": "transformed_collision_box_envelopes",
+    "radius_m": 0.11440496612640715,
+    "collisions": [
+      {
+        "link": "base",
+        "collision": "col",
+        "method": "box_vertices",
+        "radius_m": 0.08602325267042628
+      },
+      {
+        "link": "base",
+        "collision": "skid_col",
+        "method": "box_vertices",
+        "radius_m": 0.07846177413237608
+      },
+      {
+        "link": "wheel_left",
+        "collision": "col",
+        "method": "cylinder_box_envelope",
+        "radius_m": 0.11440496612640715
+      },
+      {
+        "link": "wheel_right",
+        "collision": "col",
+        "method": "cylinder_box_envelope",
+        "radius_m": 0.11440496612640715
+      }
+    ],
+    "footprint_xy": [
+      [
+        -0.07,
+        -0.05
+      ],
+      [
+        -0.07,
+        -0.05
+      ],
+      [
+        -0.07,
+        0.05
+      ],
+      [
+        -0.07,
+        0.05
+      ],
+      [
+        0.07,
+        -0.05
+      ],
+      [
+        0.07,
+        -0.05
+      ],
+      [
+        0.07,
+        0.05
+      ],
+      [
+        0.07,
+        0.05
+      ],
+      [
+        -0.07250000000000001,
+        -0.03
+      ],
+      [
+        -0.07250000000000001,
+        -0.03
+      ],
+      [
+        -0.07250000000000001,
+        0.03
+      ],
+      [
+        -0.07250000000000001,
+        0.03
+      ],
+      [
+        -0.0575,
+        -0.03
+      ],
+      [
+        -0.0575,
+        -0.03
+      ],
+      [
+        -0.0575,
+        0.03
+      ],
+      [
+        -0.0575,
+        0.03
+      ],
+      [
+        -0.068,
+        0.07199730289614133
+      ],
+      [
+        -0.068,
+        0.09199730280335282
+      ],
+      [
+        -0.068,
+        0.07200269719664719
+      ],
+      [
+        -0.068,
+        0.09200269710385868
+      ],
+      [
+        -0.012,
+        0.07199730289614133
+      ],
+      [
+        -0.012,
+        0.09199730280335282
+      ],
+      [
+        -0.012,
+        0.07200269719664719
+      ],
+      [
+        -0.012,
+        0.09200269710385868
+      ],
+      [
+        -0.068,
+        -0.09200269710385868
+      ],
+      [
+        -0.068,
+        -0.07200269719664719
+      ],
+      [
+        -0.068,
+        -0.09199730280335282
+      ],
+      [
+        -0.068,
+        -0.07199730289614133
+      ],
+      [
+        -0.012,
+        -0.09200269710385868
+      ],
+      [
+        -0.012,
+        -0.07200269719664719
+      ],
+      [
+        -0.012,
+        -0.09199730280335282
+      ],
+      [
+        -0.012,
+        -0.07199730289614133
+      ]
+    ]
+  },
+  "physical_robot_verified": false,
+  "auxiliary_sensors": "Synthetic camera/IR; GT-derived IMU; lidar-derived US"
+}

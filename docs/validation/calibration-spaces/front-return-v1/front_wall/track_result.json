@@ -1,0 +1,16 @@
+{
+  "elapsed_sim_s": 62.035000000000004,
+  "calibration_phase": "aborted",
+  "calibration_ready": false,
+  "message": "Calibration aborted",
+  "map_received": true,
+  "mapping_complete": false,
+  "cmd_vel_publishers": [
+    "safety_node"
+  ],
+  "run_id": "d6dee928f3564c78a8589cd34ce19558",
+  "path_m": 0.0149999192668249,
+  "min_center_to_wall_m": 0.16000000001823916,
+  "map_geometry_and_time_valid": true,
+  "known_cells": 3570
+}

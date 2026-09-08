@@ -1,0 +1,16 @@
+{
+  "elapsed_sim_s": 20.580000000000002,
+  "calibration_phase": "failed",
+  "calibration_ready": false,
+  "message": "Sensor data became stale or invalid: lidar: valid=False, age=0.000s, wall={'status': 'ok', 'locked': True, 'slope': 4.972321076436375e-05, 'intercept': 0.9713781183883577, 'lo': -0.6021386990323663, 'hi': 0.5323253059759736, 'rays': 131, 'residual_m': 0.0016479191800414718, 'excluded_rays': 0, 'raw_residual_m': 0.0016479191800414718, 'outlier_cap_m': 0.01, 'prediction': {'predicted_b': 0.9713770039464148, 'forward_step_m': 0.0007989679495003683, 'dt_s': 0.09499999999999886, 'innovation_m': 1.1144419429509611e-06}, 'compensation': {'yaw_rad': 2.5165597547004026e-08, 'lateral_m': 1.5067449775773126e-09, 'mount_m': [0.0, 0.0], 'forward_odom_used': False}}",
+  "map_received": true,
+  "mapping_complete": false,
+  "cmd_vel_publishers": [
+    "safety_node"
+  ],
+  "run_id": "cdc3d39b672c4f4e8c58c887b52f2f3d",
+  "path_m": 0.09799760309248305,
+  "min_center_to_wall_m": 0.6866426700156804,
+  "map_geometry_and_time_valid": true,
+  "known_cells": 5049
+}

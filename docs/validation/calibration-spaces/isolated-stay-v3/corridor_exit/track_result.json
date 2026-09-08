@@ -1,0 +1,16 @@
+{
+  "elapsed_sim_s": 50.03,
+  "calibration_phase": "failed",
+  "calibration_ready": false,
+  "message": "Rotation needs fresh fully observed clearance around the body",
+  "map_received": true,
+  "mapping_complete": false,
+  "cmd_vel_publishers": [
+    "safety_node"
+  ],
+  "run_id": "f0ce7ef1db9d455fa98f3c7c3fdddf66",
+  "path_m": 0.26341036285054265,
+  "min_center_to_wall_m": 0.14999999695475,
+  "map_geometry_and_time_valid": true,
+  "known_cells": 6106
+}

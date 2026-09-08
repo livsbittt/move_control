@@ -1,0 +1,5 @@
+[WARN] [1788851973.957512858] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788851973.957578227] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1788851974.924263806] [safety_node]: safety_node ready | lidar_stop=0.14m us_stop=0.02m linear_sign=1 cam_wall=0 cam_block=0 cliff_mode=low th=800 lidar_yaw=0deg radius=11.4cm filt=5/1.5Hz | E-STOP /estop Bool or /estop/cmd stop|release
+[INFO] [1788851977.230826510] [safety_node]: auto map corridor=43cm → map=40cm open_max=50cm
+[WARN] [1788851982.514459432] [safety_node]: E-STOP released — motors stay 0 until a new command

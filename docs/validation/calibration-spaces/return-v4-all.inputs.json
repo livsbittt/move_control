@@ -1,0 +1,35 @@
+[
+  {
+    "directory": "docs\\validation\\calibration-spaces\\front-return-v4",
+    "run_id": "83c503edddad4898a61f95dc74ee1831",
+    "input_sha256": {
+      "track_samples.json": "23e4907b8c5f7afcab3f43808659d1756e484ce1d7006254b10173b051e4b219",
+      "track_identity.json": "5ebc87c2fc14e135662c9e668aec95c6fb78ae4bd8b1049f1083fd75bfc4d4e7",
+      "track_map.npz": "2d825a83c3b6ad8057396da14e0399cde8f288b421edefaea4ba26061e301eb6",
+      "track_result.json": "0e24e95432027c524f2aefa4ffe1b1f6a9be3fbe71dbb212918a33b5bab7096b",
+      "run_manifest.json": "219db6f27e426e75fd7083b5f9cd071d3d7559eaa00479ed254f50c415a1b1ff"
+    }
+  },
+  {
+    "directory": "docs\\validation\\calibration-spaces\\rear-return-v4",
+    "run_id": "dbb8bc924c944bd6b041f1e1becf0220",
+    "input_sha256": {
+      "track_samples.json": "e46245ef9ca419a8fc95a2a745e2b6356e351d9245b89a8409f1ec5d9aa7be8f",
+      "track_identity.json": "7156685eecfe5524ad072a03471489eed5435bcde9d502efde48b2451eab52a1",
+      "track_map.npz": "a17ae695bc1d591db7a9e78b6c9f4c4c77474f6d71d0860852d17762096f7147",
+      "track_result.json": "b7565b855eb6a0f2752835dbaa7b9b85224f4a26cf4e139d3bb95559bf9496af",
+      "run_manifest.json": "e570528390265a2d4bc410d4299eb0ec6d785ec3e03687e824babeb304b42de0"
+    }
+  },
+  {
+    "directory": "docs\\validation\\calibration-spaces\\corridor-return-v4",
+    "run_id": "1bee4a6573d34f3d8b54f7f0df975b25",
+    "input_sha256": {
+      "track_samples.json": "c53479566cbab580519cd0b6c58ad7bb8ad233e6a85dca7d2ff88550e85daeb0",
+      "track_identity.json": "3800cd07dc35a041525cf7484847559041bef08e1cdfe4b944c133dc5694323f",
+      "track_map.npz": "14ccd16866c7c617f2a494fafb66a75702e63c44572e162fcf1138a9990a9a10",
+      "track_result.json": "c2d21299656a5e26ca81b105e9434e11bf5b926a1fc5316fea865c415d26a91e",
+      "run_manifest.json": "593da2937a9301c47b2402df9dee79e8591b4d5212d8d81544746b7aa92bf1ad"
+    }
+  }
+]
