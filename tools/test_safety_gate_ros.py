@@ -55,7 +55,7 @@ class SafetyGateTest(unittest.TestCase):
         n.lidar_measurement_time=n.now()
         for field in ('lidar_front','lidar_rear','lidar_left','lidar_right','lidar_rear_left','lidar_rear_right'):
             setattr(n,field,.4)
-        n.lidar_rotation_points=[(.08,0.)]
+        n.lidar_rotation_points=[(.4,0.),(-.4,0.),(0.,.4),(0.,-.4)]
         n.lidar_rotation_clearance=.08
         n.lidar_rotation_observed=True
 
@@ -64,10 +64,32 @@ class SafetyGateTest(unittest.TestCase):
         self.node.on_cmd(command); self.node.tick()
         return self.node.pub.publish.call_args.args[0]
 
+    def test_bounded_translation_is_not_vetoed_by_a_clear_side_return(self):
+        with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}):
+            self.prepare_bounded_sweep()
+            n=self.node
+            n.lidar_front=(.04**2+.1**2)**.5
+            n.lidar_rotation_points=[(.04,.1),(.4,0.),(-.4,0.)]
+            actual=self.bounded_command(.008,0.)
+            self.assertGreater(actual.linear.x,0.)
+            self.assertFalse(n.block_pub.publish.call_args.args[0].data)
+
+    def test_bounded_translation_keeps_current_collision_and_ultrasound_stops(self):
+        with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}):
+            self.prepare_bounded_sweep()
+            n=self.node
+            n.lidar_rotation_points=[(.08,0.),(.4,0.),(-.4,0.)]
+            self.assertEqual(self.bounded_command(.008,0.).linear.x,0.)
+            self.prepare_bounded_sweep()
+            n.us_blocked=True
+            n.us_distance=Mock(return_value=.01)
+            self.assertEqual(self.bounded_command(.008,0.).linear.x,0.)
+
     def test_bounded_sweep_requires_opt_in_and_simulation(self):
         with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
                 patch('move_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
             self.prepare_bounded_sweep(enabled=False)
+            self.node.lidar_rotation_points=[(.08,0.)]
             actual=self.bounded_command()
             self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
             sweep.assert_not_called()

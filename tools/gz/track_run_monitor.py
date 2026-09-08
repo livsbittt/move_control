@@ -58,6 +58,8 @@ def main():
             row = {'sim_s': now, **state, 'calibration': state['calibration'].get('phase'),
                    'ready': state['calibration'].get('ready'), 'message': state['calibration'].get('message')}
             rows.append(json.loads(json.dumps(row)))
+        if os.environ.get('RIG_STOP_FILE') and Path(os.environ['RIG_STOP_FILE']).exists():
+            break
         if (os.environ.get('RIG_CALIBRATION_CASE') and now-start >= 15. and
                 (calibration_seen[0] is None or now-calibration_seen[0] > 3.)):
             observation_error = 'calibration_heartbeat_missing'
@@ -79,6 +81,8 @@ def main():
              'calibration_ready': state['calibration'].get('ready'), 'message': state['calibration'].get('message'),
              'map_received': bool(maps), 'mapping_complete': False,
              'observation_error': observation_error,
+             'operator_requested_stop': bool(os.environ.get('RIG_STOP_FILE') and
+                 Path(os.environ['RIG_STOP_FILE']).exists()),
              'cmd_vel_publishers': [i.node_name for i in node.get_publishers_info_by_topic('/cmd_vel')]}
     stats['run_id'] = json.loads((out/'run_manifest.json').read_text())['run_id']
     if len(points):

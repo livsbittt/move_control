@@ -16,6 +16,34 @@ def _segment_distance(point, a, b):
     return math.hypot(point[0]-a[0]-t*dx,point[1]-a[1]-t*dy)
 
 
+def _tracking_target(route, index, pose, lookahead=.03):
+    """Look along the current straight leg without advancing route provenance."""
+    target=route[index]
+    remaining=lookahead-math.dist(pose[:2],target)
+    direction=(target[0]-route[index-1][0],target[1]-route[index-1][1])
+    for following in route[index+1:]:
+        if remaining <= 0:
+            break
+        delta=(following[0]-target[0],following[1]-target[1])
+        length=math.hypot(*delta)
+        if length <= 1e-12:
+            continue
+        if math.hypot(*direction) <= 1e-12:
+            direction=delta
+        bend=math.atan2(direction[0]*delta[1]-direction[1]*delta[0],
+                        direction[0]*delta[0]+direction[1]*delta[1])
+        # Dense straight breadcrumbs are samples, not separate steering goals.
+        # Keep real bends as targets; current-segment clearance still applies.
+        if abs(bend) > .05:
+            break
+        if length >= remaining:
+            return (target[0]+delta[0]*remaining/length,
+                    target[1]+delta[1]*remaining/length)
+        remaining-=length
+        target=following
+    return target
+
+
 class TrailRetreat:
     """Caller owns freshness, rear hazard checks, route provenance and budget.
 
@@ -90,6 +118,7 @@ class TrailRetreat:
             if turn_clear:
                 return self._stop('complete')
             return 0.,0.,'trail_retreat_endpoint_hold'
+        target=_tracking_target(self.route,self.index,pose)
         desired=math.atan2(target[1]-pose[1],target[0]-pose[0])+math.pi
         error=math.atan2(math.sin(desired-pose[2]),math.cos(desired-pose[2]))
         if abs(error)>.3:

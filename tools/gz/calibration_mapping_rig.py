@@ -194,6 +194,18 @@ def main():
         clock_node.destroy_node()
         nodes = nodes[1:]
     executor = SingleThreadedExecutor()
+    if component == 'wander' and os.environ.get('RIG_NAV_TRACE') == '1':
+        wander = nodes[0]
+        def trace_navigation():
+            print(json.dumps({'sim_s':wander.get_clock().now().nanoseconds*1e-9,
+                'odom':[wander.odom_x,wander.odom_y,wander.odom_yaw],
+                'state':wander.state,'route':wander.navigation_route,
+                'cursor':wander.path_follower.cursor,
+                'trail':wander.safe_trail.samples[-20:],
+                'retreat':vars(wander.trail_retreat),
+                'retreat_hold':wander.trail_retreat_hold,
+                'limits':wander.motion_limits}), flush=True)
+        wander.create_timer(1., trace_navigation)
     for node in nodes:
         executor.add_node(node)
     try:

@@ -7,10 +7,26 @@ It does not establish physical stopping behavior or authorize a full rotation.
 """
 import math
 from numbers import Real
+from .rotation_envelope import straight_translation_limits
 
 
 def _finite_number(value):
     return isinstance(value, Real) and not isinstance(value, bool) and math.isfinite(value)
+
+
+def bounded_translation_limits(points, center, uncertainty, body_radius, scan_age):
+    """Directional prefilter; the final command still needs its full sweep."""
+    try:
+        cx,cy=center
+        if (not all(_finite_number(v) for v in (cx,cy,uncertainty,body_radius,scan_age)) or
+                not 0 <= uncertainty <= .03 or body_radius <= 0 or not 0 <= scan_age <= .2 or
+                len(points) < 3):
+            return None
+        max_center_speed=.014+.10*(math.hypot(cx,cy)+2*uncertainty)
+        padding=max_center_speed*(scan_age+.15)
+        return straight_translation_limits(points,body_radius+2*uncertainty+padding)
+    except (TypeError,ValueError,OverflowError):
+        return None
 
 
 def bounded_sweep_clearance(points, center, uncertainty, body_radius, v, w,

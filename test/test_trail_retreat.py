@@ -1,6 +1,6 @@
 import math
 import pytest
-from move_control.control.trail_retreat import TrailRetreat
+from move_control.control.trail_retreat import TrailRetreat, _tracking_target
 
 
 def started(route=None):
@@ -22,6 +22,44 @@ def test_curve_correction_turns_toward_reverse_heading():
     r=started([(0,0),(-.1,-.01)])
     v,w,reason=r.update(.1,(0,0,0),'g1',True,False)
     assert -.006<v<0 and w==.04 and reason=='trail_retreat'
+
+
+def test_dense_straight_trail_does_not_turn_toward_a_nearly_reached_sample():
+    r=started([(0,0),(-.01,0),(-.02,0),(-.03,0),(-.1,0)])
+    # Two mm of lateral error is trackable; aiming at the sample only three
+    # mm behind turns this into a spurious 34-degree heading failure.
+    v,w,reason=r.update(.1,(-.007,.002,0),'g1',True,False)
+    assert v < 0 and 0 < w <= .04 and reason == 'trail_retreat'
+
+
+def test_reverse_lookahead_does_not_skip_a_sharp_corner():
+    r=started([(0,0),(-.01,0),(-.01,.1)])
+    assert r.update(.1,(-.007,0,0),'g1',True,False)[2] == 'trail_retreat_heading'
+
+
+def test_dense_trail_closed_loop_reaches_refuge_with_lateral_error():
+    r=started([(0,0)]+[(-i*.01,0) for i in range(1,11)])
+    x,y,yaw=0.,.002,0.
+    for tick in range(1,401):
+        v,w,reason=r.update(tick*.1,(x,y,yaw),'g1',True,True)
+        if reason == 'trail_retreat_complete':
+            break
+        assert reason == 'trail_retreat'
+        x+=v*math.cos(yaw)*.1
+        y+=v*math.sin(yaw)*.1
+        yaw+=w*.1
+    assert reason == 'trail_retreat_complete'
+    assert math.hypot(x+.1,y) <= .005
+
+
+def test_lookahead_does_not_use_a_later_crossing_as_clearance():
+    r=started([(0,0),(-.01,0),(-.03,0),(-.03,.03),(0,.03)])
+    assert r.update(.1,(0,.03,0),'g1',True,False) == (0.,0.,'trail_retreat_off_route')
+
+
+def test_duplicate_xy_sample_does_not_hide_a_following_corner():
+    route=[(0,0),(0,0),(-.01,0),(-.01,.02)]
+    assert _tracking_target(route,1,(0,.004,0)) == (-.01,0)
 
 
 @pytest.mark.parametrize('now,pose,identity,safe,reason',[

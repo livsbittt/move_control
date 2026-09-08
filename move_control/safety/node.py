@@ -20,7 +20,7 @@ from ..sensing.lidar import NOSE_YAW
 from ..sensing.localization import lease_ready
 from ..control.lidar_guard import lidar_blocked, lidar_can_rotate
 from ..control.rotation_envelope import pivot_clearance, suggest_rotation_translation, straight_translation_limits
-from ..control.motion_sweep import bounded_sweep_clearance
+from ..control.motion_sweep import bounded_sweep_clearance, bounded_translation_limits
 from .bumper import Bumper
 from .gate import Gate
 from .hazard import Hazard
@@ -376,6 +376,23 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
             self.get_parameter('use_sim_time').value and os.environ.get('ROS_DOMAIN_ID') == '227' and
             os.environ.get('GZ_PARTITION') == 'pinky_calmap227' and not rotation_trial and
             (rotation_estimate is not None or self.calibration_lease.rotation_estimate_required()))
+        bounded_travel = None
+        if bounded_motion:
+            # The commissioned sweep owns translation geometry too. A radial
+            # sector threshold otherwise vetoes a clear corridor before the
+            # actual command can reach the full swept-body check below.
+            source_age = self.age(getattr(self, 'lidar_measurement_time', None))
+            scan_age = max(self.age(self.last_scan_time), source_age)
+            if (rotation_estimate is not None and lidar_ok and
+                    getattr(self, 'lidar_rotation_observed', False) and 0 <= source_age <= .2):
+                bounded_travel = bounded_translation_limits(self.lidar_rotation_points,
+                    rotation_estimate['center_m'], rotation_estimate['center_uncertainty_m'],
+                    body_radius, scan_age)
+            self.blocked = (bounded_travel is None or lidar_blocked(
+                bounded_travel[0], bounded_travel[0], previous_front, 0., .001, True))
+            self.rear_blocked = (bounded_travel is None or lidar_blocked(
+                bounded_travel[1], bounded_travel[1], previous_rear, 0., .001, True))
+            can_rev = not self.rear_blocked
         if rotation_trial and (self.last_cmd.linear.x != 0. or abs(self.last_cmd.angular.z) > .06):
             can_rotate = False
         if translation_trial:
@@ -392,6 +409,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
         self.motion_limits_pub.publish(String(data=json.dumps({
             'can_rotate': can_rotate,
             'bounded_motion_enabled': bounded_motion,
+            'bounded_translation_limits_m': bounded_travel,
             'geometry_revision': self.profile.revision if self.profile_valid else None,
             'front_stop_m': .043-self.lidar_mount[0]+.010 if footprint else self.stop_d,
             'front_clear_m': .043-self.lidar_mount[0]+.020 if footprint else self.clear_d,
