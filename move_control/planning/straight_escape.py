@@ -4,8 +4,8 @@ import numpy as np
 from ..control.footprint_sweep import _hull, _clearance
 
 
-def straight_escape(m, pose, footprint, margin, hard_clearance, target=None):
-    """Advisory forward-only escape; full occupied/unknown cells block it."""
+def straight_escape(m, pose, footprint, margin, hard_clearance, target=None, travel=(.12,.12)):
+    """Fixed-heading escape; live full-segment travel is also required."""
     try:
         x,y,yaw=pose
         if not all(math.isfinite(v) for v in (*pose,margin,hard_clearance)) or margin<.01:
@@ -20,12 +20,14 @@ def straight_escape(m, pose, footprint, margin, hard_clearance, target=None):
         # The circumscribed cell disk includes corners and entire cell edges.
         padded=margin+m.res/math.sqrt(2)
         grid=m.inflate(hard_clearance/m.res)
+        if len(travel)!=2 or not all(math.isfinite(v) and 0<=v<=.12 for v in travel):return None
         candidates=[target] if target is not None else [
-            (x+c*d,y+s*d) for d in np.arange(.02,.1201,.01)]
+            (x+c*d*sign,y+s*d*sign) for sign in (1.,-1.) for d in np.arange(.02,.1201,.01)]
         for end in candidates:
             dx,dy=end[0]-x,end[1]-y
             distance=c*dx+s*dy
-            if not .001<=distance<=.121 or abs(-s*dx+c*dy)>.003:continue
+            if not .001<=abs(distance)<=.121 or abs(-s*dx+c*dy)>.003:continue
+            if abs(distance)+.002>travel[int(distance<0)]:continue
             if not grid.is_free(*grid.world_to_grid(*end)):continue
             if not all(grid.is_free(*grid.world_to_grid(end[0]+a,end[1]+b))
                        for a in (-.004,.004) for b in (-.004,.004)):continue

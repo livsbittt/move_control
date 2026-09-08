@@ -167,7 +167,7 @@ class Navigator:
                 (self.odom_x,self.odom_y,self.odom_yaw))
             command=Twist()
             command.linear.x=velocity or 0.
-            self.state='forward' if velocity else 'wait'
+            self.state='forward' if velocity and velocity>0 else 'backup' if velocity else 'wait'
             self._publish(command,'route_'+str(self.navigation_mode)+':'+reason)
             return
         if self.trail_retreat.active or self.trail_retreat_hold is not None:

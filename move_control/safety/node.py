@@ -378,6 +378,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
             os.environ.get('GZ_PARTITION') == 'pinky_calmap227' and not rotation_trial and
             (rotation_estimate is not None or self.calibration_lease.rotation_estimate_required()))
         bounded_travel = None
+        planning_escape_travel = None
         if bounded_motion:
             # The commissioned sweep owns translation geometry too. A radial
             # sector threshold otherwise vetoes a clear corridor before the
@@ -390,6 +391,8 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
                 if trusted_shape:
                     bounded_travel=footprint_translation_limits(self.lidar_rotation_points,trusted_shape,
                         rotation_estimate['center_m'],rotation_estimate['center_uncertainty_m'],body_radius,scan_age)
+                    planning_escape_travel=footprint_translation_limits(self.lidar_rotation_points,trusted_shape,
+                        rotation_estimate['center_m'],rotation_estimate['center_uncertainty_m'],body_radius,.2,.12) if 0<=scan_age<=.2 else None
                 else:
                     bounded_travel = bounded_translation_limits(self.lidar_rotation_points,
                         rotation_estimate['center_m'], rotation_estimate['center_uncertainty_m'],
@@ -416,6 +419,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
             'can_rotate': can_rotate,
             'bounded_motion_enabled': bounded_motion,
             'bounded_translation_limits_m': bounded_travel,
+            'planning_escape_limits_m': planning_escape_travel,
             'bounded_geometry': ('trusted_footprint' if rotation_estimate and rotation_estimate.get('footprint_xy')
                                  else 'body_circle') if bounded_motion else None,
             'geometry_revision': self.profile.revision if self.profile_valid else None,

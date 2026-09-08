@@ -5,6 +5,7 @@ import pytest
 from move_control.planning.gridmap import OccupancyMap
 from move_control.planning.straight_escape import straight_escape
 from move_control.control.straight_escape import StraightEscape
+from move_control.control.footprint_sweep import footprint_translation_limits
 
 
 def test_actual_corner_has_a_short_fixed_heading_exit():
@@ -69,3 +70,31 @@ def test_executor_requires_position_completion():
     for index in range(1,196):
         e.update(index*.1,(index*.0005,0.,0.),intent,True)
     assert e.update(19.6,(.098,0.,0.),intent,True)==(0.,'complete')
+
+
+def test_reverse_escape_keeps_yaw_and_direction():
+    e=StraightEscape(); intent=dict(id='reverse',target=[-.1,0.],yaw=0.)
+    assert e.update(0.,(0.,0.,0.),intent,True)==(-.006,'straight_escape')
+
+
+def test_sensor_travel_selects_reverse_and_rejects_missing_full_segment():
+    m,shape=scene()
+    target=straight_escape(m,(0.,0.,0.),shape,.01,.06,travel=(.001,.12))
+    assert target is not None and target[0]<0
+    assert straight_escape(m,(0.,0.,0.),shape,.01,.06,travel=(.001,.001)) is None
+
+
+def test_actual_lidar_blocked_forward_escape_selects_observed_reverse():
+    folder=Path(__file__).parents[1]/'docs/validation/mapping-finish-2026-09-08/v5-forward-escape'
+    saved=np.load(folder/'track_map.npz'); arr=saved['data']
+    m=OccupancyMap(arr.shape[1],arr.shape[0],float(saved['resolution']),saved['origin']); m.data=arr.ravel().tolist()
+    scan=json.loads((folder/'corner_scan.json').read_text()); r=scan['limits']['rotation_estimate']
+    travel=footprint_translation_limits(scan['scan']['points'],r['footprint_xy'],r['center_m'],
+        r['center_uncertainty_m'],r['body_radius_m'],.1,.12)
+    pose=(.42007386,-.38425686,-.31412414)
+    target=straight_escape(m,pose,r['footprint_xy'],.01+2*r['center_uncertainty_m'],.134405,travel=travel)
+    assert travel[0]<.002
+    assert target is not None and target[0]<pose[0]
+    aged=footprint_translation_limits(scan['scan']['points'],r['footprint_xy'],r['center_m'],
+        r['center_uncertainty_m'],r['body_radius_m'],.2,.12)
+    assert aged==(0.,0.)

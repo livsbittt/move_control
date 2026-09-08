@@ -10,6 +10,7 @@ class StraightEscape:
         self.failed=False
         self.previous=None
         self.distance=0.
+        self.direction=None
 
     def update(self, now, pose, intent, safe, odom=None):
         if intent is None:
@@ -27,6 +28,7 @@ class StraightEscape:
                 self.identity=identity
                 self.started=now
                 self.origin=tuple(pose)
+                self.direction=1 if math.cos(yaw)*(target[0]-pose[0])+math.sin(yaw)*(target[1]-pose[1])>0 else -1
             if identity!=self.identity or self.failed or not 0<=now-self.started<30.:
                 raise ValueError()
             if self.previous is not None:
@@ -46,8 +48,8 @@ class StraightEscape:
                 raise ValueError()
             if math.hypot(dx,dy)<=.003:
                 return 0.,'complete'
-            if not 0<along<=.121:raise ValueError()
-            return min(.006,along),'straight_escape'
+            if not 0<along*self.direction<=.121:raise ValueError()
+            return math.copysign(min(.006,abs(along)),along),'straight_escape'
         except (KeyError,TypeError,ValueError,OverflowError):
             self.failed=True
             return 0.,'straight_escape_stopped'

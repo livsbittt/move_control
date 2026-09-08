@@ -102,9 +102,10 @@ def footprint_sweep_clearance(points, footprint, center, uncertainty, body_radiu
         return None
 
 
-def footprint_translation_limits(points, footprint, center, uncertainty, body_radius, scan_age):
+def footprint_translation_limits(points, footprint, center, uncertainty, body_radius, scan_age, maximum=.03):
     """Safe observed straight travel, capped at 3 cm; no motor authority."""
     try:
+        if not _number(maximum) or not 0<maximum<=.12:return None
         obstacles,hull,_,margin=_geometry(points,footprint,center,uncertainty,body_radius,scan_age)
         if _clearance(obstacles,hull)<=margin:
             return (0.,0.)
@@ -114,10 +115,10 @@ def footprint_translation_limits(points, footprint, center, uncertainty, body_ra
                 # Convex polygon + translation segment is exactly this hull.
                 swept=_hull(np.vstack((hull,hull+np.array([sign*distance,0.]))))
                 return _clearance(obstacles,swept)>margin
-            if clear(.03):
-                limits.append(.03)
+            if clear(maximum):
+                limits.append(maximum)
                 continue
-            low,high=0.,.03
+            low,high=0.,maximum
             for _ in range(10):
                 middle=(low+high)/2
                 if clear(middle):low=middle

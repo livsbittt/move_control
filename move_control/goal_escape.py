@@ -52,7 +52,8 @@ class GoalEscape:
                     return False
                 if valid:
                     target=straight_escape(m,pose,report['footprint_xy'],margin,
-                        self.brain.start_escape_clear_m,active['target'] if active else None)
+                        self.brain.start_escape_clear_m,active['target'] if active else None,
+                        limits['planning_escape_limits_m'])
             except (KeyError,TypeError,ValueError):
                 target=None
         if target is None:
