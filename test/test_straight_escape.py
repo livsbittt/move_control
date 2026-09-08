@@ -70,11 +70,21 @@ def test_executor_requires_position_completion():
     for index in range(1,196):
         e.update(index*.1,(index*.0005,0.,0.),intent,True)
     assert e.update(19.6,(.098,0.,0.),intent,True)==(0.,'complete')
+    assert e.update(19.7,(.094,0.,0.),intent,True,odom=(.098,0.,0.))==(0.,'complete')
 
 
 def test_reverse_escape_keeps_yaw_and_direction():
     e=StraightEscape(); intent=dict(id='reverse',target=[-.1,0.],yaw=0.)
     assert e.update(0.,(0.,0.,0.),intent,True)==(-.006,'straight_escape')
+
+
+def test_completed_executor_accepts_next_region_only_after_continuous_travel():
+    e=StraightEscape(); intent=dict(id='one',target=[.02,0.],yaw=0.)
+    e.update(1.,(0.,0.,0.),intent,True)
+    for i in range(1,41):e.update(1+i*.1,(i*.0005,0.,0.),intent,True)
+    assert e.completed
+    for i in range(1,301):e.update(5+i*.1,(.02+i*.001,0.,0.),None,True)
+    assert e.update(35.1,(.32,0.,0.),dict(id='two',target=[.35,0.],yaw=0.),True)[0]>.0
 
 
 def test_sensor_travel_selects_reverse_and_rejects_missing_full_segment():

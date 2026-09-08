@@ -42,6 +42,9 @@ class Navigator:
         self.straight_escape=StraightEscape()
         self.straight_escape_intent=None
         self.straight_escape_seen=None
+        self.straight_escape_reported=None
+        self.straight_escape_reported_at=-math.inf
+        self.straight_escape_result_pub=self.create_publisher(String,'/goal/straight_escape_result',10)
         self.create_subscription(String,'/goal/straight_escape',self._on_straight_escape,10)
         self.navigation_tf = Buffer()
         self.navigation_listener = TransformListener(self.navigation_tf, self)
@@ -133,7 +136,7 @@ class Navigator:
                 return
             self.straight_escape_intent=intent
             self.straight_escape_seen=now
-            if intent is None and self.straight_escape.identity is not None:
+            if intent is None and self.straight_escape.identity is not None and not self.straight_escape.completed:
                 self.straight_escape.failed=True
         except (TypeError,ValueError,KeyError):
             self.straight_escape_intent=None
@@ -154,6 +157,9 @@ class Navigator:
         age = math.inf if self.navigation_received is None else max(
             now - self.navigation_received, now - self.navigation_stamp)
         intent=self.straight_escape_intent
+        if intent is None:
+            self.straight_escape.budget.observe(now,
+                (self.odom_x,self.odom_y,self.odom_yaw) if self._odom_fresh() else None)
         if intent is not None:
             limits=self.motion_limits
             safe=(os.environ.get('ROS_DOMAIN_ID')=='227' and os.environ.get('GZ_PARTITION')=='pinky_calmap227'
@@ -169,6 +175,12 @@ class Navigator:
             command.linear.x=velocity or 0.
             self.state='forward' if velocity and velocity>0 else 'backup' if velocity else 'wait'
             self._publish(command,'route_'+str(self.navigation_mode)+':'+reason)
+            if reason=='complete' and (self.straight_escape_reported!=intent['id'] or now-self.straight_escape_reported_at>=.2):
+                self.straight_escape_result_pub.publish(String(data=json.dumps(dict(
+                    id=intent['id'],geometry=intent['geometry'],status='complete',
+                    pose=list(pose[:2]),issued_s=now))))
+                self.straight_escape_reported=intent['id']
+                self.straight_escape_reported_at=now
             return
         if self.trail_retreat.active or self.trail_retreat_hold is not None:
             v, w, reason = 0., 0., 'trail_retreat'

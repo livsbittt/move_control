@@ -12,6 +12,19 @@ from move_control.goal_node import GoalNode, grid_clearance
 
 
 class GoalRouteTest(unittest.TestCase):
+    def test_escape_completion_requires_current_matching_execution_ack(self):
+        n=self.node; n.escape_pub=Mock(); now=n.get_clock().now().nanoseconds*1e-9
+        n.escape_intent=dict(id='one',geometry='g',target=[.1,0.],yaw=0.)
+        n.escape_budget.observe(now,(0.,0.)); n.escape_budget.begin('one',now)
+        packet=dict(id='one',geometry='g',pose=[.1,0.],status='complete',issued_s=now)
+        n.on_escape_result(String(data=json.dumps({**packet,'id':'old'})))
+        self.assertIsNotNone(n.escape_intent)
+        n.on_escape_result(String(data=json.dumps({**packet,'issued_s':now-1.})))
+        self.assertIsNotNone(n.escape_intent)
+        n.on_escape_result(String(data=json.dumps(packet)))
+        self.assertIsNone(n.escape_intent)
+        self.assertTrue(n.escape_budget.completed)
+
     def test_stale_map_revokes_separate_escape_intent(self):
         self.known_map(); n=self.node
         n.mode='explore'; n.escape_pub=Mock()

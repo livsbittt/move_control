@@ -204,6 +204,9 @@ def main():
                 'trail':wander.safe_trail.samples[-20:],
                 'retreat':vars(wander.trail_retreat),
                 'retreat_hold':wander.trail_retreat_hold,
+                'straight_escape':{'identity':wander.straight_escape.identity,
+                    'completed':wander.straight_escape.completed,'failed':wander.straight_escape.failed,
+                    'distance':wander.straight_escape.distance,'budget':vars(wander.straight_escape.budget)},
                 'limits':wander.motion_limits}), flush=True)
         wander.create_timer(1., trace_navigation)
     for node in nodes:

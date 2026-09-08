@@ -33,6 +33,7 @@ from .planning import GoalBrain, OccupancyMap, parse_goal_cmd
 from .sensing.localization import lease_ready
 from .sensing.pose import planar_pose
 from .goal_escape import GoalEscape
+from .control.escape_budget import EscapeBudget
 
 
 def grid_clearance(distance, resolution):
@@ -220,6 +221,7 @@ class GoalNode(Node, GoalEscape):
         self.have_odom = True
         now = self.get_clock().now().nanoseconds * 1e-9
         self._hist.append((now, p.x, p.y))
+        self.escape_budget.observe(now,(p.x,p.y))
         cut = now - 5.0
         while self._hist and self._hist[0][0] < cut:
             self._hist.pop(0)
@@ -276,6 +278,7 @@ class GoalNode(Node, GoalEscape):
         if cmd == 'reset':
             self.escape_intent=None
             self.escape_used=False
+            self.escape_budget=EscapeBudget()
             self.publish_escape(None)
             self.mode = 'stop'
             self.brain.reset()
@@ -289,6 +292,7 @@ class GoalNode(Node, GoalEscape):
         if cmd in ('explore', 'explore_nearest', 'coverage', 'stop'):
             self.escape_intent=None
             self.escape_used=False
+            self.escape_budget=EscapeBudget()
             self.publish_escape(None)
             if cmd in ('explore','explore_nearest'):
                 self.brain.frontier_strategy='nearest' if cmd=='explore_nearest' else 'gain'
@@ -306,6 +310,7 @@ class GoalNode(Node, GoalEscape):
         if xy is not None:
             self.escape_intent=None
             self.escape_used=False
+            self.escape_budget=EscapeBudget()
             self.publish_escape(None)
             self.mode = 'manual'
             self.brain.mode = 'manual'
@@ -406,6 +411,7 @@ class GoalNode(Node, GoalEscape):
     def _clear_route(self, status=None):
         if status != 'escape: fixed-heading translation to planning clearance' and self.escape_intent is not None:
             self.escape_intent=None
+            self.escape_budget.failed=True
             self.publish_escape(None)
         """Revoke old routes immediately; silence is not a stop command."""
         self.issued_routes.clear()

@@ -6,6 +6,7 @@ import time
 import uuid
 from std_msgs.msg import String
 from .planning.straight_escape import straight_escape
+from .control.escape_budget import EscapeBudget
 
 
 class GoalEscape:
@@ -14,8 +15,24 @@ class GoalEscape:
         self.escape_seen=None
         self.escape_intent=None
         self.escape_used=False
+        self.escape_budget=EscapeBudget()
         self.escape_pub=self.create_publisher(String,'/goal/straight_escape',10)
         self.create_subscription(String,'/safety/motion_limits',self.on_escape_limits,10)
+        self.create_subscription(String,'/goal/straight_escape_result',self.on_escape_result,10)
+
+    def on_escape_result(self,msg):
+        try:
+            result=json.loads(msg.data); active=self.escape_intent
+            if (active is None or result['id']!=active['id'] or result['geometry']!=active['geometry'] or
+                    result['status']!='complete' or
+                    not 0<=self.get_clock().now().nanoseconds*1e-9-result['issued_s']<=.5 or
+                    len(result['pose'])!=2 or not all(math.isfinite(v) for v in result['pose']) or
+                    math.dist(result['pose'],active['target'])>.003):return
+            self.escape_intent=None
+            self.escape_budget.complete()
+            self.publish_escape(None)
+        except (KeyError,TypeError,ValueError):
+            return
 
     def on_escape_limits(self,msg):
         try:
@@ -30,7 +47,8 @@ class GoalEscape:
     def escape_plan(self,m,pose,status=None):
         """Return true when a separate straight intent owns this planning tick."""
         active=self.escape_intent
-        if not active and (self.escape_used or status!='planning blocked: robot inside obstacle clearance'):
+        now=self.get_clock().now().nanoseconds*1e-9
+        if not active and (status!='planning blocked: robot inside obstacle clearance' or not self.escape_budget.eligible(now)):
             return False
         limits=self.escape_limits
         valid=(os.environ.get('ROS_DOMAIN_ID')=='227' and os.environ.get('GZ_PARTITION')=='pinky_calmap227'
@@ -47,9 +65,9 @@ class GoalEscape:
                         abs(math.atan2(math.sin(pose[2]-active['yaw']),math.cos(pose[2]-active['yaw'])))>.02):
                     valid=False
                 if active and math.dist(pose[:2],active['target'])<=.003:
-                    self.escape_intent=None
-                    self.publish_escape(None)
-                    return False
+                    self._clear_route('escape: fixed-heading translation to planning clearance')
+                    self.publish_escape({**active,'issued_s':now})
+                    return True
                 if valid:
                     target=straight_escape(m,pose,report['footprint_xy'],margin,
                         self.brain.start_escape_clear_m,active['target'] if active else None,
@@ -59,6 +77,7 @@ class GoalEscape:
         if target is None:
             if active:
                 self.escape_intent=None
+                self.escape_budget.failed=True
                 self.publish_escape(None)
                 self._clear_route('planning blocked: straight escape evidence lost')
                 return True
@@ -66,6 +85,7 @@ class GoalEscape:
         if active is None:
             self.escape_used=True
             active=dict(id=uuid.uuid4().hex,target=target,yaw=pose[2],geometry=limits['geometry_revision'])
+            if not self.escape_budget.begin(active['id'],now):return False
             self.escape_intent=active
         self._clear_route('escape: fixed-heading translation to planning clearance')
         self.publish_escape({**active,'issued_s':self.get_clock().now().nanoseconds*1e-9})

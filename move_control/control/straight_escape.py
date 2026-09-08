@@ -1,5 +1,6 @@
 """A fixed-budget, fixed-heading escape executor; no ROS or motor authority."""
 import math
+from .escape_budget import EscapeBudget
 
 
 class StraightEscape:
@@ -11,8 +12,12 @@ class StraightEscape:
         self.previous=None
         self.distance=0.
         self.direction=None
+        self.budget=EscapeBudget()
+        self.completed=False
 
     def update(self, now, pose, intent, safe, odom=None):
+        odom=pose if odom is None else odom
+        self.budget.observe(now,odom)
         if intent is None:
             return None,'inactive'
         try:
@@ -24,11 +29,15 @@ class StraightEscape:
                     len(pose)!=3 or len(odom)!=3 or len(target)!=2 or
                     not all(math.isfinite(v) for v in (now,*pose,*odom,*target,yaw))):
                 raise ValueError()
-            if self.identity is None:
+            if self.identity!=identity:
+                if self.failed or not self.budget.begin(identity,now):raise ValueError()
                 self.identity=identity
                 self.started=now
                 self.origin=tuple(pose)
+                self.previous=None; self.distance=0.; self.completed=False
                 self.direction=1 if math.cos(yaw)*(target[0]-pose[0])+math.sin(yaw)*(target[1]-pose[1])>0 else -1
+            if self.completed and identity==self.identity:
+                return 0.,'complete'
             if identity!=self.identity or self.failed or not 0<=now-self.started<30.:
                 raise ValueError()
             if self.previous is not None:
@@ -47,6 +56,8 @@ class StraightEscape:
             if abs(error)>.02 or abs(lateral)>.003:
                 raise ValueError()
             if math.hypot(dx,dy)<=.003:
+                self.completed=True
+                self.budget.complete()
                 return 0.,'complete'
             if not 0<along*self.direction<=.121:raise ValueError()
             return math.copysign(min(.006,abs(along)),along),'straight_escape'
