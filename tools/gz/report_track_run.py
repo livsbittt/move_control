@@ -16,6 +16,10 @@ def main():
     identity = json.loads((folder/'track_identity.json').read_text())
     result = json.loads((folder/'track_result.json').read_text())
     rows = json.loads((folder/'track_samples.json').read_text())
+    quality_path = folder/'track_map_quality.json'
+    if (folder/'track_map_audit.json').exists():
+        quality_path = folder/'track_map_audit.json'
+    quality = json.loads(quality_path.read_text()) if quality_path.exists() else {}
     fig, (ax, motion) = plt.subplots(2, 1, figsize=(12, 8), gridspec_kw={'height_ratios': [3, 1]})
     ax.set_facecolor('#aaaaaa')
     if (folder/'track_map.npz').exists():
@@ -34,8 +38,16 @@ def main():
         ax.scatter(*points[0], color='#00a060', s=45, label='Start')
     ax.set(xlim=(-1.45,1.45), ylim=(-.73,.73), aspect='equal', xlabel='World x (m)', ylabel='World y (m)')
     ax.legend(loc='upper left')
+    topology = quality.get('topology', {})
+    if topology.get('sealed_centroid_m'):
+        ax.annotate('Sealed pocket: no entry / no lidar line of sight',
+                    xy=topology['sealed_centroid_m'], xytext=(-1.3, -.72),
+                    color='#9a251e', fontsize=9,
+                    arrowprops={'arrowstyle': '->', 'color': '#9a251e'})
+    unknown = quality.get('interior_unknown_fraction')
+    coverage = f' | Unknown interior: {unknown:.1%}' if unknown is not None else ''
     ax.set_title('map_260905.world — original scale and all 16 collision walls\n'
-                 f"Calibration: {result['calibration_phase']} | Partial SLAM map; full mapping NOT established")
+                 f"Calibration: {result['calibration_phase']}{coverage} | Full mapping NOT established")
     motion.plot([r['sim_s'] for r in rows], [r['safe'][0] for r in rows], label='Final linear m/s')
     motion.plot([r['sim_s'] for r in rows], [r['safe'][1] for r in rows], label='Final angular rad/s')
     motion.set(xlabel='Simulation time (s)', ylabel='Safety output')

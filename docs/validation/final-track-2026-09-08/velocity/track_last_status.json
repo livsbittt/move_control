@@ -1,0 +1,271 @@
+{
+  "calibration": {
+    "phase": "ready",
+    "ready": true,
+    "rotation": {
+      "angular_gains": [
+        0.9992384024486227,
+        1.010042749526212
+      ],
+      "done": true,
+      "error": null,
+      "geometry_commissioned": false,
+      "legs": [
+        {
+          "commanded_rad": 0.1862399999999999,
+          "direction": 1,
+          "measured_rad": 0.18325957003980875,
+          "ratio": 1.016263434207249
+        },
+        {
+          "commanded_rad": 0.18312000000000003,
+          "direction": -1,
+          "measured_rad": 0.18325957003980875,
+          "ratio": 0.999238402448623
+        },
+        {
+          "commanded_rad": 0.18707999999999972,
+          "direction": -1,
+          "measured_rad": 0.18325957003980875,
+          "ratio": 1.0208470966038012
+        },
+        {
+          "commanded_rad": 0.18000000000000002,
+          "direction": 1,
+          "measured_rad": 0.18325957003980875,
+          "ratio": 0.9822133706899964
+        },
+        {
+          "commanded_rad": 0.18585834285544395,
+          "direction": 1,
+          "measured_rad": 0.18325957003980875,
+          "ratio": 1.0141808300383477
+        },
+        {
+          "commanded_rad": 0.17847455384128175,
+          "direction": -1,
+          "measured_rad": 0.18325957003980875,
+          "ratio": 0.9738894061713254
+        },
+        {
+          "commanded_rad": 0.18720132319718807,
+          "direction": -1,
+          "measured_rad": 0.18325957003980875,
+          "ratio": 1.021509125861875
+        },
+        {
+          "commanded_rad": 0.17902355218269506,
+          "direction": 1,
+          "measured_rad": 0.18325957003980875,
+          "ratio": 0.9768851479014519
+        }
+      ],
+      "max_angular_rad_s": 0.06
+    },
+    "rotation_verified": true,
+    "rotation_required_for_new_trial": true,
+    "profile_revision": "fc78f80cb2a979f7",
+    "calibration_verified": true,
+    "message": "Saved calibration retained; sensor checks recovered",
+    "auto_motion": true,
+    "us_precision_required": false,
+    "elapsed_s": 388.0,
+    "sensors": {
+      "lidar": {
+        "ok": true,
+        "eligible": true,
+        "status": "ok",
+        "samples": 51,
+        "detail": "Live sensor data valid; stationary limits do not apply during driving"
+      },
+      "odom": {
+        "ok": true,
+        "eligible": true,
+        "status": "ok",
+        "samples": 102,
+        "detail": "Live sensor data valid; stationary limits do not apply during driving"
+      },
+      "ir": {
+        "ok": true,
+        "eligible": true,
+        "status": "ok",
+        "samples": 102,
+        "detail": "Live sensor data valid; stationary limits do not apply during driving"
+      },
+      "imu": {
+        "ok": true,
+        "eligible": true,
+        "status": "ok",
+        "samples": 102,
+        "detail": "Live sensor data valid; stationary limits do not apply during driving"
+      },
+      "us": {
+        "ok": true,
+        "eligible": true,
+        "status": "ok",
+        "samples": 51,
+        "detail": "Live sensor data valid; stationary limits do not apply during driving"
+      },
+      "camera": {
+        "ok": true,
+        "eligible": true,
+        "status": "ok",
+        "samples": 102,
+        "detail": "Live sensor data valid; stationary limits do not apply during driving"
+      },
+      "tf": {
+        "ok": true,
+        "eligible": true,
+        "status": "ok",
+        "samples": 101,
+        "detail": "Live sensor data valid; stationary limits do not apply during driving"
+      },
+      "map": {
+        "ok": true,
+        "eligible": true,
+        "status": "ok",
+        "samples": 11,
+        "detail": "Live sensor data valid; stationary limits do not apply during driving"
+      },
+      "map_tf": {
+        "ok": true,
+        "eligible": true,
+        "status": "ok",
+        "samples": 101,
+        "detail": "Live sensor data valid; stationary limits do not apply during driving"
+      }
+    },
+    "motion": {
+      "cycle": 2,
+      "done": true,
+      "error": null,
+      "forward_scale": 1.0027803793095211,
+      "last_leg_evidence": {
+        "commanded_m": 0.03397763357838057,
+        "direction": "reverse",
+        "evidence": {
+          "distance_m": 0.03409024884114181,
+          "forward_m": -0.03409024884114181,
+          "lateral_m": 0.0,
+          "lidar_delta_m": -0.034090652061048166,
+          "map_forward_m": -0.03409024884114181,
+          "map_lateral_m": 0.0,
+          "map_yaw_drift_rad": 0.0,
+          "us_delta_m": -0.03409701585769653,
+          "yaw_drift_rad": 0.0
+        },
+        "measured_m": 0.034090652061048166,
+        "odom_m": 0.03409024884114181,
+        "ratio": 0.9966847661797373
+      },
+      "legs": [
+        {
+          "commanded_m": 0.03159999999999999,
+          "cycle": 0,
+          "direction": "forward",
+          "evidence": {
+            "distance_m": 0.031512000000031515,
+            "forward_m": 0.031512000000031515,
+            "lateral_m": 0.0,
+            "lidar_delta_m": 0.031512383620587614,
+            "map_forward_m": 0.031512000000031515,
+            "map_lateral_m": 0.0,
+            "map_yaw_drift_rad": 0.0,
+            "us_delta_m": 0.031518250703811646,
+            "yaw_drift_rad": 0.0
+          },
+          "home_error_m": 0.031512383620587614,
+          "measured_m": 0.031512383620587614,
+          "odom_m": 0.031512000000031515
+        },
+        {
+          "commanded_m": 0.0336,
+          "cycle": 0,
+          "direction": "reverse",
+          "evidence": {
+            "distance_m": 0.03341600000003342,
+            "forward_m": -0.03341600000003342,
+            "lateral_m": 0.0,
+            "lidar_delta_m": -0.03341642958685753,
+            "map_forward_m": -0.03341600000003342,
+            "map_lateral_m": 0.0,
+            "map_yaw_drift_rad": 0.0,
+            "us_delta_m": -0.033422648906707764,
+            "yaw_drift_rad": 0.0
+          },
+          "home_error_m": -0.0019040459662699183,
+          "measured_m": 0.03341642958685753,
+          "odom_m": 0.03341600000003342
+        },
+        {
+          "commanded_m": 0.03399826598011001,
+          "cycle": 1,
+          "direction": "forward",
+          "evidence": {
+            "distance_m": 0.034110577382599816,
+            "forward_m": 0.034110577382599816,
+            "lateral_m": 0.0,
+            "lidar_delta_m": 0.03411101342469025,
+            "map_forward_m": 0.034110577382599816,
+            "map_lateral_m": 0.0,
+            "map_yaw_drift_rad": 0.0,
+            "us_delta_m": 0.03411740064620972,
+            "yaw_drift_rad": 0.0
+          },
+          "home_error_m": 0.03220696745842033,
+          "measured_m": 0.03411101342469025,
+          "odom_m": 0.034110577382599816
+        },
+        {
+          "commanded_m": 0.03397763357838057,
+          "cycle": 1,
+          "direction": "reverse",
+          "evidence": {
+            "distance_m": 0.03409024884114181,
+            "forward_m": -0.03409024884114181,
+            "lateral_m": 0.0,
+            "lidar_delta_m": -0.034090652061048166,
+            "map_forward_m": -0.03409024884114181,
+            "map_lateral_m": 0.0,
+            "map_yaw_drift_rad": 0.0,
+            "us_delta_m": -0.03409701585769653,
+            "yaw_drift_rad": 0.0
+          },
+          "home_error_m": -0.001883684602627833,
+          "measured_m": 0.034090652061048166,
+          "odom_m": 0.03409024884114181
+        }
+      ],
+      "reverse_scale": 1.0054934179208261,
+      "stage": "settle_home",
+      "target_m": 0.03
+    },
+    "baseline": {},
+    "navigation_profile": null,
+    "motion_clearance": {},
+    "estimates": {
+      "imu_gyro_bias_rad_s": [],
+      "imu_gravity_mean_mps2": [],
+      "imu_roll_pitch_baseline_rad": [],
+      "lidar_us_range_difference_m": null
+    },
+    "recorded_unix_s": 1788839129.2575538,
+    "limits": {
+      "motion_speed_mps": 0.008,
+      "motion_seconds": 35.0,
+      "motion_distance_m": 0.04,
+      "round_trip_target_m": 0.03
+    },
+    "settings_applied": true
+  },
+  "goal": "explore goal=(0.82,0.52) score=10.8 size=11 route=1.13m alts=0 eta~81s(nom) v=1.4cm/s pose~tf",
+  "wander": "route_explore:recovery_exhausted",
+  "pose": [
+    0.10273461626765439,
+    -0.08054946953669989
+  ],
+  "safe": [
+    0.0,
+    0.0
+  ]
+}

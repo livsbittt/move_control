@@ -1,0 +1,49 @@
+{
+  "interior_unknown_fraction": 0.34648306661704503,
+  "known_corridor_purity": 0.9983485193621868,
+  "wall_surface_recall": [
+    0.5813953488372093,
+    0.07364341085271318,
+    0.6532846715328468,
+    0.38686131386861317,
+    1.0,
+    1.0,
+    0.18181818181818182,
+    1.0,
+    0.7575757575757576,
+    1.0,
+    0.3382352941176471,
+    0.109375,
+    1.0,
+    0.20430107526881722,
+    1.0,
+    0.5376344086021505
+  ],
+  "minimum_wall_surface_recall": 0.07364341085271318,
+  "phantom_fraction": 0.0,
+  "bounds_m": [
+    [
+      -1.3575,
+      -0.6325
+    ],
+    [
+      1.3575,
+      0.6325
+    ]
+  ],
+  "wall_tolerance_m": 0.05,
+  "interior_wall_exclusion_m": 0.03,
+  "map_raster_complete": false,
+  "topology": {
+    "sampling_m": 0.002,
+    "free_components": 2,
+    "sealed_free_area_m2": 0.09302400000000001,
+    "sealed_free_fraction": 0.02826978830479733,
+    "sealed_centroid_m": [
+      -0.7514999999999995,
+      -0.5208333333333331
+    ]
+  },
+  "map_npz_sha256": "7ee3ae9b619bfca5248e0415bf1dcf1408177b9b0b2e9eb89778d1c9f534e0bc",
+  "source_world_sha256": "8475464857322d71f6e492171419bf285e7bd034089b90ad59d6f106b0941072"
+}

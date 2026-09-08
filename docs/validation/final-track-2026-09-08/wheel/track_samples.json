@@ -1,0 +1,479 @@
+[
+  {
+    "sim_s": 3.555,
+    "calibration": null,
+    "goal": "",
+    "wander": "",
+    "pose": null,
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": null,
+    "message": null
+  },
+  {
+    "sim_s": 4.061,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 4.564,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 5.064,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 5.581,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 6.081,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 6.5840000000000005,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 7.0840000000000005,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 7.585000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 8.089,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 8.589,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 9.089,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 9.599,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 10.100000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 10.601,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 11.101,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Waiting for wander stop before bounded forward validation"
+  },
+  {
+    "sim_s": 11.602,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20000000003550333,
+      0.26999999999947055
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 12.102,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19859611223944215,
+      0.2699010758909902
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 12.602,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19720079670984214,
+      0.2696005063405587
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 13.106000000000002,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19586246515517552,
+      0.26910439363828437
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 13.607000000000001,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19460836824548092,
+      0.2684228418007961
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 14.111,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1934640416862342,
+      0.26756972900215026
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 14.611,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19245278741403907,
+      0.2665624250768425
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 15.111,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.191595200311956,
+      0.26542143844139215
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 15.611,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19090874986923,
+      0.2641699996797437
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 16.113,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19040742513371198,
+      0.2628335902465437
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 16.625,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19010145059973105,
+      0.26143942600197345
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 17.125,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18999914806289217,
+      0.2601646410049093
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 17.625,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18997268365898223,
+      0.2612176107121518
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 18.126,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18989449169607325,
+      0.26269210413114247
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  }
+]

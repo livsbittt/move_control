@@ -1,0 +1,3 @@
+[WARN] [1788838550.358888055] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788838550.358947304] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+{"elapsed_sim_s": 384.85300000000007, "calibration_phase": "ready", "calibration_ready": true, "message": "Saved calibration retained; sensor checks recovered", "map_received": true, "mapping_complete": false, "cmd_vel_publishers": ["safety_node"], "path_m": 1.7017069292124998, "min_center_to_wall_m": 0.11458448243482183, "known_cells": 5249}

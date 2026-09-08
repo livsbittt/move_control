@@ -1,0 +1,16 @@
+{
+  "elapsed_sim_s": 14.571000000000002,
+  "calibration_phase": "failed",
+  "calibration_ready": false,
+  "message": "Round-trip leg stalled or timed out",
+  "map_received": true,
+  "mapping_complete": false,
+  "cmd_vel_publishers": [
+    "safety_node"
+  ],
+  "run_id": "064b96e07e284ef7b171db79894b06e3",
+  "path_m": 0.018062149720966543,
+  "min_center_to_wall_m": 0.3373444916960733,
+  "map_geometry_and_time_valid": true,
+  "known_cells": 2654
+}
