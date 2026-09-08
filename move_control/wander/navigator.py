@@ -8,7 +8,7 @@ from rclpy.time import Time
 from std_msgs.msg import String
 from tf2_ros import Buffer, TransformException, TransformListener
 
-from ..control.path_follow import ProgressGuard, follow_path
+from ..control.path_follow import ProgressGuard, PathFollower
 from ..control.recover import hazard_action
 from ..control.route_recovery import RouteRecovery
 from ..control.rotation_relocation import RotationRelocation
@@ -30,6 +30,7 @@ class Navigator:
         self.navigation_stamp_ns = None
         self.navigation_arrived_target = None
         self.navigation_progress = ProgressGuard()
+        self.path_follower = PathFollower()
         self.navigation_recovery = RouteRecovery()
         self.rotation_relocation = RotationRelocation()
         self.safe_trail = SafeTrail()
@@ -54,6 +55,7 @@ class Navigator:
         self.navigation_stamp_ns = None
         self.navigation_arrived_target = None
         self.navigation_progress.reset()
+        self.path_follower.reset()
         self.navigation_recovery.reset()
         self.rotation_relocation.reset()
         self.safe_trail = SafeTrail()
@@ -127,12 +129,15 @@ class Navigator:
         blocked = (hazard or self.estop or self.pickup or not self._ir_ready())
         age = math.inf if self.navigation_received is None else max(
             now - self.navigation_received, now - self.navigation_stamp)
-        v, w, reason = follow_path(
-            self.navigation_route, pose, route_age=age, tf_age=tf_age,
-            blocked=blocked, speed=self.vmax, turn=self.wturn,
-            max_age=float(self.get_parameter('route_timeout').value),
-            max_tf_age=float(self.get_parameter('route_tf_timeout').value),
-            lookahead=float(self.get_parameter('route_lookahead').value))
+        if self.trail_retreat.active or self.trail_retreat_hold is not None:
+            v, w, reason = 0., 0., 'trail_retreat'
+        else:
+            v, w, reason = self.path_follower.update(
+                self.navigation_route, pose, route_age=age, tf_age=tf_age,
+                blocked=blocked, speed=self.vmax, turn=self.wturn,
+                max_age=float(self.get_parameter('route_timeout').value),
+                max_tf_age=float(self.get_parameter('route_tf_timeout').value),
+                lookahead=float(self.get_parameter('route_lookahead').value))
         # A front wall blocks translation, not a turn away from it. The sole
         # motor publisher still requires fresh all-around rotation clearance.
         if (self.blocked or self._on_wall()) and v > 0:
@@ -174,6 +179,7 @@ class Navigator:
                 limits.get('can_rotate') is True)
             if retreat_reason == 'trail_retreat_complete':
                 self.navigation_progress.reset()
+                self.path_follower.reset()
                 self.navigation_recovery.reset()
                 self.navigation_route = []
                 self.navigation_goal_pub.publish(String(data='replan'))
@@ -227,6 +233,7 @@ class Navigator:
                     limits.get('bounded_motion_enabled') is True):
                 retreat_route = self.safe_trail.retreat(now, odom_pose, geometry_id)
                 if retreat_route and self.trail_retreat.start(now, odom_pose, retreat_route, geometry_id):
+                    self.path_follower.reset()
                     # One bounded attempt per explicit navigation command.
                     # Replans and a return to the same throat cannot renew it.
                     self.trail_retreat_used = True

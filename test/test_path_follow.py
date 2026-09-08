@@ -1,10 +1,62 @@
 import math
 import unittest
 
-from move_control.control.path_follow import ProgressGuard, follow_path
+from move_control.control.path_follow import ProgressGuard, follow_path, PathFollower
 
 
 class PathFollowTest(unittest.TestCase):
+    def test_persistent_follower_skips_reached_initial_stub(self):
+        follower=PathFollower()
+        route=[(-.221,-.177),(-.22,-.178),(-.24,-.178),(-.26,-.178),(-.28,-.178)]
+        v,w,_=follower.update(route,(-.221,-.177,.596),route_age=0.,tf_age=0.)
+        self.assertEqual(v,0.)
+        self.assertGreater(w,0.)  # Turn towards west, not the 1.4mm southeast stub.
+
+    def test_persistent_corner_survives_prefix_refresh_and_resets_on_hazard(self):
+        follower=PathFollower()
+        route=[(0.,0.),(.1,0.),(.1,.15)]
+        follower.update(route,(.096,0.,0.),route_age=0.,tf_age=0.)
+        refreshed=[(.09,-.003),(.1,0.),(.1,.15)]
+        _,w,_=follower.update(refreshed,(.09,-.003,.5),route_age=0.,tf_age=0.)
+        self.assertGreater(w,0.)
+        follower.update(refreshed,(.09,-.003,.5),route_age=0.,tf_age=0.,blocked=True)
+        _,w,_=follower.update(refreshed,(.09,-.003,.5),route_age=0.,tf_age=0.)
+        self.assertLess(w,0.)
+
+    def test_offset_pivot_closed_loop_with_periodic_route_prefix_refresh(self):
+        follower=PathFollower()
+        route=[(0.,0.),(.1,0.),(.1,.16)]
+        pose=[0.,0.,0.]
+        signs=[]
+        maximum_error=0.
+        for i in range(6500):
+            if i%25==0:
+                route=[tuple(pose[:2])]+route[1:]
+            v,w,reason=follower.update(route,pose,route_age=0.,tf_age=0.)
+            if reason=='arrived':break
+            if abs(w)>.01:signs.append(1 if w>0 else -1)
+            # Base-origin displacement includes the measured off-center pivot.
+            dx=v+w*(-.0102)
+            dy=-w*(-.0398)
+            pose[0]+=(math.cos(pose[2])*dx-math.sin(pose[2])*dy)*.02
+            pose[1]+=(math.sin(pose[2])*dx+math.cos(pose[2])*dy)*.02
+            pose[2]+=w*.02
+            maximum_error=max(maximum_error,min(abs(pose[1]),abs(pose[0]-.1)))
+        self.assertEqual(reason,'arrived')
+        self.assertLess(sum(a!=b for a,b in zip(signs,signs[1:])),8)
+        self.assertLess(maximum_error,.06)
+
+    def test_persistent_progress_does_not_survive_new_detour_or_stale_input(self):
+        follower=PathFollower()
+        route=[(0.,0.),(.1,0.),(.1,.15)]
+        follower.update(route,(.096,0.,0.),route_age=0.,tf_age=0.)
+        changed=[(.09,0.),(.08,0.),(.08,.05),(.1,.15)]
+        expected=follow_path(changed,(.09,0.,0.),route_age=0.,tf_age=0.)
+        self.assertEqual(follower.update(changed,(.09,0.,0.),route_age=0.,tf_age=0.),expected)
+        follower.update(route,(.096,0.,0.),route_age=0.,tf_age=0.)
+        follower.update(route,(.096,0.,0.),route_age=6.,tf_age=0.)
+        self.assertIsNone(follower.cursor)
+
     def test_closed_loop_corner_keeps_tracking_error_within_five_mm(self):
         route = [(0., 0.), (.10, 0.), (.10, .16)]
         pose = [0., 0., 0.]

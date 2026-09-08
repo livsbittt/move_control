@@ -46,11 +46,13 @@ class RecoveryIntegrationTest(unittest.TestCase):
         self.assertEqual((out.linear.x,out.angular.z),(0.,0.))
         self.assertTrue(node.trail_retreat.active)
         self.assertTrue(node.trail_retreat_used)
+        self.assertIsNone(node.path_follower.cursor)
         return node,tick
 
     def test_measured_refuge_retreat_routes_reverse_then_replans_once(self):
         node,tick=self.trail_fixture()
         try:
+            node.path_follower.update=Mock(wraps=node.path_follower.update)
             # A refreshed planner endpoint at the current map pose must not
             # preempt the active odometry retreat controller.
             node.navigation_route=[(.03,0.)]
@@ -66,6 +68,8 @@ class RecoveryIntegrationTest(unittest.TestCase):
             self.assertFalse(node.trail_retreat.active)
             self.assertEqual((out.linear.x,out.angular.z),(0.,0.))
             self.assertEqual(node.navigation_goal_pub.publish.call_args.args[0].data,'replan')
+            node.path_follower.update.assert_not_called()
+            self.assertIsNone(node.path_follower.cursor)
             node.navigation_route=[(.004,0.),(0.,1.)]
             node.motion_limits['can_rotate']=False
             node.safe_trail.retreat=Mock(return_value=[(.004,0.),(-.02,0.)])
