@@ -1,5 +1,6 @@
 """Execution failure reaches planning without publishing physical motor commands."""
 import unittest
+import math
 from unittest.mock import Mock
 import rclpy
 from rclpy.time import Time
@@ -97,6 +98,28 @@ class RecoveryIntegrationTest(unittest.TestCase):
                 self.assertEqual((out.linear.x,out.angular.z),(0.,0.))
                 self.assertTrue(node.trail_retreat_hold)
             finally:node.destroy_node()
+
+    def test_pivot_trail_uses_raw_turn_and_stops_when_estimate_disappears(self):
+        node,tick=self.trail_fixture()
+        try:
+            node.trail_retreat.reset()
+            node.trail_retreat_used=False
+            center=(-.04,-.01)
+            route=[(.03+center[0]-math.cos(a)*center[0]+math.sin(a)*center[1],
+                    center[1]-math.sin(a)*center[0]-math.cos(a)*center[1],a)
+                   for a in (.05,.1,.15)]
+            node.safe_trail.retreat=Mock(return_value=route)
+            node.motion_limits['rotation_estimate']={'center_m':center,'center_uncertainty_m':.001}
+            self.assertEqual(tick(101.1,.03).angular.z,0.)
+            out=tick(101.2,.03)
+            self.assertEqual(out.linear.x,0.)
+            self.assertGreater(out.angular.z,0.)
+            self.assertEqual(node.state,'turn')
+            node.motion_limits['rotation_estimate']=None
+            out=tick(101.3,.03)
+            self.assertEqual((out.linear.x,out.angular.z),(0.,0.))
+            self.assertEqual(node.trail_retreat_hold,'trail_retreat_estimate_changed')
+        finally:node.destroy_node()
 
     def test_blocked_turn_uses_bounded_straight_sensor_suggestion(self):
         node=WanderNode()

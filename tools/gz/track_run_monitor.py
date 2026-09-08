@@ -31,7 +31,14 @@ def main():
     rclpy.init()
     node = rclpy.create_node('track_run_monitor', parameter_overrides=[Parameter('use_sim_time', value=True)])
     state = {'calibration': {}, 'goal': '', 'wander': '', 'pose': None, 'safe': [0., 0.]}
-    rows, maps = [], []
+    rows, maps, odometry = [], [], []
+    def on_odom(msg):
+        p, q = msg.pose.pose.position, msg.pose.pose.orientation
+        state['pose'] = [p.x, p.y]
+        stamp = msg.header.stamp.sec + msg.header.stamp.nanosec*1e-9
+        yaw = math.atan2(2*(q.w*q.z+q.x*q.y), 1-2*(q.y*q.y+q.z*q.z))
+        if not odometry or stamp-odometry[-1][0] >= .045:
+            odometry.append([stamp, p.x, p.y, yaw])
     calibration_seen = [None]
     def on_calibration(msg):
         state['calibration'] = json.loads(msg.data)
@@ -40,7 +47,7 @@ def main():
         QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
     node.create_subscription(String, '/goal_node/state', lambda m: state.update(goal=m.data), 10)
     node.create_subscription(String, '/wander/state', lambda m: state.update(wander=m.data), 10)
-    node.create_subscription(Odometry, '/odom', lambda m: state.update(pose=[m.pose.pose.position.x, m.pose.pose.position.y]), 10)
+    node.create_subscription(Odometry, '/odom', on_odom, 10)
     node.create_subscription(Twist, '/cmd_vel', lambda m: state.update(safe=[m.linear.x, m.angular.z]), 10)
     node.create_subscription(OccupancyGrid, '/map', lambda m: maps.append(m) if not maps else maps.__setitem__(0, m), 10)
     start, last, wall = None, -1., time.monotonic()
@@ -75,6 +82,7 @@ def main():
         if now-start >= float(os.environ.get('RIG_DURATION', '180')):
             break
     (out/'track_samples.json').write_text(json.dumps(rows, indent=2))
+    (out/'track_odometry.json').write_text(json.dumps(odometry))
     (out/'track_last_status.json').write_text(json.dumps(state, indent=2))
     points = np.array([r['pose'] for r in rows if r['pose'] is not None])
     stats = {'elapsed_sim_s': (last-start) if start else 0, 'calibration_phase': state['calibration'].get('phase'),

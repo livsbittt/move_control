@@ -176,7 +176,7 @@ class Navigator:
             retreat_v, retreat_w, retreat_reason = self.trail_retreat.update(
                 now, odom_pose, geometry_id,
                 trail_valid and self._can_reverse() and limits.get('bounded_motion_enabled') is True,
-                limits.get('can_rotate') is True)
+                limits.get('can_rotate') is True, rotation=limits.get('rotation_estimate'))
             if retreat_reason == 'trail_retreat_complete':
                 self.navigation_progress.reset()
                 self.path_follower.reset()
@@ -187,7 +187,7 @@ class Navigator:
                 self.trail_retreat_hold = retreat_reason
             command = Twist()
             command.linear.x, command.angular.z = retreat_v, retreat_w
-            self.state = 'backup' if retreat_v else 'wait'
+            self.state = 'backup' if retreat_v else 'turn' if retreat_w else 'wait'
             self._publish(command, f'route_{self.navigation_mode}:{retreat_reason}')
             return
         suggestion = limits.get('rotation_recovery_m')
@@ -232,7 +232,8 @@ class Navigator:
             if (not self.trail_retreat_used and trail_valid and self._can_reverse() and
                     limits.get('bounded_motion_enabled') is True):
                 retreat_route = self.safe_trail.retreat(now, odom_pose, geometry_id)
-                if retreat_route and self.trail_retreat.start(now, odom_pose, retreat_route, geometry_id):
+                if retreat_route and self.trail_retreat.start(now, odom_pose, retreat_route, geometry_id,
+                        rotation=limits.get('rotation_estimate')):
                     self.path_follower.reset()
                     # One bounded attempt per explicit navigation command.
                     # Replans and a return to the same throat cannot renew it.

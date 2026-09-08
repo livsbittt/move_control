@@ -21,6 +21,7 @@ from ..sensing.localization import lease_ready
 from ..control.lidar_guard import lidar_blocked, lidar_can_rotate
 from ..control.rotation_envelope import pivot_clearance, suggest_rotation_translation, straight_translation_limits
 from ..control.motion_sweep import bounded_sweep_clearance, bounded_translation_limits
+from ..control.footprint_sweep import footprint_sweep_clearance, footprint_translation_limits
 from .bumper import Bumper
 from .gate import Gate
 from .hazard import Hazard
@@ -385,9 +386,14 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
             scan_age = max(self.age(self.last_scan_time), source_age)
             if (rotation_estimate is not None and lidar_ok and
                     getattr(self, 'lidar_rotation_observed', False) and 0 <= source_age <= .2):
-                bounded_travel = bounded_translation_limits(self.lidar_rotation_points,
-                    rotation_estimate['center_m'], rotation_estimate['center_uncertainty_m'],
-                    body_radius, scan_age)
+                trusted_shape=rotation_estimate.get('footprint_xy')
+                if trusted_shape:
+                    bounded_travel=footprint_translation_limits(self.lidar_rotation_points,trusted_shape,
+                        rotation_estimate['center_m'],rotation_estimate['center_uncertainty_m'],body_radius,scan_age)
+                else:
+                    bounded_travel = bounded_translation_limits(self.lidar_rotation_points,
+                        rotation_estimate['center_m'], rotation_estimate['center_uncertainty_m'],
+                        body_radius, scan_age)
             self.blocked = (bounded_travel is None or lidar_blocked(
                 bounded_travel[0], bounded_travel[0], previous_front, 0., .001, True))
             self.rear_blocked = (bounded_travel is None or lidar_blocked(
@@ -410,6 +416,8 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
             'can_rotate': can_rotate,
             'bounded_motion_enabled': bounded_motion,
             'bounded_translation_limits_m': bounded_travel,
+            'bounded_geometry': ('trusted_footprint' if rotation_estimate and rotation_estimate.get('footprint_xy')
+                                 else 'body_circle') if bounded_motion else None,
             'geometry_revision': self.profile.revision if self.profile_valid else None,
             'front_stop_m': .043-self.lidar_mount[0]+.010 if footprint else self.stop_d,
             'front_clear_m': .043-self.lidar_mount[0]+.020 if footprint else self.clear_d,
@@ -572,6 +580,10 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
                     # every pure-spin pose. A moving body-circle approximation
                     # is larger and must not veto this stronger geometry proof.
                     sweep = pivot_margin - .010 - stale_padding
+                elif rotation_estimate.get('footprint_xy'):
+                    sweep=footprint_sweep_clearance(self.lidar_rotation_points,
+                        rotation_estimate['footprint_xy'],rotation_estimate['center_m'],uncertainty,
+                        body_radius,cmd.linear.x,cmd.angular.z,.8,scan_age)
                 else:
                     sweep = bounded_sweep_clearance(self.lidar_rotation_points,
                         rotation_estimate['center_m'], uncertainty,

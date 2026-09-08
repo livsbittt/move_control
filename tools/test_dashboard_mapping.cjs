@@ -32,9 +32,25 @@ function dashboard() {
   const html = fs.readFileSync(path.join(__dirname, '../web/dashboard.html'), 'utf8');
   const source = html.match(/<script>([\s\S]*?)<\/script>/)[1];
   vm.runInContext(source.replace(/\}\)\(\);\s*$/, 
-    'globalThis.mappingTest = {S, renderMapping, renderNavigation, mappingAction, loadMap, bucket, saveMapImage, sendPin};})();'), context);
+    'globalThis.mappingTest = {S, renderMapping, renderNavigation, mappingAction, loadMap, bucket, saveMapImage, sendPin, LIM, chLimits, renderSensors};})();'), context);
   return {context, elements, images, ...context.mappingTest};
 }
+
+test('bounded motion shows current swept travel without a radial stop threshold', () => {
+  const d=dashboard();
+  d.S.data={motion_limits_fresh:true,motion_limits:{bounded_motion_enabled:true,
+    bounded_translation_limits_m:[.012,.03],body_radius_m:.114,front_stop_m:.149}};
+  d.renderSensors(d.S.data);
+  assert.match(d.elements.get('clearhint').textContent,/1\.2cm/);
+  assert.doesNotMatch(d.elements.get('clearhint').textContent,/14\.9cm/);
+  assert.equal(d.chLimits({k:'F'}).stop,null);
+  assert.equal(d.chLimits({k:'L'}).stop,null);
+  assert.equal(d.chLimits({k:'corridor',corridor:true}).stop,null);
+  assert.ok(d.chLimits({us:true}).stop>0);
+  d.S.data.motion_limits_fresh=false;
+  d.renderSensors(d.S.data);
+  assert.doesNotMatch(d.elements.get('clearhint').textContent,/1\.2cm/);
+});
 
 test('manual pin sends only a goal and reports rejected commands', async () => {
   const d = dashboard();

@@ -35,14 +35,15 @@ class SafetyGateTest(unittest.TestCase):
             self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
             sweep.assert_not_called()
 
-    def prepare_bounded_sweep(self, enabled=True, simulation=True, estimate=True):
+    def prepare_bounded_sweep(self, enabled=True, simulation=True, estimate=True, footprint=()):
         from move_control.control.rotation_envelope import RotationEnvelope
         n=self.node
         n.set_parameters([Parameter('simulation_motion_sweep_enabled',value=enabled),
-                          Parameter('use_sim_time',value=simulation)])
+                          Parameter('use_sim_time',value=simulation),
+                          Parameter('rotation_footprint_xy',value=[float(v) for p in footprint for v in p])])
         n.release_estop(); n._refresh_distances(); n.refresh_profile()
         if estimate:
-            estimator=RotationEnvelope(n.robot_r)
+            estimator=RotationEnvelope(n.robot_r,footprint)
             for yaw in (.17,-.17,.18,-.18):
                 estimator.add((0.,0.,yaw),(0.,0.,yaw),yaw,.0005)
             rotation=dict(done=True,error=None,max_angular_rad_s=.06,legs=[{}]*8,
@@ -63,6 +64,38 @@ class SafetyGateTest(unittest.TestCase):
         command=Twist(); command.linear.x=v; command.angular.z=w
         self.node.on_cmd(command); self.node.tick()
         return self.node.pub.publish.call_args.args[0]
+
+    def test_trusted_polygon_checks_final_command_and_revokes_on_evidence_loss(self):
+        radius=self.node.robot_r
+        shape=[(x*.8*radius,y*.6*radius) for x,y in ((1,1),(-1,1),(-1,-1),(1,-1))]
+        with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
+                patch('move_control.safety.node.footprint_sweep_clearance',return_value=.02) as sweep:
+            self.prepare_bounded_sweep(footprint=shape)
+            actual=self.bounded_command(.008,0.)
+            self.assertAlmostEqual(sweep.call_args.args[5],.010)
+            self.assertGreater(actual.linear.x,0.)
+            for result in (None,0.,-.001):
+                sweep.return_value=result
+                actual=self.bounded_command(.008,.04)
+                self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+            sweep.return_value=.02
+            self.node.last_scan_time=None
+            sweep.reset_mock()
+            self.assertEqual(self.bounded_command(.008,.04).linear.x,0.)
+            sweep.assert_not_called()
+            self.fresh_sensors()
+            self.node.calibration_lease.deadline=0.
+            self.assertEqual(self.bounded_command(.008,.04).linear.x,0.)
+            sweep.assert_not_called()
+
+    def test_same_radius_different_footprint_cannot_authorize_polygon_motion(self):
+        radius=self.node.robot_r
+        shape=[(x*.8*radius,y*.6*radius) for x,y in ((1,1),(-1,1),(-1,-1),(1,-1))]
+        with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}):
+            self.prepare_bounded_sweep(footprint=shape)
+            self.node.set_parameters([Parameter('rotation_footprint_xy',value=[v for x,y in shape for v in (-y,x)])])
+            actual=self.bounded_command(.008,.04)
+            self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
 
     def test_bounded_translation_is_not_vetoed_by_a_clear_side_return(self):
         with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}):
