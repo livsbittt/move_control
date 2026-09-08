@@ -1,0 +1,21 @@
+[WARN] [1788862723.324327123] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788862723.324417329] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1788862723.891467893] [goal_node]: goal_node ready | mode=stop min_size=6
+[INFO] [1788862919.669266233] [goal_node]: mode -> explore
+[INFO] [1788863748.321606487] [goal_node]: mode -> stop
+Traceback (most recent call last):
+  File "/tmp/pinky-mapping-v5/tools/gz/calibration_mapping_rig.py", line 221, in <module>
+    main()
+  File "/tmp/pinky-mapping-v5/tools/gz/calibration_mapping_rig.py", line 212, in main
+    executor.spin()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 359, in spin
+    self._spin_once_impl()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 907, in _spin_once_impl
+    handler, entity, node = self.wait_for_ready_callbacks(
+                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 877, in wait_for_ready_callbacks
+    return next(self._cb_iter)
+           ^^^^^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 785, in _wait_for_ready_callbacks
+    raise ExternalShutdownException()
+rclpy.executors.ExternalShutdownException

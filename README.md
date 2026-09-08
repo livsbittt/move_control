@@ -1,4 +1,10 @@
-# move_control (Pinky Pro)
+# Rosy Control (Pinky Pro)
+
+Rosy Control은 맵·위치 추정·주행·안전 제어를 개발하는 프로젝트입니다.
+상위 `ROS/Rosy`의 OS 개발, `ROS/Rosy Fleet`의 관제 개발과 독립적으로 유지합니다.
+로컬 저장소 폴더명은 `Rosy Control`이며, ROS/Python 패키지명은 실행·배포
+호환성을 위해 `move_control`을 유지합니다. 아래 ROS 명령과 로봇 배포 경로는 그대로 사용합니다.
+공백이 있는 로컬 경로를 쉘에서 사용할 때는 따옴표로 감쌉니다.
 
 - `calib_node` — 자동 캘리브 `/calib/step auto`: 안정 바닥 IR(4095 무시) → 느린 전진 부호+라이다 요 → 절벽 IR. 상태 `/calib/status` `/calib/phase`.
 - `camera_detect_node` — 전면 OV5647. 바닥 대비 허공(절벽 앞)과 장애물. `/camera/cliff` `/camera/blocked` `/camera/side`

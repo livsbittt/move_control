@@ -788,6 +788,7 @@ const LIM = () => {
     Object.entries(keys).forEach(([source,key]) => { if (Number.isFinite(active[source])) limits[key]=active[source]; });
     limits.live = true;
     limits.translation = active.translation_mode === true;
+    limits.bounded = active.bounded_motion_enabled === true;
     limits.halfWidth = active.footprint_half_width_m;
   }
   return limits;
@@ -1191,7 +1192,7 @@ function drawScan(s) {
     scv.fill(); scv.stroke();
     pts.forEach(([px, py, ok, r]) => {
       if (!ok) return;
-      scv.fillStyle = lim.translation ? T.route : r < lim.stop ? T.crit : (r < lim.clear ? T.warn : T.route);
+      scv.fillStyle = lim.translation || lim.bounded ? T.route : r < lim.stop ? T.crit : (r < lim.clear ? T.warn : T.route);
       scv.beginPath(); scv.arc(px, py, 2.6, 0, 7); scv.fill();
     });
   }
@@ -1203,7 +1204,7 @@ function drawScan(s) {
     const half = (lim.halfWidth + .010) * k;
     scv.rect(cx-half, cy-lim.stop*k, 2*half, (lim.stop+lim.rear_stop)*k);
   } else scv.arc(cx, cy, lim.stop * k, 0, 7);
-  scv.stroke();
+  if (!lim.bounded) scv.stroke();
   scv.setLineDash([]);
   // chassis at true scale, nose marker on its rim
   const body = lim.radius * k;
@@ -1223,7 +1224,7 @@ function drawScan(s) {
   setTxt('dialnote',
     s.scan_reason === 'missing_mount_tf' ? '라이다 장착 TF 없음 — 방향 계산 불가' :
     (nose != null && sc.rs && sc.rs.length) ?
-      (lim.translation ? '정면 위 · 점선은 차체 외곽과 정지 여유' : '정면 위 · 참고 정면 거리 ' + Math.round(lim.stop * 100) + ' cm') :
+      (lim.bounded ? '정면 위 · 차체 크기 표시 · 이동 궤적 별도 검사' : lim.translation ? '정면 위 · 점선은 차체 외곽과 정지 여유' : '정면 위 · 참고 정면 거리 ' + Math.round(lim.stop * 100) + ' cm') :
       '라이다 대기');
 }
 // ---- 감지: clearance gauges -------------------------------------------------
@@ -1246,6 +1247,7 @@ const gid = k => 'g' + k.replace(/[^A-Za-z]/g, '');
 function chLimits(ch) {
   const L = LIM();
   if (ch.us) return { scale: 0.10, stop: L.us_stop, clear: L.us_clear };
+  if (L.bounded) return {scale:ch.corridor ? .80 : L.open_max,stop:null,clear:null};
   // below two body widths the robot cannot turn around in the corridor
   if (ch.corridor) return { scale: 0.80, stop: 2 * L.radius,
                             clear: 2 * L.radius + 0.04 };
@@ -1316,10 +1318,14 @@ function renderSensors(s) {
   buildGauges(shown);
   CH.forEach(ch => { if (shown.indexOf(ch.k) >= 0) paintGauge(ch, v[ch.k]); });
   const lim = LIM();
+  const travel = s.motion_limits && s.motion_limits.bounded_translation_limits_m;
+  const travelText = Array.isArray(travel) && travel.length === 2 && travel.every(x => Number.isFinite(x) && x >= 0) ?
+    '확인된 직진 구간: 전진 ' + (travel[0]*100).toFixed(1) + 'cm / 후진 ' + (travel[1]*100).toFixed(1) + 'cm' : '이동 여유 확인 불가';
   setTxt('clearhint', !lim.live ? '설정 기준 표시 · 실시간 안전 기준 수신 대기' :
     (v.blocked ? '실제 전방 차단 · ' : '실제 전방 차단 없음 · ') +
+    (lim.bounded ? '이동 궤적 기준 · ' + travelText + ' · 제자리 회전 별도 판정' :
     (lim.translation ? '차체 외곽 기준 · ' : '회전/일반 기준 · ') +
-    '정면 기준 ' + (lim.stop*100).toFixed(1) + 'cm · 후방 기준 ' + (lim.rear_stop*100).toFixed(1) + 'cm');
+    '정면 기준 ' + (lim.stop*100).toFixed(1) + 'cm · 후방 기준 ' + (lim.rear_stop*100).toFixed(1) + 'cm'));
   const have = FLAGS.filter(f => v[f.k] != null);
   $('bools').innerHTML = have.length ?
     have.map(f => flagHtml(f, v[f.k])).join('') :

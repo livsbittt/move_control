@@ -19,11 +19,7 @@ Backend API (all CORS *, JSON contract unchanged since v1):
   POST /map/reset    stop commands + reset SLAM, paused; clear map caches
   POST /map/resume   resume SLAM measurements only (no motion commands)
   POST /map/pause    stop autonomous navigation, pause SLAM and verify readback
-  POST /teleop       {"x":..,"z":..} Twist on the resolved teleop topic.
-                     'auto' resolution: safety alive -> /cmd_vel_raw (every
-                     Twist passes the gate); sim rig (no safety, /cmd_vel has
-                     consumers) -> /cmd_vel. Re-checked every 1 s and always
-                     shown in the UI.
+  POST /teleop       {"x":..,"z":..} Twist on /cmd_vel_raw, through safety.
 
 No decision logic — a view + relay, like goal_node is thin I/O over
 planning. STATE is written by ROS callbacks (spin thread) and read by the
@@ -711,18 +707,10 @@ class WebNode(Node):
         return data
 
     def resolve_teleop(self):
-        """'auto' target: safety alive -> /cmd_vel_raw (every Twist passes
-        the gate); sim rig (no safety, /cmd_vel has consumers) -> /cmd_vel
-        so teleop drives; otherwise /cmd_vel_raw. Re-checked every 1 s and
-        always visible in the UI."""
-        want = str(self.get_parameter('teleop_topic').value)
-        if want == 'auto':
-            if self.count_publishers('/safety/min_range') > 0:
-                want = '/cmd_vel_raw'
-            elif self.count_subscribers('/cmd_vel') > 0:
-                want = '/cmd_vel'
-            else:
-                want = '/cmd_vel_raw'
+        """Discovery delays must never create a path around the safety gate."""
+        # Keep the legacy parameter accepted for launch compatibility, but
+        # neither configuration nor a missing safety node grants motor output.
+        want = '/cmd_vel_raw'
         if want == self.teleop_target:
             return
         if self.teleop_pub is not None:

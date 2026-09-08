@@ -1,0 +1,32 @@
+[WARN] [1788864004.215519878] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788864004.215596742] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+[INFO] [1788864005.744708523] [safety_node]: safety_node ready | lidar_stop=0.14m us_stop=0.02m linear_sign=1 cam_wall=0 cam_block=0 cliff_mode=low th=800 lidar_yaw=0deg radius=11.4cm filt=5/1.5Hz | E-STOP /estop Bool or /estop/cmd stop|release
+[WARN] [1788864007.581666934] [safety_node]: no IR — cliff unknown
+[WARN] [1788864007.586682938] [safety_node]: no lidar — motion disabled until scan
+[WARN] [1788864024.862428941] [safety_node]: E-STOP released — motors stay 0 until a new command
+[INFO] [1788864342.320811281] [safety_node]: auto map corridor=68cm → map=40cm open_max=50cm
+[ERROR] [1788865930.077801716] [safety_node]: EMERGENCY STOP topic
+Traceback (most recent call last):
+  File "/tmp/pinky-mapping-v6/tools/gz/calibration_mapping_rig.py", line 221, in <module>
+    main()
+  File "/tmp/pinky-mapping-v6/tools/gz/calibration_mapping_rig.py", line 212, in main
+    executor.spin()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 359, in spin
+    self._spin_once_impl()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 918, in _spin_once_impl
+    raise handler.exception()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/task.py", line 286, in _execute_coroutine_step
+    result = coro.send(None)
+             ^^^^^^^^^^^^^^^
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 592, in handler
+    await call_coroutine()
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 454, in _execute
+    await await_or_execute(tmr.callback)
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/executors.py", line 115, in await_or_execute
+    return callback(*args)
+           ^^^^^^^^^^^^^^^
+  File "/tmp/pinky-mapping-v6/move_control/safety/node.py", line 450, in tick
+    self.rear_clear_pub.publish(Bool(data=can_rev))
+  File "/opt/ros/jazzy/lib/python3.12/site-packages/rclpy/publisher.py", line 70, in publish
+    self.__publisher.publish(msg)
+rclpy._rclpy_pybind11.RCLError: Failed to publish: publisher's context is invalid, at ./src/rcl/publisher.c:423

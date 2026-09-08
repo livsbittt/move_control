@@ -1,0 +1,47 @@
+[
+  {
+    "sim_s": 307.48,
+    "calibration": null,
+    "goal": "",
+    "wander": "",
+    "pose": null,
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": null,
+    "message": null
+  },
+  {
+    "sim_s": 307.98,
+    "calibration": "ready",
+    "goal": "",
+    "wander": "stop",
+    "pose": [
+      0.30381500290790603,
+      -0.2465664264190329
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 308.48,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      0.30381500290790603,
+      -0.2465664264190329
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  }
+]

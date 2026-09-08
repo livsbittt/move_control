@@ -1,0 +1,15 @@
+{
+  "sample_count": 7477,
+  "minimum_sampled_separating_gap_m": 0.03336225336232744,
+  "worst_pose": [
+    237.4,
+    0.40783725298505946,
+    -0.4127750968375658,
+    -0.8379202298390808
+  ],
+  "maximum_vertex_sample_step_m": 0.001215933759736419,
+  "maximum_sample_interval_s": 0.05000000000001137,
+  "sampled_collision_free": true,
+  "continuous_collision_proof": false,
+  "limitation": "Ground-truth sampled projected collision hull; no contact sensor or intersample dynamic proof."
+}

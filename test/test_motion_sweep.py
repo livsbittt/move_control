@@ -2,7 +2,21 @@ import math
 
 import pytest
 
-from move_control.control.motion_sweep import bounded_sweep_clearance
+from move_control.control.motion_sweep import bounded_sweep_clearance, bounded_translation_limits
+
+
+def test_translation_prefilter_uses_body_capsule_not_sector_radius():
+    # A return beside the path is inside a 14.9 cm sector threshold, but
+    # outside the body, uncertainty, stopping and unchanged 10 mm margins.
+    points=[(.04,.14),(.4,0.),(-.4,0.)]
+    limits=bounded_translation_limits(points,(-.04,-.01),.003,.114,.1)
+    assert limits == (.03,.03)
+    assert bounded_sweep_clearance(points,(-.04,-.01),.003,.119,.014,0.,.8)>0
+
+
+def test_translation_prefilter_stops_at_obstacle_and_rejects_stale_observation():
+    assert bounded_translation_limits([(.12,0.),(.4,1.),(-.4,1.)],(0.,0.),.003,.114,.1)==(0.,0.)
+    assert bounded_translation_limits([(.4,0.),(.4,1.),(-.4,1.)],(0.,0.),.003,.114,.201) is None
 
 
 def sweep(points, **changes):

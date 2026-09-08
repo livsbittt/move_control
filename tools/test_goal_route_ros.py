@@ -12,6 +12,45 @@ from move_control.goal_node import GoalNode, grid_clearance
 
 
 class GoalRouteTest(unittest.TestCase):
+    def test_escape_completion_requires_current_matching_execution_ack(self):
+        n=self.node; n.escape_pub=Mock(); now=n.get_clock().now().nanoseconds*1e-9
+        n.escape_intent=dict(id='one',geometry='g',target=[.1,0.],yaw=0.)
+        n.escape_budget.observe(now,(0.,0.)); n.escape_budget.begin('one',now)
+        packet=dict(id='one',geometry='g',pose=[.1,0.],status='complete',issued_s=now)
+        n.on_escape_result(String(data=json.dumps({**packet,'id':'old'})))
+        self.assertIsNotNone(n.escape_intent)
+        n.on_escape_result(String(data=json.dumps({**packet,'issued_s':now-1.})))
+        self.assertIsNotNone(n.escape_intent)
+        n.on_escape_result(String(data=json.dumps(packet)))
+        self.assertIsNone(n.escape_intent)
+        self.assertTrue(n.escape_budget.completed)
+
+    def test_stale_map_revokes_separate_escape_intent(self):
+        self.known_map(); n=self.node
+        n.mode='explore'; n.escape_pub=Mock()
+        n.escape_intent={'id':'one'}; n.escape_used=True
+        n._map_received=time.monotonic()-20.
+        n.plan()
+        self.assertIsNone(n.escape_intent)
+        self.assertTrue(n.escape_used)
+        self.assertEqual(n.escape_pub.publish.call_args.args[0].data,'null')
+
+    def test_escape_candidate_loss_cannot_automatically_rearm(self):
+        n=self.node; n.escape_pub=Mock()
+        n.escape_intent={'id':'one'}; n.escape_used=True
+        self.assertTrue(n.escape_plan(None,(0.,0.,0.)))
+        self.assertIsNone(n.escape_intent)
+        self.assertFalse(n.escape_plan(None,(0.,0.,0.),'planning blocked: robot inside obstacle clearance'))
+
+    def test_new_manual_goal_revokes_previous_escape(self):
+        n=self.node; n.escape_pub=Mock()
+        n.escape_intent={'id':'one'}; n.escape_used=True
+        n.on_cmd(String(data='0.2,0.1'))
+        self.assertIsNone(n.escape_intent)
+        self.assertFalse(n.escape_used)
+        self.assertEqual(n.mode,'manual')
+        self.assertEqual(n.escape_pub.publish.call_args.args[0].data,'null')
+
     def test_nearest_command_selects_strategy_and_regular_explore_restores_gain(self):
         self.node.on_cmd(String(data='explore_nearest'))
         self.assertEqual(self.node.mode, 'explore')

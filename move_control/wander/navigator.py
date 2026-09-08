@@ -1,6 +1,7 @@
 """Subject: map route execution through wander's existing safety-gated output."""
 import math
 import json
+import os
 
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Path
@@ -14,6 +15,7 @@ from ..control.route_recovery import RouteRecovery
 from ..control.rotation_relocation import RotationRelocation
 from ..control.safe_trail import SafeTrail
 from ..control.trail_retreat import TrailRetreat
+from ..control.straight_escape import StraightEscape
 from ..sensing.pose import planar_pose
 from .obstacles import ObstacleWait
 
@@ -39,6 +41,13 @@ class Navigator(ObstacleWait):
         self.trail_retreat = TrailRetreat()
         self.trail_retreat_used = False
         self.trail_retreat_hold = None
+        self.straight_escape=StraightEscape()
+        self.straight_escape_intent=None
+        self.straight_escape_seen=None
+        self.straight_escape_reported=None
+        self.straight_escape_reported_at=-math.inf
+        self.straight_escape_result_pub=self.create_publisher(String,'/goal/straight_escape_result',10)
+        self.create_subscription(String,'/goal/straight_escape',self._on_straight_escape,10)
         self.navigation_tf = Buffer()
         self.navigation_listener = TransformListener(self.navigation_tf, self)
         self.navigation_goal_pub = self.create_publisher(String, '/goal/cmd', 10)
@@ -64,6 +73,9 @@ class Navigator(ObstacleWait):
         self.trail_retreat.reset()
         self.trail_retreat_used = False
         self.trail_retreat_hold = None
+        self.straight_escape=StraightEscape()
+        self.straight_escape_intent=None
+        self.straight_escape_seen=None
 
     def _start_navigation(self, mode, goal_command=None):
         self._cancel_navigation()
@@ -116,6 +128,21 @@ class Navigator(ObstacleWait):
                 and math.dist(self.navigation_route[-1], self.navigation_arrived_target) > .005):
             self.navigation_arrived_target = None
 
+    def _on_straight_escape(self,msg):
+        try:
+            intent=json.loads(msg.data)
+            now=self.now().nanoseconds*1e-9
+            if intent is not None and (not isinstance(intent,dict) or
+                    not self.navigation_mode or not 0<=now-intent['issued_s']<=3. or
+                    intent['issued_s']<self.navigation_started):
+                return
+            self.straight_escape_intent=intent
+            self.straight_escape_seen=now
+            if intent is None and self.straight_escape.identity is not None and not self.straight_escape.completed:
+                self.straight_escape.failed=True
+        except (TypeError,ValueError,KeyError):
+            self.straight_escape_intent=None
+
     def _tick_navigation(self):
         now = self.now().nanoseconds * 1e-9
         pose, tf_age = None, math.inf
@@ -131,6 +158,40 @@ class Navigator(ObstacleWait):
         blocked = (hazard or self.estop or self.pickup or not self._ir_ready())
         age = math.inf if self.navigation_received is None else max(
             now - self.navigation_received, now - self.navigation_stamp)
+        intent=self.straight_escape_intent
+        if intent is None:
+            self.straight_escape.budget.observe(now,
+                (self.odom_x,self.odom_y,self.odom_yaw) if self._odom_fresh() else None)
+        if intent is not None:
+            limits=self.motion_limits
+            safe=(os.environ.get('ROS_DOMAIN_ID')=='227' and os.environ.get('GZ_PARTITION')=='pinky_calmap227'
+                and not blocked and pose is not None and 0<=tf_age<=1. and self._odom_fresh()
+                and self._motion_limits_fresh() and limits.get('bounded_motion_enabled') is True
+                and limits.get('bounded_geometry')=='trusted_footprint'
+                and limits.get('geometry_revision')==intent.get('geometry')
+                and self.straight_escape_seen is not None and 0<=now-self.straight_escape_seen<=3.
+                and 0<=now-intent.get('issued_s',-1e9)<=3.)
+            velocity,reason=self.straight_escape.update(now,pose,intent,safe,
+                (self.odom_x,self.odom_y,self.odom_yaw))
+            obstacle_wait = self._obstacle_wait(velocity, 0.) if velocity else None
+            if obstacle_wait:
+                # A new obstacle invalidates this bounded escape attempt. Do
+                # not spend its deadline pushing against the final gate or
+                # replay it automatically when the obstacle disappears.
+                velocity, _ = self.straight_escape.update(now, pose, intent, False,
+                    (self.odom_x, self.odom_y, self.odom_yaw))
+                reason = 'straight_escape_stopped:obstacle_wait:' + obstacle_wait
+            command=Twist()
+            command.linear.x=velocity or 0.
+            self.state='forward' if velocity and velocity>0 else 'backup' if velocity else 'wait'
+            self._publish(command,'route_'+str(self.navigation_mode)+':'+reason)
+            if reason=='complete' and (self.straight_escape_reported!=intent['id'] or now-self.straight_escape_reported_at>=.2):
+                self.straight_escape_result_pub.publish(String(data=json.dumps(dict(
+                    id=intent['id'],geometry=intent['geometry'],status='complete',
+                    pose=list(pose[:2]),issued_s=now))))
+                self.straight_escape_reported=intent['id']
+                self.straight_escape_reported_at=now
+            return
         if self.trail_retreat.active or self.trail_retreat_hold is not None:
             v, w, reason = 0., 0., 'trail_retreat'
         else:
@@ -188,7 +249,7 @@ class Navigator(ObstacleWait):
             retreat_v, retreat_w, retreat_reason = self.trail_retreat.update(
                 now, odom_pose, geometry_id,
                 trail_valid and self._can_reverse() and limits.get('bounded_motion_enabled') is True,
-                limits.get('can_rotate') is True)
+                limits.get('can_rotate') is True, rotation=limits.get('rotation_estimate'))
             if retreat_reason == 'trail_retreat_complete':
                 self.navigation_progress.reset()
                 self.path_follower.reset()
@@ -199,7 +260,7 @@ class Navigator(ObstacleWait):
                 self.trail_retreat_hold = retreat_reason
             command = Twist()
             command.linear.x, command.angular.z = retreat_v, retreat_w
-            self.state = 'backup' if retreat_v else 'wait'
+            self.state = 'backup' if retreat_v else 'turn' if retreat_w else 'wait'
             self._publish(command, f'route_{self.navigation_mode}:{retreat_reason}')
             return
         suggestion = limits.get('rotation_recovery_m')
@@ -244,7 +305,8 @@ class Navigator(ObstacleWait):
             if (not self.trail_retreat_used and trail_valid and self._can_reverse() and
                     limits.get('bounded_motion_enabled') is True):
                 retreat_route = self.safe_trail.retreat(now, odom_pose, geometry_id)
-                if retreat_route and self.trail_retreat.start(now, odom_pose, retreat_route, geometry_id):
+                if retreat_route and self.trail_retreat.start(now, odom_pose, retreat_route, geometry_id,
+                        rotation=limits.get('rotation_estimate')):
                     self.path_follower.reset()
                     # One bounded attempt per explicit navigation command.
                     # Replans and a return to the same throat cannot renew it.

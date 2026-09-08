@@ -1,0 +1,18 @@
+{
+  "elapsed_sim_s": 35.586000000000006,
+  "calibration_phase": "failed",
+  "calibration_ready": false,
+  "message": "Fresh final safety command evidence required",
+  "map_received": true,
+  "mapping_complete": false,
+  "observation_error": null,
+  "operator_requested_stop": false,
+  "cmd_vel_publishers": [
+    "safety_node"
+  ],
+  "run_id": "0e28126604cf42e09c83f038d5a20f66",
+  "path_m": 0.1492811046086144,
+  "min_center_to_wall_m": 0.3154898094407321,
+  "map_geometry_and_time_valid": true,
+  "known_cells": 2654
+}

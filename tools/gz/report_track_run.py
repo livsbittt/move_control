@@ -16,6 +16,15 @@ def main():
     identity = json.loads((folder/'track_identity.json').read_text())
     result = json.loads((folder/'track_result.json').read_text())
     rows = json.loads((folder/'track_samples.json').read_text())
+    trace = []
+    if (folder/'wander.log').exists():
+        for line in (folder/'wander.log').read_text(encoding='utf-8').splitlines():
+            try:
+                record=json.loads(line)
+                if 'odom' in record and all(v is not None for v in record['odom']):
+                    trace.append(record['odom'][:2])
+            except (ValueError,TypeError):
+                continue
     quality_path = folder/'track_map_quality.json'
     if (folder/'track_map_audit.json').exists():
         quality_path = folder/'track_map_audit.json'
@@ -32,7 +41,7 @@ def main():
         corners = np.array([[-1,-1], [1,-1], [1,1], [-1,1]])*np.array(size[:2])/2
         corners = corners @ np.array([[c,s],[-s,c]])+np.array(pose[:2])
         ax.add_patch(Polygon(corners, facecolor='#db594f', edgecolor='#9a251e', alpha=.65))
-    points = np.array([r['pose'] for r in rows if r['pose'] is not None])
+    points = np.array(trace or [r['pose'] for r in rows if r['pose'] is not None])
     if len(points):
         ax.plot(points[:,0], points[:,1], color='#1565c0', linewidth=2, label='Observed trajectory')
         ax.scatter(*points[0], color='#00a060', s=45, label='Start')

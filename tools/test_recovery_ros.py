@@ -1,6 +1,7 @@
 """Execution failure reaches planning without publishing physical motor commands."""
 import unittest
-from unittest.mock import Mock
+import math
+from unittest.mock import Mock, patch
 import rclpy
 from rclpy.time import Time
 from geometry_msgs.msg import TransformStamped
@@ -10,6 +11,36 @@ from move_control.wander.node import WanderNode
 
 
 class RecoveryIntegrationTest(unittest.TestCase):
+    def test_straight_escape_bypasses_no_route_but_not_freshness_or_final_gate(self):
+        node=WanderNode()
+        try:
+            self.assertEqual(node.pub.topic_name,'/cmd_vel_raw')
+            node.pub=Mock(); node.navigation_mode='explore'; node.navigation_started=100.
+            node._ir_ready=Mock(return_value=True); node._odom_fresh=Mock(return_value=True)
+            node._motion_limits_fresh=Mock(return_value=True)
+            node.blocked=node.estop=node.pickup=node.tilt=node.cliff=False
+            node.navigation_tf=Mock()
+            transform=TransformStamped(); transform.header.stamp=Time(seconds=101.).to_msg()
+            transform.transform.rotation.w=1.
+            node.navigation_tf.lookup_transform.return_value=transform
+            node.now=Mock(return_value=Time(seconds=101.))
+            node.motion_limits=dict(bounded_motion_enabled=True,bounded_geometry='trusted_footprint',geometry_revision='g')
+            import json
+            packet=dict(id='one',issued_s=101.,target=[.1,0.],yaw=0.,geometry='g')
+            node._on_straight_escape(String(data=json.dumps(packet)))
+            with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}):
+                node._tick_navigation()
+                out=node.pub.publish.call_args.args[0]
+                self.assertEqual((out.linear.x,out.angular.z),(.006,0.))
+                node._motion_limits_fresh.return_value=False
+                node._tick_navigation()
+                out=node.pub.publish.call_args.args[0]
+                self.assertEqual((out.linear.x,out.angular.z),(0.,0.))
+                node._motion_limits_fresh.return_value=True
+                node._tick_navigation()
+                self.assertEqual(node.pub.publish.call_args.args[0].linear.x,0.)
+        finally:node.destroy_node()
+
     def trail_fixture(self):
         node=WanderNode()
         self.assertEqual(node.pub.topic_name,'/cmd_vel_raw')
@@ -97,6 +128,28 @@ class RecoveryIntegrationTest(unittest.TestCase):
                 self.assertEqual((out.linear.x,out.angular.z),(0.,0.))
                 self.assertTrue(node.trail_retreat_hold)
             finally:node.destroy_node()
+
+    def test_pivot_trail_uses_raw_turn_and_stops_when_estimate_disappears(self):
+        node,tick=self.trail_fixture()
+        try:
+            node.trail_retreat.reset()
+            node.trail_retreat_used=False
+            center=(-.04,-.01)
+            route=[(.03+center[0]-math.cos(a)*center[0]+math.sin(a)*center[1],
+                    center[1]-math.sin(a)*center[0]-math.cos(a)*center[1],a)
+                   for a in (.05,.1,.15)]
+            node.safe_trail.retreat=Mock(return_value=route)
+            node.motion_limits['rotation_estimate']={'center_m':center,'center_uncertainty_m':.001}
+            self.assertEqual(tick(101.1,.03).angular.z,0.)
+            out=tick(101.2,.03)
+            self.assertEqual(out.linear.x,0.)
+            self.assertGreater(out.angular.z,0.)
+            self.assertEqual(node.state,'turn')
+            node.motion_limits['rotation_estimate']=None
+            out=tick(101.3,.03)
+            self.assertEqual((out.linear.x,out.angular.z),(0.,0.))
+            self.assertEqual(node.trail_retreat_hold,'trail_retreat_estimate_changed')
+        finally:node.destroy_node()
 
     def test_blocked_turn_uses_bounded_straight_sensor_suggestion(self):
         node=WanderNode()

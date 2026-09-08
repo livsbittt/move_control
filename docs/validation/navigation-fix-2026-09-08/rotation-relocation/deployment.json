@@ -1,0 +1,14 @@
+{
+  "base_commit": "d045f74",
+  "updated_commit": "ddc0cfa",
+  "restarted_components": [
+    "safety",
+    "wander"
+  ],
+  "sim_s": 677.2510000000001,
+  "preserved_map_and_pose": true,
+  "precondition": {
+    "estop": true,
+    "wander": "stop"
+  }
+}

@@ -1,0 +1,60 @@
+{
+  "interior_unknown_fraction": 0.2524748790472646,
+  "known_corridor_purity": 0.9965149855620831,
+  "wall_surface_recall": [
+    0.47674418604651164,
+    0.1124031007751938,
+    0.6751824817518248,
+    0.7007299270072993,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    0.3382352941176471,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    0.5376344086021505
+  ],
+  "minimum_wall_surface_recall": 0.1124031007751938,
+  "phantom_fraction": 0.0,
+  "bounds_m": [
+    [
+      -1.3575,
+      -0.6325
+    ],
+    [
+      1.3575,
+      0.6325
+    ]
+  ],
+  "wall_tolerance_m": 0.05,
+  "interior_wall_exclusion_m": 0.03,
+  "map_raster_complete": false,
+  "topology": {
+    "sampling_m": 0.002,
+    "free_components": 2,
+    "sealed_free_area_m2": 0.09302400000000001,
+    "sealed_free_fraction": 0.02826978830479733,
+    "sealed_centroid_m": [
+      -0.7514999999999995,
+      -0.5208333333333331
+    ]
+  },
+  "point_reachable_observation": {
+    "definition": "spawn_connected_point_space_at_lidar_height",
+    "robot_footprint_accessibility": false,
+    "observational_only": true,
+    "sampling_m": 0.002,
+    "interior_wall_exclusion_m": 0.03,
+    "sample_count": 662126,
+    "sampled_area_m2": 2.648504,
+    "unknown_fraction": 0.23728867315284402,
+    "outside_raster_fraction": 0.0
+  },
+  "map_npz_sha256": "72a60785b7c4cbed87526f9620676942411bfae750bd8a5244b383fbb5bbd659",
+  "source_world_sha256": "8475464857322d71f6e492171419bf285e7bd034089b90ad59d6f106b0941072"
+}

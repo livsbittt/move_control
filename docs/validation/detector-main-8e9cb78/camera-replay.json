@@ -1,0 +1,288 @@
+[
+  {
+    "file": "frame-000001.png",
+    "sha256": "0940a65446d920e3eee71d0c24f3bdf7b1f0b79039b02495258550fcea131ccf",
+    "blocked": false,
+    "quality": {
+      "valid": true,
+      "reason": "usable",
+      "reference": "bootstrap"
+    },
+    "regions": [
+      {
+        "bbox_xyxy": [
+          0,
+          0,
+          320,
+          124
+        ],
+        "area_px": 39680,
+        "area_fraction": 0.5166666666666667,
+        "near_path": false,
+        "kind": "dark_region",
+        "distance_m": null,
+        "motion": "unknown"
+      }
+    ]
+  },
+  {
+    "file": "frame-000021.png",
+    "sha256": "d4184a31ac7cf30c2c3049b984682341810af757f22a2a439051aac63084bb9f",
+    "blocked": false,
+    "quality": {
+      "valid": true,
+      "reason": "usable",
+      "reference": "previous"
+    },
+    "regions": [
+      {
+        "bbox_xyxy": [
+          0,
+          0,
+          320,
+          124
+        ],
+        "area_px": 39680,
+        "area_fraction": 0.5166666666666667,
+        "near_path": false,
+        "kind": "dark_region",
+        "distance_m": null,
+        "motion": "unknown"
+      }
+    ]
+  },
+  {
+    "file": "frame-000041.png",
+    "sha256": "d4184a31ac7cf30c2c3049b984682341810af757f22a2a439051aac63084bb9f",
+    "blocked": false,
+    "quality": {
+      "valid": true,
+      "reason": "usable",
+      "reference": "previous"
+    },
+    "regions": [
+      {
+        "bbox_xyxy": [
+          0,
+          0,
+          320,
+          124
+        ],
+        "area_px": 39680,
+        "area_fraction": 0.5166666666666667,
+        "near_path": false,
+        "kind": "dark_region",
+        "distance_m": null,
+        "motion": "unknown"
+      }
+    ]
+  },
+  {
+    "file": "frame-000061.png",
+    "sha256": "d4184a31ac7cf30c2c3049b984682341810af757f22a2a439051aac63084bb9f",
+    "blocked": false,
+    "quality": {
+      "valid": true,
+      "reason": "usable",
+      "reference": "previous"
+    },
+    "regions": [
+      {
+        "bbox_xyxy": [
+          0,
+          0,
+          320,
+          124
+        ],
+        "area_px": 39680,
+        "area_fraction": 0.5166666666666667,
+        "near_path": false,
+        "kind": "dark_region",
+        "distance_m": null,
+        "motion": "unknown"
+      }
+    ]
+  },
+  {
+    "file": "frame-000081.png",
+    "sha256": "d4184a31ac7cf30c2c3049b984682341810af757f22a2a439051aac63084bb9f",
+    "blocked": false,
+    "quality": {
+      "valid": true,
+      "reason": "usable",
+      "reference": "previous"
+    },
+    "regions": [
+      {
+        "bbox_xyxy": [
+          0,
+          0,
+          320,
+          124
+        ],
+        "area_px": 39680,
+        "area_fraction": 0.5166666666666667,
+        "near_path": false,
+        "kind": "dark_region",
+        "distance_m": null,
+        "motion": "unknown"
+      }
+    ]
+  },
+  {
+    "file": "frame-000101.png",
+    "sha256": "d4184a31ac7cf30c2c3049b984682341810af757f22a2a439051aac63084bb9f",
+    "blocked": false,
+    "quality": {
+      "valid": true,
+      "reason": "usable",
+      "reference": "previous"
+    },
+    "regions": [
+      {
+        "bbox_xyxy": [
+          0,
+          0,
+          320,
+          124
+        ],
+        "area_px": 39680,
+        "area_fraction": 0.5166666666666667,
+        "near_path": false,
+        "kind": "dark_region",
+        "distance_m": null,
+        "motion": "unknown"
+      }
+    ]
+  },
+  {
+    "file": "frame-000121.png",
+    "sha256": "865ec110a7294995bb9583520317eaa6ead89b140a6dd8e12deab0252a7486ec",
+    "blocked": false,
+    "quality": {
+      "valid": true,
+      "reason": "usable",
+      "reference": "previous"
+    },
+    "regions": [
+      {
+        "bbox_xyxy": [
+          0,
+          0,
+          320,
+          126
+        ],
+        "area_px": 40320,
+        "area_fraction": 0.525,
+        "near_path": false,
+        "kind": "dark_region",
+        "distance_m": null,
+        "motion": "unknown"
+      }
+    ]
+  },
+  {
+    "file": "frame-000141.png",
+    "sha256": "fea74e360e89de5f8b1bf321f815b959412c46d51e1215ff079c719900b9b86e",
+    "blocked": false,
+    "quality": {
+      "valid": true,
+      "reason": "usable",
+      "reference": "previous"
+    },
+    "regions": [
+      {
+        "bbox_xyxy": [
+          0,
+          0,
+          320,
+          130
+        ],
+        "area_px": 41600,
+        "area_fraction": 0.5416666666666666,
+        "near_path": false,
+        "kind": "dark_region",
+        "distance_m": null,
+        "motion": "unknown"
+      }
+    ]
+  },
+  {
+    "file": "frame-000161.png",
+    "sha256": "b3fcb4ab6a1e87327b806025b5f92bfed0e3424812f3130a43cb33f0ba37f0dc",
+    "blocked": false,
+    "quality": {
+      "valid": true,
+      "reason": "usable",
+      "reference": "previous"
+    },
+    "regions": [
+      {
+        "bbox_xyxy": [
+          0,
+          0,
+          320,
+          130
+        ],
+        "area_px": 41600,
+        "area_fraction": 0.5416666666666666,
+        "near_path": false,
+        "kind": "dark_region",
+        "distance_m": null,
+        "motion": "unknown"
+      }
+    ]
+  },
+  {
+    "file": "frame-000181.png",
+    "sha256": "cc5d3e4bedb74402b46dd1d31a33e1bfec6ea108da0e833623fce3f6cd13d60f",
+    "blocked": false,
+    "quality": {
+      "valid": true,
+      "reason": "usable",
+      "reference": "previous"
+    },
+    "regions": [
+      {
+        "bbox_xyxy": [
+          0,
+          0,
+          320,
+          126
+        ],
+        "area_px": 40320,
+        "area_fraction": 0.525,
+        "near_path": false,
+        "kind": "dark_region",
+        "distance_m": null,
+        "motion": "unknown"
+      }
+    ]
+  },
+  {
+    "file": "frame-000201.png",
+    "sha256": "57cdd1c827a030e19241cb0269930d967886ac00be200b1558eb9e5719b2c4c0",
+    "blocked": false,
+    "quality": {
+      "valid": true,
+      "reason": "usable",
+      "reference": "previous"
+    },
+    "regions": [
+      {
+        "bbox_xyxy": [
+          0,
+          0,
+          320,
+          124
+        ],
+        "area_px": 39680,
+        "area_fraction": 0.5166666666666667,
+        "near_path": false,
+        "kind": "dark_region",
+        "distance_m": null,
+        "motion": "unknown"
+      }
+    ]
+  }
+]

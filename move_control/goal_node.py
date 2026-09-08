@@ -36,6 +36,8 @@ from .sensing.pose import planar_pose
 from .planning.obstacle_overlay import obstacle_overlay
 from .control.obstacle_risk import accept_observation, TRACK_UNCERTAINTY
 from rclpy.time import Time
+from .goal_escape import GoalEscape
+from .control.escape_budget import EscapeBudget
 
 
 def grid_clearance(distance, resolution):
@@ -44,7 +46,7 @@ def grid_clearance(distance, resolution):
     return max(distance, math.ceil(distance / resolution - 1e-6) * resolution)
 
 
-class GoalNode(Node):
+class GoalNode(Node, GoalEscape):
     def __init__(self):
         super().__init__('goal_node')
         self.declare_parameter('map_topic', '/map')
@@ -68,6 +70,7 @@ class GoalNode(Node):
         self.declare_parameter('start_escape_clear_m', 0.0)
         self.declare_parameter('start_escape_distance_m', .08)
         self.declare_parameter('robot_radius', .076)
+        self.init_escape()
         self.navigation_profile = None
         self.navigation_profile_received = None
         self.create_subscription(String, '/calibration/status', self.on_calibration_profile, 10)
@@ -226,6 +229,7 @@ class GoalNode(Node):
         self.have_odom = True
         now = self.get_clock().now().nanoseconds * 1e-9
         self._hist.append((now, p.x, p.y))
+        self.escape_budget.observe(now,(p.x,p.y))
         cut = now - 5.0
         while self._hist and self._hist[0][0] < cut:
             self._hist.pop(0)
@@ -280,6 +284,10 @@ class GoalNode(Node):
             self.plan()
             return
         if cmd == 'reset':
+            self.escape_intent=None
+            self.escape_used=False
+            self.escape_budget=EscapeBudget()
+            self.publish_escape(None)
             self.mode = 'stop'
             self.brain.reset()
             self.map_obj = None
@@ -290,6 +298,10 @@ class GoalNode(Node):
             self._clear_route('map reset; stopped')
             return
         if cmd in ('explore', 'explore_nearest', 'coverage', 'stop'):
+            self.escape_intent=None
+            self.escape_used=False
+            self.escape_budget=EscapeBudget()
+            self.publish_escape(None)
             if cmd in ('explore','explore_nearest'):
                 self.brain.frontier_strategy='nearest' if cmd=='explore_nearest' else 'gain'
             if cmd=='explore_nearest':
@@ -304,6 +316,10 @@ class GoalNode(Node):
             return
         xy = parse_goal_cmd(cmd)
         if xy is not None:
+            self.escape_intent=None
+            self.escape_used=False
+            self.escape_budget=EscapeBudget()
+            self.publish_escape(None)
             self.mode = 'manual'
             self.brain.mode = 'manual'
             self.manual_started_ns = self.get_clock().now().nanoseconds
@@ -333,6 +349,7 @@ class GoalNode(Node):
             q = t.transform.rotation
             if planar_pose(tr.x, tr.y, (q.x, q.y, q.z, q.w)) is None:
                 return (None, None), 'invalid-tf'
+            self.map_yaw=planar_pose(tr.x,tr.y,(q.x,q.y,q.z,q.w))[2]
             return (float(tr.x), float(tr.y)), 'tf'
         except Exception:
             # Nested-unpack safe: (x, y), src = pose() must never see a
@@ -413,7 +430,12 @@ class GoalNode(Node):
                 self._clear_route('waiting obstacle evidence: '+str(exc))
                 return
         self.brain.execution_feedback = seen is not None and 0 <= time.monotonic() - seen <= 1.
+        escape_pose=(x,y,getattr(self,'map_yaw',float('nan')))
+        if self.escape_intent is not None and self.escape_plan(m,escape_pose):
+            return
         goal, route, status = self.brain.plan(m, (x, y))
+        if route is None and self.escape_plan(m,escape_pose,status):
+            return
         if self.mode == 'manual' and self.brain._manual is None:
             self.mode = 'stop'
             self._clear_route(status)
@@ -433,6 +455,10 @@ class GoalNode(Node):
             self._clear_route()
 
     def _clear_route(self, status=None):
+        if status != 'escape: fixed-heading translation to planning clearance' and self.escape_intent is not None:
+            self.escape_intent=None
+            self.escape_budget.failed=True
+            self.publish_escape(None)
         """Revoke old routes immediately; silence is not a stop command."""
         self.issued_routes.clear()
         path = Path()

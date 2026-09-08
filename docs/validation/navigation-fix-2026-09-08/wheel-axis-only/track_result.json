@@ -1,0 +1,16 @@
+{
+  "elapsed_sim_s": 19.07,
+  "calibration_phase": "failed",
+  "calibration_ready": false,
+  "message": "Required speed correction exceeds calibrated bounds",
+  "map_received": true,
+  "mapping_complete": false,
+  "cmd_vel_publishers": [
+    "safety_node"
+  ],
+  "run_id": "99867ee416af41b59495d21c98734cc8",
+  "path_m": 0.06436402645955593,
+  "min_center_to_wall_m": 0.31548959430215456,
+  "map_geometry_and_time_valid": true,
+  "known_cells": 2654
+}
