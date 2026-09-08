@@ -6,6 +6,22 @@ from move_control.control.rotation_trial import RotationTrial
 
 
 class RotationTrialTest(unittest.TestCase):
+    def test_gain_above_one_repeats_within_trial_command_limit(self):
+        trial=RotationTrial(0.)
+        yaw=speed=0.
+        for i in range(1,1400):
+            yaw+=speed*.05/1.1
+            speed=trial.update(i*.05,yaw,yaw,yaw,0.,True)
+            self.assertLessEqual(abs(speed),.06)
+            if trial.done or trial.error:
+                break
+        self.assertIsNone(trial.error)
+        self.assertTrue(trial.done)
+        self.assertEqual(len(trial.legs),8)
+        for leg in trial.legs:
+            self.assertAlmostEqual(leg['ratio'],1.1,places=8)
+        self.assertLess(abs(yaw),.025)
+
     def test_scan_yaw_sign_and_unobservable_circle(self):
         angles = np.arange(720)*math.pi/360
         reference = .7 + .15*np.sin(3*angles) + .1*np.cos(7*angles)

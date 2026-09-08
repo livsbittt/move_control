@@ -5,6 +5,8 @@ from geometry_msgs.msg import Twist
 from .control.calibration import wrap
 from .control.rotation_trial import RotationTrial
 from .sensing.scan_rotation import scan_rotation
+from .sensing.scan_motion import scan_points, match_motion
+from .control.rotation_envelope import RotationEnvelope
 
 
 class CalibrationRotation:
@@ -15,6 +17,8 @@ class CalibrationRotation:
         self.rotation_alignment = None
         self.rotation_scan = None
         self.rotation_imu_yaw = None
+        self.rotation_points = self.rotation_reference_points = None
+        self.rotation_envelope = None
 
     def complete_translation(self, passed, message):
         if not passed or not self.get_parameter('calibration_rotation').value:
@@ -26,6 +30,9 @@ class CalibrationRotation:
 
     def rotation_scan_sample(self, msg, valid):
         self.rotation_scan = (time.monotonic(), tuple(msg.ranges), msg.angle_increment) if valid else None
+        mount = getattr(self, 'rotation_mount', None)
+        self.rotation_points = (scan_points(msg.ranges, msg.angle_min, msg.angle_increment, mount)
+                                if valid and mount is not None else None)
         if self.rotation_reference is not None and valid:
             reference, increment = self.rotation_reference
             self.rotation_alignment = (scan_rotation(reference, msg.ranges, increment)
@@ -85,16 +92,43 @@ class CalibrationRotation:
             self.rotation_odom_origin = odom
             self.rotation_imu_origin = self.rotation_imu_yaw
             self.rotation_trial = RotationTrial(now)
+            self.rotation_reference_points = self.rotation_points
+            geometry = self.geometry_profile['effective']
+            flat = geometry.get('rotation_footprint_xy') or []
+            try:
+                if len(flat) % 2:
+                    raise ValueError('Odd footprint coordinate count')
+                self.rotation_envelope = RotationEnvelope(
+                    geometry.get('rotation_body_radius', geometry['radius']),
+                    list(zip(flat[::2], flat[1::2])))
+            except (ValueError, TypeError, OverflowError):
+                self.finish(False, 'Invalid trusted rotation footprint')
+                return
         alignment = self.rotation_alignment
         if alignment is None:
             self.finish(False, 'Rotation scan alignment ambiguous or inconsistent')
             return
         origin = self.rotation_odom_origin
+        previous_index = self.rotation_trial.index
         speed = self.rotation_trial.update(now, alignment['yaw'],
             wrap(self.rotation_imu_yaw-self.rotation_imu_origin), wrap(odom[2]-origin[2]),
             math.hypot(odom[0]-origin[0], odom[1]-origin[1]), True)
+        # Independent settled endpoints, not hundreds of correlated scan ticks.
+        if self.rotation_trial.index != previous_index and abs(alignment['yaw']) >= math.radians(5):
+            measured = match_motion(self.rotation_reference_points, self.rotation_points, alignment['yaw'])
+            dx, dy = odom[0]-origin[0], odom[1]-origin[1]
+            c, s = math.cos(origin[2]), math.sin(origin[2])
+            accepted = measured is not None and self.rotation_envelope.add(
+                (measured['dx'], measured['dy'], measured['yaw']),
+                (c*dx+s*dy, -s*dx+c*dy, wrap(odom[2]-origin[2])),
+                wrap(self.rotation_imu_yaw-self.rotation_imu_origin), measured['residual_m'])
+            if not accepted:
+                self.finish(False, 'Independent rotation-center sensor evidence disagrees or is unobservable')
+                return
         if self.rotation_trial.error or self.rotation_trial.done:
-            self.finish(self.rotation_trial.done, self.rotation_trial.error or 'Translation and bilateral rotation verified')
+            valid = self.rotation_trial.done and self.rotation_envelope.report()['valid']
+            self.finish(valid, self.rotation_trial.error or (
+                'Translation and bilateral rotation verified; swept envelope estimated' if valid else 'Insufficient bilateral rotation-center evidence'))
             return
         command = Twist()
         command.angular.z = speed

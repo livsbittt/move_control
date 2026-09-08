@@ -684,6 +684,21 @@ function renderCalibration(s) {
   }
   const rotation = calibration && calibration.rotation;
   if (rotation) lines.push('회전 검증 ' + (rotation.legs || []).length + '/8 · ' + (rotation.done ? '완료' : '진행 중'));
+  const activeMotion = s && s.motion_limits_fresh && s.motion_limits;
+  const envelope = activeMotion && activeMotion.rotation_estimate || rotation && rotation.envelope;
+  const cm = value => (value*100).toFixed(1);
+  if (envelope && envelope.valid && Array.isArray(envelope.center_m) &&
+      envelope.center_m.length === 2 && [...envelope.center_m, envelope.pivot_radius_m,
+        envelope.center_uncertainty_m].every(Number.isFinite)) {
+    lines.push('센서 회전 추정 · 중심 x ' + cm(envelope.center_m[0]) + ' / y ' + cm(envelope.center_m[1]) + 'cm');
+    lines.push('중심 기준 회전 반경 ' + cm(envelope.pivot_radius_m) + 'cm · 중심 불확실성 ' + cm(envelope.center_uncertainty_m) + 'cm');
+  }
+  if (activeMotion && Number.isFinite(activeMotion.body_radius_m))
+    lines.push('설정 형상 기준 차체 반경 ' + cm(activeMotion.body_radius_m) + 'cm');
+  lines.push('현재 회전 · ' + (activeMotion
+    ? (activeMotion.can_rotate === true ? '허용' : '보류') + ' · 전방위 스캔 ' +
+      (activeMotion.rotation_scan_observed === true ? '관측 완료' : '관측 대기')
+    : '보류 · 최신 안전 정보 대기'));
   const effective = s && s.safety_profile && s.safety_profile.valid && s.safety_profile.effective;
   if (effective) lines.push('현재 안전 기준 · 정지 ' + (effective.stop*100).toFixed(1) + 'cm · 반경 ' + (effective.radius*100).toFixed(1) + 'cm');
   if (s && s.safety_decision && s.safety_decision.reason) lines.push('안전 판단: ' + s.safety_decision.reason);
@@ -730,7 +745,7 @@ const LIM = () => {
   const limits = Object.assign({}, CFG.lim, S.data.limits || {});
   const active = S.data.motion_limits;
   if (S.data.motion_limits_fresh && active) {
-    const keys = {front_stop_m:'stop',front_clear_m:'clear',rear_stop_m:'rear_stop',rear_clear_m:'rear_clear',us_stop_m:'us_stop',rotation_radius_m:'radius'};
+    const keys = {front_stop_m:'stop',front_clear_m:'clear',rear_stop_m:'rear_stop',rear_clear_m:'rear_clear',us_stop_m:'us_stop',body_radius_m:'radius'};
     Object.entries(keys).forEach(([source,key]) => { if (Number.isFinite(active[source])) limits[key]=active[source]; });
     limits.live = true;
     limits.translation = active.translation_mode === true;

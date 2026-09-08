@@ -99,11 +99,15 @@ class CalibrationAtomic:
         return None
 
     def rotation_report(self):
-        return self.rotation_trial.report() if self.rotation_trial else self.saved_rotation
+        result = self.rotation_trial.report() if self.rotation_trial else self.saved_rotation
+        if result is not None and self.rotation_trial and getattr(self, 'rotation_envelope', None) is not None:
+            result['envelope'] = self.rotation_envelope.report()
+        return result
 
     def profile_packet(self):
         enabled = self.phase == 'ready' and self.runtime_ready and self.geometry_fresh(time.monotonic())
         scales = self.round_trip.scales if self.phase == 'ready' and self.round_trip and self.round_trip.done else [1., 1.]
         return make_profile(self.profile_session, self.profile_sequence+1,
             self.get_clock().now().nanoseconds*1e-9, enabled, scales,
-            self.trial_geometry_revision or self.geometry_revision, self.rotation_report())
+            self.trial_geometry_revision or self.geometry_revision, self.rotation_report(),
+            rotation_trial=self.phase == 'validating_rotation' and self.geometry_fresh(time.monotonic()))

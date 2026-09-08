@@ -97,6 +97,8 @@ class GoalRouteTest(unittest.TestCase):
         self.node.mode = 'explore'
         self.node.plan()
         self.assertAlmostEqual(self.node.brain.clear_m,p['preferred_clearance_m'])
+        self.assertAlmostEqual(self.node.brain.retry_clear_m,p['minimum_clearance_m'])
+        self.assertLess(self.node.brain.retry_clear_m, self.node.brain.clear_m)
         self.assertAlmostEqual(self.node.brain.start_escape_clear_m,p['minimum_clearance_m'])
         self.node.navigation_profile_received -= 10
         self.node.plan()

@@ -12,6 +12,101 @@ from move_control.safety.node import SafetyNode
 
 
 class SafetyGateTest(unittest.TestCase):
+    def test_recalibration_retains_sweep_restriction_without_restoring_gains(self):
+        from types import SimpleNamespace
+        from move_control.calibration_atomic import CalibrationAtomic
+        from move_control.control.rotation_envelope import RotationEnvelope
+        n = self.node
+        n.release_estop(); n._refresh_distances(); n.refresh_profile()
+        envelope = RotationEnvelope(n.robot_r)
+        for yaw in (.17,-.17,.18,-.18):
+            envelope.add((0.,0.,yaw),(0.,0.,yaw),yaw,.0005)
+        rotation = dict(done=True,error=None,max_angular_rad_s=.06,legs=[{}]*8,
+                        angular_gains=[.9,.9],envelope=envelope.report())
+        calibration = SimpleNamespace(phase='ready', runtime_ready=True,
+            geometry_fresh=lambda now: True, round_trip=None, profile_session='retry-lifecycle',
+            profile_sequence=0, get_clock=n.get_clock, trial_geometry_revision=n.profile.revision,
+            geometry_revision=n.profile.revision, rotation_report=lambda:rotation)
+        def phase(value):
+            calibration.phase = value
+            packet = CalibrationAtomic.profile_packet(calibration)
+            calibration.profile_sequence += 1
+            n.on_calibration_profile(String(data=json.dumps(packet)))
+        def turn(speed=.04):
+            self.fresh_sensors()
+            for field in ('lidar_front','lidar_rear','lidar_left','lidar_right',
+                          'lidar_rear_left','lidar_rear_right'):
+                setattr(n,field,.4)
+            n.lidar_rotation_clearance=.4
+            command=Twist(); command.angular.z=speed
+            n.on_cmd(command); n.tick()
+            return n.pub.publish.call_args.args[0].angular.z
+        n.lidar_rotation_points=[(.4,0.)]; n.lidar_rotation_observed=True
+        phase('ready')
+        self.assertGreater(turn(),0.)
+        phase('collecting')
+        self.assertEqual(turn(),0.)
+        phase('validating_motion')
+        self.assertEqual(turn(),0.)
+        phase('validating_rotation')
+        self.assertAlmostEqual(turn(),.04)
+        self.assertEqual(n.calibration_lease.angular_gains(__import__('time').monotonic()),(1.,1.))
+        self.assertEqual(turn(.07),0.)
+        command=Twist(); command.linear.x=.01
+        n.on_cmd(command); n.tick()
+        self.assertEqual(n.pub.publish.call_args.args[0].linear.x,0.)
+        n.lidar_rotation_points=[(.08,0.)]
+        self.assertEqual(turn(),0.)
+        n.lidar_rotation_points=[(.4,0.)]; n.lidar_rotation_observed=False
+        self.assertEqual(turn(),0.)
+        n.lidar_rotation_observed=True
+        n.calibration_lease.deadline=0.
+        self.assertEqual(turn(),0.)
+
+    def test_learned_rotation_restriction_survives_lease_loss_and_missing_scan(self):
+        import math
+        from move_control.control.rotation_envelope import RotationEnvelope
+        n = self.node
+        n.release_estop()
+        n._refresh_distances()
+        n.refresh_profile()
+        estimator = RotationEnvelope(n.robot_r)
+        for yaw in (.17, -.17, .18, -.18):
+            delta = ((1-math.cos(yaw))*.04, -math.sin(yaw)*.04, yaw)
+            self.assertTrue(estimator.add(delta, delta, yaw, .0005))
+        rotation = dict(done=True, error=None, max_angular_rad_s=.06, legs=[{}]*8,
+                        angular_gains=[1.,1.], envelope=estimator.report())
+        def apply(sequence):
+            packet = make_profile('pivot-test', sequence, n.now().nanoseconds*1e-9,
+                                  True, (1.,1.), n.profile.revision, rotation)
+            n.on_calibration_profile(String(data=json.dumps(packet)))
+        def turn():
+            self.fresh_sensors()
+            for field in ('lidar_front','lidar_rear','lidar_left','lidar_right',
+                          'lidar_rear_left','lidar_rear_right'):
+                setattr(n, field, .3)
+            n.lidar_rotation_clearance = .13
+            command = Twist()
+            command.angular.z = .04
+            n.on_cmd(command)
+            n.tick()
+            return n.pub.publish.call_args.args[0].angular.z
+        n.lidar_rotation_points = [(.13,0.)]
+        n.lidar_rotation_observed = True
+        apply(1)
+        self.assertEqual(turn(), 0.)
+        n.calibration_lease.deadline = 0.
+        self.assertEqual(turn(), 0.)
+        apply(2)
+        n.on_calibration_profile(String(data='{}'))
+        self.assertEqual(turn(), 0.)
+        apply(3)
+        n.lidar_rotation_points = None
+        self.assertEqual(turn(), 0.)
+        n.lidar_rotation_points = [(.3,0.)]
+        apply(4)
+        self.assertGreater(turn(), 0.)
+
     def test_verified_translation_uses_body_clearance_but_turning_keeps_circle(self):
         from rclpy.parameter import Parameter
         self.node.set_parameters([Parameter('footprint_guard_enabled', value=True),

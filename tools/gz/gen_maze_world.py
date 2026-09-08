@@ -195,8 +195,13 @@ def build():
     # corridors. The rig tests the planning stack, not chassis fidelity.
     geom_box(base, 'col', 'collision', 0, 0, 0.04, 0.14, 0.10, 0.06)
     vis = geom_box(base, 'vis', 'visual', 0, 0, 0.04, 0.14, 0.10, 0.06, vis=True)
-    geom_box(base, 'skid_col', 'collision',
+    skid = geom_box(base, 'skid_col', 'collision',
              -0.065, 0, 0.0075, 0.015, 0.06, 0.015)
+    # Approximate the passive caster's rolling resistance, not a rubber
+    # brake pad. Default sliding friction loaded the rear support on reverse.
+    friction = sub(sub(sub(skid, 'surface'), 'friction'), 'ode')
+    leaf(friction, 'mu', .02)
+    leaf(friction, 'mu2', .02)
     geom_box(base, 'skid_vis', 'visual',
              -0.065, 0, 0.0075, 0.015, 0.06, 0.015, vis=True)
     mat = sub(vis, 'material')
@@ -229,7 +234,9 @@ def build():
 
     wheel(r, 'wheel_left', 0.082)
     wheel(r, 'wheel_right', -0.082)
-    # Wheel joints: revolute about +y, NO limit element (ODE treats a
+    # Joint frames inherit the rolled wheel links: local +Z is the axle
+    # (model +Y). Local +Y instead makes the wheels swivel vertically.
+    # No limit element (ODE treats a
     # missing limit as unlimited; a ±1e16 limit strained the LCP at
     # spawn — AABB assertion crash in collision_space killed the physics
     # thread and the lidar with it on ~half the boots).
@@ -239,7 +246,7 @@ def build():
         leaf(j, 'parent', 'base')
         leaf(j, 'child', child)
         ax = sub(j, 'axis')
-        leaf(ax, 'xyz', '0 1 0')
+        leaf(ax, 'xyz', '0 0 1')
         # NO limit element at all: SDF has no explicit unlimited value
         # (effort -1 reads literally and clamps the wheels dead).
     # DiffDrive + ground-truth odometry. NOTE on the crawl investigation:

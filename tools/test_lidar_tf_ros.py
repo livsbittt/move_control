@@ -14,6 +14,39 @@ from move_control import web_node as web
 
 
 class LidarTfTest(unittest.TestCase):
+    def test_blind_wedge_cannot_remove_a_rotation_obstacle(self):
+        import json
+        from std_msgs.msg import String
+        from move_control.control.rotation_envelope import RotationEnvelope
+        from move_control.control.calibration_profile import make_profile
+        n = self.node
+        n.release_estop()
+        self.scan_once()
+        n._refresh_distances()
+        n.refresh_profile()
+        envelope = RotationEnvelope(n.robot_r)
+        for yaw in (.17, -.17, .18, -.18):
+            envelope.add((0.,0.,yaw), (0.,0.,yaw), yaw, .0005)
+        rotation = dict(done=True,error=None,max_angular_rad_s=.06,legs=[{}]*8,
+                        angular_gains=[1.,1.],envelope=envelope.report())
+        packet = make_profile('wedge',1,n.now().nanoseconds*1e-9,True,(1.,1.),n.profile.revision,rotation)
+        n.on_calibration_profile(String(data=json.dumps(packet)))
+        for missing in (.07, math.nan, math.inf, 0.):
+            self.scan.header.stamp = n.now().to_msg()
+            ranges = [.5]*720
+            ranges[200:240] = [missing]*40
+            self.scan.ranges = ranges
+            self.scan_once()
+            n.last_imu_time = n.last_ir_time = n.now()
+            n.ir_raw = (2100,2100,2100)
+            for name in ('imu','ir'):
+                n.observe(name)
+            command = Twist()
+            command.angular.z = .04
+            n.on_cmd(command)
+            n.tick()
+            self.assertEqual(n.pub.publish.call_args.args[0].angular.z, 0., str(missing))
+
     @classmethod
     def setUpClass(cls):
         rclpy.init(domain_id=218)

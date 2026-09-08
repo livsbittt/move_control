@@ -51,16 +51,28 @@ def lidar_blocked(raw, filtered, was_blocked, stop, clear, fresh):
     return was_blocked
 
 
-def lidar_can_rotate(ranges, radius, fresh, base_clearance=None):
+def lidar_can_rotate(ranges, radius, fresh, base_clearance=None, *, sweep_radius=None):
     # The body sweeps its circumradius when spinning. Unknown flank/rear
     # space is not permission to swing a corner into a wall.
+    required = use_radius(radius)
+    if sweep_radius is not None:
+        if not math.isfinite(sweep_radius) or sweep_radius < required:
+            return False
+        required = sweep_radius  # Never clamp a measured swept envelope downward.
     if base_clearance is not None:
         return (fresh and bool(ranges) and
                 all(math.isfinite(value) and value > 0 for value in ranges) and
-                math.isfinite(base_clearance) and base_clearance > use_radius(radius)+.010)
-    limit = use_radius(radius) + abs(LIDAR_X) + 0.010
+                math.isfinite(base_clearance) and base_clearance > required+.010)
+    limit = required + abs(LIDAR_X) + 0.010
     return fresh and bool(ranges) and all(
         math.isfinite(value) and value > limit for value in ranges)
+
+
+def rotation_scan_observed(ranges, increment, minimum, maximum):
+    """Unknown azimuths cannot be treated as empty swept space."""
+    return (len(ranges) >= 180 and all(math.isfinite(v) for v in (increment,minimum,maximum)) and
+            0 <= minimum < maximum and abs(len(ranges)*abs(increment)-2*math.pi) < .02 and
+            all(math.isfinite(r) and minimum < r <= maximum for r in ranges))
 
 
 def scan_body_clearance(ranges, angle_min, increment, x, y, yaw, minimum, maximum):

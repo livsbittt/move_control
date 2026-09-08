@@ -64,7 +64,9 @@ class RotationTrial:
             self.last_speed = 0.
             return 0.
         gain = self.scales[int(direction < 0)] if self.index >= 4 else 1.
-        self.last_speed = direction*.06*gain
+        # The explicit trial lease caps commands at 0.06 rad/s. Integrate the
+        # emitted bounded command so slower response still yields its true gain.
+        self.last_speed = direction*min(.06,.06*gain)
         return self.last_speed
 
     def report(self):

@@ -373,6 +373,21 @@ class GoalBrain:
             reason = 'occupied' if m.cell(*start) >= 65 else 'unknown'
             return None, None, f'planning idle: robot cell {reason}; check map alignment'
         if m.is_free(*start) and not m.inflate(self.clear_m / m.res).is_free(*start):
+            minimum = self.start_escape_clear_m
+            if ((self._manual is not None or self._explore_viewpoint is not None)
+                    and 0 < minimum < self.clear_m
+                    and m.inflate(minimum/m.res).is_free(*start)):
+                # Pivot-offset rotation can move base_link across the comfort
+                # boundary. Keep the active mission at its hard safety margin
+                # before replacing it with a short escape in the opposite direction.
+                preferred, retry = self.clear_m, self.retry_clear_m
+                self.clear_m = self.retry_clear_m = minimum
+                try:
+                    goal, route, status = self._plan(m, pose)
+                finally:
+                    self.clear_m, self.retry_clear_m = preferred, retry
+                if route:
+                    return goal, route, 'narrow passage: ' + status
             route = start_escape(m, pose, self.clear_m, self.start_escape_clear_m,
                                  self.start_escape_distance_m,
                                  [xy for xy, expiry in self._failed_goals + self._completed_goals

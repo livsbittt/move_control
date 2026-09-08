@@ -356,7 +356,10 @@ class GoalNode(Node):
         if (profile is not None and self.navigation_profile_received is not None and
                 time.monotonic()-self.navigation_profile_received <= 3. and
                 abs(profile['map_resolution_m']-m.res) < 1e-6):
-            self.brain.clear_m = self.brain.retry_clear_m = profile['preferred_clearance_m']
+            self.brain.clear_m = profile['preferred_clearance_m']
+            # Tight corridors may lose comfort clearance while retaining the
+            # calibrated body-plus-uncertainty minimum; keep that second pass.
+            self.brain.retry_clear_m = profile['minimum_clearance_m']
             self.brain.start_escape_clear_m = profile['minimum_clearance_m']
         seen = self.navigation_feedback_received
         self.brain.execution_feedback = seen is not None and 0 <= time.monotonic() - seen <= 1.

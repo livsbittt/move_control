@@ -20,8 +20,13 @@ from tools.gz.track_map_audit import measure
 
 def main():
     assert os.environ.get('ROS_DOMAIN_ID') == '227'
-    out = Path('/tmp/pinky-calmap227')
-    identity = json.loads((out/'track_identity.json').read_text())
+    rig = Path('/tmp/pinky-calmap227')
+    out = Path(os.environ.get('RIG_MONITOR_OUT', str(rig)))
+    out.mkdir(parents=True, exist_ok=True)
+    identity = json.loads((rig/'track_identity.json').read_text())
+    if out != rig:
+        (out/'track_identity.json').write_text(json.dumps(identity, indent=2))
+        (out/'run_manifest.json').write_text((rig/'run_manifest.json').read_text())
     rclpy.init()
     node = rclpy.create_node('track_run_monitor', parameter_overrides=[Parameter('use_sim_time', value=True)])
     state = {'calibration': {}, 'goal': '', 'wander': '', 'pose': None, 'safe': [0., 0.]}

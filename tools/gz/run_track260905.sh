@@ -51,7 +51,9 @@ sensor.find('.//max_angle').text=str(3.141592653589793-2*3.141592653589793/720)
 sensor.find('.//min_angle').text=str(-3.141592653589793)
 sensor.find('.//range/max').text='8.0'
 root.write(out/'world.sdf')
-settings={'/**': {'ros__parameters': {'use_sim_time':True, 'robot_radius':.105,
+identity=json.loads((out/'track_identity.json').read_text())
+settings={'/**': {'ros__parameters': {'use_sim_time':True, 'robot_radius':identity['robot_radius_m'],
+    'rotation_footprint_xy':[v for xy in identity['robot_geometry']['footprint_xy'] for v in xy],
     'stop_distance':.14, 'clear_distance':.16, 'lidar_yaw_offset':0.,
     'imu_angular_velocity_unit':'rad_s', 'calibration_us_max_range':8.,
     'calibration_auto_motion':True, 'result_path':str(out/'calibration.json')}}}
@@ -66,6 +68,7 @@ manifest={'run_id':run_id, 'recorded_unix_s':time.time(), 'plant':plant,
     'source_at_start':os.environ.get('RIG_SOURCE_COMMIT') or subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
     'source_sha256':{str(path):hashlib.sha256(path.read_bytes()).hexdigest() for path in source_paths},
     'robot_radius_m':settings['/**']['ros__parameters']['robot_radius'],
+    'robot_geometry':identity['robot_geometry'],
     'physical_robot_verified':False,
     'auxiliary_sensors':'Synthetic camera/IR; GT-derived IMU; lidar-derived US'}
 (out/'run_manifest.json').write_text(json.dumps(manifest,indent=2))
@@ -85,7 +88,7 @@ setsid ros2 run ros_gz_bridge parameter_bridge \
   '/odometry_gt@nav_msgs/msg/Odometry[gz.msgs.Odometry' \
   '/model/pinky/cmd_vel@geometry_msgs/msg/Twist]gz.msgs.Twist' \
   '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock' \
-  --ros-args -p use_sim_time:=true -r /lidar/scan:=/scan -r /odometry_gt:=/odom \
+  --ros-args -p use_sim_time:=true -r /lidar/scan:=/scan -r /odometry_gt:=/odom_gz \
   -r /model/pinky/cmd_vel:=/cmd_vel > "$out/bridge.log" 2>&1 & pids+=($!)
 for component in adapter safety calibration wander goal; do
   log="$out/$component.log"

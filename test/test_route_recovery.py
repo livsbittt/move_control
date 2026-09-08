@@ -63,6 +63,20 @@ def test_new_endpoint_on_same_blocked_exit_is_not_an_alternative_path():
     assert r.update(7,(0,0,0),'forward',(1,0),7,True,(0,.06))=='alternative'
 
 
+def test_revoked_alternative_does_not_inherit_resolved_failed_exit():
+    r = RouteRecovery()
+    r.update(0, (0,0,0), 'front_blocked', (1,0), 0, True, (.06,0))
+    assert r.update(5, (0,0,0), 'front_blocked', (1,0), 5, True, (.06,0)) == 'replan'
+    assert r.update(6, (0,0,0), 'forward', (0,1), 6, True, (0,.06)) == 'alternative'
+    assert r.update(7, (0,0,0), 'no_route', None, 7, True) == 'following'
+    assert r.update(12, (0,0,0), 'no_route', None, 12, True) == 'replan'
+    # The planner revoked the alternative before execution failed. Only a
+    # fresh replacement is required; a previous episode's exit cannot veto it.
+    assert r.update(13, (0,0,0), 'forward', (2,0), 11, True, (.06,0)) == 'waiting'
+    assert r.update(14, (0,0,0), 'forward', (2,0), 14, True, (.06,0)) == 'alternative'
+    assert r.attempts == 2
+
+
 def test_slow_alignment_improvement_extends_progress_without_resetting_attempts():
     r = RouteRecovery()
     r.attempts = 2

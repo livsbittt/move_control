@@ -3,6 +3,7 @@
 Never installed as a robot entry point. Requires an isolated test domain.
 """
 import importlib
+import copy
 import json
 import math
 import os
@@ -26,6 +27,21 @@ from std_msgs.msg import Bool, String, UInt16MultiArray
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 
 
+def normalize_odometry(msg):
+    """Map the verified model-origin GT convention to this rig's TF names.
+
+    Gazebo's default base_footprint is the Pinky model origin here, the same
+    planar origin used by the adapter's odom->base_link transform. This is
+    an explicit simulation convention, not a general coordinate conversion.
+    """
+    if (msg.header.frame_id, msg.child_frame_id) != ('pinky/odom', 'pinky/base_footprint'):
+        raise ValueError('Unexpected Gazebo ground-truth odometry frames')
+    normalized = copy.deepcopy(msg)
+    normalized.header.frame_id = 'odom'
+    normalized.child_frame_id = 'base_link'
+    return normalized
+
+
 class Auxiliary(Node):
     def __init__(self):
         super().__init__('gazebo_calibration_adapter')
@@ -39,7 +55,8 @@ class Auxiliary(Node):
         self.camera_cliff = self.create_publisher(Bool, '/camera/cliff', 10)
         self.estop = self.create_publisher(String, '/estop/cmd', 10)
         self.command = self.create_publisher(String, '/wander/cmd', 10)
-        self.create_subscription(Odometry, '/odom', self.on_odom, 10)
+        self.odom = self.create_publisher(Odometry, '/odom', 10)
+        self.create_subscription(Odometry, '/odom_gz', self.on_odom, 10)
         self.create_subscription(LaserScan, '/scan', self.on_scan, qos_profile_sensor_data)
         self.create_subscription(String, '/calibration/status', self.on_calibration, 10)
         self.create_subscription(String, '/goal_node/state', self.on_goal, 10)
@@ -74,9 +91,15 @@ class Auxiliary(Node):
         self.us.publish(echo)
 
     def on_odom(self, msg):
+        try:
+            msg = normalize_odometry(msg)
+        except ValueError as exc:
+            self.get_logger().error(str(exc), throttle_duration_sec=5.)
+            return
+        self.odom.publish(msg)
         transform = TransformStamped()
         transform.header.stamp = msg.header.stamp
-        transform.header.frame_id, transform.child_frame_id = 'odom', 'base_link'
+        transform.header.frame_id, transform.child_frame_id = msg.header.frame_id, msg.child_frame_id
         transform.transform.translation.x = msg.pose.pose.position.x
         transform.transform.translation.y = msg.pose.pose.position.y
         transform.transform.rotation = msg.pose.pose.orientation

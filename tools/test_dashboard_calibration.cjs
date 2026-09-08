@@ -99,6 +99,34 @@ test('gauges use live front and rear limits and identify stale fallback', () => 
   assert.ok(!d.LIM().live);
 });
 
+test('body radius never inherits a swept rotation radius', () => {
+  const d = dashboard();
+  d.S.data={limits:{radius:.076},motion_limits_fresh:true,
+    motion_limits:{rotation_radius_m:.16,body_radius_m:.1144}};
+  assert.equal(d.LIM().radius,.1144);
+  delete d.S.data.motion_limits.body_radius_m;
+  assert.equal(d.LIM().radius,.076);
+});
+
+test('rotation estimate and live permission are separate centimeter evidence', () => {
+  const d = dashboard();
+  const state={calibration:{rotation:{envelope:{valid:true,center_m:[-.04,.002],
+    pivot_radius_m:.13,center_uncertainty_m:.006}}},
+    motion_limits_fresh:true,motion_limits:{body_radius_m:.1144,
+      rotation_scan_observed:true,can_rotate:false}};
+  d.renderCalibration(state);
+  let text=d.elements.get('calibrationsensors').textContent;
+  assert.match(text,/중심.*-4.0.*0.2cm/);
+  assert.match(text,/회전 반경 13.0cm.*불확실성 0.6cm/);
+  assert.match(text,/차체.*11.4cm/);
+  assert.match(text,/현재 회전.*보류.*관측 완료/);
+  state.motion_limits_fresh=false;
+  d.renderCalibration(state);
+  text=d.elements.get('calibrationsensors').textContent;
+  assert.match(text,/회전 반경 13.0cm/);
+  assert.match(text,/현재 회전.*최신 안전 정보 대기/);
+});
+
 test('calibration gates reactive and map navigation; sensor detail stays visible', () => {
   const d = dashboard();
   const state = {estop:false,map:[1],map_control:{paused:false},pose_available:true,

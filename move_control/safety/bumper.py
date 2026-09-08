@@ -1,7 +1,7 @@
 """Subject: contact sensing. Lidar sectors + US. Publish ranges."""
 import math
 import time
-from ..control.lidar_guard import scan_body_clearance
+from ..control.lidar_guard import scan_body_clearance, rotation_scan_observed
 from ..control.footprint_guard import translation_clearance
 
 from sensor_msgs.msg import LaserScan, Range
@@ -109,6 +109,9 @@ class Bumper:
         self.lidar_rear_left = sector_range(msg, wrap_pi(rear + side), side_w, **kw)
         self.lidar_rear_right = sector_range(msg, wrap_pi(rear - side), side_w, **kw)
         self.lidar_rotation_clearance = None
+        self.lidar_rotation_points = None
+        self.lidar_rotation_observed = rotation_scan_observed(msg.ranges, msg.angle_increment,
+            max(lo,msg.range_min), min(12.,msg.range_max))
         self.translation_clearance = None
         if bool(self.get_parameter('lidar_use_tf').value):
             mount = tf.transform.translation
@@ -116,12 +119,13 @@ class Bumper:
             self.lidar_rotation_clearance = scan_body_clearance(
                 msg.ranges, msg.angle_min, msg.angle_increment,
                 mount.x, mount.y, rotation, max(lo,msg.range_min), min(12.,msg.range_max))
+            points = []
+            for i, distance in enumerate(msg.ranges):
+                if math.isfinite(distance) and max(lo, msg.range_min) < distance <= min(12., msg.range_max):
+                    angle = msg.angle_min + i*msg.angle_increment + rotation
+                    points.append((mount.x+distance*math.cos(angle), mount.y+distance*math.sin(angle)))
+            self.lidar_rotation_points = points
             if self.get_parameter('footprint_guard_enabled').value:
-                points = []
-                for i, distance in enumerate(msg.ranges):
-                    if math.isfinite(distance) and max(lo, msg.range_min) < distance <= min(12., msg.range_max):
-                        angle = msg.angle_min + i*msg.angle_increment + rotation
-                        points.append((mount.x+distance*math.cos(angle), mount.y+distance*math.sin(angle)))
                 self.translation_clearance = translation_clearance(points, (.077, .043, .077))
         cap = float(getattr(self, 'open_max', 0.40) or 0.40)
         self.open_range, self.open_yaw = opening_max(

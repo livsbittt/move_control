@@ -7,6 +7,12 @@ from move_control.sensing.lidar import NOSE_YAW, sector_range
 
 
 class LidarGuardTest(unittest.TestCase):
+    def test_measured_swept_radius_expands_without_legacy_radius_clamping(self):
+        self.assertFalse(lidar_can_rotate([.3]*6, .076, True, .2, sweep_radius=.21))
+        self.assertTrue(lidar_can_rotate([.3]*6, .076, True, .23, sweep_radius=.21))
+        self.assertFalse(lidar_can_rotate([.3]*6, .076, True, .08, sweep_radius=.02))
+        self.assertFalse(lidar_can_rotate([.3]*6, .076, True, .3, sweep_radius=math.nan))
+
     def test_rotation_uses_tf_body_distance_instead_of_symmetric_mount_penalty(self):
         rear=scan_body_clearance([.09],math.pi,.01,-.017,0,0,.05,12)
         front=scan_body_clearance([.09],0,.01,-.017,0,0,.05,12)

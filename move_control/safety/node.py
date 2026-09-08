@@ -5,6 +5,7 @@ import json
 import time
 
 import rclpy
+from rcl_interfaces.msg import ParameterDescriptor
 from geometry_msgs.msg import Twist
 from rclpy.node import Node
 from tf2_ros import Buffer, TransformListener
@@ -17,6 +18,7 @@ from ..sensing.body import URDF_RADIUS, use_radius
 from ..sensing.lidar import NOSE_YAW
 from ..sensing.localization import lease_ready
 from ..control.lidar_guard import lidar_blocked, lidar_can_rotate
+from ..control.rotation_envelope import pivot_clearance
 from .bumper import Bumper
 from .gate import Gate
 from .hazard import Hazard
@@ -80,6 +82,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
         self.declare_parameter('map_range_max', 0.40)
         self.declare_parameter('open_max', 0.40)
         self.declare_parameter('robot_radius', URDF_RADIUS)
+        self.declare_parameter('rotation_footprint_xy', [], ParameterDescriptor(dynamic_typing=True))
         self.declare_parameter('wall_front', 0.08)
         self.declare_parameter('warn_front', 0.11)
 
@@ -340,11 +343,31 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
             self.blocked = lidar_blocked(travel[0], travel[0], previous_front, 0., .010, True)
             self.rear_blocked = lidar_blocked(travel[1], travel[1], previous_rear, 0., .010, True)
             can_rev = not self.rear_blocked
+        body_radius = max(self.robot_r, .083) if self.get_parameter('footprint_guard_enabled').value else self.robot_r
+        flat = self.get_parameter('rotation_footprint_xy').value or []
+        rotation_estimate = self.calibration_lease.rotation_envelope(time.monotonic(), body_radius,
+            list(zip(flat[::2], flat[1::2])))
+        swept_radius = rotation_estimate['required_radius_m'] if rotation_estimate else None
         can_rotate = lidar_can_rotate(
             (self.lidar_front, self.lidar_rear, self.lidar_left, self.lidar_right,
              self.lidar_rear_left, self.lidar_rear_right),
             max(self.robot_r, .083) if self.get_parameter('footprint_guard_enabled').value else self.robot_r,
-            lidar_ok, getattr(self, 'lidar_rotation_clearance', None))
+            lidar_ok, getattr(self, 'lidar_rotation_clearance', None), sweep_radius=swept_radius)
+        pivot_margin = None
+        if rotation_estimate is not None:
+            pivot_margin = pivot_clearance(getattr(self, 'lidar_rotation_points', None),
+                rotation_estimate['center_m'], rotation_estimate['pivot_radius_m'])
+            # The obstacle distances and swept body must share the same pivot.
+            # Sector freshness remains required; a missing point cloud cannot authorize a turn.
+            can_rotate = bool(lidar_ok and getattr(self, 'lidar_rotation_observed', False) and
+                pivot_margin is not None and pivot_margin > .010 and
+                all(math.isfinite(v) and v > 0 for v in (self.lidar_front, self.lidar_rear,
+                    self.lidar_left, self.lidar_right, self.lidar_rear_left, self.lidar_rear_right)))
+        elif self.calibration_lease.rotation_estimate_required():
+            can_rotate = False
+        rotation_trial = self.calibration_lease.rotation_trial_live(time.monotonic())
+        if rotation_trial and (self.last_cmd.linear.x != 0. or abs(self.last_cmd.angular.z) > .06):
+            can_rotate = False
         self.motion_limits_pub.publish(String(data=json.dumps({
             'can_rotate': can_rotate,
             'front_stop_m': .043-self.lidar_mount[0]+.010 if footprint else self.stop_d,
@@ -352,7 +375,12 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
             'rear_stop_m': .077+self.lidar_mount[0]+.010 if footprint else self.rear_stop_d,
             'rear_clear_m': .077+self.lidar_mount[0]+.020 if footprint else self.rear_clear_d,
             'translation_mode': footprint,
-            'rotation_radius_m': max(self.robot_r, .083) if self.get_parameter('footprint_guard_enabled').value else self.robot_r,
+            'rotation_radius_m': swept_radius if swept_radius is not None else body_radius,
+            'body_radius_m': body_radius,
+            'rotation_estimate': rotation_estimate,
+            'rotation_pivot_clearance_m': pivot_margin,
+            'rotation_scan_observed': bool(getattr(self, 'lidar_rotation_observed', False)),
+            'rotation_trial': rotation_trial,
             'footprint_half_width_m': .077 if footprint else None,
             'forward_travel_m': travel[0] if footprint else None,
             'reverse_travel_m': travel[1] if footprint else None,
@@ -431,6 +459,10 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
             return
         if self.age(self.last_cmd_time) > 0.5 and not tilt:
             self.halt_with_reason('command_stale')
+            return
+
+        if rotation_trial and (self.last_cmd.linear.x != 0. or abs(self.last_cmd.angular.z) > .06):
+            self.halt_with_reason('rotation_trial_domain')
             return
 
         cmd = Twist()

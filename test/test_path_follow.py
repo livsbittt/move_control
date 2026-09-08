@@ -5,6 +5,22 @@ from move_control.control.path_follow import ProgressGuard, follow_path
 
 
 class PathFollowTest(unittest.TestCase):
+    def test_closed_loop_corner_keeps_tracking_error_within_five_mm(self):
+        route = [(0., 0.), (.10, 0.), (.10, .16)]
+        pose = [0., 0., 0.]
+        largest_error = 0.
+        for _ in range(3000):
+            v, w, reason = follow_path(route, pose, route_age=0., tf_age=0.)
+            if reason == 'arrived':
+                break
+            pose[0] += v*math.cos(pose[2])*.02
+            pose[1] += v*math.sin(pose[2])*.02
+            pose[2] += w*.02
+            largest_error = max(largest_error, min(abs(pose[1]), abs(pose[0]-.10)))
+        self.assertEqual(reason, 'arrived')
+        # A 4cm corner shortcut consumes the planner's 5mm rotation margin.
+        self.assertLessEqual(largest_error, .005)
+
     def test_localization_hold_freezes_instead_of_replenishing_push_budget(self):
         guard = ProgressGuard(timeout=8)
         guard.check(0., (0., 0., 0.), True)

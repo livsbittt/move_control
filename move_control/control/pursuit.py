@@ -18,8 +18,12 @@ def pursuit_index(route, x, y, lookahead=0.25):
         cx, cy = route[nearest]
         nx, ny = route[nearest + 1]
         bend = math.atan2(ny - cy, nx - cx) - math.atan2(cy - py, cx - px)
-        approaching = (x - cx) * (cx - px) + (y - cy) * (cy - py) < 0
-        if (approaching and math.hypot(cx - x, cy - y) > 0.04
+        incoming_length = math.hypot(cx-px, cy-py)
+        remaining = -((x-cx)*(cx-px)+(y-cy)*(cy-py))/max(incoming_length, 1e-12)
+        # Use progress along the incoming leg. Radial distance grows again
+        # after turning and otherwise selects the corner behind us forever.
+        # Five mm preserves the narrow route's rotation-clearance margin.
+        if (remaining > 0.005
                 and abs(math.atan2(math.sin(bend), math.cos(bend))) > 0.6):
             return nearest
     aim = nearest

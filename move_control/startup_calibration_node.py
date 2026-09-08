@@ -11,6 +11,7 @@ from types import SimpleNamespace
 
 import numpy as np
 import rclpy
+from rcl_interfaces.msg import ParameterDescriptor
 from rclpy.node import Node
 from rclpy.qos import QoSProfile, DurabilityPolicy, ReliabilityPolicy, qos_profile_sensor_data
 from geometry_msgs.msg import Twist
@@ -46,6 +47,7 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
         self.declare_parameter('calibration_round_trip', False)
         self.declare_parameter('calibration_distance_m', .03)
         self.declare_parameter('robot_radius', .076)
+        self.declare_parameter('rotation_footprint_xy', [], ParameterDescriptor(dynamic_typing=True))
         self.declare_parameter('result_path', str(Path.home() / '.local/state/move_control/calibration.json'))
         latched = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL,
                              reliability=ReliabilityPolicy.RELIABLE)
@@ -163,6 +165,7 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
             self.lidar_nose = nose_from_quaternion(q.x, q.y, q.z, q.w)
             p = transform.transform.translation
             self.rotation_mount_offset = math.hypot(p.x, p.y)
+            self.rotation_mount = (p.x, p.y, -self.lidar_nose)
         except Exception:
             valid = False
         distance = sector_range(msg, self.lidar_nose,
@@ -403,7 +406,7 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
         return Path(str(self.get_parameter('result_path').value)).expanduser().with_suffix('.certificate.json')
 
     def certificate_configuration(self):
-        keys = ('robot_radius', 'lidar_yaw_offset', 'imu_angular_velocity_unit',
+        keys = ('robot_radius', 'rotation_footprint_xy', 'lidar_yaw_offset', 'imu_angular_velocity_unit',
                 'calibration_round_trip', 'calibration_distance_m', 'calibration_us_max_range',
                 'calibration_require_us_agreement')
         try:

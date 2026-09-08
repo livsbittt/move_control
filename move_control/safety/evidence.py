@@ -12,6 +12,7 @@ from ..control.safety_profile import SafetyProfile
 from ..control.calibration_profile import ProfileLease
 from ..sensing.observation import Observations
 from ..sensing.body import LIDAR_X
+from ..control.rotation_envelope import RotationEnvelope
 
 
 class Evidence:
@@ -64,7 +65,12 @@ class Evidence:
         try:
             mount = getattr(self, 'lidar_mount', None)
             radius = max(self.robot_r, .083) if self.get_parameter('footprint_guard_enabled').value else self.robot_r
+            flat = self.get_parameter('rotation_footprint_xy').value or []
+            if len(flat) % 2:
+                raise ValueError('Odd footprint coordinate count')
+            RotationEnvelope(radius, list(zip(flat[::2], flat[1::2])))
             effective = {
+                'rotation_body_radius': radius, 'rotation_footprint_xy': list(flat),
                 'radius': self.robot_r, 'turn_clear': radius + .010 + (abs(LIDAR_X) if mount is None else 0.),
                 'stop': self.stop_d, 'clear': self.clear_d,
                 'rear_stop': self.rear_stop_d, 'rear_clear': self.rear_clear_d,

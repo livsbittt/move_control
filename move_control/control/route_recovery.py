@@ -48,6 +48,7 @@ class RouteRecovery:
                 different = math.dist(route_exit,self.failed_exit)>.05
             if different and route_stamp is not None and route_stamp > self.requested:
                 self.waiting = False
+                self.failed_goal = self.failed_exit = None
                 self.progress_since, self.blocked_since = now, None
                 self.alignment_heading = self.alignment_best_error = None
                 return 'alternative'
@@ -85,8 +86,8 @@ class RouteRecovery:
             return 'exhausted'
         self.attempts += 1
         self.waiting, self.requested = True, now
-        if goal is not None:
-            self.failed_goal = goal
-        if route_exit is not None:
-            self.failed_exit = route_exit
+        # A revoked route has no failed executable exit. Carrying an older
+        # episode's exit here can veto every fresh route after map replanning.
+        self.failed_goal = goal
+        self.failed_exit = route_exit
         return 'replan'

@@ -93,6 +93,9 @@ def validate_certificate(record, configuration) -> dict | None:
 
 
 def _rotation_valid(rotation):
+    from .rotation_envelope import validate_envelope
+    if isinstance(rotation, dict) and 'envelope' in rotation and not validate_envelope(rotation['envelope']):
+        return False
     if (not isinstance(rotation, dict) or rotation.get('done') is not True or
             rotation.get('error') is not None or rotation.get('max_angular_rad_s') != .06 or
             rotation.get('geometry_commissioned') is not False):
