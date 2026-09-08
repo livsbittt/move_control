@@ -371,11 +371,14 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
         elif self.calibration_lease.rotation_estimate_required():
             can_rotate = False
         rotation_trial = self.calibration_lease.rotation_trial_live(time.monotonic())
+        translation_trial = self.calibration_lease.translation_trial_live(time.monotonic())
         bounded_motion = bool(self.get_parameter('simulation_motion_sweep_enabled').value and
             self.get_parameter('use_sim_time').value and os.environ.get('ROS_DOMAIN_ID') == '227' and
             os.environ.get('GZ_PARTITION') == 'pinky_calmap227' and not rotation_trial and
             (rotation_estimate is not None or self.calibration_lease.rotation_estimate_required()))
         if rotation_trial and (self.last_cmd.linear.x != 0. or abs(self.last_cmd.angular.z) > .06):
+            can_rotate = False
+        if translation_trial:
             can_rotate = False
         relocation = None
         relocation_limits = None
@@ -401,6 +404,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
             'rotation_pivot_clearance_m': pivot_margin,
             'rotation_scan_observed': bool(getattr(self, 'lidar_rotation_observed', False)),
             'rotation_trial': rotation_trial,
+            'translation_trial': translation_trial,
             'rotation_recovery_m': relocation,
             'rotation_translation_limits_m': relocation_limits,
             'footprint_half_width_m': .077 if footprint else None,
@@ -485,6 +489,9 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
 
         if rotation_trial and (self.last_cmd.linear.x != 0. or abs(self.last_cmd.angular.z) > .06):
             self.halt_with_reason('rotation_trial_domain')
+            return
+        if translation_trial and (self.last_cmd.angular.z != 0. or abs(self.last_cmd.linear.x) > .014):
+            self.halt_with_reason('translation_trial_domain')
             return
 
         cmd = Twist()

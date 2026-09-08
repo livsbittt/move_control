@@ -18,6 +18,8 @@ class CalibrationRotation:
         self.rotation_scan = None
         self.rotation_imu_yaw = None
         self.rotation_points = self.rotation_reference_points = None
+        self.relocation_points = None
+        self.relocation_scan_deadline = None
         self.rotation_envelope = None
 
     def complete_translation(self, passed, message):
@@ -30,9 +32,15 @@ class CalibrationRotation:
 
     def rotation_scan_sample(self, msg, valid):
         self.rotation_scan = (time.monotonic(), tuple(msg.ranges), msg.angle_increment) if valid else None
+        source = msg.header.stamp.sec + msg.header.stamp.nanosec*1e-9
+        age = self.get_clock().now().nanoseconds*1e-9-source
+        self.relocation_scan_deadline = (time.monotonic()+.2-max(0.,age)
+                                         if valid and -.1 <= age <= .2 else None)
         mount = getattr(self, 'rotation_mount', None)
         self.rotation_points = (scan_points(msg.ranges, msg.angle_min, msg.angle_increment, mount)
                                 if valid and mount is not None else None)
+        self.relocation_points = (scan_points(msg.ranges, msg.angle_min, msg.angle_increment, mount, max_points=1440)
+                                  if valid and mount is not None else None)
         if self.rotation_reference is not None and valid:
             reference, increment = self.rotation_reference
             self.rotation_alignment = (scan_rotation(reference, msg.ranges, increment)
@@ -48,7 +56,7 @@ class CalibrationRotation:
         return (0 <= now-seen <= .5 and abs(len(ranges)*increment-2*math.pi) < .02 and
                 all(math.isfinite(v) and radius+.05 < v < 8. for v in ranges))
 
-    def rotation_eligibility(self, now):
+    def rotation_eligibility(self, now, allow_front_blocked=False):
         reason = self.trial_gate_reason(now)
         if reason:
             return reason
@@ -60,7 +68,13 @@ class CalibrationRotation:
             rows = self.baseline.samples[name]
             if not rows or not rows[-1][2] or not 0 <= now-rows[-1][0] <= .25:
                 return 'Rotation requires fresh valid ' + name
+            if self.phase in ('relocating_calibration','returning_calibration') and name in ('odom','imu'):
+                deadline = self.relocation_sensor_deadlines.get(name)
+                if deadline is None or now > deadline:
+                    return 'Relocation requires fresh source ' + name
         for key in ('/safety/blocked', '/safety/cliff', '/safety/tilt', '/safety/pickup'):
+            if allow_front_blocked and key == '/safety/blocked':
+                continue  # Directional capsule and the final gate still guard translation.
             row = self.hazards.get(key)
             if not row or not 0 <= now-row[0] <= .75 or row[1]:
                 return 'Rotation safety hazard or missing state'
@@ -71,6 +85,11 @@ class CalibrationRotation:
         state, seen = self.wander_state
         if not state.startswith('stop') or not 0 <= now-seen <= .75 or seen < self.requested:
             reason = 'Wander must remain stopped throughout rotation calibration'
+        if not self.rotation_clear(now) and self.rotation_trial is None:
+            if (not self.rotation_eligibility(now, allow_front_blocked=True) and
+                    state.startswith('stop') and 0 <= now-seen <= .75 and seen >= self.requested
+                    and self.begin_relocation(now)):
+                return
         if reason or not self.rotation_clear(now):
             self.finish(False, reason or 'Rotation needs fresh fully observed clearance around the body')
             return
@@ -127,8 +146,8 @@ class CalibrationRotation:
                 return
         if self.rotation_trial.error or self.rotation_trial.done:
             valid = self.rotation_trial.done and self.rotation_envelope.report()['valid']
-            self.finish(valid, self.rotation_trial.error or (
-                'Translation and bilateral rotation verified; swept envelope estimated' if valid else 'Insufficient bilateral rotation-center evidence'))
+            self.complete_rotation(valid, self.rotation_trial.error or (
+                'Translation and bilateral rotation verified; swept envelope estimated' if valid else 'Insufficient bilateral rotation-center evidence'), now)
             return
         command = Twist()
         command.angular.z = speed

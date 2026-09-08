@@ -10,11 +10,12 @@ def revision(packet):
     return hashlib.sha256(json.dumps(content, sort_keys=True, allow_nan=False).encode()).hexdigest()[:16]
 
 
-def make_profile(session, sequence, issued, enabled, gains, geometry, rotation=None, rotation_trial=False):
+def make_profile(session, sequence, issued, enabled, gains, geometry, rotation=None, rotation_trial=False, translation_trial=False):
     packet = {'schema_version': 1, 'session': session, 'sequence': sequence,
               'issued_s': issued, 'ttl_s': 1.5, 'enabled': enabled,
               'linear_gains': list(gains), 'max_linear_mps': .014,
               'geometry_revision': geometry, 'rotation': rotation, 'rotation_trial': rotation_trial,
+              'translation_trial': translation_trial,
               'domain': 'low_speed_straight', 'physical_commissioned': False}
     packet['revision'] = revision(packet)
     return packet
@@ -58,8 +59,12 @@ class ProfileLease:
                 raise ValueError('domain')
             rotation = packet.get('rotation')
             trial = packet.get('rotation_trial', False)
+            translation_trial = packet.get('translation_trial',False)
             if type(trial) is not bool or (trial and packet['enabled']):
                 raise ValueError('rotation_trial')
+            if (type(translation_trial) is not bool or
+                    translation_trial and (packet['enabled'] or trial)):
+                raise ValueError('translation_trial')
             if packet['enabled'] and rotation is not None:
                 if (rotation['done'] is not True or rotation['error'] is not None or
                         rotation['max_angular_rad_s'] != .06 or len(rotation['legs']) != 8 or
@@ -99,6 +104,12 @@ class ProfileLease:
                     self.active.get('rotation_trial') is True and
                     self.received is not None and math.isfinite(now) and self.received <= now <= self.deadline)
 
+    def translation_trial_live(self, now):
+        """Fresh disabled straight-trial lease; historical gains stay inactive."""
+        return bool(self.active and not self.active['enabled'] and
+                    self.active.get('translation_trial') is True and
+                    self.received is not None and math.isfinite(now) and self.received <= now <= self.deadline)
+
     def angular_gains(self, now):
         if self.live(now) and self.active.get('rotation'):
             return tuple(self.active['rotation']['angular_gains'])
@@ -106,7 +117,7 @@ class ProfileLease:
 
     def rotation_envelope(self, now, radius_floor=0., footprint=None):
         source = self.active if self.live(now) else None
-        if (source is None and self.rotation_trial_live(now) and self.last_good and
+        if (source is None and (self.rotation_trial_live(now) or self.translation_trial_live(now)) and self.last_good and
                 self.last_good['geometry_revision'] == self.active['geometry_revision']):
             source = self.last_good
         if source is not None:

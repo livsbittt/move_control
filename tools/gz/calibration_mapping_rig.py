@@ -19,7 +19,7 @@ import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.executors import SingleThreadedExecutor
-from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import qos_profile_sensor_data, QoSProfile, DurabilityPolicy
 from geometry_msgs.msg import TransformStamped
 from sensor_msgs.msg import LaserScan, Range, Imu, Image
 from nav_msgs.msg import Odometry
@@ -58,7 +58,8 @@ class Auxiliary(Node):
         self.odom = self.create_publisher(Odometry, '/odom', 10)
         self.create_subscription(Odometry, '/odom_gz', self.on_odom, 10)
         self.create_subscription(LaserScan, '/scan', self.on_scan, qos_profile_sensor_data)
-        self.create_subscription(String, '/calibration/status', self.on_calibration, 10)
+        self.create_subscription(String, '/calibration/status', self.on_calibration,
+            QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
         self.create_subscription(String, '/goal_node/state', self.on_goal, 10)
         self.create_subscription(String, '/safety/decision', self.on_decision, 10)
         self.create_subscription(String, '/wander/state', self.on_wander, 10)
@@ -125,7 +126,7 @@ class Auxiliary(Node):
         value = json.loads(msg.data)
         self.status = value
         now = self.get_clock().now().nanoseconds*1e-9
-        if value.get('ready') and not self.mapping and (self.mapping_requested is None or now-self.mapping_requested >= 1.):
+        if not os.environ.get('RIG_CALIBRATION_CASE') and value.get('ready') and not self.mapping and (self.mapping_requested is None or now-self.mapping_requested >= 1.):
             self.mapping_requested = now
             self.command.publish(String(data='explore'))
 

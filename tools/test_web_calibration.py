@@ -12,6 +12,13 @@ from move_control import web_node as web
 
 
 class CalibrationHttpTest(unittest.TestCase):
+    def test_calibration_after_position_option_is_relayed_without_motion_unlock(self):
+        for option in ('stay','return_origin'):
+            self.assertEqual(self.post('/calibration','retry:'+option), 200)
+            self.assertEqual(self.node.calibration_pub.publish.call_args.args[0].data, 'retry:'+option)
+        self.assertEqual(self.post('/calibration','retry:anywhere'), 400)
+        self.node.estop_pub.publish.assert_not_called()
+
     def test_navigation_session_requires_fresh_idle_and_valid_budgets(self):
         payload = json.dumps(dict(strategy='nearest', duration_s=60, stall_s=30))
         self.assertEqual(self.post('/navigation/start', payload), 409)

@@ -33,15 +33,21 @@ from .control.navigation_calibration import environment_profile, map_ray
 from .planning import OccupancyMap
 from .calibration_rotation import CalibrationRotation
 from .calibration_atomic import CalibrationAtomic
+from .calibration_relocation import CalibrationRelocationAdapter
 
 
-class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
+class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, CalibrationRelocationAdapter):
     def __init__(self, parameter_overrides=None):
         super().__init__('startup_calibration_node', parameter_overrides=parameter_overrides or [])
         self.declare_parameter('lidar_yaw_offset', NOSE_YAW)
         self.declare_parameter('imu_angular_velocity_unit', 'rad_s')
         self.declare_parameter('calibration_auto_motion', True)
         self.declare_parameter('calibration_rotation', True)
+        self.declare_parameter('calibration_relocation_enabled', False)
+        self.declare_parameter('calibration_after_relocation', 'stay')
+        self.after_relocation = str(self.get_parameter('calibration_after_relocation').value)
+        if self.after_relocation not in ('stay', 'return_origin'):
+            self.after_relocation = 'stay'
         self.declare_parameter('calibration_require_us_agreement', True)
         self.declare_parameter('calibration_us_max_range', 3.0)
         self.declare_parameter('calibration_round_trip', False)
@@ -101,6 +107,11 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
         self.profile_revision = self.applied_profile = None
         self.trial_geometry_revision = None
         self.reset_rotation()
+        self.relocation = None
+        self.calibration_origin = None
+        self.return_motion = None
+        self.relocation_before_translation = False
+        self.relocation_sensor_deadlines = {}
         self.baseline = StationaryBaseline(
             require_us_stable=bool(self.get_parameter('calibration_require_us_agreement').value))
         self.range_filters = {name: CalibrationRangeFilter() for name in ('lidar', 'us')}
@@ -139,6 +150,11 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
         age = self.get_clock().now().nanoseconds * 1e-9 - stamp
         return -.2 <= age <= max_age
 
+    def relocation_source_deadline(self, msg):
+        source = msg.header.stamp.sec + msg.header.stamp.nanosec*1e-9
+        age = self.get_clock().now().nanoseconds*1e-9-source
+        return time.monotonic()+.2-max(0.,age) if -.1 <= age <= .2 else None
+
     def add(self, name, values, valid=True):
         self.baseline.add(name, values, time.monotonic(), valid)
 
@@ -150,7 +166,7 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
 
     def on_estop(self, msg):
         self.estop = bool(msg.data)
-        if self.estop and self.phase in ('validating_motion', 'validating_rotation'):
+        if self.estop and self.phase in ('validating_motion', 'validating_rotation', 'relocating_calibration', 'returning_calibration'):
             self.finish(False, 'Emergency stop engaged')
 
     def on_wander(self, msg):
@@ -207,10 +223,11 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
             self.environment_samples = self.environment_samples[-50:]
 
     def on_odom(self, msg):
+        self.relocation_sensor_deadlines['odom'] = self.relocation_source_deadline(msg)
         p, q, v = msg.pose.pose.position, msg.pose.pose.orientation, msg.twist.twist.linear
         yaw = math.atan2(2 * (q.w*q.z + q.x*q.y), 1 - 2 * (q.y*q.y + q.z*q.z))
         norm = math.sqrt(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w)
-        self.add('odom', (p.x, p.y, yaw, math.hypot(v.x, v.y)), self.stamped(msg, .25 if self.phase == 'validating_rotation' else 1.) and .9 <= norm <= 1.1)
+        self.add('odom', (p.x, p.y, yaw, math.hypot(v.x, v.y)), self.stamped(msg, .2 if self.phase in ('relocating_calibration','returning_calibration') else .25 if self.phase == 'validating_rotation' else 1.) and .9 <= norm <= 1.1)
 
     def on_map(self, msg):
         known = sum(value >= 0 for value in msg.data)
@@ -231,6 +248,7 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
         self.add_range('us', msg.range, self.us_source_valid and max(.02, msg.min_range) < msg.range < maximum)
 
     def on_imu(self, msg):
+        self.relocation_sensor_deadlines['imu'] = self.relocation_source_deadline(msg)
         a, g, q = msg.linear_acceleration, msg.angular_velocity, msg.orientation
         norm = math.sqrt(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w)
         roll = math.atan2(2*(q.w*q.x + q.y*q.z), 1 - 2*(q.x*q.x + q.y*q.y))
@@ -246,7 +264,7 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
         # Runtime tilt, timestamps, finite values and gravity remain required.
         self.add('imu', (gravity, gyro, tilt,
                          gx, gy, gz, a.x, a.y, a.z, roll, pitch),
-                 unit in ('rad_s', 'deg_s') and self.stamped(msg, .25 if self.phase == 'validating_rotation' else 1.) and .9 <= norm <= 1.1 and 8 <= gravity <= 11.5 and
+                 unit in ('rad_s', 'deg_s') and self.stamped(msg, .2 if self.phase in ('relocating_calibration','returning_calibration') else .25 if self.phase == 'validating_rotation' else 1.) and .9 <= norm <= 1.1 and 8 <= gravity <= 11.5 and
                  (self.phase in ('ready', 'validating_rotation') or gyro < .15) and tilt < math.radians(20))
 
     def on_camera(self, msg):
@@ -317,7 +335,8 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
         round_trip = bool(self.get_parameter('calibration_round_trip').value)
         requested = float(self.get_parameter('calibration_distance_m').value) if round_trip else MOTION_LIMIT
         self.motion_clearance = motion_clearance(limits, requested,
-            target=self.selected_target, forward=forward, round_trip=round_trip)
+            target=self.selected_target, forward=forward, round_trip=round_trip,
+            selection_margin_m=.003)
         if self.motion_clearance['reason']:
             return self.motion_clearance['reason']
         if self.estop is not False:
@@ -437,6 +456,9 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
 
     def on_command(self, msg):
         command = msg.data.strip().lower()
+        if command in ('retry:stay', 'retry:return_origin'):
+            self.after_relocation = command.partition(':')[2]
+            command = 'retry'
         if command == 'abort':
             self.finish(False, 'Calibration aborted', 'aborted')
         elif command == 'retry':
@@ -458,6 +480,8 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
                 return
             self.wander_pub.publish(String(data='stop'))
             self.trial_geometry_revision = self.geometry_revision
+            if self.calibration_origin is None:
+                self.calibration_origin = tuple(self.baseline.latest('odom')[:3])
             self.selected_target = self.motion_clearance['target_m']
             self.baseline_values = self.baseline.statistics(now)
             if self.environment_map is not None:
@@ -496,6 +520,12 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
         self.read_tf()
         # TF collection timestamps its own samples; evaluate freshness after it.
         now = time.monotonic()
+        if self.phase == 'returning_calibration':
+            self.tick_return(now)
+            return
+        if self.phase == 'relocating_calibration':
+            self.tick_relocation(now)
+            return
         if self.phase == 'validating_rotation':
             self.tick_rotation(now)
             return
@@ -548,6 +578,8 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
                     self.message = reason or 'Stationary checks passed; starting automatic motion validation'
                     if reason is None:
                         self.on_command(String(data='validate_motion'))
+                    elif 'clearance' in reason.lower() and self.begin_relocation(now, before_translation=True):
+                        return
                 else:
                     self.message = 'Stationary baseline passed; manual motion validation selected'
         elif self.phase == 'validating_motion':
@@ -630,6 +662,10 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic):
         return {'phase': 'sensor_hold' if self.phase == 'ready' and not self.runtime_ready else self.phase,
                 'ready': self.phase == 'ready' and self.runtime_ready and self.settings_applied(),
                 'rotation': self.rotation_report(),
+                'relocation': self.relocation.report() if self.relocation else None,
+                'calibration_origin': self.calibration_origin,
+                'after_relocation': self.after_relocation,
+                'return_motion': self.return_motion.report() if self.return_motion else None,
                 'rotation_verified': bool(self.rotation_report() and self.rotation_report().get('done')),
                 'rotation_required_for_new_trial': bool(self.get_parameter('calibration_rotation').value),
                 'profile_revision': self.profile_revision,

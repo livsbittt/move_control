@@ -445,8 +445,11 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline:2px s
       <p class="hint" id="calibrationenvironment" aria-live="polite">환경 여유 측정 대기</p>
       <details><summary>센서별 상세값</summary><pre class="hint" id="calibrationsensors" style="white-space:pre-wrap;overflow-wrap:anywhere">센서 데이터 대기</pre></details>
       <details class="procedure"><summary>검증 절차와 주의사항</summary><p>센서 확인 → 공간에 맞춘 전후 왕복 → 좌우 회전 검증 → 보정값 적용 확인 순서로 진행합니다. 이동과 회전 공간을 확보하세요. 실패·중단 시 정지하며 재시작은 직접 선택합니다.</p></details>
+      <label for="calibrationafter">공간 이동 후 보정이 끝나면</label>
+      <select id="calibrationafter"><option value="stay">확보한 위치에 머물기</option><option value="return_origin">원래 위치로 복귀</option></select>
+      <p class="hint">공간 확보·복귀는 지원되는 실행 환경에서만 수행합니다. 복귀 경로가 막히면 정지합니다.</p>
       <div class="btnrow">
-        <button type="button" id="calibrationretry" data-calibration="retry">보정 다시 시작</button>
+        <button type="button" id="calibrationretry" data-calibration="retry">선택 적용 · 보정 다시 시작</button>
         <button type="button" id="calibrationmotion" data-calibration="validate_motion" disabled>4초 저속 이동 검증</button>
         <button type="button" data-calibration="abort">검증 중단</button>
       </div>
@@ -666,6 +669,10 @@ function renderCalibration(s) {
   const phases = {collecting:'정지 센서 확인 중', waiting_motion:'정지 확인 완료 · 이동 검증 대기', validating_motion:'저속 이동 검증 중', ready:'교정 완료 · 주행 가능', sensor_hold:'보정 유지 · 센서 재확인 중', failed:'교정 실패', aborted:'교정 중단'};
   const sensors = calibration && calibration.sensors || {};
   phases.validating_rotation = '좌우 회전 반복 검증 중';
+  phases.relocating_calibration = '교정 공간 확보 중 · 제한 직선 이동';
+  phases.returning_calibration = '보정 측정 완료 · 원위치 복귀 중';
+  phases.waiting_space = '교정 공간 부족 · 안전 정지';
+  phases.return_blocked = '보정 측정 완료 · 복귀 불가로 정지';
   if (phase === 'ready' && !calibrationReady(s)) phases.ready = '안전 노드 적용 확인 대기';
   let count = 0;
   const lines = Object.keys(names).map(key => {
@@ -705,6 +712,15 @@ function renderCalibration(s) {
     }
   }
   const rotation = calibration && calibration.rotation;
+  if (calibration && calibration.after_relocation)
+    lines.push('보정 후 위치: ' + (calibration.after_relocation === 'return_origin' ? '원위치 복귀' : '확보한 위치 유지'));
+  if (calibration && calibration.relocation) {
+    const relocation = calibration.relocation;
+    lines.push('공간 확보 이동 ' + (relocation.travel_m*100).toFixed(1) + 'cm · ' +
+      (relocation.error || (relocation.done ? '확보 완료' : '진행 중')));
+  }
+  if (calibration && calibration.return_motion)
+    lines.push('원위치 복귀: ' + (calibration.return_motion.error || (calibration.return_motion.done ? '완료' : '진행 중')));
   if (rotation) lines.push('회전 검증 ' + (rotation.legs || []).length + '/8 · ' + (rotation.done ? '완료' : '진행 중'));
   const activeMotion = s && s.motion_limits_fresh && s.motion_limits;
   const envelope = activeMotion && activeMotion.rotation_estimate || rotation && rotation.envelope;
@@ -744,6 +760,7 @@ function renderCalibration(s) {
 async function calibrationAction(action) {
   if (action === 'validate_motion' && $('calibrationmotion').disabled) return;
   setTxt('calibrationerror', '');
+  if (action === 'retry') action += ':' + ($('calibrationafter').value || 'stay');
   await post('/calibration', action);
 }
 const api = {

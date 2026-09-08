@@ -40,7 +40,7 @@ class CalibrationAtomic:
                 self.message = 'Saved calibration retained; safety geometry differs from verified identity'
                 self.publish()
         if (self.trial_geometry_revision and self.geometry_revision != self.trial_geometry_revision and
-                self.phase in ('validating_motion', 'validating_rotation')):
+                self.phase in ('validating_motion', 'validating_rotation', 'relocating_calibration', 'returning_calibration')):
             self.finish(False, 'Safety geometry changed; recalibration required')
 
     def on_applied(self, msg):
@@ -85,7 +85,7 @@ class CalibrationAtomic:
             return 'Fresh effective safety profile required'
         if not self.gate_decision or now > self.gate_decision[0]:
             return 'Fresh final safety command evidence required'
-        if self.phase not in ('validating_motion', 'validating_rotation'):
+        if self.phase not in ('validating_motion', 'validating_rotation', 'relocating_calibration', 'returning_calibration'):
             return None
         decision = self.gate_decision[1]
         if (abs(decision['requested_v']-decision['safe_v']) > 1e-6 or
@@ -110,4 +110,5 @@ class CalibrationAtomic:
         return make_profile(self.profile_session, self.profile_sequence+1,
             self.get_clock().now().nanoseconds*1e-9, enabled, scales,
             self.trial_geometry_revision or self.geometry_revision, self.rotation_report(),
-            rotation_trial=self.phase == 'validating_rotation' and self.geometry_fresh(time.monotonic()))
+            rotation_trial=self.phase == 'validating_rotation' and self.geometry_fresh(time.monotonic()),
+            translation_trial=self.phase in ('validating_motion', 'relocating_calibration', 'returning_calibration') and self.geometry_fresh(time.monotonic()))

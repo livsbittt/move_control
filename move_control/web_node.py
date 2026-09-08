@@ -867,7 +867,7 @@ def _handler(node, html, api):
                 released = STATE.get(K_ESTOP) is False
                 mapping_active = STATE.get('map_control', {}).get('paused') is False
             if self.path == '/calibration':
-                if body not in ('retry', 'validate_motion', 'abort'):
+                if body not in ('retry', 'retry:stay', 'retry:return_origin', 'validate_motion', 'abort'):
                     self.send_response(400)
                     self.end_headers()
                     return
@@ -875,7 +875,7 @@ def _handler(node, html, api):
                         phase != 'waiting_motion' or not released or not mapping_active):
                     reject('Motion validation requires waiting_motion, active mapping and released emergency stop')
                     return
-                if body in ('retry', 'abort'):
+                if body in ('retry', 'retry:stay', 'retry:return_origin', 'abort'):
                     with LOCK:
                         STATE['calibration_ready'] = False
                 node.calibration_pub.publish(String(data=body))

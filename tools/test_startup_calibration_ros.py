@@ -360,7 +360,7 @@ class StartupCalibrationTest(unittest.TestCase):
         self.node.estop = False
         self.node.safety_limits[1]['front_m'] = .16
         self.assertIsNone(self.node.safe_motion(100.))
-        self.assertAlmostEqual(self.node.motion_clearance['target_m'], .032)
+        self.assertAlmostEqual(self.node.motion_clearance['target_m'], .029)
         self.node.safety_limits = (98., self.node.safety_limits[1])
         self.assertIn('fresh safety', self.node.safe_motion(100.))
 

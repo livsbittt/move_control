@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import numpy as np
 import rclpy
 from rclpy.parameter import Parameter
+from rclpy.qos import QoSProfile, DurabilityPolicy
 from nav_msgs.msg import OccupancyGrid, Odometry
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
@@ -31,13 +32,20 @@ def main():
     node = rclpy.create_node('track_run_monitor', parameter_overrides=[Parameter('use_sim_time', value=True)])
     state = {'calibration': {}, 'goal': '', 'wander': '', 'pose': None, 'safe': [0., 0.]}
     rows, maps = [], []
-    node.create_subscription(String, '/calibration/status', lambda m: state.update(calibration=json.loads(m.data)), 10)
+    calibration_seen = [None]
+    def on_calibration(msg):
+        state['calibration'] = json.loads(msg.data)
+        calibration_seen[0] = node.get_clock().now().nanoseconds*1e-9
+    node.create_subscription(String, '/calibration/status', on_calibration,
+        QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
     node.create_subscription(String, '/goal_node/state', lambda m: state.update(goal=m.data), 10)
     node.create_subscription(String, '/wander/state', lambda m: state.update(wander=m.data), 10)
     node.create_subscription(Odometry, '/odom', lambda m: state.update(pose=[m.pose.pose.position.x, m.pose.pose.position.y]), 10)
     node.create_subscription(Twist, '/cmd_vel', lambda m: state.update(safe=[m.linear.x, m.angular.z]), 10)
     node.create_subscription(OccupancyGrid, '/map', lambda m: maps.append(m) if not maps else maps.__setitem__(0, m), 10)
     start, last, wall = None, -1., time.monotonic()
+    terminal_since = None
+    observation_error = None
     while rclpy.ok() and time.monotonic()-wall < float(os.environ.get('RIG_WALL_TIMEOUT', '600')):
         rclpy.spin_once(node, timeout_sec=.1)
         now = node.get_clock().now().nanoseconds*1e-9
@@ -50,7 +58,19 @@ def main():
             row = {'sim_s': now, **state, 'calibration': state['calibration'].get('phase'),
                    'ready': state['calibration'].get('ready'), 'message': state['calibration'].get('message')}
             rows.append(json.loads(json.dumps(row)))
-        if state['calibration'].get('phase') in ('failed', 'aborted') or now-start >= float(os.environ.get('RIG_DURATION', '180')):
+        if (os.environ.get('RIG_CALIBRATION_CASE') and now-start >= 15. and
+                (calibration_seen[0] is None or now-calibration_seen[0] > 3.)):
+            observation_error = 'calibration_heartbeat_missing'
+            break
+        terminal = (state['calibration'].get('phase') in ('failed','aborted','waiting_space','return_blocked') or
+                    (os.environ.get('RIG_CALIBRATION_CASE') and state['calibration'].get('ready') is True and
+                     state['calibration'].get('settings_applied') is True))
+        if terminal:
+            if terminal_since is None: terminal_since = now
+            if now-terminal_since >= .5 and state['safe'] == [0.,0.]: break
+        else:
+            terminal_since = None
+        if now-start >= float(os.environ.get('RIG_DURATION', '180')):
             break
     (out/'track_samples.json').write_text(json.dumps(rows, indent=2))
     (out/'track_last_status.json').write_text(json.dumps(state, indent=2))
@@ -58,6 +78,7 @@ def main():
     stats = {'elapsed_sim_s': (last-start) if start else 0, 'calibration_phase': state['calibration'].get('phase'),
              'calibration_ready': state['calibration'].get('ready'), 'message': state['calibration'].get('message'),
              'map_received': bool(maps), 'mapping_complete': False,
+             'observation_error': observation_error,
              'cmd_vel_publishers': [i.node_name for i in node.get_publishers_info_by_topic('/cmd_vel')]}
     stats['run_id'] = json.loads((out/'run_manifest.json').read_text())['run_id']
     if len(points):

@@ -8,6 +8,7 @@ from playwright.sync_api import sync_playwright, TimeoutError as PlaywrightTimeo
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('output', type=Path)
+    parser.add_argument('--allow-in-progress', action='store_true')
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as p:
@@ -20,7 +21,8 @@ def main():
             page.wait_for_load_state('networkidle', timeout=2000)
         except PlaywrightTimeout:
             pass  # The live dashboard polls faster than networkidle's 500 ms gap.
-        page.wait_for_function("document.getElementById('calibrationstatus').textContent.includes('교정 완료')", timeout=15000)
+        if not args.allow_in_progress:
+            page.wait_for_function("document.getElementById('calibrationstatus').textContent.includes('교정 완료')", timeout=15000)
         state = page.request.get('http://localhost:28762/state.json').json()
         (args.output/'dashboard_state.json').write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding='utf-8')
         page.screenshot(path=str(args.output/'dashboard.png'), full_page=True)

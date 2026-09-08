@@ -8,6 +8,15 @@ def limits(front=.183):
                 us_stop_m=.02,us_m=.3)
 
 
+def test_target_selection_reserves_sensor_variation_without_relaxing_guard():
+    selected = motion_clearance(limits(.1513), .03, selection_margin_m=.003)
+    assert selected['target_m'] == .02 and selected['reason'] is None
+    changed = motion_clearance(limits(.1505), .03, target=selected['target_m'])
+    assert changed['reason'] is None
+    assert motion_clearance(limits(.147), .03, target=selected['target_m'])['reason']
+    assert motion_clearance(limits(.149), .03, selection_margin_m=.003)['reason']
+
+
 def test_optional_missing_echo_is_not_fake_distance_or_permission_past_lidar():
     d = limits()
     d.update(us_optional=True, us_m=None)

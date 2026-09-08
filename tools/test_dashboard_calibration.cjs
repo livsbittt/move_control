@@ -4,6 +4,19 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const path = require('node:path');
 
+test('retry sends the chosen post-calibration position without releasing stop', async () => {
+  const d = dashboard();
+  const initial = d.requests.length;
+  for (const option of ['stay', 'return_origin']) {
+    d.elements.set('calibrationafter', {value:option});
+    await d.calibrationAction('retry');
+    const [url, request] = d.requests.at(-1);
+    assert.ok(url.endsWith('/calibration'));
+    assert.equal(request.body, 'retry:' + option);
+  }
+  assert.equal(d.requests.length, initial + 2);
+});
+
 test('sensor hold retains calibration but disables modes until runtime recovery', () => {
   const d = dashboard();
   const state = {estop:false,map:[1],map_control:{paused:false},pose_available:true,

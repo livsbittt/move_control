@@ -2,13 +2,14 @@
 import math
 
 
-def motion_clearance(limits, requested, target=None, forward=0., round_trip=True):
+def motion_clearance(limits, requested, target=None, forward=0., round_trip=True, selection_margin_m=0.):
     keys = ('front_m','rear_m','front_stop_m','rear_stop_m','us_stop_m')
     if not all(isinstance(limits.get(k), (int, float)) and math.isfinite(limits[k]) and limits[k] > 0 for k in keys):
         return {'reason': 'Missing valid safety distance limits', 'target_m': None}
     if not math.isfinite(requested) or not .02 <= requested <= .04:
         return {'reason': 'Round-trip target must be 2 to 4 cm', 'target_m': None}
-    if not math.isfinite(forward) or (target is not None and (not math.isfinite(target) or not .02 <= target <= .04)):
+    if (not math.isfinite(selection_margin_m) or not 0 <= selection_margin_m <= .005 or
+            not math.isfinite(forward) or (target is not None and (not math.isfinite(target) or not .02 <= target <= .04))):
         return {'reason': 'Invalid motion travel evidence', 'target_m': None}
     us = limits.get('us_m', math.nan)
     us_valid = isinstance(us, (int, float)) and math.isfinite(us) and us > 0
@@ -25,7 +26,7 @@ def motion_clearance(limits, requested, target=None, forward=0., round_trip=True
     front_room = limits['forward_travel_m'] if footprint else limits['front_m']-limits['front_stop_m']
     rear_room = limits['reverse_travel_m'] if footprint else limits['rear_m']-limits['rear_stop_m']
     room = min(front_room, us-limits['us_stop_m'] if us is not None else front_room)-margin
-    selected = max(0., min(requested, math.floor((room+1e-9)*1000)/1000)) if target is None else target
+    selected = max(0., min(requested, math.floor((room-selection_margin_m+1e-9)*1000)/1000)) if target is None else target
     remaining = max(0., selected-forward)
     required = limits['front_stop_m']+remaining+margin
     rear_required = limits['rear_stop_m']+margin

@@ -4,6 +4,27 @@ from move_control.control.calibration_profile import ProfileLease, make_profile
 
 
 class ProfileLeaseTest(unittest.TestCase):
+    def test_translation_trial_retains_constraint_without_gains_and_expires(self):
+        from test.test_calibration_certificate import RotationCertificateTest
+        from move_control.control.rotation_envelope import RotationEnvelope
+        estimator=RotationEnvelope(.08)
+        for yaw in (.2,.2,-.2,-.2):estimator.add((0,0,yaw),(0,0,yaw),yaw,.0001)
+        rotation=RotationCertificateTest.rotation();rotation['envelope']=estimator.report()
+        lease=ProfileLease()
+        self.assertTrue(lease.accept(make_profile('retry',1,100.,True,(1.2,.8),'g',rotation),100.,10.,'g'))
+        packet=make_profile('retry',2,100.1,False,(1.2,.8),'g',translation_trial=True)
+        self.assertTrue(lease.accept(packet,100.1,10.1,'g'))
+        self.assertTrue(lease.translation_trial_live(10.1))
+        self.assertFalse(lease.rotation_trial_live(10.1))
+        self.assertIsNotNone(lease.rotation_envelope(10.1,.08,[]))
+        self.assertEqual(lease.gains(10.1),(1.,1.))
+        self.assertIsNone(lease.rotation_envelope(12.,.08,[]))
+        self.assertTrue(lease.rotation_estimate_required())
+        for flag,enabled,rotation_flag in ((1,False,False),(True,True,False),(True,False,True)):
+            bad=make_profile('retry',3,100.2,enabled,(1.,1.),'g',translation_trial=flag,rotation_trial=rotation_flag)
+            self.assertFalse(lease.accept(bad,100.2,10.2,'g'))
+            self.assertIsNone(lease.rotation_envelope(10.2,.08,[]))
+
     def test_explicit_recalibration_lease_retains_only_geometry_constraint(self):
         from test.test_calibration_certificate import RotationCertificateTest
         from move_control.control.rotation_envelope import RotationEnvelope

@@ -6,14 +6,14 @@ import numpy as np
 from .lidar import wrap_pi
 
 
-def scan_points(ranges, angle_min, increment, mount=(0., 0., 0.)):
+def scan_points(ranges, angle_min, increment, mount=(0., 0., 0.), max_points=180):
     """Apply the caller's calibrated lidar-to-base transform, including nose yaw."""
     values = np.asarray(ranges, dtype=float)
     angles = angle_min + np.arange(len(values)) * increment
     keep = np.isfinite(values) & (values >= .05) & (values <= 8.)
     values, angles = values[keep], angles[keep]
-    if len(values) > 180:
-        indices = np.linspace(0, len(values)-1, 180).astype(int)
+    if len(values) > max_points:
+        indices = np.linspace(0, len(values)-1, max_points).astype(int)
         values, angles = values[indices], angles[indices]
     angles = np.array([wrap_pi(float(a) + mount[2]) for a in angles])
     return np.column_stack((values*np.cos(angles)+mount[0],

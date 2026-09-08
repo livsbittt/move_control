@@ -9,7 +9,11 @@ out=/tmp/pinky-calmap227
 mkdir -p "$out"
 exec 9>"$out/run.lock"
 flock -n 9 || { echo 'A calibration mapping rig already owns this partition'; exit 1; }
-python3 tools/gz/prepare_track_world.py
+if [[ -n "${RIG_CALIBRATION_CASE:-}" ]]; then
+  python3 -m tools.gz.calibration_spaces "$RIG_CALIBRATION_CASE" /tmp/pinky-calmap227
+else
+  python3 tools/gz/prepare_track_world.py
+fi
 python3 - "$out" <<'PY'
 import sys, os, xml.etree.ElementTree as ET, yaml, shutil, time, json, hashlib, uuid, subprocess
 from pathlib import Path
@@ -58,12 +62,16 @@ settings={'/**': {'ros__parameters': {'use_sim_time':True, 'robot_radius':identi
     'stop_distance':.14, 'clear_distance':.16, 'lidar_yaw_offset':0.,
     'imu_angular_velocity_unit':'rad_s', 'calibration_us_max_range':8.,
     'calibration_auto_motion':True, 'result_path':str(out/'calibration.json')}}}
+if os.environ.get('RIG_CALIBRATION_CASE'):
+    settings['/**']['ros__parameters']['calibration_relocation_enabled']=True
+    settings['/**']['ros__parameters']['calibration_after_relocation']=os.environ.get('RIG_CALIBRATION_AFTER','stay')
 (out/'rig.yaml').write_text(yaml.safe_dump(settings))
 slam=yaml.safe_load(Path('tools/gz/slam_sim.yaml').read_text())
 slam['slam_toolbox']['ros__parameters']['resolution']=.02
 (out/'slam.yaml').write_text(yaml.safe_dump(slam))
 source_paths=sorted(list(Path('move_control').rglob('*.py'))+list(Path('config').glob('*.yaml')))
 manifest={'run_id':run_id, 'recorded_unix_s':time.time(), 'plant':plant,
+    'calibration_case':os.environ.get('RIG_CALIBRATION_CASE'),
     'ros_domain':227, 'gazebo_partition':'pinky_calmap227',
     'world_sha256':hashlib.sha256((out/'world.sdf').read_bytes()).hexdigest(),
     'source_at_start':os.environ.get('RIG_SOURCE_COMMIT') or subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
@@ -109,7 +117,9 @@ wait "${pids[-1]}"
 python3 - "$out/track_result.json" <<'PY'
 import json, sys
 result = json.load(open(sys.argv[1]))
-assert result['calibration_ready'] is True, result['message']
+import os
+if not os.environ.get('RIG_CALIBRATION_CASE'):
+    assert result['calibration_ready'] is True, result['message']
 assert result['cmd_vel_publishers'] == ['safety_node'], 'Unexpected final command publisher'
 import os
 if os.environ.get('RIG_REQUIRE_COMPLETE') == '1':

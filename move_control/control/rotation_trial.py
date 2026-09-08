@@ -1,6 +1,8 @@
 """Bounded left/right trials with independent repeated response validation."""
 import math
 
+MAX_TRANSLATION_M = .008
+
 
 class RotationTrial:
     def __init__(self, now):
@@ -29,7 +31,7 @@ class RotationTrial:
             return self.fail('Rotation interrupted or stalled')
         self.commanded += abs(self.last_speed)*dt
         self.last_time = now
-        if (translation > .008 or abs(lidar_yaw) > math.radians(15) or
+        if (translation > MAX_TRANSLATION_M or abs(lidar_yaw) > math.radians(15) or
                 max(abs(lidar_yaw-imu_yaw), abs(lidar_yaw-odom_yaw)) > math.radians(3)):
             return self.fail('Rotation sensors disagree or travel envelope exceeded')
         target = self.targets[self.index]

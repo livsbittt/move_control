@@ -12,6 +12,29 @@ from move_control.safety.node import SafetyNode
 
 
 class SafetyGateTest(unittest.TestCase):
+    def test_translation_retry_retains_sweep_but_enforces_straight_domain(self):
+        with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
+                patch('move_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
+            self.prepare_bounded_sweep()
+            n=self.node
+            packet=make_profile('bounded-test',n.calibration_lease.sequence+1,
+                n.now().nanoseconds*1e-9,False,(1.25,1.25),n.profile.revision,translation_trial=True)
+            n.on_calibration_profile(String(data=json.dumps(packet)))
+            actual=self.bounded_command(.008,0.)
+            self.assertAlmostEqual(actual.linear.x,n.cmd_linear_sign*.008)
+            self.assertAlmostEqual(sweep.call_args.args[4],.008)
+            self.assertTrue(n.calibration_lease.rotation_estimate_required())
+            for v,w in ((.014001,0.),(-.014001,0.),(.008,1e-12),(.008,-.001)):
+                actual=self.bounded_command(v,w)
+                self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+            actual=self.bounded_command(-.014,0.)
+            self.assertAlmostEqual(actual.linear.x,-n.cmd_linear_sign*.014)
+            n.calibration_lease.deadline=0.
+            sweep.reset_mock()
+            actual=self.bounded_command(.008,0.)
+            self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+            sweep.assert_not_called()
+
     def prepare_bounded_sweep(self, enabled=True, simulation=True, estimate=True):
         from move_control.control.rotation_envelope import RotationEnvelope
         n=self.node
