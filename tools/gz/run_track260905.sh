@@ -54,6 +54,7 @@ root.write(out/'world.sdf')
 identity=json.loads((out/'track_identity.json').read_text())
 settings={'/**': {'ros__parameters': {'use_sim_time':True, 'robot_radius':identity['robot_radius_m'],
     'rotation_footprint_xy':[v for xy in identity['robot_geometry']['footprint_xy'] for v in xy],
+    'simulation_motion_sweep_enabled':plant == 'wheel',
     'stop_distance':.14, 'clear_distance':.16, 'lidar_yaw_offset':0.,
     'imu_angular_velocity_unit':'rad_s', 'calibration_us_max_range':8.,
     'calibration_auto_motion':True, 'result_path':str(out/'calibration.json')}}}

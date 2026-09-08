@@ -1,7 +1,7 @@
 """Local ROS safety-node tests. A dedicated domain never joins the robot."""
 import unittest
 import json
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import rclpy
 from rclpy.parameter import Parameter
@@ -12,6 +12,101 @@ from move_control.safety.node import SafetyNode
 
 
 class SafetyGateTest(unittest.TestCase):
+    def prepare_bounded_sweep(self, enabled=True, simulation=True, estimate=True):
+        from move_control.control.rotation_envelope import RotationEnvelope
+        n=self.node
+        n.set_parameters([Parameter('simulation_motion_sweep_enabled',value=enabled),
+                          Parameter('use_sim_time',value=simulation)])
+        n.release_estop(); n._refresh_distances(); n.refresh_profile()
+        if estimate:
+            estimator=RotationEnvelope(n.robot_r)
+            for yaw in (.17,-.17,.18,-.18):
+                estimator.add((0.,0.,yaw),(0.,0.,yaw),yaw,.0005)
+            rotation=dict(done=True,error=None,max_angular_rad_s=.06,legs=[{}]*8,
+                          angular_gains=[1.,1.],envelope=estimator.report())
+            packet=make_profile('bounded-test',max(1,n.calibration_lease.sequence+1),n.now().nanoseconds*1e-9,
+                                True,(1.25,1.25),n.profile.revision,rotation)
+            n.on_calibration_profile(String(data=json.dumps(packet)))
+            self.assertTrue(n.calibration_lease.live(__import__('time').monotonic()))
+        self.fresh_sensors()
+        n.lidar_measurement_time=n.now()
+        for field in ('lidar_front','lidar_rear','lidar_left','lidar_right','lidar_rear_left','lidar_rear_right'):
+            setattr(n,field,.4)
+        n.lidar_rotation_points=[(.08,0.)]
+        n.lidar_rotation_clearance=.08
+        n.lidar_rotation_observed=True
+
+    def bounded_command(self,v=.014,w=.04):
+        command=Twist(); command.linear.x=v; command.angular.z=w
+        self.node.on_cmd(command); self.node.tick()
+        return self.node.pub.publish.call_args.args[0]
+
+    def test_bounded_sweep_requires_opt_in_and_simulation(self):
+        with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
+                patch('move_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
+            self.prepare_bounded_sweep(enabled=False)
+            actual=self.bounded_command()
+            self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+            sweep.assert_not_called()
+            self.node.set_parameters([Parameter('simulation_motion_sweep_enabled',value=True),
+                                      Parameter('use_sim_time',value=False)])
+            self.fresh_sensors()
+            actual=self.bounded_command()
+            self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+            sweep.assert_not_called()
+
+    def test_first_calibration_retains_existing_straight_gate_before_estimate(self):
+        with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
+                patch('move_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
+            self.prepare_bounded_sweep(estimate=False)
+            actual=self.bounded_command(.008,0.)
+            self.assertGreater(actual.linear.x,0.)
+            sweep.assert_not_called()
+
+    def test_bounded_sweep_checks_corrected_limited_command_and_stops_whole_arc(self):
+        with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
+                patch('move_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
+            self.prepare_bounded_sweep()
+            actual=self.bounded_command(.008,0.)
+            self.assertAlmostEqual(sweep.call_args.args[4],.010)
+            self.assertAlmostEqual(sweep.call_args.args[5],0.)
+            self.assertAlmostEqual(actual.linear.x,self.node.cmd_linear_sign*.010)
+            actual=self.bounded_command(.028,.2)
+            self.assertAlmostEqual(sweep.call_args.args[4],.014)
+            self.assertAlmostEqual(sweep.call_args.args[5],.1)
+            self.assertAlmostEqual(actual.linear.x,self.node.cmd_linear_sign*.014)
+            self.assertAlmostEqual(actual.angular.z,.1)
+            sweep.return_value=0.
+            actual=self.bounded_command()
+            self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+
+    def test_bounded_sweep_rejects_missing_estimate_and_incomplete_or_stale_scan(self):
+        with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
+                patch('move_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
+            self.prepare_bounded_sweep()
+            self.node.calibration_lease.deadline=0.
+            actual=self.bounded_command()
+            self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+            sweep.assert_not_called()
+            self.prepare_bounded_sweep()
+            self.node.lidar_rotation_observed=False
+            actual=self.bounded_command()
+            self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+            sweep.assert_not_called()
+            self.node.lidar_rotation_observed=True
+            original_age=self.node.age
+            old_source=object()
+            self.node.lidar_measurement_time=old_source
+            with patch.object(self.node,'age',side_effect=lambda stamp: .3 if stamp is old_source else original_age(stamp)):
+                actual=self.bounded_command()
+                self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+            sweep.assert_not_called()
+            self.node.lidar_measurement_time=self.node.now()
+            self.node.last_scan_time=None
+            actual=self.bounded_command()
+            self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
+            sweep.assert_not_called()
+
     def test_recalibration_retains_sweep_restriction_without_restoring_gains(self):
         from types import SimpleNamespace
         from move_control.calibration_atomic import CalibrationAtomic

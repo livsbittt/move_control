@@ -12,6 +12,8 @@ from ..control.path_follow import ProgressGuard, follow_path
 from ..control.recover import hazard_action
 from ..control.route_recovery import RouteRecovery
 from ..control.rotation_relocation import RotationRelocation
+from ..control.safe_trail import SafeTrail
+from ..control.trail_retreat import TrailRetreat
 from ..sensing.pose import planar_pose
 
 
@@ -30,6 +32,10 @@ class Navigator:
         self.navigation_progress = ProgressGuard()
         self.navigation_recovery = RouteRecovery()
         self.rotation_relocation = RotationRelocation()
+        self.safe_trail = SafeTrail()
+        self.trail_retreat = TrailRetreat()
+        self.trail_retreat_used = False
+        self.trail_retreat_hold = None
         self.navigation_tf = Buffer()
         self.navigation_listener = TransformListener(self.navigation_tf, self)
         self.navigation_goal_pub = self.create_publisher(String, '/goal/cmd', 10)
@@ -50,6 +56,10 @@ class Navigator:
         self.navigation_progress.reset()
         self.navigation_recovery.reset()
         self.rotation_relocation.reset()
+        self.safe_trail = SafeTrail()
+        self.trail_retreat.reset()
+        self.trail_retreat_used = False
+        self.trail_retreat_hold = None
 
     def _start_navigation(self, mode, goal_command=None):
         self._cancel_navigation()
@@ -128,7 +138,12 @@ class Navigator:
         if (self.blocked or self._on_wall()) and v > 0:
             v = 0.0
             reason = 'turn_away' if w else 'front_blocked'
-        if reason == 'arrived' and self.navigation_mode in ('explore', 'coverage'):
+        if self.trail_retreat_hold is not None:
+            self.state = 'wait'
+            self._publish(Twist(), f'route_{self.navigation_mode}:{self.trail_retreat_hold}')
+            return
+        if (reason == 'arrived' and self.navigation_mode in ('explore', 'coverage')
+                and not self.trail_retreat.active):
             # Success is not a stuck episode. Let the planner retire this
             # endpoint once; periodic same-goal routes must not flood it.
             target = self.navigation_route[-1]
@@ -145,6 +160,30 @@ class Navigator:
             return
         localization_ok = pose is not None and 0 <= tf_age <= float(self.get_parameter('route_tf_timeout').value)
         limits = self.motion_limits
+        odom_pose = (self.odom_x,self.odom_y,self.odom_yaw) if self._odom_fresh() else None
+        geometry_id = limits.get('geometry_revision')
+        trail_valid = bool(not blocked and localization_ok and self._odom_fresh() and
+            self._motion_limits_fresh() and limits.get('rotation_scan_observed') is True)
+        if not self.trail_retreat.active:
+            self.safe_trail.observe(now, odom_pose, trail_valid,
+                limits.get('can_rotate') is True, geometry_id)
+        if self.trail_retreat.active:
+            retreat_v, retreat_w, retreat_reason = self.trail_retreat.update(
+                now, odom_pose, geometry_id,
+                trail_valid and self._can_reverse() and limits.get('bounded_motion_enabled') is True,
+                limits.get('can_rotate') is True)
+            if retreat_reason == 'trail_retreat_complete':
+                self.navigation_progress.reset()
+                self.navigation_recovery.reset()
+                self.navigation_route = []
+                self.navigation_goal_pub.publish(String(data='replan'))
+            elif not self.trail_retreat.active:
+                self.trail_retreat_hold = retreat_reason
+            command = Twist()
+            command.linear.x, command.angular.z = retreat_v, retreat_w
+            self.state = 'backup' if retreat_v else 'wait'
+            self._publish(command, f'route_{self.navigation_mode}:{retreat_reason}')
+            return
         suggestion = limits.get('rotation_recovery_m')
         relocation = self.rotation_relocation
         direction = relocation.direction if relocation.active else (
@@ -167,7 +206,8 @@ class Navigator:
             suggestion = relocation.direction*relocation.target_distance
         relocation_v, relocation_reason = relocation.update(now,
             (self.odom_x,self.odom_y,self.odom_yaw) if self._odom_fresh() else None,
-            relocation_safe, restored, suggestion, bool(w) and limits.get('can_rotate') is False)
+            relocation_safe, restored, suggestion, bool(w) and limits.get('can_rotate') is False
+            and not limits.get('bounded_motion_enabled', False))
         if relocation_v is not None:
             if relocation_reason in ('rotation_relocation_clear','rotation_relocation_distance'):
                 self.navigation_progress.reset()
@@ -183,6 +223,16 @@ class Navigator:
         self.navigation_progress.pause(now, not localization_ok)
         if self.navigation_progress.check(now, pose, bool(v or w)):
             v, w, reason = 0.0, 0.0, 'stalled_restart_required'
+            if (not self.trail_retreat_used and trail_valid and self._can_reverse() and
+                    limits.get('bounded_motion_enabled') is True):
+                retreat_route = self.safe_trail.retreat(now, odom_pose, geometry_id)
+                if retreat_route and self.trail_retreat.start(now, odom_pose, retreat_route, geometry_id):
+                    # One bounded attempt per explicit navigation command.
+                    # Replans and a return to the same throat cannot renew it.
+                    self.trail_retreat_used = True
+                    self.state = 'wait'
+                    self._publish(Twist(), f'route_{self.navigation_mode}:trail_retreat_start')
+                    return
         recoverable = (not hazard and not self.estop and not self.pickup and self._ir_ready()
                        and localization_ok)
         exit_point = None

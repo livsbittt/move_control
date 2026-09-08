@@ -79,6 +79,7 @@ class Evidence:
                 'lidar_yaw': self.lidar_yaw, 'linear_sign': self.cmd_linear_sign,
                 'half_width': self.half_w, 'us_stop': self.us_stop, 'us_clear': self.us_clear,
                 'footprint_guard': bool(self.get_parameter('footprint_guard_enabled').value),
+                'simulation_motion_sweep': bool(self.get_parameter('simulation_motion_sweep_enabled').value),
                 'mount': list(mount) if mount is not None else None,
                 'imu_unit': self.get_parameter('imu_angular_velocity_unit').value,
             }

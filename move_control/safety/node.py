@@ -3,6 +3,7 @@
 import math
 import json
 import time
+import os
 
 import rclpy
 from rcl_interfaces.msg import ParameterDescriptor
@@ -19,6 +20,7 @@ from ..sensing.lidar import NOSE_YAW
 from ..sensing.localization import lease_ready
 from ..control.lidar_guard import lidar_blocked, lidar_can_rotate
 from ..control.rotation_envelope import pivot_clearance, suggest_rotation_translation, straight_translation_limits
+from ..control.motion_sweep import bounded_sweep_clearance
 from .bumper import Bumper
 from .gate import Gate
 from .hazard import Hazard
@@ -38,6 +40,9 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
         self.create_subscription(String, '/localization/status', self.on_localization, 10)
         # Verified Pinky mesh envelope; only straight commands <=14mm/s use it.
         self.declare_parameter('footprint_guard_enabled', False)
+        # Commissioned only on the isolated wheel rig; physical stopping and
+        # mixed-motion slip have not yet been measured on Pinky hardware.
+        self.declare_parameter('simulation_motion_sweep_enabled', False)
         self.declare_parameter('scan_topic', '/scan')
         self.declare_parameter('us_topic', '/us_sensor/range')
         self.declare_parameter('ir_topic', '/ir_sensor/range')
@@ -366,6 +371,10 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
         elif self.calibration_lease.rotation_estimate_required():
             can_rotate = False
         rotation_trial = self.calibration_lease.rotation_trial_live(time.monotonic())
+        bounded_motion = bool(self.get_parameter('simulation_motion_sweep_enabled').value and
+            self.get_parameter('use_sim_time').value and os.environ.get('ROS_DOMAIN_ID') == '227' and
+            os.environ.get('GZ_PARTITION') == 'pinky_calmap227' and not rotation_trial and
+            (rotation_estimate is not None or self.calibration_lease.rotation_estimate_required()))
         if rotation_trial and (self.last_cmd.linear.x != 0. or abs(self.last_cmd.angular.z) > .06):
             can_rotate = False
         relocation = None
@@ -379,6 +388,8 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
                 rotation_estimate['center_m'], rotation_estimate['pivot_radius_m'], body_radius)
         self.motion_limits_pub.publish(String(data=json.dumps({
             'can_rotate': can_rotate,
+            'bounded_motion_enabled': bounded_motion,
+            'geometry_revision': self.profile.revision if self.profile_valid else None,
             'front_stop_m': .043-self.lidar_mount[0]+.010 if footprint else self.stop_d,
             'front_clear_m': .043-self.lidar_mount[0]+.020 if footprint else self.clear_d,
             'rear_stop_m': .077+self.lidar_mount[0]+.010 if footprint else self.rear_stop_d,
@@ -491,7 +502,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
             cmd.linear.x = 0.0
         if cmd.linear.x < 0.0 and self.rear_blocked:
             cmd.linear.x = 0.0
-        if not can_rotate:
+        if not can_rotate and not bounded_motion:
             cmd.angular.z = 0.0
         # Removing one component changes the requested swept trajectory.
         # Stop so the planner can issue an explicit straight or spin command.
@@ -515,6 +526,27 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
                     self.profile.max_angular / max(abs(cmd.angular.z), 1e-12))
         cmd.linear.x *= scale
         cmd.angular.z *= scale
+        if bounded_motion and (cmd.linear.x or cmd.angular.z):
+            source_age = self.age(getattr(self, 'lidar_measurement_time', None))
+            scan_age = max(self.age(self.last_scan_time), source_age)
+            sweep = None
+            if (rotation_estimate is not None and lidar_ok and
+                    getattr(self, 'lidar_rotation_observed', False) and
+                    0 <= source_age <= .2 and 0 <= scan_age <= .2):
+                # Measured rig watchdog + settling <= .575 s. Use .8 s and
+                # account for stale scan motion in every direction, since the
+                # previous command can differ from this command.
+                uncertainty = rotation_estimate['center_uncertainty_m']
+                max_center_speed = .014 + .10*(math.hypot(*rotation_estimate['center_m']) + 2*uncertainty)
+                # Include the old command's possible settling displacement at
+                # a sign change, not only continuation of the requested arc.
+                stale_padding = max_center_speed*(scan_age + .15)
+                sweep = bounded_sweep_clearance(self.lidar_rotation_points,
+                    rotation_estimate['center_m'], uncertainty,
+                    body_radius + stale_padding, cmd.linear.x, cmd.angular.z, .8)
+            if sweep is None or sweep <= 0:
+                self.halt_with_reason('bounded_sweep_unavailable' if sweep is None else 'bounded_sweep_blocked')
+                return
         self.record_decision(cmd.linear.x, cmd.angular.z,
                              'allow' if (cmd.linear.x == self.last_cmd.linear.x and
                                          cmd.angular.z == self.last_cmd.angular.z) else 'motion_limited')

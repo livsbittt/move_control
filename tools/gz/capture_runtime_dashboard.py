@@ -24,6 +24,9 @@ def main():
         state = page.request.get('http://localhost:28762/state.json').json()
         (args.output/'dashboard_state.json').write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding='utf-8')
         page.screenshot(path=str(args.output/'dashboard.png'), full_page=True)
+        page.get_by_text('센서별 상세값', exact=True).click()
+        page.locator('details').filter(has=page.locator('#calibrationsensors')).screenshot(
+            path=str(args.output/'rotation_details.png'))
         (args.output/'browser_errors.json').write_text(json.dumps(errors), encoding='utf-8')
         print(json.dumps({'errors':errors, 'map':state.get('map'), 'calibration_ready':state.get('calibration_ready')}))
         browser.close()
