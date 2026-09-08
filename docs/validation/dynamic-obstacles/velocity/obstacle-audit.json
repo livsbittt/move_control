@@ -1,0 +1,65 @@
+{
+  "run_id": null,
+  "stage": "removed",
+  "error": null,
+  "events": [
+    {
+      "stamp": 80.932,
+      "event": "spawn_stationary",
+      "center": [
+        -0.31700810268525775,
+        0.4804799335222792
+      ]
+    },
+    {
+      "stamp": 92.93400000000001,
+      "event": "start_scripted_crossing"
+    },
+    {
+      "stamp": 103.11500000000001,
+      "event": "removed"
+    }
+  ],
+  "associated_classifications": {
+    "stationary": {
+      "not_associated": 1,
+      "unknown": 4,
+      "stationary": 52
+    },
+    "moving": {
+      "stationary": 22,
+      "unknown": 2,
+      "moving": 9
+    },
+    "box_displaced": {
+      "stationary": 1,
+      "unknown": 1,
+      "moving": 3
+    }
+  },
+  "safety_reasons": {
+    "waiting": {
+      "missing": 1,
+      "estop": 10,
+      "command_stale": 23,
+      "allow": 360
+    },
+    "stationary": {
+      "allow": 1,
+      "obstacle_wait:predicted_obstacle": 1,
+      "camera_obstacle_unranged": 55
+    },
+    "moving": {
+      "camera_obstacle_unranged": 3,
+      "obstacle_wait:predicted_obstacle": 6,
+      "allow": 24
+    },
+    "removed": {
+      "allow": 47
+    }
+  },
+  "scripted_displacement_samples": 5,
+  "min_model_origin_to_box_surface_m": 0.17873638190085475,
+  "displacement_after_removal_m": 5.2011327216760785e-06,
+  "scope": "Sampled diagnostic metrics; not contact-free or full-mapping acceptance"
+}

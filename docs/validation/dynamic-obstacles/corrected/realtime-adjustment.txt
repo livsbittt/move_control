@@ -1,0 +1,2 @@
+After calibration ready: requested real_time_factor=1.0; physical command limits unchanged.
+Restored real_time_factor=0.2 after observing stale TF under load; physical command limits unchanged.

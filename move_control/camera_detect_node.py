@@ -7,6 +7,7 @@
   /camera/front    OV5647 BGR8 (libcamera RGB888 is BGR in memory)
 """
 import time
+import json
 
 import numpy as np
 import rclpy
@@ -41,6 +42,7 @@ class CameraDetectNode(Node):
         self.side_pub = self.create_publisher(Float32, '/camera/side', 10)
         self.dbg_pub = self.create_publisher(String, '/camera/debug', 10)
         self.img_pub = self.create_publisher(Image, '/camera/front', 10)
+        self.observation_pub = self.create_publisher(String, '/camera/observation', 10)
 
         self._cam = None
         self._floor_hsv = None
@@ -100,6 +102,7 @@ class CameraDetectNode(Node):
             self.cliff_pub.publish(Bool(data=False))
             self.block_pub.publish(Bool(data=False))
             return
+        capture_stamp = self.get_clock().now().nanoseconds*1e-9
         try:
             bgr = self._cam.capture_array('main')
         except Exception as exc:
@@ -138,6 +141,10 @@ class CameraDetectNode(Node):
         self.cliff_pub.publish(Bool(data=self._cliff))
         self.block_pub.publish(Bool(data=self._blocked))
         self.side_pub.publish(Float32(data=float(res['side'])))
+        self.observation_pub.publish(String(data=json.dumps(dict(
+            stamp=capture_stamp,
+            blocked=bool(self._blocked), cliff=bool(self._cliff),
+            side=float(res['side']), source='onboard_camera_pixels'))))
         cols = res['cols']
         mcols = res.get('mid_cols', cols)
         self.dbg_pub.publish(

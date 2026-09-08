@@ -31,6 +31,7 @@ setup(
             'calib_node = move_control.calib_node:main',
             'startup_calibration_node = move_control.startup_calibration_node:main',
             'camera_detect_node = move_control.camera_detect_node:main',
+            'obstacle_observer_node = move_control.obstacle_observer_node:main',
             'watch_node = move_control.watch_node:main',
             'goal_node = move_control.goal_node:main',
             'localization_node = move_control.localization_node:main',

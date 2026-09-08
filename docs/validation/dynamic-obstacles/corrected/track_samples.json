@@ -1,0 +1,95 @@
+[
+  {
+    "sim_s": 136.58,
+    "calibration": null,
+    "goal": "",
+    "wander": "stop",
+    "pose": null,
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": null,
+    "message": null
+  },
+  {
+    "sim_s": 137.08,
+    "calibration": "sensor_hold",
+    "goal": "",
+    "wander": "stop",
+    "pose": [
+      -0.2625076494145753,
+      0.21493050064187197
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Saved calibration retained; rechecking sensors: lidar"
+  },
+  {
+    "sim_s": 137.58,
+    "calibration": "sensor_hold",
+    "goal": "",
+    "wander": "stop",
+    "pose": [
+      -0.2655360604081416,
+      0.21439939103081157
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Saved calibration retained; rechecking sensors: lidar"
+  },
+  {
+    "sim_s": 138.08100000000002,
+    "calibration": "sensor_hold",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2685753595891998,
+      0.2137216076987484
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Saved calibration retained; rechecking sensors: lidar"
+  },
+  {
+    "sim_s": 138.58100000000002,
+    "calibration": "sensor_hold",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.27161819766037903,
+      0.2128965731607012
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Saved calibration retained; rechecking sensors: lidar"
+  },
+  {
+    "sim_s": 139.08100000000002,
+    "calibration": "sensor_hold",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.27465719296702495,
+      0.2119240790990551
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Saved calibration retained; rechecking sensors: lidar"
+  }
+]

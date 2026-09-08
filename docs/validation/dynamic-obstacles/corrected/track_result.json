@@ -1,0 +1,17 @@
+{
+  "elapsed_sim_s": 2.5010000000000048,
+  "calibration_phase": "sensor_hold",
+  "calibration_ready": false,
+  "message": "Saved calibration retained; rechecking sensors: lidar",
+  "map_received": true,
+  "mapping_complete": false,
+  "observation_error": null,
+  "cmd_vel_publishers": [
+    "safety_node"
+  ],
+  "run_id": "513022be08e046f8964543b81518c5bd",
+  "path_m": 0.012532096975886926,
+  "min_center_to_wall_m": 0.25560424520530417,
+  "map_geometry_and_time_valid": true,
+  "known_cells": 3763
+}

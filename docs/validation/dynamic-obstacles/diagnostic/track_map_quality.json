@@ -1,0 +1,40 @@
+{
+  "interior_unknown_fraction": 0.5481205805731298,
+  "known_corridor_purity": 0.999094053697908,
+  "wall_surface_recall": [
+    0.2441860465116279,
+    0.0,
+    0.41788321167883213,
+    0.36496350364963503,
+    1.0,
+    1.0,
+    0.18181818181818182,
+    1.0,
+    0.21212121212121213,
+    0.7272727272727273,
+    0.0,
+    0.109375,
+    0.0,
+    0.0,
+    1.0,
+    0.16129032258064516
+  ],
+  "minimum_wall_surface_recall": 0.0,
+  "phantom_fraction": 0.0091324200913242,
+  "bounds_m": [
+    [
+      -1.3575,
+      -0.6325
+    ],
+    [
+      1.3575,
+      0.6325
+    ]
+  ],
+  "wall_tolerance_m": 0.05,
+  "interior_wall_exclusion_m": 0.03,
+  "map_raster_complete": false,
+  "run_id": "768a2b19a5224dcbac2b42ff9d6ab6f6",
+  "map_source_s": 207.0,
+  "map_geometry_and_time_valid": true
+}

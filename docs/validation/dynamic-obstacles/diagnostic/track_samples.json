@@ -1,0 +1,95 @@
+[
+  {
+    "sim_s": 204.251,
+    "calibration": null,
+    "goal": "",
+    "wander": "",
+    "pose": null,
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": null,
+    "message": null
+  },
+  {
+    "sim_s": 204.752,
+    "calibration": "ready",
+    "goal": "",
+    "wander": "route_explore:recovery_waiting",
+    "pose": [
+      -0.24030100960997097,
+      0.16635656755473882
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 205.252,
+    "calibration": "ready",
+    "goal": "",
+    "wander": "route_explore:recovery_waiting",
+    "pose": [
+      -0.24030100960997097,
+      0.16635656755473882
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 205.752,
+    "calibration": "ready",
+    "goal": "",
+    "wander": "route_explore:recovery_waiting",
+    "pose": [
+      -0.24030100960997097,
+      0.16635656755473882
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 206.25300000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:recovery_waiting",
+    "pose": [
+      -0.24030100960997097,
+      0.16635656755473882
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 206.75400000000002,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:recovery_waiting",
+    "pose": [
+      -0.24030100960997097,
+      0.16635656755473882
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  }
+]

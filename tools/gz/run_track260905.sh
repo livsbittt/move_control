@@ -21,15 +21,19 @@ out=Path(sys.argv[1])
 if (out/'stack.log').exists():
     archive=out/'archive'/str(time.time_ns())
     archive.mkdir(parents=True)
+    camera_frames=out/'rendered-camera'
+    if camera_frames.is_dir() and not camera_frames.is_symlink():
+        camera_frames.rename(archive/'rendered-camera')
     for path in out.iterdir():
-        if path.is_file() and path.suffix in ('.log','.json','.yaml','.pgm','.npz','.sdf'):
+        if path.is_file() and path.suffix in ('.log','.json','.yaml','.pgm','.npz','.sdf','.txt'):
             shutil.copy2(path, archive/path.name)
 run_id=uuid.uuid4().hex
 # An old complete map is historical evidence, never this run's readiness.
 for name in ('map.pgm','map.yaml','map_grid.npz','calibration.json','calibration.certificate.json','live_evidence.json',
              'track_samples.json','track_last_status.json','track_result.json',
              'track_map.npz','track_map.pgm','track_map.yaml','track_map_quality.json',
-             'track_map_audit.json','track_result.png'):
+             'track_map_audit.json','track_result.png','obstacle-scenario.json',
+             'decision-events.json','health-capture.json','scan-capture.json','realtime-adjustment.txt'):
     (out/name).unlink(missing_ok=True)
 (out/'mapping_metrics.json').write_text(json.dumps({'run_id':run_id, 'status':'pending',
     'map_raster_complete':False, 'raster_and_sampled_clearance_ok':False}))
@@ -54,6 +58,9 @@ sensor.find('.//samples').text='720'
 sensor.find('.//max_angle').text=str(3.141592653589793-2*3.141592653589793/720)
 sensor.find('.//min_angle').text=str(-3.141592653589793)
 sensor.find('.//range/max').text='8.0'
+if os.environ.get('RIG_RENDERED_CAMERA') == '1':
+    from tools.gz.obstacle_camera import add_camera
+    add_camera(root.getroot())
 root.write(out/'world.sdf')
 identity=json.loads((out/'track_identity.json').read_text())
 settings={'/**': {'ros__parameters': {'use_sim_time':True, 'robot_radius':identity['robot_radius_m'],
@@ -61,15 +68,19 @@ settings={'/**': {'ros__parameters': {'use_sim_time':True, 'robot_radius':identi
     'simulation_motion_sweep_enabled':plant == 'wheel',
     'stop_distance':.14, 'clear_distance':.16, 'lidar_yaw_offset':0.,
     'imu_angular_velocity_unit':'rad_s', 'calibration_us_max_range':8.,
-    'calibration_auto_motion':True, 'result_path':str(out/'calibration.json')}}}
+    'calibration_auto_motion':True, 'result_path':str(out/'calibration.json'),
+    'obstacle_tracking_enabled':os.environ.get('RIG_TRACK_OBSTACLES') == '1'}}}
 if os.environ.get('RIG_CALIBRATION_CASE'):
     settings['/**']['ros__parameters']['calibration_relocation_enabled']=True
     settings['/**']['ros__parameters']['calibration_after_relocation']=os.environ.get('RIG_CALIBRATION_AFTER','stay')
 (out/'rig.yaml').write_text(yaml.safe_dump(settings))
 slam=yaml.safe_load(Path('tools/gz/slam_sim.yaml').read_text())
 slam['slam_toolbox']['ros__parameters']['resolution']=.02
+if os.environ.get('RIG_TRACK_OBSTACLES') == '1':
+    slam['slam_toolbox']['ros__parameters']['scan_topic']='/mapping/scan'
 (out/'slam.yaml').write_text(yaml.safe_dump(slam))
-source_paths=sorted(list(Path('move_control').rglob('*.py'))+list(Path('config').glob('*.yaml')))
+source_paths=sorted(list(Path('move_control').rglob('*.py'))+list(Path('config').glob('*.yaml'))+
+                    list(Path('tools/gz').glob('*.py'))+list(Path('tools/gz').glob('*.sh')))
 manifest={'run_id':run_id, 'recorded_unix_s':time.time(), 'plant':plant,
     'calibration_case':os.environ.get('RIG_CALIBRATION_CASE'),
     'ros_domain':227, 'gazebo_partition':'pinky_calmap227',
@@ -79,7 +90,9 @@ manifest={'run_id':run_id, 'recorded_unix_s':time.time(), 'plant':plant,
     'robot_radius_m':settings['/**']['ros__parameters']['robot_radius'],
     'robot_geometry':identity['robot_geometry'],
     'physical_robot_verified':False,
-    'auxiliary_sensors':'Synthetic camera/IR; GT-derived IMU; lidar-derived US'}
+    'auxiliary_sensors':('Rendered camera; synthetic IR; GT-derived IMU; lidar-derived US'
+        if os.environ.get('RIG_RENDERED_CAMERA') == '1' else
+        'Synthetic camera/IR; GT-derived IMU; lidar-derived US')}
 (out/'run_manifest.json').write_text(json.dumps(manifest,indent=2))
 PY
 pids=()
@@ -92,6 +105,19 @@ trap cleanup EXIT
 trap 'exit 130' INT TERM
 setsid gz sim -s -r --headless-rendering "$out/world.sdf" > "$out/gz.log" 2>&1 & pids+=($!)
 sleep 4
+if [[ "${RIG_TRACK_OBSTACLES:-0}" == 1 ]]; then
+  setsid python3 -m move_control.obstacle_observer_node --ros-args -p use_sim_time:=true \
+    > "$out/obstacle-observer.log" 2>&1 & pids+=($!)
+  setsid python3 -m tools.gz.record_obstacle_decisions --ros-args -p use_sim_time:=true \
+    > "$out/obstacle-recorder.log" 2>&1 & pids+=($!)
+fi
+if [[ "${RIG_RENDERED_CAMERA:-0}" == 1 ]]; then
+  setsid ros2 run ros_gz_bridge parameter_bridge \
+    '/pinky/rendered_camera@sensor_msgs/msg/Image[gz.msgs.Image' \
+    --ros-args -p use_sim_time:=true > "$out/camera-bridge.log" 2>&1 & pids+=($!)
+  setsid python3 -m tools.gz.rendered_camera_adapter --ros-args -p use_sim_time:=true \
+    > "$out/camera.log" 2>&1 & pids+=($!)
+fi
 setsid ros2 run ros_gz_bridge parameter_bridge \
   '/lidar/scan@sensor_msgs/msg/LaserScan[gz.msgs.LaserScan' \
   '/odometry_gt@nav_msgs/msg/Odometry[gz.msgs.Odometry' \
@@ -112,8 +138,15 @@ setsid ros2 launch slam_toolbox online_async_launch.py use_sim_time:=true \
   slam_params_file:="$out/slam.yaml" > "$out/slam.log" 2>&1 & pids+=($!)
 
 setsid python3 tools/gz/track_run_monitor.py > "$out/monitor.log" 2>&1 & pids+=($!)
+if [[ "${RIG_OBSTACLE_SCENARIO:-0}" == 1 ]]; then
+  setsid python3 -m tools.gz.obstacle_scenario --ros-args -p use_sim_time:=true \
+    > "$out/obstacle-scenario.log" 2>&1 & pids+=($!)
+  monitor_index=$((${#pids[@]}-2))
+else
+  monitor_index=$((${#pids[@]}-1))
+fi
 echo "Isolated exact-track run: $out"
-wait "${pids[-1]}"
+wait "${pids[$monitor_index]}"
 python3 - "$out/track_result.json" <<'PY'
 import json, sys
 result = json.load(open(sys.argv[1]))

@@ -1,0 +1,421 @@
+[
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 0.399,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "estop",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "ecd3995a360964ce",
+      "observation_generation": 0
+    },
+    "observation": null
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 3.1500000000000004,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "allow",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "c2c20fa6c61c6949",
+      "observation_generation": 28
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 3.1,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493517742660833,
+            0.22423579345300843
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.04617504763610718
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.347428838241594,
+            -0.0005323255464984578
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.06908154943900849
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.4332898907125676,
+            0.00865551834536693
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.0067883565707358455
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45240674826166016,
+            -0.23101738641194375
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.03679473860908917
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 3.6500000000000004,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "command_stale",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "c2c20fa6c61c6949",
+      "observation_generation": 33
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 3.6,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493517742660833,
+            0.22423579345300843
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.04617504763610718
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.347428838241594,
+            -0.0005323255464984578
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.06908154943900849
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.4332898907125676,
+            0.00865551834536693
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.0067883565707358455
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45240674826166016,
+            -0.23101738641194375
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.03679473860908917
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 6.75,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "allow",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "c2c20fa6c61c6949",
+      "observation_generation": 64
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 6.6000000000000005,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493517742660833,
+            0.22423579345300843
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.04617504763610718
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.347428838241594,
+            -0.0005323255464984578
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.06908154943900849
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.4332898907125676,
+            0.00865551834536693
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.0067883565707358455
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45240674826166016,
+            -0.23101738641194375
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.03679473860908917
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 56.300000000000004,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "command_stale",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "c2c20fa6c61c6949",
+      "observation_generation": 559
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 56.2,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493497670417896,
+            0.2244335069048995
+          ],
+          "velocity": [
+            -6.034251628776609e-06,
+            -0.0005721333629272632
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.04847673228771097
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3474326380000432,
+            0.00028365063702484594
+          ],
+          "velocity": [
+            2.1416340505251605e-05,
+            -0.0015661560605400107
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.0636042392995702
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44345043631593306,
+            -0.0006390386432061912
+          ],
+          "velocity": [
+            -0.0023709113540454825,
+            -0.002994365087067949
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.062086389571896605
+        },
+        {
+          "id": 4,
+          "position": [
+            0.4523800788119515,
+            -0.2329416403355128
+          ],
+          "velocity": [
+            4.291436442720044e-06,
+            0.0016002713024901537
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.04164185738774834
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 56.35,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "allow",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "c2c20fa6c61c6949",
+      "observation_generation": 560
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 56.300000000000004,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493497670417896,
+            0.2244335069048995
+          ],
+          "velocity": [
+            3.6095890518985404e-08,
+            -5.4441355235856846e-05
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.04847673228771097
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3474326380000432,
+            0.00028365063702484594
+          ],
+          "velocity": [
+            9.663490997301548e-08,
+            -0.00012413127632287559
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.0636042392995702
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44345043631593306,
+            -0.0006390386432061912
+          ],
+          "velocity": [
+            0.00017976220590142444,
+            0.00014282234314998504
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.062086389571896605
+        },
+        {
+          "id": 4,
+          "position": [
+            0.4523800788119515,
+            -0.2329416403355128
+          ],
+          "velocity": [
+            -7.397179333714432e-09,
+            0.00011414289783421986
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.04164185738774834
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  }
+]

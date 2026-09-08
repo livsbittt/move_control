@@ -1,0 +1,5727 @@
+[
+  {
+    "sim_s": 1.0550000000000002,
+    "calibration": null,
+    "goal": "",
+    "wander": "",
+    "pose": null,
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": null,
+    "message": null
+  },
+  {
+    "sim_s": 1.5550000000000002,
+    "calibration": "collecting",
+    "goal": "",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 2.0580000000000003,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 2.5620000000000003,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 3.0620000000000003,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 3.5650000000000004,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 4.065,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 4.565,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 5.065,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 5.565,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 6.066000000000001,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 6.5680000000000005,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 7.0680000000000005,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 7.5680000000000005,
+    "calibration": "collecting",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Keep stationary; waiting for healthy stable sensors"
+  },
+  {
+    "sim_s": 8.069,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19999999999999907,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Waiting for wander stop before bounded forward validation"
+  },
+  {
+    "sim_s": 8.569,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19807199999999714,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 9.069,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19407199999999314,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 9.571,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19007199999998914,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 10.073,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18607199999998514,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 10.577,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18207199999998114,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 11.077,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.17807199999997714,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 11.578000000000001,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.17407199999997314,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 12.078000000000001,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.17007199999996914,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: outbound"
+  },
+  {
+    "sim_s": 12.578000000000001,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.16840799999996747,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: settle_out"
+  },
+  {
+    "sim_s": 13.081000000000001,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1695439999999686,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 13.582,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1735439999999726,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 14.083,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1775439999999766,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 14.583,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1815439999999806,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 15.088000000000001,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1855439999999846,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 15.588000000000001,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1895439999999886,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 16.089000000000002,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1935439999999926,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 16.591,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1975439999999966,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 17.091,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2015440000000006,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 17.591,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20239200000000146,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: returning"
+  },
+  {
+    "sim_s": 18.091,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20083280805979106,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.007995856103651153,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 1/2: settle_home"
+  },
+  {
+    "sim_s": 18.591,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19683488000796953,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.007995856103651153,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 19.091,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.192836951956148,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.007995856103651153,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 19.591,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18883902390432647,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.007995856103651153,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 20.093,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18484109585250494,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.007995856103651153,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 20.593,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1808431678006834,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.007995856103651153,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 21.094,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.17684523974886188,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.007995856103651153,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 21.595000000000002,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.17284731169704035,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.007995856103651153,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 22.103,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.16884938364521881,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.007995856103651153,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: outbound"
+  },
+  {
+    "sim_s": 22.603,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.16839361984731116,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: settle_out"
+  },
+  {
+    "sim_s": 23.104000000000003,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1707666082900111,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008016852846957068,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 23.612000000000002,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.17517587735583873,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008016852846957068,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 24.112000000000002,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.1787834611369704,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008016852846957068,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 24.612000000000002,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18319273020279803,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008016852846957068,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 25.112000000000002,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.18720115662627768,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008016852846957068,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 25.613000000000003,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19120958304975733,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008016852846957068,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 26.114,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19521800947323698,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008016852846957068,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 26.616000000000003,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.19922643589671662,
+      0.2700000000000007
+    ],
+    "safe": [
+      -0.008016852846957068,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 27.119000000000003,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016956265735801,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: returning"
+  },
+  {
+    "sim_s": 27.631,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016956265735801,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: settle_home"
+  },
+  {
+    "sim_s": 28.137,
+    "calibration": "validating_motion",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016956265735801,
+      0.2700000000000007
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Round trip 2/2: settle_home"
+  },
+  {
+    "sim_s": 28.64,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169566993434082,
+      0.2699999997164183
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 29.159000000000002,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169576889151908,
+      0.2699999969339988
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 29.661,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016958775931639,
+      0.26999999044660805
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 30.168000000000003,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169597617884988,
+      0.26999998143952975
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 30.671000000000003,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016960744500038,
+      0.2699999694793773
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 31.172,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016961723181885,
+      0.2699999545769138
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 31.673000000000002,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169623333933176,
+      0.26999994375638275
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 32.173,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169623333933176,
+      0.26999994375638275
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 1/8"
+  },
+  {
+    "sim_s": 32.674,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169633834457654,
+      0.2699999258601283
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 33.177,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016964364042051,
+      0.2699999122743195
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 33.677,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169653482722325,
+      0.2699999016359719
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 34.188,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.201696633525057,
+      0.26999989395465884
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 34.688,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169673240888492,
+      0.2699998892372928
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 35.190000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016968238657744,
+      0.26999988751678655
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 35.693000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016968238657744,
+      0.26999988751678655
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 2/8"
+  },
+  {
+    "sim_s": 36.196000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169690147818573,
+      0.2699998880453345
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 36.699000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169700041869695,
+      0.2699998913680157
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 37.199000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169709921502274,
+      0.2699998976569717
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 37.7,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016971977782531,
+      0.26999990690654324
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 38.2,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016972960196878,
+      0.26999991910840654
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 38.7,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169739385091637,
+      0.2699999342515799
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 39.201,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169741725958193,
+      0.26999993832215036
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 39.703,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169742369396604,
+      0.26999993945874323
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 3/8"
+  },
+  {
+    "sim_s": 40.203,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169752144387543,
+      0.2699999551182522
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 40.704,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169761961951532,
+      0.26999996783865776
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 41.204,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016977279989809,
+      0.26999997842285534
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 41.706,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169782678071108,
+      0.26999998493705035
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 42.207,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169792571338935,
+      0.26999998848530715
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 42.707,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169798689041113,
+      0.26999998919376844
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 4/8"
+  },
+  {
+    "sim_s": 43.207,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169798689041113,
+      0.26999998919376844
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 43.707,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169807538830642,
+      0.2699999882114018
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 44.208000000000006,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169817430733547,
+      0.26999998430107575
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 44.709,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169828292796235,
+      0.2699999765749348
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 45.21,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169838140456375,
+      0.2699999664445892
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 45.71,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169847953298944,
+      0.2699999533649467
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 46.21,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169857722493045,
+      0.2699999373477787
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 46.71,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016985780044685,
+      0.26999993720783444
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 5/8"
+  },
+  {
+    "sim_s": 47.212,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169864457546827,
+      0.2699999259462485
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 47.717000000000006,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016987425704418,
+      0.26999991190167105
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 48.217000000000006,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169884094259474,
+      0.26999990080282177
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 48.721000000000004,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169893960339919,
+      0.26999989265968877
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 49.222,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.201699038464067,
+      0.26999988747959985
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 49.722,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169913743563025,
+      0.26999988526721774
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 50.222,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016991580274126,
+      0.26999988518011386
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 6/8"
+  },
+  {
+    "sim_s": 50.73800000000001,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169919663675867,
+      0.269999885363123
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 51.239000000000004,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169929560063435,
+      0.26999988789616136
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 51.742000000000004,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2016993944439998,
+      0.2699998933965307
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 52.249,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169949307790264,
+      0.26999990185928163
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 52.751000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169959141357915,
+      0.2699999132767977
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 53.255,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169968936253396,
+      0.2699999276388045
+    ],
+    "safe": [
+      0.0,
+      -0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 53.755,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169975414373684,
+      0.26999993879562295
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 7/8"
+  },
+  {
+    "sim_s": 54.260000000000005,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169976037781148,
+      0.26999993992752297
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 54.762,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169986784443605,
+      0.26999995750758216
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 55.262,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20169996599702017,
+      0.2699999704046831
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 55.765,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20170006449229366,
+      0.2699999803518447
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 56.268,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20170016324161796,
+      0.2699999873401151
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 56.768,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.20170025225977714,
+      0.2699999910944544
+    ],
+    "safe": [
+      0.0,
+      0.06
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 57.27,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2017003514448422,
+      0.26999999244543776
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 57.77,
+    "calibration": "validating_rotation",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2017003514448422,
+      0.26999999244543776
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Rotation leg 8/8"
+  },
+  {
+    "sim_s": 58.272000000000006,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.2017003514448422,
+      0.26999999244543776
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 58.776,
+    "calibration": "ready",
+    "goal": "explore waiting for route",
+    "wander": "route_explore:no_route",
+    "pose": [
+      -0.2017003514448422,
+      0.26999999244543776
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 59.277,
+    "calibration": "ready",
+    "goal": "explore waiting for route",
+    "wander": "route_explore:no_route",
+    "pose": [
+      -0.2017003514448422,
+      0.26999999244543776
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 59.777,
+    "calibration": "ready",
+    "goal": "explore waiting for route",
+    "wander": "route_explore:no_route",
+    "pose": [
+      -0.2017003514448422,
+      0.26999999244543776
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 60.277,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=1 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170038169454488,
+      0.2699999923202033
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 60.792,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=1 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170065652609284,
+      0.269999983552853
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 61.29600000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=1 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.201700930575988,
+      0.26999996106060703
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 61.797000000000004,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=1 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170120315924844,
+      0.2699999248996844
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 62.297000000000004,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170147359455765,
+      0.26999987516046803
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 62.797000000000004,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2017017412059688,
+      0.2699998119672818
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 63.300000000000004,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2017020053245923,
+      0.2699997354780736
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 63.80500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170226529026897,
+      0.2699996458840278
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 64.305,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2017025204532202,
+      0.26999954340908305
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 64.807,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2017027701756716,
+      0.2699994283093719
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 65.327,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2017030138334469,
+      0.26999930087258506
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 65.828,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170325081752907,
+      0.26999916141724783
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 66.328,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170350308548343,
+      0.2699989945518397
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 66.83200000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170372414847107,
+      0.2699988310269138
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 67.33200000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170393676234802,
+      0.2699986566578064
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 67.83200000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170414039568996,
+      0.2699984718803502
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 68.33500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170433453951922,
+      0.26999827715639263
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 68.85000000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170451870857772,
+      0.2699980729726422
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 69.35000000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170469244253836,
+      0.26999785983945157
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 69.852,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.201704855307157,
+      0.2699976382895416
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 70.357,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170500689535711,
+      0.26999740887667406
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 70.85900000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2017051468282467,
+      0.2699971721742608
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 71.36200000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170527475606634,
+      0.26999692877393394
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 71.863,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2017054012301029,
+      0.26999665402404177
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 72.363,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2017055029432695,
+      0.26999639855647434
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 72.86500000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170559176126399,
+      0.26999613832463504
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 73.366,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170566746208787,
+      0.2699958739789683
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 73.867,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170572985652868,
+      0.2699956061802004
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 74.37,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170577878863225,
+      0.26999533559769
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 74.87100000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170581413609479,
+      0.2699950629077509
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 75.37100000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2017058358105656,
+      0.2699947887919655
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 75.87400000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2017058437578694,
+      0.26999451393548207
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 76.37400000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170583795814256,
+      0.2699942390252982
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 76.87400000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170581842588142,
+      0.2699939647485457
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 77.37400000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170578914517204,
+      0.2699937190077188
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 77.87700000000001,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170573839323985,
+      0.2699934208342353
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 78.385,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170567809289908,
+      0.2699931525561803
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 78.897,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2017056044596037,
+      0.26999288762716345
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 79.4,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170551767739853,
+      0.2699926267093703
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 79.902,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170541796319386,
+      0.2699923704549581
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 80.408,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170529363951928,
+      0.2699920947253645
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 80.917,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20170518076742125,
+      0.2699918744850343
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 81.418,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.20457962295977322,
+      0.2748980537271852
+    ],
+    "safe": [
+      0.01350390115747835,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 81.918,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 82.426,
+    "calibration": "ready",
+    "goal": "explore goal=(-0.56,0.55) score=18.9 size=9 route=0.48m alts=0 eta~34s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 82.926,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 83.43,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 83.93100000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 84.43100000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 84.93100000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 85.432,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 85.932,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 86.435,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 86.93700000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 87.43700000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 87.93700000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 88.438,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 88.941,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 89.45500000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 89.95700000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 90.45700000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 90.95700000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 91.46000000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 91.96000000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 92.46100000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 92.96600000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 93.46600000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 93.988,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:camera_obstacle_unranged",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 94.49900000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:wait:predicted_obstacle",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 95.0,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:wait:predicted_obstacle",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 95.501,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:no_route",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 96.00200000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:no_route",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 96.50200000000001,
+    "calibration": "ready",
+    "goal": "planning blocked: robot inside obstacle clearance eta=? v=1.4cm/s pose~tf",
+    "wander": "route_explore:no_route",
+    "pose": [
+      -0.2056243855609817,
+      0.2765704339717322
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 97.00200000000001,
+    "calibration": "ready",
+    "goal": "narrow passage: coverage goal=(-0.14,0.25) left=15 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562428578591813,
+      0.27657027064629053
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 97.50800000000001,
+    "calibration": "ready",
+    "goal": "narrow passage: coverage goal=(-0.14,0.25) left=15 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562415251367053,
+      0.2765700301306895
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 98.009,
+    "calibration": "ready",
+    "goal": "narrow passage: coverage goal=(-0.14,0.25) left=15 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562403142874788,
+      0.27656978325483567
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 98.515,
+    "calibration": "ready",
+    "goal": "narrow passage: coverage goal=(-0.14,0.25) left=15 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562392283380002,
+      0.27656953063578804
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 99.015,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~4s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562381812828232,
+      0.2765692468754313
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 99.516,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~4s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2056237441676548,
+      0.27656901070655276
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 100.022,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~4s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2056236683139947,
+      0.27656871791070686
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 100.534,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2056236134178605,
+      0.27656844847488815
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 101.057,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562357205651058,
+      0.276568176632131
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 101.557,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562354231407176,
+      0.27656787563616336
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 102.063,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562352967158645,
+      0.27656760095559624
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 102.56500000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562353077320766,
+      0.2765673259864483
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 103.06500000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562354561618154,
+      0.276567051415997
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 103.56700000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562357416340887,
+      0.27656677793052803
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 104.06700000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562361634353613,
+      0.2765665062136114
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 104.56700000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562367205113488,
+      0.2765662369443971
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 105.06700000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2056237411469651,
+      0.2765659707959194
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 105.569,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2056238234583238,
+      0.2765657084334092
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 106.07100000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562391877947525,
+      0.27656545051263787
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 106.57100000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.205624026872166,
+      0.27656519767827215
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 107.072,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562414746622043,
+      0.27656495056226676
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 107.57600000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.205624280260216,
+      0.2765647097822823
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 108.09100000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562440993205086,
+      0.2765644989953547
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 108.59100000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2056245810907051,
+      0.2765642496203351
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 109.096,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562474837527897,
+      0.27656403138853664
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 109.59800000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562492635783436,
+      0.2765638217902161
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 110.09800000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562511459350793,
+      0.27656362134925905
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 110.59800000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2056253126118085,
+      0.2765634305666632
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 111.09800000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562551991779374,
+      0.2765632499192865
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 111.599,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562573599330589,
+      0.2765630798586529
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 112.10100000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562596029826907,
+      0.27656292080982503
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 112.60300000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.2056261922720381,
+      0.2765627731703429
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 113.10300000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.20562640712641567,
+      0.2765626503553998
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 113.64500000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.20166139786194057,
+      0.27851837611100566
+    ],
+    "safe": [
+      0.013464666591835294,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 114.15400000000001,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.1948763558536673,
+      0.2815019381772117
+    ],
+    "safe": [
+      0.013494778456204412,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 114.673,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.1885665075330967,
+      0.2838898909752804
+    ],
+    "safe": [
+      0.013492614082612611,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 115.2,
+    "calibration": "ready",
+    "goal": "escape: moving to preferred clearance eta~3s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.18215367359549425,
+      0.2859568443787098
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 115.7,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.24) left=23 eta~15s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.181533538271179,
+      0.2861381183042714
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 116.2,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.24) left=23 eta~15s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153380445529743,
+      0.2861380493458685
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 116.7,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=21 eta~13s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153407375323857,
+      0.2861379937773071
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 117.22800000000001,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=21 eta~13s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.181534345491898,
+      0.28613795173747886
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 117.72800000000001,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=21 eta~13s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153464641268124,
+      0.28613792124375
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 118.22800000000001,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=22 eta~13s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153492106083233,
+      0.28613790791561355
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 118.763,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=22 eta~13s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.181535196031874,
+      0.28613790833082
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 119.277,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=22 eta~13s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153547063852202,
+      0.2861379224883319
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 119.781,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=22 eta~13s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153577146584213,
+      0.28613795389070035
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 120.281,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=21 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.1815360430763026,
+      0.28613799675098595
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 120.784,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=21 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153631220519928,
+      0.28613805313257223
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 121.284,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=21 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153657817984994,
+      0.2861381228945352
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 121.784,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=21 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153684033545633,
+      0.2861382058625059
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 122.29,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=21 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153709801676635,
+      0.2861383018291078
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 122.799,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153735057971063,
+      0.2861384105544745
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 123.30000000000001,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.1815375973930138,
+      0.28613853176684806
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 123.801,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153783783977065,
+      0.28613866516326225
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 124.305,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153809426107081,
+      0.28613882557305687
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 124.807,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153831940268175,
+      0.2861389834353423
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 125.319,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153851505938268,
+      0.2861391349753347
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 125.819,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153874463000721,
+      0.28613933190302016
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 126.322,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153894365287532,
+      0.28613952163742434
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 126.84700000000001,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153913294424892,
+      0.2861397210817075
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 127.34800000000001,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153931203099738,
+      0.286139929737363
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 127.849,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153948046549817,
+      0.28614014708286
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 128.34900000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153963782675248,
+      0.28614037257494807
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 128.84900000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18153978372143906,
+      0.286140605650015
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 129.353,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.1815399177848965,
+      0.2861408457254944
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 129.88,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18154003968203655,
+      0.2861410922013217
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 130.386,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.22) left=18 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18154015935408563,
+      0.286141369981426
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 130.89100000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.24) left=20 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18154025618180203,
+      0.28614162735851295
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 131.405,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.24) left=20 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18154036010856775,
+      0.28614188193359746
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 131.906,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.24) left=20 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.18154047662890346,
+      0.2861421309963561
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 132.40800000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.24) left=20 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.1815406054515683,
+      0.2861423739242617
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 132.90800000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.24) left=20 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.17963966197651424,
+      0.2830705098610966
+    ],
+    "safe": [
+      0.01343935046742652,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 133.424,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.24) left=20 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.1767578526719821,
+      0.27873813918489704
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 133.92700000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.24) left=20 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.1743020519173396,
+      0.2754901852962535
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 134.45100000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.24) left=20 eta~5s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.171864400305473,
+      0.27261684260920194
+    ],
+    "safe": [
+      0.013423503606891898,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 134.95100000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.14,0.22) left=18 eta~30s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.17112870187465684,
+      0.2717809486070111
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 135.452,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.14,0.22) left=18 eta~30s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.16978869092304413,
+      0.2704323015534907
+    ],
+    "safe": [
+      0.01339817848015831,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 135.952,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.14,0.22) left=18 eta~30s(odo) v=0.3cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.1684078447984825,
+      0.2691622918710749
+    ],
+    "safe": [
+      0.012281365108499484,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 136.467,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.22) left=18 eta~13s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.16682578051088975,
+      0.26787078792023306
+    ],
+    "safe": [
+      0.010475424281468866,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 136.967,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.22) left=18 eta~13s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.1616183222931198,
+      0.2638916496565101
+    ],
+    "safe": [
+      0.013955149903938872,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 137.467,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.22) left=18 eta~13s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.15625961004693728,
+      0.2594093285799078
+    ],
+    "safe": [
+      0.013989971676387209,
+      -0.05299307407461733
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 137.96800000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.22) left=18 eta~13s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.15103108965063547,
+      0.2547600315793126
+    ],
+    "safe": [
+      0.013997821384580824,
+      -0.024698747726209544
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 138.46800000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.12,0.22) left=18 eta~13s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.14586708201737514,
+      0.2500352810867826
+    ],
+    "safe": [
+      0.013999515443333397,
+      -0.011648031992850293
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 138.96900000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.08,0.24) left=20 eta~11s(odo) v=0.8cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.14421211008200063,
+      0.24850545299413063
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 139.46900000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.08,0.24) left=20 eta~11s(odo) v=0.8cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.14421232246415217,
+      0.2485056276454057
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 139.982,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.08,0.24) left=20 eta~11s(odo) v=0.8cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.14421254330980687,
+      0.2485057914637288
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 140.482,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.08,0.24) left=18 eta~8s(odo) v=0.7cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.14421277206696595,
+      0.24850594403963913
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 140.983,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.08,0.24) left=18 eta~8s(odo) v=0.7cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.14421300816385507,
+      0.2485060849917764
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 141.48600000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.08,0.24) left=18 eta~8s(odo) v=0.7cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.14421325101035548,
+      0.24850621396783396
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 141.98600000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.08,0.24) left=18 eta~8s(odo) v=0.7cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.14421349999947725,
+      0.24850633064543867
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 142.491,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.08,0.24) left=20 eta~13s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.14421375450887747,
+      0.24850643473295708
+    ],
+    "safe": [
+      0.0,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 142.994,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.08,0.24) left=20 eta~13s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.1396022926534345,
+      0.24691994661908898
+    ],
+    "safe": [
+      0.013486373926802643,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 143.499,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.08,0.24) left=20 eta~13s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.1331274753935535,
+      0.24500047798715135
+    ],
+    "safe": [
+      0.013552372591748749,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 144.0,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.08,0.24) left=20 eta~13s(odo) v=0.5cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.12653150782547845,
+      0.2433989126299802
+    ],
+    "safe": [
+      0.01361594536593201,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 144.50400000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.06,0.24) left=19 eta~16s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.11982797365001151,
+      0.24212228359324772
+    ],
+    "safe": [
+      0.013710425833774652,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 145.011,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.06,0.24) left=19 eta~16s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.11233938533462838,
+      0.24109984346923674
+    ],
+    "safe": [
+      0.013784710157075202,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 145.511,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.06,0.24) left=19 eta~16s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.10545559479016914,
+      0.24052579182959644
+    ],
+    "safe": [
+      0.013861438746841466,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 146.012,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.06,0.24) left=19 eta~16s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.09852069074452265,
+      0.24029545036428612
+    ],
+    "safe": [
+      0.013904823132473801,
+      0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 146.513,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.04,0.24) left=20 eta~7s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.09352449645191609,
+      0.24034405154160585
+    ],
+    "safe": [
+      0.013985837455107,
+      0.06297762573104378
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 147.02,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.04,0.24) left=20 eta~7s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.08653635880216236,
+      0.240636601045882
+    ],
+    "safe": [
+      0.013994116239830661,
+      0.04059024828447035
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 147.524,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.04,0.24) left=20 eta~7s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.07955106807691495,
+      0.24106885577021625
+    ],
+    "safe": [
+      0.013999117452631748,
+      0.01571991919361787
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 148.02800000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.04,0.24) left=20 eta~7s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:forward",
+    "pose": [
+      -0.07256901231290684,
+      0.24156527021575033
+    ],
+    "safe": [
+      0.013999730353777416,
+      0.008689141769385627
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 148.531,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.16) left=19 eta~8s(odo) v=1.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751548992914332,
+      0.24194642307150796
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 149.06,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.16) left=19 eta~8s(odo) v=1.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751573715415983,
+      0.24194641185968477
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 149.56300000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.16) left=19 eta~8s(odo) v=1.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751609457448098,
+      0.24194641531975397
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 150.06300000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.16,0.16) left=19 eta~8s(odo) v=1.3cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751616653843664,
+      0.24194641882936269
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 150.58100000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=17 eta~20s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.0675163946601334,
+      0.24194643621850967
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 151.086,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=17 eta~20s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751666759168984,
+      0.24194646964920866
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 151.59300000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=17 eta~20s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751691152923503,
+      0.24194651136716452
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 152.096,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=17 eta~20s(odo) v=0.9cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751710838829812,
+      0.24194655336330864
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 152.596,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=16 eta~46s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751737457308056,
+      0.24194662231914804
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 153.101,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=16 eta~46s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751761092709888,
+      0.24194669568597812
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 153.615,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=16 eta~46s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751789494971544,
+      0.2419467996779892
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 154.11700000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=16 eta~46s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751817282617893,
+      0.24194691912612157
+    ],
+    "safe": [
+      0.0,
+      -0.1
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 154.626,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=16 eta~46s(odo) v=0.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 155.132,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=15 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 155.633,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=15 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 156.13500000000002,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=15 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 156.638,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=15 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 157.155,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=15 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 157.661,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=15 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:align",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 158.174,
+    "calibration": "ready",
+    "goal": "coverage goal=(-0.02,0.08) left=15 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "route_explore:obstacle_wait:wait:obstacle_observation_unavailable",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Translation and bilateral rotation verified; swept envelope estimated"
+  },
+  {
+    "sim_s": 158.69500000000002,
+    "calibration": "sensor_hold",
+    "goal": "coverage goal=(-0.02,0.08) left=15 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Saved calibration retained; rechecking sensors: map_tf"
+  },
+  {
+    "sim_s": 159.31400000000002,
+    "calibration": "sensor_hold",
+    "goal": "coverage goal=(-0.02,0.08) left=15 eta~13s(nom) v=1.4cm/s pose~tf",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Saved calibration retained; rechecking sensors: map_tf"
+  },
+  {
+    "sim_s": 159.816,
+    "calibration": "sensor_hold",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Saved calibration retained; rechecking sensors: map_tf"
+  },
+  {
+    "sim_s": 160.32000000000002,
+    "calibration": "sensor_hold",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Saved calibration retained; rechecking sensors: map_tf"
+  },
+  {
+    "sim_s": 160.823,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": false,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 161.327,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 161.83200000000002,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 162.33700000000002,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 162.845,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 163.347,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 163.847,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 164.347,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 164.847,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 165.347,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 165.853,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 166.353,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 166.854,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 167.35600000000002,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 167.869,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 168.37,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 168.871,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 169.37400000000002,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 169.88400000000001,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 170.38400000000001,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 170.88600000000002,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 171.389,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 171.894,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 172.401,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 172.901,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 173.40800000000002,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 173.913,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 174.413,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 174.916,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 175.425,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 175.931,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 176.435,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 176.94,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 177.447,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 177.947,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 178.447,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 178.948,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 179.448,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 179.959,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 180.467,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  },
+  {
+    "sim_s": 180.97,
+    "calibration": "ready",
+    "goal": "stopped",
+    "wander": "stop",
+    "pose": [
+      -0.06751833968950927,
+      0.24194699979829987
+    ],
+    "safe": [
+      0.0,
+      0.0
+    ],
+    "ready": true,
+    "message": "Saved calibration retained; sensor checks recovered"
+  }
+]

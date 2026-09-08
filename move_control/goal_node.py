@@ -28,10 +28,14 @@ from rclpy.qos import qos_profile_sensor_data, QoSProfile, DurabilityPolicy
 from std_msgs.msg import Float32, String
 from tf2_ros import Buffer as TfBuffer
 from tf2_ros import TransformListener
+from tf2_ros import TransformException
 
 from .planning import GoalBrain, OccupancyMap, parse_goal_cmd
 from .sensing.localization import lease_ready
 from .sensing.pose import planar_pose
+from .planning.obstacle_overlay import obstacle_overlay
+from .control.obstacle_risk import accept_observation, TRACK_UNCERTAINTY
+from rclpy.time import Time
 
 
 def grid_clearance(distance, resolution):
@@ -50,6 +54,10 @@ class GoalNode(Node):
         self.declare_parameter('map_timeout', 10.0)
         self.declare_parameter('static_map', False)
         self.declare_parameter('localization_required', False)
+        self.declare_parameter('obstacle_tracking_enabled', False)
+        self.declare_parameter('obstacle_tracking_margin', .02)
+        self.obstacle_observation = None
+        self.create_subscription(String, '/obstacles/tracks', self.on_obstacle_tracks, 10)
         self.localization_status = None
         self.localization_was_ready = False
         self.create_subscription(String, '/localization/status', self.on_localization, 10)
@@ -331,6 +339,15 @@ class GoalNode(Node):
             # bare None (crashed goal_node within seconds on this exact line).
             return (None, None), 'none'
 
+    def on_obstacle_tracks(self, msg):
+        try:
+            value = json.loads(msg.data)
+            if value['frame'] == 'odom':
+                self.obstacle_observation = accept_observation(value, self.obstacle_observation,
+                    self.get_clock().now().nanoseconds*1e-9, .3)
+        except (ValueError, TypeError, KeyError):
+            pass
+
     def plan(self):
         if self.mode == 'stop':
             self._clear_route('stopped')
@@ -348,6 +365,21 @@ class GoalNode(Node):
                 self.localization_was_ready = False
             self._clear_route(f'waiting pose={src}')
             return
+        if self.get_parameter('obstacle_tracking_enabled').value:
+            try:
+                observation = self.obstacle_observation
+                now = self.get_clock().now().nanoseconds*1e-9
+                if observation is None or not 0 <= now-observation['stamp'] <= .3:
+                    raise ValueError('Missing obstacle observation')
+                tf = self.tf.lookup_transform('map', 'odom', Time(seconds=observation['stamp']))
+                ts = tf.header.stamp.sec+tf.header.stamp.nanosec*1e-9
+                t, q = tf.transform.translation, tf.transform.rotation
+                transform = planar_pose(t.x, t.y, (q.x, q.y, q.z, q.w))
+                if transform is None or not 0 <= now-ts <= 1.:
+                    raise ValueError('Missing obstacle map transform')
+            except (TransformException, ValueError, TypeError, KeyError) as exc:
+                self._clear_route('waiting obstacle evidence: '+str(exc))
+                return
         # Generic grid A* rounds cell radii for compatibility with offline
         # rigs; executable routes always round physical clearance upward.
         self.brain.clear_m = grid_clearance(float(self.get_parameter('clear_m').value), m.res)
@@ -366,6 +398,20 @@ class GoalNode(Node):
             self.brain.retry_clear_m = profile['minimum_clearance_m']
             self.brain.start_escape_clear_m = profile['minimum_clearance_m']
         seen = self.navigation_feedback_received
+        if self.get_parameter('obstacle_tracking_enabled').value:
+            try:
+                # The calibrated planner clearance already includes body and
+                # measurement margin. Add only the missing tracking margin.
+                required = (float(self.get_parameter('robot_radius').value)+
+                            float(self.get_parameter('obstacle_tracking_margin').value)+TRACK_UNCERTAINTY)
+                clearances = [self.brain.clear_m, self.brain.retry_clear_m]
+                if self.brain.start_escape_clear_m > 0:
+                    clearances.append(self.brain.start_escape_clear_m)
+                padding = max(0., required-min(clearances))
+                m = obstacle_overlay(m, observation['tracks'], transform, padding=padding)
+            except (ValueError, TypeError, KeyError) as exc:
+                self._clear_route('waiting obstacle evidence: '+str(exc))
+                return
         self.brain.execution_feedback = seen is not None and 0 <= time.monotonic() - seen <= 1.
         goal, route, status = self.brain.plan(m, (x, y))
         if self.mode == 'manual' and self.brain._manual is None:

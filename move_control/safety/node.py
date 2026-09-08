@@ -25,10 +25,11 @@ from .bumper import Bumper
 from .gate import Gate
 from .hazard import Hazard
 from .scale import Scale
+from .obstacles import Obstacles
 from .evidence import Evidence
 
 
-class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
+class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence, Obstacles):
 
     def __init__(self):
         super().__init__('safety_node')
@@ -43,6 +44,7 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
         # Commissioned only on the isolated wheel rig; physical stopping and
         # mixed-motion slip have not yet been measured on Pinky hardware.
         self.declare_parameter('simulation_motion_sweep_enabled', False)
+        self.init_obstacles()
         self.declare_parameter('scan_topic', '/scan')
         self.declare_parameter('us_topic', '/us_sensor/range')
         self.declare_parameter('ir_topic', '/ir_sensor/range')
@@ -482,6 +484,10 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
 
         if pickup:
             self.halt_with_reason('pickup')
+            return
+        obstacle_hold = self.obstacle_tracking_hold()
+        if obstacle_hold:
+            self.halt_with_reason(obstacle_hold)
             return
         if self.age(self.last_cmd_time) > 0.5 and not tilt:
             self.halt_with_reason('command_stale')

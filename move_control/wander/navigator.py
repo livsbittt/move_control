@@ -15,10 +15,12 @@ from ..control.rotation_relocation import RotationRelocation
 from ..control.safe_trail import SafeTrail
 from ..control.trail_retreat import TrailRetreat
 from ..sensing.pose import planar_pose
+from .obstacles import ObstacleWait
 
 
-class Navigator:
+class Navigator(ObstacleWait):
     def _init_navigator(self):
+        self._init_obstacle_wait()
         self.declare_parameter('route_timeout', 5.0)
         self.declare_parameter('route_tf_timeout', 1.0)
         self.declare_parameter('route_lookahead', .06)
@@ -138,6 +140,16 @@ class Navigator:
                 max_age=float(self.get_parameter('route_timeout').value),
                 max_tf_age=float(self.get_parameter('route_tf_timeout').value),
                 lookahead=float(self.get_parameter('route_lookahead').value))
+        obstacle_wait = self._obstacle_wait(v, w)
+        if obstacle_wait and obstacle_wait.startswith('replan:') and w:
+            # Turn toward the detour without advancing into its obstacle.
+            # The final safety gate still checks the full rotating footprint.
+            v, reason, obstacle_wait = 0., 'obstacle_turn', None
+        if obstacle_wait:
+            self.navigation_progress.pause(now, True)
+            self.state = 'wait'
+            self._publish(Twist(), f'route_{self.navigation_mode}:obstacle_wait:{obstacle_wait}')
+            return
         # A front wall blocks translation, not a turn away from it. The sole
         # motor publisher still requires fresh all-around rotation clearance.
         if (self.blocked or self._on_wall()) and v > 0:

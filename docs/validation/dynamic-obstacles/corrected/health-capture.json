@@ -1,0 +1,648 @@
+{
+  "phase": "sensor_hold",
+  "ready": false,
+  "rotation": {
+    "done": true,
+    "error": null,
+    "legs": [
+      {
+        "direction": 1,
+        "measured_rad": 0.18325957003980875,
+        "commanded_rad": 0.1769999999999999,
+        "ratio": 0.9658431478451625
+      },
+      {
+        "direction": -1,
+        "measured_rad": 0.18325957003980875,
+        "commanded_rad": 0.1694399999999999,
+        "ratio": 0.9245901862761825
+      },
+      {
+        "direction": -1,
+        "measured_rad": 0.18325957003980875,
+        "commanded_rad": 0.1770000000000002,
+        "ratio": 0.9658431478451641
+      },
+      {
+        "direction": 1,
+        "measured_rad": 0.18325957003980875,
+        "commanded_rad": 0.17136000000000012,
+        "ratio": 0.935067128896877
+      },
+      {
+        "direction": 1,
+        "measured_rad": 0.18325957003980875,
+        "commanded_rad": 0.1769557376619162,
+        "ratio": 0.9656016197324745
+      },
+      {
+        "direction": -1,
+        "measured_rad": 0.1745329238474369,
+        "commanded_rad": 0.16701978506962098,
+        "ratio": 0.9569528853800483
+      },
+      {
+        "direction": -1,
+        "measured_rad": 0.18325957003980875,
+        "commanded_rad": 0.17898622807460948,
+        "ratio": 0.9766814799125034
+      },
+      {
+        "direction": 1,
+        "measured_rad": 0.1745329238474369,
+        "commanded_rad": 0.17136706144829503,
+        "ratio": 0.9818609444604891
+      }
+    ],
+    "angular_gains": [
+      0.9504551383710198,
+      0.9452166670606733
+    ],
+    "max_angular_rad_s": 0.06,
+    "geometry_commissioned": false,
+    "envelope": {
+      "valid": true,
+      "center_m": [
+        -0.03981894524919343,
+        -0.010227715688513864
+      ],
+      "center_uncertainty_m": 0.003080850097158616,
+      "body_radius_m": 0.11440496612640715,
+      "required_radius_m": 0.17252325345824726,
+      "footprint_xy": [
+        [
+          -0.07,
+          -0.05
+        ],
+        [
+          -0.07,
+          -0.05
+        ],
+        [
+          -0.07,
+          0.05
+        ],
+        [
+          -0.07,
+          0.05
+        ],
+        [
+          0.07,
+          -0.05
+        ],
+        [
+          0.07,
+          -0.05
+        ],
+        [
+          0.07,
+          0.05
+        ],
+        [
+          0.07,
+          0.05
+        ],
+        [
+          -0.07250000000000001,
+          -0.03
+        ],
+        [
+          -0.07250000000000001,
+          -0.03
+        ],
+        [
+          -0.07250000000000001,
+          0.03
+        ],
+        [
+          -0.07250000000000001,
+          0.03
+        ],
+        [
+          -0.0575,
+          -0.03
+        ],
+        [
+          -0.0575,
+          -0.03
+        ],
+        [
+          -0.0575,
+          0.03
+        ],
+        [
+          -0.0575,
+          0.03
+        ],
+        [
+          -0.068,
+          0.07199730289614133
+        ],
+        [
+          -0.068,
+          0.09199730280335282
+        ],
+        [
+          -0.068,
+          0.07200269719664719
+        ],
+        [
+          -0.068,
+          0.09200269710385868
+        ],
+        [
+          -0.012,
+          0.07199730289614133
+        ],
+        [
+          -0.012,
+          0.09199730280335282
+        ],
+        [
+          -0.012,
+          0.07200269719664719
+        ],
+        [
+          -0.012,
+          0.09200269710385868
+        ],
+        [
+          -0.068,
+          -0.09200269710385868
+        ],
+        [
+          -0.068,
+          -0.07200269719664719
+        ],
+        [
+          -0.068,
+          -0.09199730280335282
+        ],
+        [
+          -0.068,
+          -0.07199730289614133
+        ],
+        [
+          -0.012,
+          -0.09200269710385868
+        ],
+        [
+          -0.012,
+          -0.07200269719664719
+        ],
+        [
+          -0.012,
+          -0.09199730280335282
+        ],
+        [
+          -0.012,
+          -0.07199730289614133
+        ]
+      ],
+      "pivot_radius_m": 0.13141176395758167,
+      "sample_count": 4,
+      "directional_counts": {
+        "positive": 2,
+        "negative": 2
+      },
+      "reason": "sensor_consistent_estimate",
+      "uncertainty_model": "empirical_residual_over_excitation_v1",
+      "trials": [
+        {
+          "scan_delta": [
+            -0.0024006816432003484,
+            0.006794874367837565,
+            0.17629460137147326
+          ],
+          "odom_delta": [
+            -0.002375937431011271,
+            0.0068667950793529975,
+            0.17645991659917204
+          ],
+          "imu_yaw": 0.17645991659917204,
+          "residual_m": 0.00045390900037010565
+        },
+        {
+          "scan_delta": [
+            0.0011754223410300193,
+            -0.007102440474732853,
+            -0.17458707216958907
+          ],
+          "odom_delta": [
+            0.001129825149765418,
+            -0.007110403144972344,
+            -0.1748399176960305
+          ],
+          "imu_yaw": -0.1748399176960305,
+          "residual_m": 0.0004725788696537426
+        },
+        {
+          "scan_delta": [
+            -0.002353729397364162,
+            0.0066920595497267565,
+            0.173521123280624
+          ],
+          "odom_delta": [
+            -0.0023288251573865253,
+            0.006763349125312059,
+            0.1737067334244533
+          ],
+          "imu_yaw": 0.1737067334244533,
+          "residual_m": 0.0004479061777829962
+        },
+        {
+          "scan_delta": [
+            0.0011709612956608707,
+            -0.007028902489852076,
+            -0.172773520051932
+          ],
+          "odom_delta": [
+            0.0011253491680838475,
+            -0.007036030045324534,
+            -0.1730363757124351
+          ],
+          "imu_yaw": -0.1730363757124351,
+          "residual_m": 0.0004688611814277442
+        }
+      ]
+    }
+  },
+  "relocation": null,
+  "calibration_origin": [
+    -0.20000000003396506,
+    0.26999999999973184,
+    -4.8008527266246765e-12
+  ],
+  "after_relocation": "stay",
+  "return_motion": null,
+  "rotation_verified": true,
+  "rotation_required_for_new_trial": true,
+  "profile_revision": "5e6262600e745786",
+  "calibration_verified": true,
+  "message": "Saved calibration retained; rechecking sensors: lidar",
+  "auto_motion": true,
+  "us_precision_required": false,
+  "elapsed_s": 126.9,
+  "sensors": {
+    "lidar": {
+      "ok": false,
+      "eligible": false,
+      "status": "invalid",
+      "samples": 50,
+      "detail": "Invalid sensor data; saved calibration retained"
+    },
+    "odom": {
+      "ok": true,
+      "eligible": true,
+      "status": "ok",
+      "samples": 101,
+      "detail": "Live sensor data valid; stationary limits do not apply during driving"
+    },
+    "ir": {
+      "ok": true,
+      "eligible": true,
+      "status": "ok",
+      "samples": 101,
+      "detail": "Live sensor data valid; stationary limits do not apply during driving"
+    },
+    "imu": {
+      "ok": true,
+      "eligible": true,
+      "status": "ok",
+      "samples": 101,
+      "detail": "Live sensor data valid; stationary limits do not apply during driving"
+    },
+    "us": {
+      "ok": false,
+      "eligible": true,
+      "status": "advisory",
+      "samples": 50,
+      "detail": "Ultrasonic echo unavailable; LiDAR clearance remains authoritative"
+    },
+    "camera": {
+      "ok": true,
+      "eligible": true,
+      "status": "ok",
+      "samples": 49,
+      "detail": "Live sensor data valid; stationary limits do not apply during driving"
+    },
+    "tf": {
+      "ok": true,
+      "eligible": true,
+      "status": "ok",
+      "samples": 101,
+      "detail": "Live sensor data valid; stationary limits do not apply during driving"
+    },
+    "map": {
+      "ok": true,
+      "eligible": true,
+      "status": "ok",
+      "samples": 37,
+      "detail": "Live sensor data valid; stationary limits do not apply during driving"
+    },
+    "map_tf": {
+      "ok": true,
+      "eligible": true,
+      "status": "ok",
+      "samples": 101,
+      "detail": "Live sensor data valid; stationary limits do not apply during driving"
+    }
+  },
+  "motion": {
+    "stage": "settle_home",
+    "cycle": 2,
+    "target_m": 0.03,
+    "forward_scale": 1.0115939368426514,
+    "reverse_scale": 0.9996242186308772,
+    "legs": [
+      {
+        "cycle": 0,
+        "direction": "forward",
+        "measured_m": 0.030818690053941333,
+        "odom_m": 0.030818396092012673,
+        "commanded_m": 0.031175999999999978,
+        "home_error_m": 0.030818690053941333,
+        "evidence": {
+          "forward_m": 0.030818396092012673,
+          "lateral_m": 4.947832317626516e-10,
+          "distance_m": 0.030818396092012677,
+          "yaw_drift_rad": 7.111938493655724e-09,
+          "lidar_delta_m": 0.030818690053941333,
+          "us_delta_m": 0.03082442283630371,
+          "map_forward_m": 0.030818396078713284,
+          "map_lateral_m": 4.947801231381188e-10,
+          "map_yaw_drift_rad": 7.111941918172758e-09
+        }
+      },
+      {
+        "cycle": 0,
+        "direction": "reverse",
+        "measured_m": 0.03240417688595548,
+        "odom_m": 0.032404317612080326,
+        "commanded_m": 0.03239199999999998,
+        "home_error_m": -0.001585486832014149,
+        "evidence": {
+          "forward_m": -0.032404317612080326,
+          "lateral_m": -2.987792778477791e-10,
+          "distance_m": 0.032404317612080326,
+          "yaw_drift_rad": -7.815300355184093e-09,
+          "lidar_delta_m": -0.03240417688595548,
+          "us_delta_m": -0.032410234212875366,
+          "map_forward_m": -0.03240431759809657,
+          "map_lateral_m": -2.9877583630895214e-10,
+          "map_yaw_drift_rad": -7.815309261253065e-09
+        }
+      },
+      {
+        "cycle": 1,
+        "direction": "forward",
+        "measured_m": 0.03275152624172328,
+        "odom_m": 0.032751421329051816,
+        "commanded_m": 0.03317218837694424,
+        "home_error_m": 0.031166039409709134,
+        "evidence": {
+          "forward_m": 0.032751421329051816,
+          "lateral_m": 5.233370396536622e-10,
+          "distance_m": 0.03275142132905182,
+          "yaw_drift_rad": 7.3002497293267905e-09,
+          "lidar_delta_m": 0.03275152624172328,
+          "us_delta_m": 0.03275786340236664,
+          "map_forward_m": 0.03275142131491823,
+          "map_lateral_m": 5.233336664585915e-10,
+          "map_yaw_drift_rad": 7.3002473443483334e-09
+        }
+      },
+      {
+        "cycle": 1,
+        "direction": "reverse",
+        "measured_m": 0.03277599434020828,
+        "odom_m": 0.0327760004897083,
+        "commanded_m": 0.032403818671138535,
+        "home_error_m": -0.0016099549304991467,
+        "evidence": {
+          "forward_m": -0.0327760004897083,
+          "lateral_m": -3.0502265021931243e-10,
+          "distance_m": 0.03277600048970831,
+          "yaw_drift_rad": -7.955326937405189e-09,
+          "lidar_delta_m": -0.03277599434020828,
+          "us_delta_m": -0.03278256952762604,
+          "map_forward_m": -0.03277600047556409,
+          "map_lateral_m": -3.050193554322775e-10,
+          "map_yaw_drift_rad": -7.955324551951537e-09
+        }
+      }
+    ],
+    "done": true,
+    "error": null,
+    "last_leg_evidence": {
+      "direction": "reverse",
+      "measured_m": 0.03277599434020828,
+      "odom_m": 0.0327760004897083,
+      "commanded_m": 0.032403818671138535,
+      "ratio": 0.9886448702301253,
+      "evidence": {
+        "forward_m": -0.0327760004897083,
+        "lateral_m": -3.0502265021931243e-10,
+        "distance_m": 0.03277600048970831,
+        "yaw_drift_rad": -7.955326937405189e-09,
+        "lidar_delta_m": -0.03277599434020828,
+        "us_delta_m": -0.03278256952762604,
+        "map_forward_m": -0.03277600047556409,
+        "map_lateral_m": -3.050193554322775e-10,
+        "map_yaw_drift_rad": -7.955324551951537e-09
+      }
+    }
+  },
+  "baseline": {
+    "lidar": {
+      "samples": 50,
+      "span_s": 4.907000000000001,
+      "mean": [
+        0.3474571360178244
+      ],
+      "std": [
+        0.0
+      ]
+    },
+    "odom": {
+      "samples": 100,
+      "span_s": 4.9510000000000005,
+      "mean": [
+        -0.2000000000339651,
+        0.26999999999973184,
+        -4.800852726624676e-12,
+        0.0
+      ],
+      "std": [
+        2.7755575615628914e-17,
+        0.0,
+        8.077935669463161e-28,
+        0.0
+      ]
+    },
+    "ir": {
+      "samples": 100,
+      "span_s": 4.9510000000000005,
+      "mean": [
+        2000.0,
+        2100.0,
+        2200.0
+      ],
+      "std": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "imu": {
+      "samples": 100,
+      "span_s": 4.9510000000000005,
+      "mean": [
+        9.81,
+        0.0,
+        2.9378265173928984e-05,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        9.81,
+        3.642866478546548e-09,
+        -2.9378265173928984e-05
+      ],
+      "std": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "us": {
+      "samples": 50,
+      "span_s": 4.889000000000001,
+      "mean": [
+        0.3475218415260315
+      ],
+      "std": [
+        0.0
+      ]
+    },
+    "camera": {
+      "samples": 50,
+      "span_s": 4.884,
+      "mean": [
+        140.58293402777778,
+        63.064314521322274
+      ],
+      "std": [
+        0.0,
+        0.0
+      ]
+    },
+    "tf": {
+      "samples": 101,
+      "span_s": 4.998,
+      "mean": [
+        0.0,
+        0.0
+      ],
+      "std": [
+        0.0,
+        0.0
+      ]
+    },
+    "map": {
+      "samples": 40,
+      "span_s": 4.971,
+      "mean": [
+        2654.0,
+        0.019999999552965164
+      ],
+      "std": [
+        0.0,
+        0.0
+      ]
+    },
+    "map_tf": {
+      "samples": 101,
+      "span_s": 4.998,
+      "mean": [
+        -0.20000000003396504,
+        0.2699999999997317,
+        -4.800852726624679e-12
+      ],
+      "std": [
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  },
+  "navigation_profile": {
+    "body_radius_m": 0.11440496612640715,
+    "map_resolution_m": 0.019999999552965164,
+    "samples": 50,
+    "left_m": 0.35327908396720886,
+    "right_m": 0.8933303356170654,
+    "corridor_width_m": 1.2466094195842743,
+    "range_noise_m": 0.0,
+    "uncertainty_margin_m": 0.019999999776482584,
+    "minimum_clearance_m": 0.13440496590288972,
+    "preferred_clearance_m": 0.16440496590288972,
+    "passage_fits": true,
+    "map_lidar_difference_m": [
+      null,
+      0.013330355286598206
+    ],
+    "map_lidar_mismatch": false
+  },
+  "motion_clearance": {
+    "translation_mode": false,
+    "available_travel_m": 0.1996637351408353,
+    "required_travel_m": 0.039609954930499146,
+    "reverse_travel_m": 0.35409710477737094,
+    "required_reverse_travel_m": 0.008,
+    "available_front_m": 0.34906870126724243,
+    "required_front_m": 0.1890149210569063,
+    "available_rear_m": 0.5035020709037781,
+    "required_rear_m": 0.15740496612640714,
+    "front_stop_m": 0.14940496612640713,
+    "rear_stop_m": 0.14940496612640713,
+    "available_us_m": 0.34913259744644165,
+    "required_us_m": 0.05960995493049915,
+    "target_m": 0.03,
+    "reason": null
+  },
+  "estimates": {
+    "imu_gyro_bias_rad_s": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "imu_gravity_mean_mps2": [
+      0.0,
+      0.0,
+      9.81
+    ],
+    "imu_roll_pitch_baseline_rad": [
+      3.642866478546548e-09,
+      -2.9378265173928984e-05
+    ],
+    "lidar_us_range_difference_m": -6.470550820708576e-05
+  },
+  "recorded_unix_s": 1788872292.5269494,
+  "limits": {
+    "motion_speed_mps": 0.008,
+    "motion_seconds": 35.0,
+    "motion_distance_m": 0.04,
+    "round_trip_target_m": 0.03
+  },
+  "settings_applied": false
+}

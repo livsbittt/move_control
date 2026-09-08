@@ -25,6 +25,7 @@ from sensor_msgs.msg import LaserScan, Range, Imu, Image
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool, String, UInt16MultiArray
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
+from tools.gz.inertial import body_gravity
 
 
 def normalize_odometry(msg):
@@ -107,12 +108,20 @@ class Auxiliary(Node):
         self.tf.sendTransform(transform)
         self.pose = [msg.pose.pose.position.x, msg.pose.pose.position.y]
         imu = Imu()
-        imu.header = msg.header
+        imu.header = copy.deepcopy(msg.header)
+        imu.header.frame_id = 'base_link'
         imu.orientation = msg.pose.pose.orientation
         imu.angular_velocity = msg.twist.twist.angular
-        imu.linear_acceleration.z = 9.81
+        attitude = msg.pose.pose.orientation
+        try:
+            ax, ay, az = body_gravity((attitude.x, attitude.y, attitude.z, attitude.w))
+        except ValueError:
+            return  # Invalid attitude must not manufacture healthy IMU evidence.
+        imu.linear_acceleration.x, imu.linear_acceleration.y, imu.linear_acceleration.z = ax, ay, az
         self.imu.publish(imu)
         self.ir.publish(UInt16MultiArray(data=[2000, 2100, 2200]))
+        if os.environ.get('RIG_RENDERED_CAMERA') == '1':
+            return
         picture = Image()
         picture.header = msg.header
         picture.height, picture.width, picture.step = 8, 8, 24

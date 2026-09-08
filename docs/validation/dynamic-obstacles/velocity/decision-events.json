@@ -1,0 +1,5161 @@
+[
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 0.751,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "estop",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "fd332a03de3961f3",
+      "observation_generation": 0
+    },
+    "observation": null
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 3.1500000000000004,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "command_stale",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 24
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 3.0,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493516216562537,
+            0.22423556184410434
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.04617527800402457
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.347428849099692,
+            -0.0005330199000735392
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.06908170237131514
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.4332799666925877,
+            0.008663103498453173
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.00676102346343169
+        },
+        {
+          "id": 4,
+          "position": [
+            0.4524068085892965,
+            -0.2310151759210417
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.03679456019478502
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 7.8500000000000005,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "allow",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 71
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 7.800000000000001,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493516216562537,
+            0.22423556184410434
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.04617527800402457
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.347428849099692,
+            -0.0005330199000735392
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.06908170237131514
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.4332799666925877,
+            0.008663103498453173
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.00676102346343169
+        },
+        {
+          "id": 4,
+          "position": [
+            0.4524068085892965,
+            -0.2310151759210417
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.03679456019478502
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 58.30200000000001,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "command_stale",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 575
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 58.2,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493516791800728,
+            0.22358097917416697
+          ],
+          "velocity": [
+            -1.8232815835915816e-06,
+            -0.0008423071653521064
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.04604721198502377
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.347428449682375,
+            -0.0018764555667490912
+          ],
+          "velocity": [
+            3.3695821090937874e-06,
+            -0.0019123582711880421
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.06902745035208618
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.436660196228796,
+            0.006099487802386339
+          ],
+          "velocity": [
+            0.007440123425492062,
+            0.007217272511362323
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.018183166033103174
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45240679678783197,
+            -0.23082399533075643
+          ],
+          "velocity": [
+            2.4243491964907724e-05,
+            0.0016741702303207401
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.03680726906903488
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.002302734116727989,
+            -0.3224377802563285
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 11.299999999999997,
+          "observed": false,
+          "radius": 0.1497130199468518
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 58.351000000000006,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "allow",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 576
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 58.300000000000004,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493516791800728,
+            0.22358097917416697
+          ],
+          "velocity": [
+            -5.910886396504553e-08,
+            -3.0168436312074425e-05
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.04604721198502377
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.347428449682375,
+            -0.0018764555667490912
+          ],
+          "velocity": [
+            5.603234240228706e-08,
+            -6.608512726037242e-05
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.06902745035208618
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.436660196228796,
+            0.006099487802386339
+          ],
+          "velocity": [
+            9.116610866474486e-05,
+            7.117407148583444e-05
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.018183166033103174
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45240679678783197,
+            -0.23082399533075643
+          ],
+          "velocity": [
+            6.292560114387858e-08,
+            5.659554647909694e-05
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.03680726906903488
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.002302734116727989,
+            -0.3224377802563285
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 11.399999999999999,
+          "observed": false,
+          "radius": 0.1497130199468518
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 81.516,
+      "requested_v": 0.013523231972543754,
+      "requested_omega": 0.1,
+      "reason": "obstacle_wait:predicted_obstacle",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 807
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 81.4,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7494010248502112,
+            0.1812316271549986
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 19.700000000000003,
+          "observed": false,
+          "radius": 0.004974927993552994
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 19.300000000000004,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.4322018104398422,
+            0.009996100203889802
+          ],
+          "velocity": [
+            -0.0003319811007208489,
+            0.0003248202669112457
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.00458203944673672
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45208162199067686,
+            -0.23243229583145625
+          ],
+          "velocity": [
+            -0.00026717464299310593,
+            -0.00045437876982463337
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.03245512198818354
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 16.60000000000001,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3476597364418312,
+            -0.04799915062465966
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 18.6,
+          "observed": false,
+          "radius": 0.011207752712345517
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.347488072824367,
+            -0.0014531993856874426
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.06374990503597136
+        },
+        {
+          "id": 8,
+          "position": [
+            -0.957175576941379,
+            -0.09786565497100516
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 15.0,
+          "observed": false,
+          "radius": 0.14538329056444688
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.6198172390794956,
+            -0.4352380797021663
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 9.099999999999994,
+          "observed": false,
+          "radius": 0.1491623456723534
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.13026093952768622,
+            -0.6225545328709059
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 4.799999999999997,
+          "observed": false,
+          "radius": 0.00786435054985147
+        },
+        {
+          "id": 11,
+          "position": [
+            0.14546608186331422,
+            -0.32260788615330516
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.29999999999999716,
+          "observed": false,
+          "radius": 0.007945793104530084
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.0100953707967424,
+            -0.3226155075695118
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.20000000000000284,
+          "observed": false,
+          "radius": 0.14893205340663127
+        },
+        {
+          "id": 13,
+          "position": [
+            -0.30419244844043464,
+            0.450427984598211
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.07401008409368007
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 81.551,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "camera_obstacle_unranged",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 808
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 81.4,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7494010248502112,
+            0.1812316271549986
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 19.700000000000003,
+          "observed": false,
+          "radius": 0.004974927993552994
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 19.300000000000004,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.4322018104398422,
+            0.009996100203889802
+          ],
+          "velocity": [
+            -0.0003319811007208489,
+            0.0003248202669112457
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.00458203944673672
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45208162199067686,
+            -0.23243229583145625
+          ],
+          "velocity": [
+            -0.00026717464299310593,
+            -0.00045437876982463337
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.03245512198818354
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 16.60000000000001,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3476597364418312,
+            -0.04799915062465966
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 18.6,
+          "observed": false,
+          "radius": 0.011207752712345517
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.347488072824367,
+            -0.0014531993856874426
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.06374990503597136
+        },
+        {
+          "id": 8,
+          "position": [
+            -0.957175576941379,
+            -0.09786565497100516
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 15.0,
+          "observed": false,
+          "radius": 0.14538329056444688
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.6198172390794956,
+            -0.4352380797021663
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 9.099999999999994,
+          "observed": false,
+          "radius": 0.1491623456723534
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.13026093952768622,
+            -0.6225545328709059
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 4.799999999999997,
+          "observed": false,
+          "radius": 0.00786435054985147
+        },
+        {
+          "id": 11,
+          "position": [
+            0.14546608186331422,
+            -0.32260788615330516
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.29999999999999716,
+          "observed": false,
+          "radius": 0.007945793104530084
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.0100953707967424,
+            -0.3226155075695118
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.20000000000000284,
+          "observed": false,
+          "radius": 0.14893205340663127
+        },
+        {
+          "id": 13,
+          "position": [
+            -0.30419244844043464,
+            0.450427984598211
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.07401008409368007
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 94.25,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "obstacle_wait:predicted_obstacle",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 935
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 94.2,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7494010248502112,
+            0.1812316271549986
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 32.5,
+          "observed": false,
+          "radius": 0.004974927993552994
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 32.1,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.47287393215257145,
+            -0.028268168235679236
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.14091183560893522
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45247190830763817,
+            -0.23037371377606822
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.037468200000627026
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 29.400000000000006,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3476597364418312,
+            -0.04799915062465966
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 31.4,
+          "observed": false,
+          "radius": 0.011207752712345517
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.347517855520439,
+            -0.006655543929413699
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.06402341923803158
+        },
+        {
+          "id": 8,
+          "position": [
+            -0.957175576941379,
+            -0.09786565497100516
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 27.799999999999997,
+          "observed": false,
+          "radius": 0.14538329056444688
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.6198172390794956,
+            -0.4352380797021663
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 21.89999999999999,
+          "observed": false,
+          "radius": 0.1491623456723534
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.13026093952768622,
+            -0.6225545328709059
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 17.599999999999994,
+          "observed": false,
+          "radius": 0.00786435054985147
+        },
+        {
+          "id": 11,
+          "position": [
+            0.14546608186331422,
+            -0.32260788615330516
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 13.099999999999994,
+          "observed": false,
+          "radius": 0.007945793104530084
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.0100953707967424,
+            -0.3226155075695118
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 13.0,
+          "observed": false,
+          "radius": 0.14893205340663127
+        },
+        {
+          "id": 13,
+          "position": [
+            -0.36462552346868915,
+            0.4214396569139438
+          ],
+          "velocity": [
+            -0.055432997472806916,
+            -0.026473557922530675
+          ],
+          "state": "moving",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.06520832721502574
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 95.465,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "allow",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 947
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 95.4,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493556052509707,
+            0.3040094910364982
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.12929840526377745
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 33.300000000000004,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.47287393215257145,
+            -0.028268168235679236
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.14091183560893522
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45247190830763817,
+            -0.23037371377606822
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.037468200000627026
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 30.60000000000001,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3476597364418312,
+            -0.04799915062465966
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 32.6,
+          "observed": false,
+          "radius": 0.011207752712345517
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.347517855520439,
+            -0.006655543929413699
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.06402341923803158
+        },
+        {
+          "id": 8,
+          "position": [
+            -0.957175576941379,
+            -0.09786565497100516
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 29.0,
+          "observed": false,
+          "radius": 0.14538329056444688
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.6198172390794956,
+            -0.4352380797021663
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 23.099999999999994,
+          "observed": false,
+          "radius": 0.1491623456723534
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.13026093952768622,
+            -0.6225545328709059
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 18.799999999999997,
+          "observed": false,
+          "radius": 0.00786435054985147
+        },
+        {
+          "id": 11,
+          "position": [
+            0.14546608186331422,
+            -0.32260788615330516
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 14.299999999999997,
+          "observed": false,
+          "radius": 0.007945793104530084
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.0100953707967424,
+            -0.3226155075695118
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 14.200000000000003,
+          "observed": false,
+          "radius": 0.14893205340663127
+        },
+        {
+          "id": 13,
+          "position": [
+            -0.428136887559222,
+            0.39147379741499355
+          ],
+          "velocity": [
+            -0.05773760371866655,
+            -0.02724169045359128
+          ],
+          "state": "moving",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.07454869041510266
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 115.10100000000001,
+      "requested_v": 0.013454179314300449,
+      "requested_omega": -0.1,
+      "reason": "obstacle_pose_unavailable",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1143
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 114.9,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.749355625994664,
+            0.28411141086660374
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 11.5,
+          "observed": false,
+          "radius": 0.10347773789982734
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 52.800000000000004,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.43215589379778413,
+            0.009960422123911267
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.09999999999999432,
+          "observed": false,
+          "radius": 0.003226341600580248
+        },
+        {
+          "id": 4,
+          "position": [
+            0.4525407880580121,
+            -0.2436392913923392
+          ],
+          "velocity": [
+            7.051768325777118e-05,
+            -0.00700576300900362
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.02368531410659833
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 50.10000000000001,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3476597364418312,
+            -0.04799915062465966
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 52.1,
+          "observed": false,
+          "radius": 0.011207752712345517
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.3473897460871487,
+            -0.006655010211238599
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.06501669193828873
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.20000000000000284,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 1.5999999999999943,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 10.299999999999997,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            -2.6523023206853624e-05,
+            -0.32245026952632655
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 13.799999999999997,
+          "observed": false,
+          "radius": 0.14860746205815506
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 14.0,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5371866292938553,
+            -0.08928430991286383
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 9.299999999999997,
+          "observed": false,
+          "radius": 0.07033737379568883
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.44030116726261254,
+            0.003268748911679137
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.03174639997549909
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 115.271,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "allow",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1144
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 115.00000000000001,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.749355625994664,
+            0.28411141086660374
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 11.600000000000009,
+          "observed": false,
+          "radius": 0.10347773789982734
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 52.90000000000001,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.43215589379778413,
+            0.009960422123911267
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.20000000000000284,
+          "observed": false,
+          "radius": 0.003226341600580248
+        },
+        {
+          "id": 4,
+          "position": [
+            0.4527874222925758,
+            -0.2437415848233806
+          ],
+          "velocity": [
+            0.00013641592928210054,
+            -0.007131550214576692
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.024767121723301307
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 50.20000000000002,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3476597364418312,
+            -0.04799915062465966
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 52.20000000000001,
+          "observed": false,
+          "radius": 0.011207752712345517
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.3473680689332168,
+            -0.004902033857736472
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.05408684067657402
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.30000000000001137,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 1.7000000000000028,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 10.400000000000006,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            -2.6523023206853624e-05,
+            -0.32245026952632655
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 13.900000000000006,
+          "observed": false,
+          "radius": 0.14860746205815506
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 14.100000000000009,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5371866292938553,
+            -0.08928430991286383
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 9.400000000000006,
+          "observed": false,
+          "radius": 0.07033737379568883
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4455324650356046,
+            -0.002632986259477249
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.05517192646434175
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 115.30000000000001,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "obstacle_pose_unavailable",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1144
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 115.00000000000001,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.749355625994664,
+            0.28411141086660374
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 11.600000000000009,
+          "observed": false,
+          "radius": 0.10347773789982734
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 52.90000000000001,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.43215589379778413,
+            0.009960422123911267
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.20000000000000284,
+          "observed": false,
+          "radius": 0.003226341600580248
+        },
+        {
+          "id": 4,
+          "position": [
+            0.4527874222925758,
+            -0.2437415848233806
+          ],
+          "velocity": [
+            0.00013641592928210054,
+            -0.007131550214576692
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.024767121723301307
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 50.20000000000002,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3476597364418312,
+            -0.04799915062465966
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 52.20000000000001,
+          "observed": false,
+          "radius": 0.011207752712345517
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.3473680689332168,
+            -0.004902033857736472
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.05408684067657402
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.30000000000001137,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 1.7000000000000028,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 10.400000000000006,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            -2.6523023206853624e-05,
+            -0.32245026952632655
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 13.900000000000006,
+          "observed": false,
+          "radius": 0.14860746205815506
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 14.100000000000009,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5371866292938553,
+            -0.08928430991286383
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 9.400000000000006,
+          "observed": false,
+          "radius": 0.07033737379568883
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4455324650356046,
+            -0.002632986259477249
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.05517192646434175
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 115.378,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "allow",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1146
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 115.30000000000001,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.749355625994664,
+            0.28411141086660374
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 11.900000000000006,
+          "observed": false,
+          "radius": 0.10347773789982734
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 53.20000000000001,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.43215589379778413,
+            0.009960422123911267
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.5,
+          "observed": false,
+          "radius": 0.003226341600580248
+        },
+        {
+          "id": 4,
+          "position": [
+            0.4525945645162075,
+            -0.24796613108803423
+          ],
+          "velocity": [
+            -0.00010513942912364142,
+            -0.007207866694653346
+          ],
+          "state": "stationary",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.023892832290889756
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 50.500000000000014,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3476597364418312,
+            -0.04799915062465966
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 52.50000000000001,
+          "observed": false,
+          "radius": 0.011207752712345517
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.3474387018965952,
+            0.0027691229889795083
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.043098510345271686
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.6000000000000085,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 2.0,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 10.700000000000003,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            -2.6523023206853624e-05,
+            -0.32245026952632655
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 14.200000000000003,
+          "observed": false,
+          "radius": 0.14860746205815506
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 14.400000000000006,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5371866292938553,
+            -0.08928430991286383
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 9.700000000000003,
+          "observed": false,
+          "radius": 0.07033737379568883
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4507092111265476,
+            -0.006192734231565217
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.062323814785565326
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 146.31400000000002,
+      "requested_v": 0.01392863899965671,
+      "requested_omega": 0.1,
+      "reason": "obstacle_wait:obstacle_observation_unavailable",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1455
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 146.0,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493669461407428,
+            0.21148319820260636
+          ],
+          "velocity": [
+            -2.3701324619091542e-06,
+            -0.032337744562165836
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.0342251709170896
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 83.9,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44550490495673134,
+            -0.0053728345813244816
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 3.299999999999983,
+          "observed": false,
+          "radius": 0.05888212517701433
+        },
+        {
+          "id": 4,
+          "position": [
+            0.4529655032021924,
+            -0.26016387834151394
+          ],
+          "velocity": [
+            0.000499687120721906,
+            -0.007954974912708348
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.013181724520331107
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 81.2,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3475052725372814,
+            0.023389128060962272
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.799999999999983,
+          "observed": false,
+          "radius": 0.07841745968398779
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.3474772583434607,
+            0.030264677395475115
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.07894402795620367
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 31.299999999999997,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 32.69999999999999,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 41.39999999999999,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            0.0012133507096756535,
+            -0.322419804072988
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 1.6999999999999886,
+          "observed": false,
+          "radius": 0.14959562595340914
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 45.099999999999994,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5389685368681412,
+            -0.10420151953989432
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 5.199999999999989,
+          "observed": false,
+          "radius": 0.06979248686952853
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4777813356978166,
+            -0.041655170756206894
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 2.0,
+          "observed": false,
+          "radius": 0.13531825272810608
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 146.4,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "allow",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1456
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 146.3,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493174935331309,
+            0.20310424780170352
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.022959111457652653
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 84.20000000000002,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44550490495673134,
+            -0.0053728345813244816
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 3.5999999999999943,
+          "observed": false,
+          "radius": 0.05888212517701433
+        },
+        {
+          "id": 4,
+          "position": [
+            0.4523383083624957,
+            -0.26068715775654766
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.012810519646504266
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 81.50000000000001,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3475052725372814,
+            0.023389128060962272
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 1.0999999999999943,
+          "observed": false,
+          "radius": 0.07841745968398779
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.347517461014795,
+            0.03591569207227843
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.0794022960875359
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 31.60000000000001,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 33.0,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 41.7,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            0.0012133507096756535,
+            -0.322419804072988
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 2.0,
+          "observed": false,
+          "radius": 0.14959562595340914
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 45.400000000000006,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5389685368681412,
+            -0.10420151953989432
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 5.5,
+          "observed": false,
+          "radius": 0.06979248686952853
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4777813356978166,
+            -0.041655170756206894
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 2.3000000000000114,
+          "observed": false,
+          "radius": 0.13531825272810608
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 151.673,
+      "requested_v": 0.0,
+      "requested_omega": -0.1,
+      "reason": "obstacle_pose_unavailable",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1509
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 151.60000000000002,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493627001035146,
+            0.27880104482827767
+          ],
+          "velocity": [
+            -1.707135663750182e-05,
+            0.03602972891697144
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.10284607088650032
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 89.50000000000003,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44550490495673134,
+            -0.0053728345813244816
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 8.900000000000006,
+          "observed": false,
+          "radius": 0.05888212517701433
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45269141761374415,
+            -0.2658036384027258
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 4.700000000000017,
+          "observed": false,
+          "radius": 0.008596197216541488
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 86.80000000000003,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3475352564212888,
+            0.027362056264028267
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.10000000000002274,
+          "observed": false,
+          "radius": 0.08078940675472954
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.347511046552907,
+            0.03482549413133851
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.07481991960784237
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 36.90000000000002,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 38.30000000000001,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 47.000000000000014,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            0.002287991563723002,
+            -0.3224520432953657
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.30000000000001137,
+          "observed": false,
+          "radius": 0.14833742382251205
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 50.70000000000002,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5389685368681412,
+            -0.10420151953989432
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 10.800000000000011,
+          "observed": false,
+          "radius": 0.06979248686952853
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4777813356978166,
+            -0.041655170756206894
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 7.600000000000023,
+          "observed": false,
+          "radius": 0.13531825272810608
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "allow",
+      "issued_s": 151.70100000000002,
+      "requested_v": 0.0,
+      "requested_omega": -0.1,
+      "reason": "allow",
+      "safe_v": 0.0,
+      "safe_omega": -0.1,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1509
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 151.60000000000002,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493627001035146,
+            0.27880104482827767
+          ],
+          "velocity": [
+            -1.707135663750182e-05,
+            0.03602972891697144
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.10284607088650032
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 89.50000000000003,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44550490495673134,
+            -0.0053728345813244816
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 8.900000000000006,
+          "observed": false,
+          "radius": 0.05888212517701433
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45269141761374415,
+            -0.2658036384027258
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 4.700000000000017,
+          "observed": false,
+          "radius": 0.008596197216541488
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 86.80000000000003,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3475352564212888,
+            0.027362056264028267
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.10000000000002274,
+          "observed": false,
+          "radius": 0.08078940675472954
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.347511046552907,
+            0.03482549413133851
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.07481991960784237
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 36.90000000000002,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 38.30000000000001,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 47.000000000000014,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            0.002287991563723002,
+            -0.3224520432953657
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.30000000000001137,
+          "observed": false,
+          "radius": 0.14833742382251205
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 50.70000000000002,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5389685368681412,
+            -0.10420151953989432
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 10.800000000000011,
+          "observed": false,
+          "radius": 0.06979248686952853
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4777813356978166,
+            -0.041655170756206894
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 7.600000000000023,
+          "observed": false,
+          "radius": 0.13531825272810608
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 151.851,
+      "requested_v": 0.0,
+      "requested_omega": -0.1,
+      "reason": "obstacle_pose_unavailable",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1511
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 151.8,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493646812892907,
+            0.28284370775337575
+          ],
+          "velocity": [
+            -1.5582452935481033e-05,
+            0.030695159960428185
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.1060770821188423
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 89.70000000000002,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44550490495673134,
+            -0.0053728345813244816
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 9.099999999999994,
+          "observed": false,
+          "radius": 0.05888212517701433
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45269141761374415,
+            -0.2658036384027258
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 4.900000000000006,
+          "observed": false,
+          "radius": 0.008596197216541488
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 87.00000000000001,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3475352564212888,
+            0.027362056264028267
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.30000000000001137,
+          "observed": false,
+          "radius": 0.08078940675472954
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.3474984965999326,
+            0.03098450601367453
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.0808423317694749
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 37.10000000000001,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 38.5,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 47.2,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            0.002287991563723002,
+            -0.3224520432953657
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.5,
+          "observed": false,
+          "radius": 0.14833742382251205
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 50.900000000000006,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5389685368681412,
+            -0.10420151953989432
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 11.0,
+          "observed": false,
+          "radius": 0.06979248686952853
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4777813356978166,
+            -0.041655170756206894
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 7.800000000000011,
+          "observed": false,
+          "radius": 0.13531825272810608
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "allow",
+      "issued_s": 151.96900000000002,
+      "requested_v": 0.0,
+      "requested_omega": -0.1,
+      "reason": "allow",
+      "safe_v": 0.0,
+      "safe_omega": -0.1,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1512
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 151.9,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493639206220086,
+            0.28647938869851564
+          ],
+          "velocity": [
+            -5.641897917648369e-06,
+            0.03050996645173023
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.10931707915295964
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 89.80000000000001,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44550490495673134,
+            -0.0053728345813244816
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 9.199999999999989,
+          "observed": false,
+          "radius": 0.05888212517701433
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45269141761374415,
+            -0.2658036384027258
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 5.0,
+          "observed": false,
+          "radius": 0.008596197216541488
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 87.10000000000001,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3475352564212888,
+            0.027362056264028267
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.4000000000000057,
+          "observed": false,
+          "radius": 0.08078940675472954
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.3475035467587593,
+            0.037911777305769556
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.0748774650382329
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 37.2,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 38.599999999999994,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 47.3,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            0.002287991563723002,
+            -0.3224520432953657
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.5999999999999943,
+          "observed": false,
+          "radius": 0.14833742382251205
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 51.0,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5389685368681412,
+            -0.10420151953989432
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 11.099999999999994,
+          "observed": false,
+          "radius": 0.06979248686952853
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4777813356978166,
+            -0.041655170756206894
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 7.900000000000006,
+          "observed": false,
+          "radius": 0.13531825272810608
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 154.40200000000002,
+      "requested_v": 0.0,
+      "requested_omega": -0.1,
+      "reason": "obstacle_pose_unavailable",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1536
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 154.3,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493646484509765,
+            0.3213086733492858
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 1.3000000000000114,
+          "observed": false,
+          "radius": 0.14957069830941078
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 92.20000000000002,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44550490495673134,
+            -0.0053728345813244816
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 11.599999999999994,
+          "observed": false,
+          "radius": 0.05888212517701433
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45269141761374415,
+            -0.2658036384027258
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 7.400000000000006,
+          "observed": false,
+          "radius": 0.008596197216541488
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 89.50000000000001,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.3474576413327108,
+            0.032892504758640695
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.07496057381625715
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.3474233045157369,
+            0.03524966606004154
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.19999999999998863,
+          "observed": false,
+          "radius": 0.08092542963958835
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 39.60000000000001,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 41.0,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 49.7,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            0.003155484374053108,
+            -0.32244619024685905
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.30000000000001137,
+          "observed": false,
+          "radius": 0.148719138093373
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 53.400000000000006,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5389685368681412,
+            -0.10420151953989432
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 13.5,
+          "observed": false,
+          "radius": 0.06979248686952853
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4777813356978166,
+            -0.041655170756206894
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 10.300000000000011,
+          "observed": false,
+          "radius": 0.13531825272810608
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 157.717,
+      "requested_v": 0.0,
+      "requested_omega": -0.1,
+      "reason": "camera_observation_unavailable",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1569
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 157.60000000000002,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493646484509765,
+            0.3213086733492858
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 4.600000000000023,
+          "observed": false,
+          "radius": 0.14957069830941078
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 95.50000000000003,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44550490495673134,
+            -0.0053728345813244816
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 14.900000000000006,
+          "observed": false,
+          "radius": 0.05888212517701433
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45269141761374415,
+            -0.2658036384027258
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 10.700000000000017,
+          "observed": false,
+          "radius": 0.008596197216541488
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 92.80000000000003,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.347472374558859,
+            0.03365542583332315
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.08085799249559418
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.347470745741631,
+            0.034567667201262586
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 3.200000000000017,
+          "observed": false,
+          "radius": 0.0749755567472263
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 42.90000000000002,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 44.30000000000001,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 53.000000000000014,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            0.003155484374053108,
+            -0.32244619024685905
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 3.6000000000000227,
+          "observed": false,
+          "radius": 0.148719138093373
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 56.70000000000002,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5389685368681412,
+            -0.10420151953989432
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 16.80000000000001,
+          "observed": false,
+          "radius": 0.06979248686952853
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4777813356978166,
+            -0.041655170756206894
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 13.600000000000023,
+          "observed": false,
+          "radius": 0.13531825272810608
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 157.90900000000002,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "obstacle_pose_unavailable",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1571
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 157.8,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493646484509765,
+            0.3213086733492858
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 4.800000000000011,
+          "observed": false,
+          "radius": 0.14957069830941078
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 95.70000000000002,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44550490495673134,
+            -0.0053728345813244816
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 15.099999999999994,
+          "observed": false,
+          "radius": 0.05888212517701433
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45269141761374415,
+            -0.2658036384027258
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 10.900000000000006,
+          "observed": false,
+          "radius": 0.008596197216541488
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 93.00000000000001,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.347472374558859,
+            0.03365542583332315
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.08085799249559418
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.347470745741631,
+            0.034567667201262586
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 3.4000000000000057,
+          "observed": false,
+          "radius": 0.0749755567472263
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 43.10000000000001,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 44.5,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 53.2,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            0.003155484374053108,
+            -0.32244619024685905
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 3.8000000000000114,
+          "observed": false,
+          "radius": 0.148719138093373
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 56.900000000000006,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5389685368681412,
+            -0.10420151953989432
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 17.0,
+          "observed": false,
+          "radius": 0.06979248686952853
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4777813356978166,
+            -0.041655170756206894
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 13.800000000000011,
+          "observed": false,
+          "radius": 0.13531825272810608
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 159.5,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "allow",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1587
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 159.4,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493646484509765,
+            0.3213086733492858
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 6.400000000000006,
+          "observed": false,
+          "radius": 0.14957069830941078
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 97.30000000000001,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44550490495673134,
+            -0.0053728345813244816
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 16.69999999999999,
+          "observed": false,
+          "radius": 0.05888212517701433
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45269141761374415,
+            -0.2658036384027258
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 12.5,
+          "observed": false,
+          "radius": 0.008596197216541488
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 94.60000000000001,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.347472374558859,
+            0.03365542583332315
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.08085799249559418
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.347470745741631,
+            0.034567667201262586
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 5.0,
+          "observed": false,
+          "radius": 0.0749755567472263
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 44.7,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 46.099999999999994,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 54.8,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            0.003155484374053108,
+            -0.32244619024685905
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 5.400000000000006,
+          "observed": false,
+          "radius": 0.148719138093373
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 58.5,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5389685368681412,
+            -0.10420151953989432
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 18.599999999999994,
+          "observed": false,
+          "radius": 0.06979248686952853
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4777813356978166,
+            -0.041655170756206894
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 15.400000000000006,
+          "observed": false,
+          "radius": 0.13531825272810608
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 161.05200000000002,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "command_stale",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1602
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 161.0,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493646484509765,
+            0.3213086733492858
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 8.0,
+          "observed": false,
+          "radius": 0.14957069830941078
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 98.9,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44550490495673134,
+            -0.0053728345813244816
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 18.299999999999983,
+          "observed": false,
+          "radius": 0.05888212517701433
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45269141761374415,
+            -0.2658036384027258
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 14.099999999999994,
+          "observed": false,
+          "radius": 0.008596197216541488
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 96.2,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.347472374558859,
+            0.03365542583332315
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.08085799249559418
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.347470745741631,
+            0.034567667201262586
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 6.599999999999994,
+          "observed": false,
+          "radius": 0.0749755567472263
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 46.3,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 47.69999999999999,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 56.39999999999999,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            0.003155484374053108,
+            -0.32244619024685905
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 7.0,
+          "observed": false,
+          "radius": 0.148719138093373
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 60.099999999999994,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5389685368681412,
+            -0.10420151953989432
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 20.19999999999999,
+          "observed": false,
+          "radius": 0.06979248686952853
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4777813356978166,
+            -0.041655170756206894
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 17.0,
+          "observed": false,
+          "radius": 0.13531825272810608
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 177.222,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "obstacle_pose_unavailable",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1764
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 177.20000000000002,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493646484509765,
+            0.3213086733492858
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 24.200000000000017,
+          "observed": false,
+          "radius": 0.14957069830941078
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 115.10000000000002,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44550490495673134,
+            -0.0053728345813244816
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 34.5,
+          "observed": false,
+          "radius": 0.05888212517701433
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45269141761374415,
+            -0.2658036384027258
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 30.30000000000001,
+          "observed": false,
+          "radius": 0.008596197216541488
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 112.40000000000002,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.347472374558859,
+            0.03365542583332315
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.08085799249559418
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.347470745741631,
+            0.034567667201262586
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 22.80000000000001,
+          "observed": false,
+          "radius": 0.0749755567472263
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 62.500000000000014,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 63.900000000000006,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 72.60000000000001,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            0.003155484374053108,
+            -0.32244619024685905
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 23.200000000000017,
+          "observed": false,
+          "radius": 0.148719138093373
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 76.30000000000001,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5389685368681412,
+            -0.10420151953989432
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 36.400000000000006,
+          "observed": false,
+          "radius": 0.06979248686952853
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4777813356978166,
+            -0.041655170756206894
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 33.20000000000002,
+          "observed": false,
+          "radius": 0.13531825272810608
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  },
+  {
+    "decision": {
+      "action": "stop",
+      "issued_s": 177.371,
+      "requested_v": 0.0,
+      "requested_omega": 0.0,
+      "reason": "command_stale",
+      "safe_v": 0.0,
+      "safe_omega": 0.0,
+      "profile_revision": "2b30ce252141d0fd",
+      "observation_generation": 1766
+    },
+    "observation": {
+      "frame": "odom",
+      "stamp": 177.20000000000002,
+      "tracks": [
+        {
+          "id": 1,
+          "position": [
+            -0.7493646484509765,
+            0.3213086733492858
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 24.200000000000017,
+          "observed": false,
+          "radius": 0.14957069830941078
+        },
+        {
+          "id": 2,
+          "position": [
+            -1.3475150537861933,
+            -0.005253156238748391
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 115.10000000000002,
+          "observed": false,
+          "radius": 0.05347120937186244
+        },
+        {
+          "id": 3,
+          "position": [
+            -0.44550490495673134,
+            -0.0053728345813244816
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 34.5,
+          "observed": false,
+          "radius": 0.05888212517701433
+        },
+        {
+          "id": 4,
+          "position": [
+            0.45269141761374415,
+            -0.2658036384027258
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 30.30000000000001,
+          "observed": false,
+          "radius": 0.008596197216541488
+        },
+        {
+          "id": 5,
+          "position": [
+            -0.00324148417954373,
+            -0.322406811298135
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 112.40000000000002,
+          "observed": false,
+          "radius": 0.1493538688434126
+        },
+        {
+          "id": 6,
+          "position": [
+            -1.347472374558859,
+            0.03365542583332315
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 0.0,
+          "observed": true,
+          "radius": 0.08085799249559418
+        },
+        {
+          "id": 7,
+          "position": [
+            -1.347470745741631,
+            0.034567667201262586
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 22.80000000000001,
+          "observed": false,
+          "radius": 0.0749755567472263
+        },
+        {
+          "id": 8,
+          "position": [
+            -1.0613583491545224,
+            0.0050516226127313175
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 62.500000000000014,
+          "observed": false,
+          "radius": 0.008838089153516906
+        },
+        {
+          "id": 9,
+          "position": [
+            -0.8509669249019212,
+            -0.2037947800622136
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 63.900000000000006,
+          "observed": false,
+          "radius": 0.14636168879272282
+        },
+        {
+          "id": 10,
+          "position": [
+            -0.2716342505816888,
+            -0.6225137151936325
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 72.60000000000001,
+          "observed": false,
+          "radius": 0.14855583499312364
+        },
+        {
+          "id": 11,
+          "position": [
+            0.003155484374053108,
+            -0.32244619024685905
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 23.200000000000017,
+          "observed": false,
+          "radius": 0.148719138093373
+        },
+        {
+          "id": 12,
+          "position": [
+            -0.13696800943580395,
+            -0.3223387974664162
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 76.30000000000001,
+          "observed": false,
+          "radius": 0.007935854800161407
+        },
+        {
+          "id": 14,
+          "position": [
+            -0.5389685368681412,
+            -0.10420151953989432
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 36.400000000000006,
+          "observed": false,
+          "radius": 0.06979248686952853
+        },
+        {
+          "id": 15,
+          "position": [
+            -0.4777813356978166,
+            -0.041655170756206894
+          ],
+          "velocity": [
+            0.0,
+            0.0
+          ],
+          "state": "unknown",
+          "age": 33.20000000000002,
+          "observed": false,
+          "radius": 0.13531825272810608
+        }
+      ],
+      "status": "observed",
+      "coverage": "compact_scan_clusters_only"
+    }
+  }
+]

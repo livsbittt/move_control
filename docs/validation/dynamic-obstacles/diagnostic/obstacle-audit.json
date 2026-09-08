@@ -1,0 +1,63 @@
+{
+  "stage": "removed",
+  "error": null,
+  "events": [
+    {
+      "stamp": 74.101,
+      "event": "spawn_stationary",
+      "center": [
+        -0.23704908691485185,
+        -0.020145881617447403
+      ]
+    },
+    {
+      "stamp": 86.102,
+      "event": "start_scripted_crossing"
+    },
+    {
+      "stamp": 96.111,
+      "event": "removed"
+    }
+  ],
+  "associated_classifications": {
+    "stationary": {
+      "not_associated": 1,
+      "unknown": 4,
+      "stationary": 55
+    },
+    "moving": {
+      "stationary": 33,
+      "unknown": 7,
+      "moving": 8
+    },
+    "box_displaced": {
+      "stationary": 1,
+      "unknown": 2,
+      "moving": 2
+    }
+  },
+  "safety_reasons": {
+    "waiting": {
+      "estop": 11,
+      "command_stale": 20,
+      "allow": 334
+    },
+    "stationary": {
+      "allow": 25,
+      "obstacle_wait:predicted_obstacle": 4,
+      "obstacle_replan:predicted_obstacle": 31
+    },
+    "moving": {
+      "obstacle_replan:predicted_obstacle": 4,
+      "obstacle_wait:predicted_obstacle": 7,
+      "allow": 37
+    },
+    "removed": {
+      "allow": 49
+    }
+  },
+  "scripted_displacement_samples": 5,
+  "min_model_origin_to_box_surface_m": 0.19548980354413575,
+  "displacement_after_removal_m": 0.022928675302626992,
+  "scope": "Sampled diagnostic metrics; not contact-free or full-mapping acceptance"
+}
