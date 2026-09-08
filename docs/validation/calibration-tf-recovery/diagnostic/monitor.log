@@ -1,0 +1,3 @@
+[WARN] [1788875725.904391910] [rcl]: ROS_LOCALHOST_ONLY is deprecated but still honored if it is enabled. Use ROS_AUTOMATIC_DISCOVERY_RANGE and ROS_STATIC_PEERS instead.
+[WARN] [1788875725.904464534] [rcl]: 'localhost_only' is enabled, 'automatic_discovery_range' and 'static_peers' will be ignored.
+{"elapsed_sim_s": 9.162, "calibration_phase": "failed", "calibration_ready": false, "message": "Safety modified the trial command; response cannot be calibrated", "map_received": true, "mapping_complete": false, "observation_error": null, "cmd_vel_publishers": ["safety_node"], "run_id": "9452778e9fe34c88bdfd7770467b5ad8", "path_m": 0.01145040386079517, "min_center_to_wall_m": 0.3359995961750205, "map_geometry_and_time_valid": true, "known_cells": 2654}

@@ -27,6 +27,7 @@ from .sensing.lidar_mount import nose_from_quaternion
 from .sensing.range_filter import CalibrationRangeFilter
 from .sensing.wall_tracker import WallTracker
 from .control.round_trip import RoundTrip
+from .control.calibration_tf import transform_health, map_motion_continuous
 from .control.calibration_certificate import make_certificate, validate_certificate
 from .control.calibration_clearance import motion_clearance
 from .control.navigation_calibration import environment_profile, map_ray
@@ -123,6 +124,8 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         self.motion_start = None
         self.precision_pause_started = None
         self.precision_pause_total = 0.
+        self.precision_pause_map = False
+        self.map_tf_diagnostic = {'valid': False, 'reason': 'not_received'}
         self.runtime_ready = True
         self.runtime_healthy_since = None
         self.selected_target = None
@@ -292,10 +295,12 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
             p, q = transform.transform.translation, transform.transform.rotation
             stamp = transform.header.stamp.sec + transform.header.stamp.nanosec * 1e-9
             age = self.get_clock().now().nanoseconds * 1e-9 - stamp
-            norm = math.sqrt(q.x*q.x + q.y*q.y + q.z*q.z + q.w*q.w)
+            self.map_tf_diagnostic = transform_health(stamp+age, stamp,
+                (p.x,p.y,p.z), (q.x,q.y,q.z,q.w))
             yaw = math.atan2(2*(q.w*q.z+q.x*q.y), 1-2*(q.y*q.y+q.z*q.z))
-            self.add('map_tf', (p.x, p.y, yaw), -.75 <= age <= 1. and .9 <= norm <= 1.1)
-        except Exception:
+            self.add('map_tf', (p.x, p.y, yaw), self.map_tf_diagnostic['valid'])
+        except Exception as exc:
+            self.map_tf_diagnostic = dict(valid=False, reason=type(exc).__name__, error=str(exc))
             self.add('map_tf', (0., 0., 0.), False)
 
     def on_motion_limits(self, msg):
@@ -376,20 +381,26 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
                 detail = 'no sample' if not rows else f'valid={rows[-1][2]}, age={now-rows[-1][0]:.3f}s'
                 if name == 'lidar':
                     detail += ', wall=' + str(self.wall_tracker.diagnostic)
+                if name == 'map_tf':
+                    detail += ', transform=' + str(self.map_tf_diagnostic)
                 failures.append(name + ': ' + detail)
         return 'Sensor data became stale or invalid: ' + '; '.join(failures)
 
     def pause_precision(self, now):
-        # An ambiguous measurement is never permission to coast. Only this
-        # precision channel may wait; raw braking and all other sensors remain
-        # mandatory. Keep the same locked wall and bound the stationary wait.
+        # Transport gaps are not permission to coast or reuse an old pose.
+        # Hold zero with the same trial origin and bounded overall deadline.
         if self.estop is not False or self.motion_start is None or self.round_trip is None:
             return False
-        if self.wall_tracker.diagnostic.get('reason') not in (
-                'Tracked wall missing or ambiguous', 'Waiting for three associated scans'):
+        health = self.runtime_health(now)
+        waiting_map = (not health['map_tf']['eligible'] and self.map_tf_diagnostic.get('reason') in
+                       ('stale','ExtrapolationException','LookupException','ConnectivityException'))
+        waiting_wall = (not health['lidar']['eligible'] and self.wall_tracker.diagnostic.get('reason') in
+                        ('Tracked wall missing or ambiguous', 'Waiting for three associated scans'))
+        waiting = ({'map_tf'} if waiting_map else set()) | ({'lidar'} if waiting_wall else set())
+        if not waiting:
             return False
-        for name, item in self.runtime_health(now).items():
-            if name != 'lidar' and not item['eligible']:
+        for name, item in health.items():
+            if name not in waiting and not item['eligible']:
                 return False
         odom_rows = self.baseline.samples['odom']
         if not odom_rows or not 0 <= now-odom_rows[-1][0] <= .2:
@@ -413,11 +424,15 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         elapsed = now-self.precision_pause_started
         if elapsed > 1.:
             return False
+        self.precision_pause_map |= waiting_map
         self.zero()
         self.round_trip.pause(now)
         if self.round_trip.error:
             return False
-        self.message = 'Precision LiDAR paused at zero speed; reacquiring the same wall (maximum 1s)'
+        self.sensors = health
+        self.message = ('Map TF paused at zero speed; waiting for fresh consistent pose (maximum 1s)'
+                        if waiting_map else
+                        'Precision LiDAR paused at zero speed; reacquiring the same wall (maximum 1s)')
         self.publish()
         return True
 
@@ -514,6 +529,8 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
             result[name] = dict(ok=fresh and valid, eligible=eligible,
                 status='ok' if fresh and valid else 'advisory' if eligible else 'stale' if not fresh else 'invalid',
                 samples=len(rows), detail=detail)
+            if name == 'map_tf':
+                result[name]['transform'] = self.map_tf_diagnostic
         return result
 
     def tick(self):
@@ -598,8 +615,13 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
                 if elapsed > 1.:
                     self.finish(False, self.precision_timeout_message(elapsed))
                     return
+                if self.precision_pause_map and not map_motion_continuous(
+                        motion_evidence(self.motion_start[1], self.snapshot())):
+                    self.finish(False, 'Map TF changed relative to odometry during reacquisition')
+                    return
                 self.precision_pause_total += elapsed
                 self.precision_pause_started = None
+                self.precision_pause_map = False
                 if self.round_trip is not None:
                     self.round_trip.pause(now)
             state, seen = self.wander_state
@@ -651,7 +673,8 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
             self.publish()
 
     def precision_timeout_message(self, elapsed):
-        return ('Precision LiDAR reacquisition time exceeded: '
+        channel = 'Map TF' if self.precision_pause_map else 'Precision LiDAR'
+        return (channel + ' reacquisition time exceeded: '
                 f'episode={elapsed:.2f}/1.00s, paused_total={self.precision_pause_total+elapsed:.2f}s; '
                 'overall motion remains limited to 35s')
 
@@ -674,6 +697,8 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
                 'us_precision_required': bool(self.get_parameter('calibration_require_us_agreement').value),
                 'elapsed_s': round(time.monotonic() - self.started, 2),
                 'sensors': self.sensors, 'motion': self.motion, 'baseline': self.baseline_values,
+                'map_tf': self.map_tf_diagnostic,
+                'precision_pause_total_s': self.precision_pause_total,
                 'navigation_profile': self.navigation_profile,
                 'motion_clearance': self.motion_clearance,
                 'estimates': {'imu_gyro_bias_rad_s': imu[3:6], 'imu_gravity_mean_mps2': imu[6:9],

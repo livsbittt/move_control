@@ -146,6 +146,100 @@ class StartupCalibrationTest(unittest.TestCase):
         self.assertGreater(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
         self.assertAlmostEqual(self.node.precision_pause_total, .2)
 
+    def test_map_tf_transport_gap_holds_zero_then_resumes(self):
+        self.arm()
+        self.node.motion_start = (100.6, self.node.snapshot())
+        self.node.round_trip = RoundTrip(100.6, self.node.snapshot())
+        self.node.map_tf_diagnostic = {'reason': 'stale'}
+        self.node.baseline.add('map_tf', (0.,0.,0.), 100.6, False)
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'validating_motion', self.node.message)
+        self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
+        self.refresh(100.8)
+        self.node.tick()
+        self.assertGreater(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
+
+    def test_recovered_tf_jump_fails_before_motion(self):
+        self.arm()
+        self.node.motion_start = (100.6, self.node.snapshot())
+        self.node.round_trip = RoundTrip(100.6, self.node.snapshot())
+        self.node.map_tf_diagnostic = {'reason': 'stale'}
+        self.node.baseline.add('map_tf', (0.,0.,0.), 100.6, False)
+        self.node.tick()
+        self.refresh(100.8)
+        self.node.baseline.add('map_tf', (.2,0.,0.), 100.8)
+        self.node.tick()
+        self.assertEqual(self.node.phase, 'failed')
+        self.assertIn('Map TF changed', self.node.message)
+        self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x, 0.)
+
+    def test_map_tf_gap_timeout_and_invalid_geometry_remain_fail_closed(self):
+        for reason in ('stale','invalid_geometry'):
+            self.node.on_command(String(data='retry'))
+            self.arm()
+            self.node.motion_start = (100.6, self.node.snapshot())
+            self.node.round_trip = RoundTrip(100.6, self.node.snapshot())
+            self.node.map_tf_diagnostic = {'reason': reason}
+            for i in range(24):
+                now=100.6+i*.05
+                self.refresh(now)
+                self.node.baseline.add('map_tf',(0.,0.,0.),now,False)
+                self.node.tick()
+                if self.node.phase == 'failed': break
+            self.assertEqual(self.node.phase,'failed')
+            self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x,0.)
+
+    def test_real_tf_buffer_preserves_stale_source_time_and_recovers(self):
+        from tf2_ros import Buffer
+        from rclpy.time import Time
+        self.node.tf = Buffer()
+        self.node.scan_frame = 'laser'
+        def insert(parent, child, stamp, static=False):
+            t=TransformStamped()
+            t.header.frame_id=parent
+            t.child_frame_id=child
+            t.header.stamp=Time(seconds=stamp).to_msg()
+            t.transform.rotation.w=1.
+            (self.node.tf.set_transform_static if static else self.node.tf.set_transform)(t,'test')
+        insert('base_link','laser',0.,True)
+        insert('map','odom',1.)
+        insert('map','odom',9.)
+        insert('odom','base_link',1.)
+        insert('odom','base_link',8.)
+        with patch.object(self.node,'get_clock') as clock:
+            clock.return_value.now.return_value=Time(seconds=10.)
+            StartupCalibrationNode.read_tf(self.node)
+            self.assertEqual(self.node.map_tf_diagnostic['reason'],'stale')
+            self.assertAlmostEqual(self.node.map_tf_diagnostic['source_age_s'],2.)
+            self.assertFalse(self.node.baseline.samples['map_tf'][-1][2])
+            insert('map','odom',10.5)
+            insert('odom','base_link',9.95)
+            StartupCalibrationNode.read_tf(self.node)
+            self.assertEqual(self.node.map_tf_diagnostic['reason'],'ok')
+            self.assertTrue(self.node.baseline.samples['map_tf'][-1][2])
+
+    def test_real_tf_lookup_failure_is_exposed_in_report(self):
+        StartupCalibrationNode.read_tf(self.node)
+        self.assertFalse(self.node.report()['map_tf']['valid'])
+        self.assertIn('Exception',self.node.report()['map_tf']['reason'])
+        self.assertTrue(self.node.report()['map_tf']['error'])
+
+    def test_tf_wait_cannot_mask_raw_range_or_hazard(self):
+        for unsafe in ('range','cliff'):
+            self.node.on_command(String(data='retry'))
+            self.arm()
+            self.node.motion_start=(100.6,self.node.snapshot())
+            self.node.round_trip=RoundTrip(100.6,self.node.snapshot())
+            self.node.map_tf_diagnostic={'reason':'stale'}
+            self.node.baseline.add('map_tf',(0.,0.,0.),100.6,False)
+            if unsafe == 'range':
+                self.node.raw_ranges['lidar']=(100.6,.05,True)
+            else:
+                self.node.hazards['/safety/cliff']=(100.6,True)
+            self.node.tick()
+            self.assertEqual(self.node.phase,'failed')
+            self.assertEqual(self.node.raw_pub.publish.call_args.args[0].linear.x,0.)
+
     def test_short_reacquisition_does_not_fail_due_to_prior_accumulated_pauses(self):
         self.arm()
         self.node.motion_start = (100.6, self.node.snapshot())
