@@ -19,6 +19,8 @@ def accept_observation(value, previous, now, max_age=.5):
 
 def camera_hold(evidence, now, max_age=.5):
     try:
+        if 'quality' in evidence and evidence['quality']['valid'] is not True:
+            raise ValueError('Unusable image evidence')
         if not 0 <= now-evidence['stamp'] <= max_age or type(evidence['blocked']) is not bool:
             raise ValueError('Invalid image evidence')
         return 'camera_obstacle_unranged' if evidence['blocked'] else None

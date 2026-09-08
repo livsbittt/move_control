@@ -1,5 +1,6 @@
 """Subject: camera look-ahead classify. Floor / void / obstacle."""
 import numpy as np
+from .camera_regions import foreground_regions
 
 
 def classify_frame(
@@ -16,13 +17,25 @@ def classify_frame(
     void_frac=0.12,
     obst_frac=0.35,
     allow_floor_update=True,
+    region_min_area_fraction=.0005,
 ):
     """Return dict of flags and column scores. bgr is HxWx3 uint8 BGR."""
     import cv2
 
+    if (not isinstance(bgr, np.ndarray) or bgr.dtype != np.uint8 or
+            bgr.ndim != 3 or bgr.shape[2] != 3 or min(bgr.shape[:2]) < 8):
+        return _empty_result('invalid_image')
+    if floor_hsv is not None and (len(floor_hsv) != 3 or not np.isfinite(floor_hsv).all()):
+        return _empty_result('invalid_floor_reference')
+    if not np.isfinite(region_min_area_fraction) or not 0 < region_min_area_fraction <= 1:
+        return _empty_result('invalid_region_threshold')
+
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV).astype(np.float32)
     h_ch, s_ch, v_ch = hsv[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
     h, w = v_ch.shape
+    quality = dict(valid=True, reason='usable', reference='previous' if floor_hsv is not None else 'bootstrap')
+    if np.mean(v_ch < 8) > .95 or np.mean(v_ch > 247) > .95:
+        return _empty_result('underexposed' if np.mean(v_ch < 8) > .95 else 'overexposed')
 
     y_lo0, y_lo1 = int(0.70 * h), int(0.92 * h)
     x_lo0, x_lo1 = int(0.15 * w), int(0.85 * w)
@@ -62,6 +75,7 @@ def classify_frame(
     # hue_shift stays in the call signature for existing callers.
     void = (v_ch < fv * void_v_ratio) & (~floor)
     obst = (~floor) & (~void)
+    regions = foreground_regions(obst | void, void, near_y0, near_y1, region_min_area_fraction)
 
     k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
     void = cv2.morphologyEx(void.astype(np.uint8), cv2.MORPH_OPEN, k).astype(bool)
@@ -100,7 +114,7 @@ def classify_frame(
     # ahead. Require obstacle in the near centre, also catching low objects
     # below the mid band. Lidar owns metric stopping distance; cliff logic
     # above and mid-band directional scores remain independent.
-    blocked = cols[1]['obst'] >= obst_frac
+    blocked = cols[1]['obst'] >= obst_frac or any(r['near_path'] for r in regions)
     lo, lc, lr = mid_cols[0]['obst'], mid_cols[1]['obst'], mid_cols[2]['obst']
     if lr > lo + 0.08:
         side = 1.0
@@ -121,9 +135,13 @@ def classify_frame(
         'mid_cols': mid_cols,
         'mid_obst': mid_obst,
         'floor_hsv': new_floor,
+        'quality': quality,
+        'regions': regions[:64],
+        'region_count': len(regions),
+        'regions_truncated': len(regions) > 64,
     }
 
-def _empty_result():
+def _empty_result(reason='empty_roi'):
     return {
         'cliff': False,
         'blocked': False,
@@ -132,4 +150,6 @@ def _empty_result():
         'mid_obst': 0.0,
         'mid_cols': [{'void': 0.0, 'obst': 0.0, 'floor': 0.0}] * 3,
         'floor_hsv': None,
+        'quality': {'valid': False, 'reason': reason},
+        'regions': [], 'region_count': 0, 'regions_truncated': False,
     }

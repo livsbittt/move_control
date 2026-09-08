@@ -16,6 +16,7 @@ from sensor_msgs.msg import Image
 from std_msgs.msg import Bool, Float32, String
 
 from .sensing.camera import classify_frame
+from .sensing.camera_evidence import legacy_flags
 
 
 def _rotate(img, deg):
@@ -33,6 +34,7 @@ class CameraDetectNode(Node):
         self.declare_parameter('fps', 8.0)
         self.declare_parameter('void_frac', 0.12)
         self.declare_parameter('obst_frac', 0.35)
+        self.declare_parameter('region_min_area_fraction', .0005)
         self.declare_parameter('hits', 2)
         self.declare_parameter('warmup_frames', 12)
         self.declare_parameter('rotate_deg', 180)
@@ -99,16 +101,18 @@ class CameraDetectNode(Node):
 
     def tick(self):
         if self._cam is None:
-            self.cliff_pub.publish(Bool(data=False))
-            self.block_pub.publish(Bool(data=False))
+            self.cliff_pub.publish(Bool(data=self._cliff))
+            self.block_pub.publish(Bool(data=True))
             return
         capture_stamp = self.get_clock().now().nanoseconds*1e-9
         try:
             bgr = self._cam.capture_array('main')
         except Exception as exc:
             self.get_logger().warn(f'capture failed: {exc}', throttle_duration_sec=2.0)
+            self.block_pub.publish(Bool(data=True))
             return
         if bgr is None or bgr.ndim != 3:
+            self.block_pub.publish(Bool(data=True))
             return
         bgr = _rotate(bgr, self.get_parameter('rotate_deg').value)
         self._publish_front(bgr)
@@ -117,14 +121,18 @@ class CameraDetectNode(Node):
             floor_hsv=self._floor_hsv,
             void_frac=float(self.get_parameter('void_frac').value),
             obst_frac=float(self.get_parameter('obst_frac').value),
+            region_min_area_fraction=float(self.get_parameter('region_min_area_fraction').value),
         )
         if res['floor_hsv'] is not None:
             self._floor_hsv = res['floor_hsv']
+        res['cliff'], res['blocked'] = legacy_flags(res, self._cliff)
+        if not res['quality']['valid']:
+            self._blocked = True
 
-        self._warmup += 1
+        self._warmup += int(res['quality']['valid'])
         if self._warmup < int(self.get_parameter('warmup_frames').value):
-            self.cliff_pub.publish(Bool(data=False))
-            self.block_pub.publish(Bool(data=False))
+            self.cliff_pub.publish(Bool(data=self._cliff))
+            self.block_pub.publish(Bool(data=True))
             return
         need = int(self.get_parameter('hits').value)
         self._cliff_hits = self._cliff_hits + 1 if res['cliff'] else 0
@@ -144,7 +152,9 @@ class CameraDetectNode(Node):
         self.observation_pub.publish(String(data=json.dumps(dict(
             stamp=capture_stamp,
             blocked=bool(self._blocked), cliff=bool(self._cliff),
-            side=float(res['side']), source='onboard_camera_pixels'))))
+            side=float(res['side']), source='onboard_camera_pixels', detector='floor_foreground_v2',
+            quality=res['quality'], regions=res['regions'], region_count=res['region_count'],
+            regions_truncated=res['regions_truncated'], image_size=[int(bgr.shape[1]),int(bgr.shape[0])]))))
         cols = res['cols']
         mcols = res.get('mid_cols', cols)
         self.dbg_pub.publish(
