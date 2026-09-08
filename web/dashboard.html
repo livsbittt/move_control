@@ -188,6 +188,11 @@ main { flex:1; min-height:0; display:grid; gap:0;
                     background:rgba(208,59,59,0.07); }
 .btnrow { display:flex; gap:6px; }
 .btnrow button { flex:1; }
+.act label { display:block; margin:9px 0 4px; }
+.act select, .act input[type="number"] { width:100%; box-sizing:border-box;
+  background:var(--act-2); color:var(--ink); border:1px solid var(--border);
+  border-radius:6px; padding:8px; font:inherit; }
+#navsessionstart { margin-top:10px; width:100%; }
 .btnrow + .btnrow { margin-top:6px; }
 button { background:var(--act-2); color:var(--ink);
          border:1px solid var(--border); border-radius:8px;
@@ -453,12 +458,29 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline:2px s
         <div class="sub first">
           <h4>지도 기반</h4>
           <p class="hint" id="navready" role="status">지도와 위치 확인 중…</p>
+          <label for="navstrategy">탐색 방법</label>
+          <select id="navstrategy">
+            <option value="gain">정보량 우선 · 새 영역 / 이동 거리</option>
+            <option value="nearest">가까운 곳 우선 · 짧은 경로</option>
+            <option value="coverage">영역 순회 · 지그재그</option>
+          </select>
+          <p class="hint">선택한 목표까지는 A*로 경로를 계산합니다. 좁은 통로의 안전 검사와 회복 동작은 공통으로 적용합니다.</p>
+          <label for="navduration">전체 제한 시간 (초, 10–3600)</label>
+          <input id="navduration" type="number" min="10" max="3600" value="600" step="1">
+          <label for="navstall">이동 정체 제한 (초, 10–600)</label>
+          <input id="navstall" type="number" min="10" max="600" value="90" step="1">
+          <p class="hint">대기·회복을 포함한 실제 시간입니다. 정체 제한 동안 2cm 이상 이동하지 못하면 정지합니다. 브라우저를 닫아도 제한은 유지됩니다.</p>
+          <button type="button" id="navsessionstart" disabled>선택한 방법으로 시작</button>
+          <p class="hint" id="navsessionstatus" role="status">실행 상태 확인 중…</p>
+          <p class="hint" id="navsessionerror" role="alert"></p>
+          <details><summary>시간 제한 없는 기존 실행</summary>
           <div class="btnrow">
             <button type="button" id="navexplore" data-post="/wander"
                     data-val="explore" disabled>자동 탐색</button>
             <button type="button" id="navcoverage" data-post="/wander"
                     data-val="coverage" disabled>영역 순회</button>
           </div>
+          </details>
         </div>
         <div class="sub">
           <h4>센서 회피</h4>
@@ -767,6 +789,7 @@ function renderMapping(control) {
     control.paused === false ? '지도 수집 중' : '매핑 상태 확인 중…');
 }
 function renderNavigation(s) {
+  renderNavigationSession(s);
   const planningBlocked = s && (s.gstate || '').includes('robot inside obstacle clearance');
   const reason = !s ? '로봇 연결 대기' : s.estop !== false ? '비상정지 상태' :
     !s.map || !s.map_control || s.map_control.paused !== false ? '매핑을 재개해 주세요' :
@@ -795,6 +818,41 @@ function renderNavigation(s) {
     ? '보정 유지 · 센서 재확인 중' + (s.calibration.message ? ' · ' + s.calibration.message : '')
     : '자동 보정을 완료해 주세요';
   setTxt('navready', reason || (!calibrationReady(s) ? calibrationWait : '') || '준비됨 · 모드를 고르면 주행합니다');
+}
+function renderNavigationSession(s) {
+  const session = s && s.navigation_session;
+  const fresh = !!(s && s.navigation_session_fresh && session);
+  const active = fresh && session.active;
+  if (active) setTxt('navsessionerror', '');
+  $('navsessionstart').disabled = !fresh || active || !calibrationReady(s) ||
+    s.estop !== false || !String(s.wander || '').startsWith('stop') ||
+    !s.pose_available || !s.map || !s.map_control || s.map_control.paused !== false;
+  ['navstrategy', 'navduration', 'navstall'].forEach(id => { $(id).disabled = !!active; });
+  if (!fresh) { setTxt('navsessionstatus', '실행 상태 수신 불가 · 로봇 노드 연결 확인'); return; }
+  const labels = {gain:'정보량 우선', nearest:'가까운 곳 우선', coverage:'영역 순회'};
+  const reasons = {idle:'대기', running:'실행 중', stopped:'사용자 또는 제어 정지',
+    interrupted:'안전 조건 변경으로 중단', time_limit:'전체 시간 제한으로 정지',
+    no_translation:'이동 정체 제한으로 정지', clock_invalid:'시간 정보 오류로 정지'};
+  const options = session.options;
+  setTxt('navsessionstatus', (reasons[session.reason] || session.reason) + (options ?
+    ` · 적용: ${labels[options.strategy]} · 경과 ${Math.floor(session.elapsed_s)}초 / ${options.duration_s}초 · 남은 ${Math.ceil(session.remaining_s)}초` : ''));
+}
+async function startNavigationSession() {
+  if ($('navsessionstart').disabled) return;
+  const options = {strategy:$('navstrategy').value,
+    duration_s:Number($('navduration').value), stall_s:Number($('navstall').value)};
+  if (!Number.isFinite(options.duration_s) || options.duration_s < 10 || options.duration_s > 3600 ||
+      !Number.isFinite(options.stall_s) || options.stall_s < 10 || options.stall_s > 600 || options.stall_s > options.duration_s) {
+    setTxt('navsessionerror', '시간 범위를 확인하세요. 정체 제한은 전체 제한 이하여야 합니다.'); return;
+  }
+  $('navsessionstart').disabled = true;
+  setTxt('navsessionerror', '시작 요청 전송 중 · 적용 상태를 확인합니다.');
+  try {
+    const response = await fetch(API + '/navigation/start', {method:'POST', body:JSON.stringify(options)});
+    if (!response.ok) { const result = await response.json(); throw new Error(result.error || '시작 요청 실패'); }
+    setTxt('navsessionerror', '요청 전송됨 · 아래 실행 상태가 바뀌는지 확인하세요.');
+    await poll();
+  } catch (error) { setTxt('navsessionerror', error.message); }
 }
 async function mappingAction(action) {
   if (S.mappingBusy || $(action === 'reset' ? 'mapreset' : action === 'pause' ? 'mappingtoggle' : 'mapresume').disabled) return;
@@ -1521,6 +1579,7 @@ setInterval(() => {
 // ---- boot: bindings replace the old inline handlers ---------------------------
 document.querySelectorAll('[data-post]').forEach(b =>
   b.addEventListener('click', () => post(b.dataset.post, b.dataset.val)));
+$('navsessionstart').addEventListener('click', startNavigationSession);
 document.querySelectorAll('[data-calibration]').forEach(button =>
   button.addEventListener('click', () => calibrationAction(button.dataset.calibration)));
 document.querySelectorAll('[data-hold]').forEach(b => {

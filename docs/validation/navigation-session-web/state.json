@@ -1,0 +1,59 @@
+{
+  "wander": "stop:time_limit",
+  "map": [
+    10,
+    10,
+    0.02,
+    0,
+    0,
+    1
+  ],
+  "pose": [
+    0.1,
+    0.1,
+    0
+  ],
+  "pose_available": true,
+  "map_control": {
+    "available": true,
+    "paused": false
+  },
+  "estop": false,
+  "calibration_ready": true,
+  "calibration": {
+    "ready": true,
+    "phase": "ready",
+    "settings_applied": true,
+    "sensors": {},
+    "message": "WEB / ROS TEST FIXTURE — no motor plant"
+  },
+  "gstate": "Paused simulation clock test; synthetic readiness",
+  "mode": "STOP",
+  "navigation_session": {
+    "active": false,
+    "reason": "time_limit",
+    "options": {
+      "strategy": "nearest",
+      "duration_s": 10,
+      "stall_s": 10
+    },
+    "elapsed_s": 10.065696953999577,
+    "remaining_s": 0.0,
+    "clock": "wall_monotonic"
+  },
+  "navigation_session_received": 107762.081625913,
+  "calibration_received": 107762.038361364,
+  "navigation_session_fresh": true,
+  "battery": {
+    "available": false,
+    "reason": "missing"
+  },
+  "motion_limits_fresh": false,
+  "safety_profile": {
+    "valid": false,
+    "reason": "stale"
+  },
+  "safety_decision": null,
+  "wander_sequence": 3,
+  "runtime_id": "da8a65b01dfb44baa5fde67ce5820a87"
+}

@@ -1,0 +1,41 @@
+[
+  {
+    "kind": "goal",
+    "value": "explore_nearest",
+    "wall_s": 107746.312196267,
+    "ros_ns": 0
+  },
+  {
+    "kind": "raw",
+    "value": [
+      0.0,
+      0.0
+    ],
+    "wall_s": 107746.313249014,
+    "ros_ns": 0
+  },
+  {
+    "kind": "goal",
+    "value": "stop",
+    "wall_s": 107756.444162665,
+    "ros_ns": 0
+  },
+  {
+    "kind": "raw",
+    "value": [
+      0.0,
+      0.0
+    ],
+    "wall_s": 107756.447181254,
+    "ros_ns": 0
+  },
+  {
+    "kind": "raw",
+    "value": [
+      0.0,
+      0.0
+    ],
+    "wall_s": 107756.452735534,
+    "ros_ns": 0
+  }
+]

@@ -2,11 +2,13 @@
 """Wander ROS node. Subjects: senses, judge, contact, motion, idle."""
 import math
 import time
+import json
 
 import rclpy
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
+from rclpy.clock import Clock, ClockType
 from rclpy.qos import DurabilityPolicy, QoSProfile, ReliabilityPolicy
 from std_msgs.msg import Bool, Float32, String, UInt16MultiArray
 
@@ -14,6 +16,7 @@ from ..sensing.body import URDF_RADIUS
 from ..control.modes import pick_mode
 from ..control.recover import ExitSteer
 from ..planning.goals import parse_goal_cmd
+from ..control.navigation_session import NavigationSession, STRATEGIES, validate_options
 from .contact import Contact
 from .judge import Judge
 from .motion import Motion
@@ -25,6 +28,13 @@ class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
 
     def __init__(self):
         super().__init__('wander_node')
+        self.navigation_session = NavigationSession()
+        self.session_final_v = 0.
+        self.session_final_received = None
+        self.session_pub = self.create_publisher(String, '/navigation/session', 10)
+        self.session_clock = Clock(clock_type=ClockType.STEADY_TIME)
+        self.create_subscription(Twist, '/cmd_vel', self._on_session_velocity, 10)
+        self.session_timer = self.create_timer(.1, self._tick_session, clock=self.session_clock)
         self.declare_parameter('cmd_topic', '/cmd_vel_raw')
         self.declare_parameter('odom_topic', '/odom')
         self.declare_parameter('vmax', 0.014)
@@ -234,14 +244,62 @@ class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
         return (self.now() - self.t0).nanoseconds * 1e-9
 
     def on_enable(self, msg: Bool):
+        if self.navigation_session.active and msg.data:
+            return
         was_navigation = self.navigation_mode is not None
         self._cancel_navigation()
         if was_navigation:
             self.enabled = False
         self._set_enabled(bool(msg.data))
 
+    def _tick_session(self):
+        session = self.navigation_session
+        if session.active:
+            if self.estop or not self.calibration_ok() or not self.enabled:
+                session.finish('interrupted')
+                self._set_enabled(False)
+                self._publish(Twist(), 'stop:session_interrupted')
+            else:
+                pose = (self.odom_x, self.odom_y) if self._odom_fresh() else None
+                now = self._session_now()
+                translating = (self.session_final_received is not None and
+                    0 <= now-self.session_final_received <= .2 and
+                    math.isfinite(self.session_final_v) and abs(self.session_final_v) > .0001)
+                reason = session.tick(now, pose, translating)
+                if reason:
+                    self._set_enabled(False)
+                    self.stop_reason = reason
+                    self._publish(Twist(), 'stop:' + reason)
+        self.session_pub.publish(String(data=json.dumps(session.snapshot())))
+
+    def _session_now(self):
+        # The Gazebo adapter replaces this module's time helper with sim time.
+        # A dedicated steady clock keeps operator budgets independent of /clock.
+        return self.session_clock.now().nanoseconds * 1e-9
+
+    def _on_session_velocity(self, msg):
+        # Read-only final safety output: offset-pivot spin can move base_link
+        # without any requested translation, so XY alone is not progress.
+        self.session_final_v = msg.linear.x
+        self.session_final_received = self._session_now()
+
     def on_cmd(self, msg: String):
         cmd = msg.data.strip().lower()
+        if cmd.startswith('session:'):
+            try:
+                options = validate_options(json.loads(cmd.partition(':')[2]))
+            except (ValueError, TypeError):
+                return
+            if (self.navigation_session.active or self.enabled or self.estop
+                    or not self.calibration_ok()):
+                return
+            mode = 'coverage' if options['strategy'] == 'coverage' else 'explore'
+            self._start_navigation(mode, STRATEGIES[options['strategy']])
+            self.navigation_session.start(options, self._session_now())
+            return
+        # A competing start must not silently remove an active time budget.
+        if self.navigation_session.active and cmd not in ('stop', 'halt', 'off'):
+            return
         if cmd not in ('stop', 'halt', 'off') and not self.calibration_ok():
             self.stop_reason = 'calibration_required'
             self._set_enabled(False)
@@ -269,6 +327,7 @@ class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
             self.stop_reason = 'calibration_required'
             enabled = False
         if not enabled:
+            self.navigation_session.finish('stopped')
             self._cancel_navigation()
             self.enabled = False
             self._stop_n = 0

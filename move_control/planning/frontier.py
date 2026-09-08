@@ -95,8 +95,8 @@ def _reachable_costs(grid, start):
 
 
 def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
-              min_route_m=0.08, max_options=3, exclude=None):
-    """Best frontier by unknown gained per metre driven (size / length).
+              min_route_m=0.08, max_options=3, exclude=None, strategy='gain'):
+    """Choose by size/length (gain) or 1/length (nearest), after clearance.
 
     Every reachable frontier is scored, not just the biggest: a small
     frontier next door can beat a big one across the maze. Returns
@@ -112,6 +112,8 @@ def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
     already sits on reveals nothing new, and returning it as the point to go
     would just spin the replan loop.
     """
+    if strategy not in ('gain','nearest'):
+        raise ValueError('frontier strategy must be gain or nearest')
     exclude = exclude or set()
     best_safe = None
     best_raw = None
@@ -157,7 +159,7 @@ def pick_goal(m, start, min_size=6, clear_m=0.06, retry_clear_m=None,
             tx, ty = route['points'][-1]
             cand = {'kind': 'frontier', 'x': tx, 'y': ty,
                     'size': f['size'], 'route': route, 'clear_m': cm,
-                    'score': f['size'] / max(route['length'], 1e-6)}
+                    'score': (f['size'] if strategy=='gain' else 1.) / max(route['length'], 1e-6)}
             options.append(cand)
             if pass_best is None or cand['score'] > pass_best['score']:
                 pass_best = cand

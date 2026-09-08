@@ -12,6 +12,16 @@ from move_control.goal_node import GoalNode, grid_clearance
 
 
 class GoalRouteTest(unittest.TestCase):
+    def test_nearest_command_selects_strategy_and_regular_explore_restores_gain(self):
+        self.node.on_cmd(String(data='explore_nearest'))
+        self.assertEqual(self.node.mode, 'explore')
+        self.assertEqual(self.node.brain.frontier_strategy, 'nearest')
+        self.assert_empty_route()
+        self.node.on_cmd(String(data='coverage'))
+        self.assertEqual(self.node.mode, 'coverage')
+        self.node.on_cmd(String(data='explore'))
+        self.assertEqual(self.node.brain.frontier_strategy, 'gain')
+
     @classmethod
     def setUpClass(cls):
         rclpy.init(domain_id=218)

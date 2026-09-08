@@ -12,6 +12,30 @@ from move_control.wander.node import WanderNode
 
 
 class CalibrationGateTest(unittest.TestCase):
+    def test_session_budget_stops_raw_and_planner_without_browser(self):
+        from unittest.mock import patch
+        self.node.on_calibration(Bool(data=True))
+        self.node.estop = False
+        self.node._set_enabled(False)
+        self.node.navigation_goal_pub = Mock()
+        self.node.pub = Mock()
+        payload = 'session:' + json.dumps(dict(strategy='nearest', duration_s=10, stall_s=10))
+        with patch('move_control.wander.node.time.monotonic', return_value=100), patch.object(self.node, '_session_now', return_value=100):
+            self.node.calibration_received = 100
+            self.node.on_cmd(String(data=payload))
+        self.assertTrue(self.node.navigation_session.active)
+        self.assertEqual(self.node.navigation_goal_pub.publish.call_args.args[0].data, 'explore_nearest')
+        self.node.on_cmd(String(data='coverage'))
+        self.assertEqual(self.node.navigation_session.options['strategy'], 'nearest')
+        with patch('move_control.wander.node.time.monotonic', return_value=110), patch.object(self.node, '_session_now', return_value=110):
+            self.node.calibration_received = 110
+            self.node._tick_session()
+        self.assertFalse(self.node.enabled)
+        self.assertEqual(self.node.navigation_session.reason, 'time_limit')
+        self.assertEqual(self.node.navigation_goal_pub.publish.call_args.args[0].data, 'stop')
+        output = self.node.pub.publish.call_args.args[0]
+        self.assertEqual((output.linear.x, output.angular.z), (0., 0.))
+
     def test_arrival_once_per_endpoint_resets_stuck_and_new_goal_rearms(self):
         self.node.on_calibration(Bool(data=True))
         self.node.estop = False

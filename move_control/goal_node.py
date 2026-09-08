@@ -281,7 +281,11 @@ class GoalNode(Node):
             self._map_reset_ns = self.get_clock().now().nanoseconds
             self._clear_route('map reset; stopped')
             return
-        if cmd in ('explore', 'coverage', 'stop'):
+        if cmd in ('explore', 'explore_nearest', 'coverage', 'stop'):
+            if cmd in ('explore','explore_nearest'):
+                self.brain.frontier_strategy='nearest' if cmd=='explore_nearest' else 'gain'
+            if cmd=='explore_nearest':
+                cmd='explore'
             if cmd != 'stop':
                 self.brain.restart_recovery()
             self.mode = cmd
@@ -302,7 +306,7 @@ class GoalNode(Node):
                 f'manual goal -> ({xy[0]:.2f}, {xy[1]:.2f})')
             return
         self.get_logger().warn(
-            f'unknown /goal/cmd {cmd!r} (explore|coverage|stop|x,y)')
+            f'unknown /goal/cmd {cmd!r} (explore|explore_nearest|coverage|stop|x,y)')
 
     def pose(self):
         """Only a fresh map->base transform authorizes map-frame routes."""

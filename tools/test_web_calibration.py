@@ -12,6 +12,23 @@ from move_control import web_node as web
 
 
 class CalibrationHttpTest(unittest.TestCase):
+    def test_navigation_session_requires_fresh_idle_and_valid_budgets(self):
+        payload = json.dumps(dict(strategy='nearest', duration_s=60, stall_s=30))
+        self.assertEqual(self.post('/navigation/start', payload), 409)
+        web.STATE.update(calibration_ready=True, calibration={'ready': True},
+                         calibration_received=time.monotonic(), estop=False,
+                         wander='stop', navigation_session={'active':False},
+                         navigation_session_received=time.monotonic())
+        self.assertEqual(self.post('/navigation/start', payload), 202)
+        command = self.node.wander_pub.publish.call_args.args[0].data
+        self.assertEqual(json.loads(command.partition(':')[2])['strategy'], 'nearest')
+        self.assertEqual(self.post('/navigation/start', payload.replace('60', 'true')), 400)
+        web.STATE['navigation_session']['active'] = True
+        self.assertEqual(self.post('/navigation/start', payload), 409)
+        web.STATE['navigation_session']['active'] = False
+        web.STATE['navigation_session_received'] -= 2
+        self.assertEqual(self.post('/navigation/start', payload), 409)
+
     def test_display_limits_come_from_valid_effective_profile(self):
         packet = {'valid': True, 'revision': 'test',
                   'effective': {'stop': .15, 'clear': .17, 'radius': .09}}

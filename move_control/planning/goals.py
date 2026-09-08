@@ -38,7 +38,10 @@ class GoalBrain:
                  stall_min_dist=0.15, blacklist_plans=20,
                  escape_clear_m=0.08, probe_when_done=False,
                  retry_unreachable_wp=False, manual_ttl_plans=120,
-                 start_escape_clear_m=0.0, start_escape_distance_m=.08):
+                 start_escape_clear_m=0.0, start_escape_distance_m=.08, frontier_strategy='gain'):
+        if frontier_strategy not in ('gain','nearest'):
+            raise ValueError('frontier strategy must be gain or nearest')
+        self.frontier_strategy=frontier_strategy
         self.start_escape_clear_m = float(start_escape_clear_m)
         self.start_escape_distance_m = float(start_escape_distance_m)
         self.max_options = max(1, int(max_options))
@@ -209,7 +212,7 @@ class GoalBrain:
         alt = pick_goal(m, pose, min_size=self.min_size,
                         clear_m=self.escape_clear_m,
                         retry_clear_m=self.clear_m,
-                        exclude=set(self._blacklist))
+                        exclude=set(self._blacklist),strategy=self.frontier_strategy)
         if alt is None:
             return None, (f'stall: frontier {cell} benched, '
                           f'no alternative left')
@@ -484,7 +487,7 @@ class GoalBrain:
                 g = pick_goal(m, pose, min_size=self.min_size,
                           clear_m=clear_first,
                           retry_clear_m=clear_retry,
-                          exclude=set(self._blacklist) | failed | completed)
+                          exclude=set(self._blacklist) | failed | completed,strategy=self.frontier_strategy)
             if g is not None:
                 g, prefix = self._watchdog(m, pose, g)
                 if g is None:

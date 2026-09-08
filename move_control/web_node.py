@@ -14,6 +14,7 @@ Backend API (all CORS *, JSON contract unchanged since v1):
   POST /cmd          explore|coverage|stop        -> /goal/cmd
   POST /goal         "x,y" (map metres)           -> /goal/cmd (manual goal)
   POST /wander       start|stop|explore|coverage  -> /wander/cmd
+  POST /navigation/start {strategy,duration_s,stall_s} -> bounded /wander/cmd session
   POST /estop        stop|release                 -> /estop/cmd
   POST /map/reset    stop commands + reset SLAM, paused; clear map caches
   POST /map/resume   resume SLAM measurements only (no motion commands)
@@ -33,6 +34,7 @@ import math
 import os
 import threading
 import time
+from move_control.control.navigation_session import validate_options
 import http.server
 import uuid
 
@@ -403,6 +405,7 @@ class WebNode(Node):
         self.create_timer(1.0, self.resolve_teleop)
         self.create_subscription(String, '/robot/mode', self.on_mode, 10)
         self.create_subscription(String, '/wander/state', self.on_wander, 10)
+        self.create_subscription(String, '/navigation/session', self.on_navigation_session, 10)
         self.create_subscription(String, '/safety/motion_limits', self.on_motion_limits, 10)
         self.create_subscription(
             String, '/goal_node/state', self.on_gstate, 10)
@@ -616,6 +619,17 @@ class WebNode(Node):
             STATE[K_WANDER] = msg.data
             STATE['wander_sequence'] = STATE.get('wander_sequence', 0)+1
 
+    def on_navigation_session(self, msg):
+        try:
+            status = json.loads(msg.data)
+            if not isinstance(status, dict) or type(status.get('active')) is not bool:
+                raise ValueError('Invalid session')
+        except (ValueError, TypeError):
+            return
+        with LOCK:
+            STATE['navigation_session'] = status
+            STATE['navigation_session_received'] = time.monotonic()
+
     def on_gstate(self, msg):
         with LOCK:
             STATE[K_GSTATE] = msg.data
@@ -783,6 +797,7 @@ def _handler(node, html, api):
                 return
             if path == '/state.json':
                 with LOCK:
+                    STATE['navigation_session_fresh'] = 0 <= time.monotonic()-STATE.get('navigation_session_received', -1e9) <= 1.5
                     STATE['battery'] = battery_snapshot(STATE.get('battery_sample', {}), STATE.get('battery_received'), time.monotonic())
                     STATE['motion_limits_fresh'] = 0 <= time.monotonic()-STATE.get('motion_limits_received', -1e9) <= .75
                     if time.monotonic() - STATE.get('calibration_received', -1e9) > 3.0:
@@ -875,6 +890,26 @@ def _handler(node, html, api):
                 self.wfile.write(json.dumps(result).encode())
                 return
             verb = POST_VERBS.get(self.path)
+            if self.path == '/navigation/start':
+                try:
+                    options = validate_options(json.loads(body))
+                except (ValueError, TypeError) as error:
+                    self.send_response(400)
+                    self.send_header('Content-Type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(json.dumps({'error': str(error)}).encode())
+                    return
+                with LOCK:
+                    session = STATE.get('navigation_session', {})
+                    fresh = 0 <= time.monotonic()-STATE.get('navigation_session_received', -1e9) <= 1.5
+                    stopped = str(STATE.get(K_WANDER, '')).startswith('stop')
+                if not ready or not released or not fresh or not stopped or session.get('active') is not False:
+                    reject('Fresh idle navigation, stopped driving, calibration and released emergency stop required')
+                    return
+                node.wander_pub.publish(String(data='session:' + json.dumps(options)))
+                self.send_response(202)
+                self.end_headers()
+                return
             if verb:
                 attr, allowed = verb
                 if body in allowed:
