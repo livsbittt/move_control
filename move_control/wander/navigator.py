@@ -11,6 +11,7 @@ from tf2_ros import Buffer, TransformException, TransformListener
 from ..control.path_follow import ProgressGuard, follow_path
 from ..control.recover import hazard_action
 from ..control.route_recovery import RouteRecovery
+from ..control.rotation_relocation import RotationRelocation
 from ..sensing.pose import planar_pose
 
 
@@ -28,6 +29,7 @@ class Navigator:
         self.navigation_arrived_target = None
         self.navigation_progress = ProgressGuard()
         self.navigation_recovery = RouteRecovery()
+        self.rotation_relocation = RotationRelocation()
         self.navigation_tf = Buffer()
         self.navigation_listener = TransformListener(self.navigation_tf, self)
         self.navigation_goal_pub = self.create_publisher(String, '/goal/cmd', 10)
@@ -47,6 +49,7 @@ class Navigator:
         self.navigation_arrived_target = None
         self.navigation_progress.reset()
         self.navigation_recovery.reset()
+        self.rotation_relocation.reset()
 
     def _start_navigation(self, mode, goal_command=None):
         self._cancel_navigation()
@@ -141,6 +144,42 @@ class Navigator:
             self._publish(Twist(), f'route_{self.navigation_mode}:awaiting_next_goal')
             return
         localization_ok = pose is not None and 0 <= tf_age <= float(self.get_parameter('route_tf_timeout').value)
+        limits = self.motion_limits
+        suggestion = limits.get('rotation_recovery_m')
+        relocation = self.rotation_relocation
+        direction = relocation.direction if relocation.active else (
+            1 if isinstance(suggestion, (int,float)) and suggestion > 0 else -1)
+        relocation_safe = (not blocked and localization_ok and self._odom_fresh() and
+            self._motion_limits_fresh() and limits.get('rotation_scan_observed') is True and
+            (self._can_reverse() if direction < 0 else not (self.blocked or self._on_wall())))
+        capsule = limits.get('rotation_translation_limits_m')
+        remaining = (max(0.,relocation.target_distance-math.dist(
+            (self.odom_x,self.odom_y),relocation.start_pose[:2])) if relocation.active else
+            abs(suggestion) if isinstance(suggestion,(int,float)) else math.inf)
+        available = (capsule[int(direction < 0)] if isinstance(capsule,(list,tuple)) and len(capsule)==2 else None)
+        relocation_safe = bool(relocation_safe and isinstance(available,(int,float)) and
+            math.isfinite(available) and available >= remaining and available > 0.)
+        # Complete the initial hysteresis distance even after crossing the bare
+        # rotation threshold; a 1 mm nudge must not repeatedly relatch this state.
+        margin = limits.get('rotation_pivot_clearance_m')
+        restored = (limits.get('can_rotate') is True and isinstance(margin,(int,float)) and margin >= .013)
+        if relocation.active and limits.get('can_rotate') is True and relocation_safe:
+            suggestion = relocation.direction*relocation.target_distance
+        relocation_v, relocation_reason = relocation.update(now,
+            (self.odom_x,self.odom_y,self.odom_yaw) if self._odom_fresh() else None,
+            relocation_safe, restored, suggestion, bool(w) and limits.get('can_rotate') is False)
+        if relocation_v is not None:
+            if relocation_reason in ('rotation_relocation_clear','rotation_relocation_distance'):
+                self.navigation_progress.reset()
+                self.navigation_recovery.waiting = False
+                self.navigation_recovery.failed_goal = self.navigation_recovery.failed_exit = None
+                self.navigation_recovery.progress_since = now
+                self.navigation_recovery.blocked_since = None
+            command = Twist()
+            command.linear.x = relocation_v
+            self.state = 'forward' if relocation_v > 0 else 'backup' if relocation_v < 0 else 'wait'
+            self._publish(command, f'route_{self.navigation_mode}:{relocation_reason}')
+            return
         self.navigation_progress.pause(now, not localization_ok)
         if self.navigation_progress.check(now, pose, bool(v or w)):
             v, w, reason = 0.0, 0.0, 'stalled_restart_required'

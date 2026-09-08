@@ -27,6 +27,68 @@ def pivot_clearance(points, center, pivot_radius):
         return None
 
 
+def suggest_rotation_translation(points, center, pivot_radius, body_radius, max_distance=.03):
+    """Suggest a short straight relocation; the caller owns actuation authority.
+
+    Full scan freshness/coverage and independent hazards remain caller gates.
+    The exact point-to-segment distance bounds the entire translating body
+    circle, including its initial position, with the unchanged 10 mm stand-off.
+    """
+    try:
+        cx,cy = center
+        obstacles = [(float(x),float(y)) for x,y in points]
+        if (not obstacles or not all(math.isfinite(v) for v in (cx,cy,pivot_radius,body_radius,max_distance)) or
+                not all(math.isfinite(v) for p in obstacles for v in p) or
+                pivot_radius <= 0 or body_radius <= 0 or not 0 < max_distance <= .03):
+            return None
+        current = pivot_clearance(obstacles,center,pivot_radius)
+        if current is None or current > .010:
+            return None
+        for step in range(1, min(6,int((max_distance+1e-12)/.005))+1):
+            candidates=[]
+            for direction in (-1.,1.):
+                distance=direction*step*.005
+                low,high=min(0.,distance),max(0.,distance)
+                # Capsule sweep: clamp each obstacle onto the entire x segment.
+                path_clearance=min(math.hypot(x-min(high,max(low,x)),y) for x,y in obstacles)
+                if path_clearance <= body_radius+.010:
+                    continue
+                margin=pivot_clearance(obstacles,(cx+distance,cy),pivot_radius)
+                if margin is not None and margin > .013:
+                    candidates.append((margin,distance))
+            if candidates:
+                return max(candidates)[1]
+        return None
+    except (TypeError,ValueError,OverflowError):
+        return None
+
+
+def straight_translation_limits(points, body_radius, max_distance=.03):
+    """Forward/reverse clear travel for a circle plus 10 mm stand-off.
+
+    Exact ray-circle entry distance bounds every intermediate position. Caller
+    must supply a fresh full scan and recheck these limits while moving.
+    """
+    try:
+        obstacles=[(float(x),float(y)) for x,y in points]
+        if (not obstacles or not math.isfinite(body_radius) or body_radius <= 0 or
+                not math.isfinite(max_distance) or not 0 < max_distance <= .03 or
+                not all(math.isfinite(v) for p in obstacles for v in p)):
+            return None
+        radius=body_radius+.010
+        limits=[float(max_distance),float(max_distance)]
+        for x,y in obstacles:
+            if math.hypot(x,y) <= radius:
+                return (0.,0.)
+            if abs(y) <= radius:
+                entry=abs(x)-math.sqrt(max(0.,radius*radius-y*y))
+                slot=int(x<0)
+                limits[slot]=min(limits[slot],max(0.,entry-.0001))
+        return tuple(limits)
+    except (TypeError,ValueError,OverflowError):
+        return None
+
+
 def validate_envelope(report, radius_floor=0.):
     """Recompute a sensor-consistent estimate; this is not sensor authentication."""
     try:

@@ -10,6 +10,53 @@ from move_control.wander.node import WanderNode
 
 
 class RecoveryIntegrationTest(unittest.TestCase):
+    def test_blocked_turn_uses_bounded_straight_sensor_suggestion(self):
+        node=WanderNode()
+        try:
+            node.pub=Mock(); node.navigation_goal_pub=Mock()
+            node.navigation_mode='explore'
+            node.navigation_route=[(0.,0.),(0.,1.)]
+            node._ir_ready=Mock(return_value=True)
+            node._on_wall=Mock(return_value=False)
+            node._can_reverse=Mock(return_value=True)
+            node._odom_fresh=Mock(return_value=True)
+            node._motion_limits_fresh=Mock(return_value=True)
+            node.blocked=node.estop=node.pickup=node.tilt=node.cliff=False
+            node.motion_limits={'can_rotate':False,'rotation_recovery_m':-.02,
+                'rotation_scan_observed':True,'rotation_pivot_clearance_m':.009,
+                'rotation_translation_limits_m':[.03,.03]}
+            node.navigation_tf=Mock()
+            def tick(t,x):
+                node.now=Mock(return_value=Time(seconds=t))
+                transform=TransformStamped()
+                transform.header.stamp=Time(seconds=t).to_msg()
+                transform.transform.rotation.w=1.
+                transform.transform.translation.x=x
+                node.odom_x=x; node.odom_y=node.odom_yaw=0.
+                node.navigation_tf.lookup_transform.return_value=transform
+                node.navigation_received=node.navigation_stamp=t
+                node._tick_navigation()
+                return node.pub.publish.call_args.args[0]
+            out=tick(100,0.)
+            self.assertEqual((out.linear.x,out.angular.z),(-.006,0.))
+            node.motion_limits.update(can_rotate=True,rotation_recovery_m=None,
+                                      rotation_pivot_clearance_m=.011)
+            self.assertEqual(tick(101,-.005).linear.x,-.006)
+            node.motion_limits['rotation_pivot_clearance_m']=.014
+            self.assertEqual(tick(102,-.015).linear.x,0.)
+            self.assertGreater(tick(103,-.015).angular.z,0.)
+            node.motion_limits.update(can_rotate=False,rotation_recovery_m=-.02)
+            tick(104,-.015)
+            self.assertFalse(node.rotation_relocation.active)
+            node.rotation_relocation.reset()
+            self.assertEqual(tick(200,0.).linear.x,-.006)
+            node.motion_limits.update(can_rotate=True,rotation_recovery_m=None,
+                                      rotation_pivot_clearance_m=.011,
+                                      rotation_translation_limits_m=[.03,.001])
+            self.assertEqual(tick(201,-.005).linear.x,0.)
+            self.assertFalse(node.rotation_relocation.active)
+        finally:node.destroy_node()
+
     @classmethod
     def setUpClass(cls):rclpy.init(domain_id=223)
     @classmethod

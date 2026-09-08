@@ -18,7 +18,7 @@ from ..sensing.body import URDF_RADIUS, use_radius
 from ..sensing.lidar import NOSE_YAW
 from ..sensing.localization import lease_ready
 from ..control.lidar_guard import lidar_blocked, lidar_can_rotate
-from ..control.rotation_envelope import pivot_clearance
+from ..control.rotation_envelope import pivot_clearance, suggest_rotation_translation, straight_translation_limits
 from .bumper import Bumper
 from .gate import Gate
 from .hazard import Hazard
@@ -368,6 +368,15 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
         rotation_trial = self.calibration_lease.rotation_trial_live(time.monotonic())
         if rotation_trial and (self.last_cmd.linear.x != 0. or abs(self.last_cmd.angular.z) > .06):
             can_rotate = False
+        relocation = None
+        relocation_limits = None
+        if (rotation_estimate is not None and not rotation_trial and lidar_ok and
+                getattr(self, 'lidar_rotation_observed', False)):
+            relocation_limits = straight_translation_limits(self.lidar_rotation_points, body_radius)
+        if (rotation_estimate is not None and not rotation_trial and lidar_ok and
+                getattr(self, 'lidar_rotation_observed', False) and not can_rotate):
+            relocation = suggest_rotation_translation(self.lidar_rotation_points,
+                rotation_estimate['center_m'], rotation_estimate['pivot_radius_m'], body_radius)
         self.motion_limits_pub.publish(String(data=json.dumps({
             'can_rotate': can_rotate,
             'front_stop_m': .043-self.lidar_mount[0]+.010 if footprint else self.stop_d,
@@ -381,6 +390,8 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence):
             'rotation_pivot_clearance_m': pivot_margin,
             'rotation_scan_observed': bool(getattr(self, 'lidar_rotation_observed', False)),
             'rotation_trial': rotation_trial,
+            'rotation_recovery_m': relocation,
+            'rotation_translation_limits_m': relocation_limits,
             'footprint_half_width_m': .077 if footprint else None,
             'forward_travel_m': travel[0] if footprint else None,
             'reverse_travel_m': travel[1] if footprint else None,

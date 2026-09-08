@@ -6,7 +6,7 @@ import unittest
 
 import numpy as np
 
-from move_control.control.rotation_envelope import RotationEnvelope, validate_envelope, pivot_clearance
+from move_control.control.rotation_envelope import RotationEnvelope, validate_envelope, pivot_clearance, suggest_rotation_translation, straight_translation_limits
 from move_control.sensing.scan_motion import match_motion, scan_points
 
 
@@ -37,6 +37,27 @@ def polygon_scan(polygon, pose, mount=(.012,-.008,0.)):
 
 
 class RotationEnvelopeTest(unittest.TestCase):
+    def test_straight_translation_limits_bound_capsule_and_initial_contact(self):
+        self.assertEqual(straight_translation_limits([[.1,0]],.1),(0.,0.))
+        forward,reverse=straight_translation_limits([[-.12,0]],.1)
+        self.assertEqual(forward,.03)
+        self.assertAlmostEqual(reverse,.0099)
+        forward,reverse=straight_translation_limits([[.125,.02]],.1)
+        self.assertAlmostEqual(forward,.125-math.sqrt(.11**2-.02**2)-.0001)
+        self.assertEqual(reverse,.03)
+        self.assertEqual(straight_translation_limits([[1,1]],.1),(.03,.03))
+        for points,radius in [([], .1),([[float('nan'),0]],.1),([[0,0]],-.1)]:
+            self.assertIsNone(straight_translation_limits(points,radius))
+
+    def test_translation_suggestion_restores_pivot_without_body_path_collision(self):
+        self.assertEqual(suggest_rotation_translation([[-.18,0]],[-.04,0],.1314,.1144),.005)
+        self.assertEqual(suggest_rotation_translation([[.14,0]],[0,0],.1314,.1144),-.005)
+        self.assertIsNone(suggest_rotation_translation([[-.18,0],[.126,0]],[-.04,0],.1314,.1144))
+        self.assertIsNone(suggest_rotation_translation([[0,.14]],[0,0],.1314,.1144))
+        self.assertIsNone(suggest_rotation_translation([[1,0]],[0,0],.1314,.1144))
+        self.assertIsNone(suggest_rotation_translation([[float('nan'),0]],[0,0],.1314,.1144))
+        self.assertIsNone(suggest_rotation_translation([[-.18,0]],[-.04,0],-.1,.1144))
+
     def test_angular_raycast_registration_recovers_offset_pivot(self):
         polygon=[[-.4,-.14],[.6,-.14],[.6,.4],[.2,.4],[.2,.14],[-.4,.14]]
         ref=polygon_scan(polygon,(0,0,0))
