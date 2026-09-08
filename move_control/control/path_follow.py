@@ -79,8 +79,16 @@ class PathFollower:
             selected=max(selected,retained)
         # A generated current-pose prefix can leave a tiny sharp-corner stub.
         # Reaching that vertex already satisfies the same 5mm corner tolerance.
+        reached=False
         while selected<len(route)-1 and math.dist(route[selected],pose[:2])<=.005:
             selected+=1
+            reached=True
+        if reached:
+            # A single next grid vertex can lie inside the offset pivot's
+            # orbit. Rebuild the outgoing lookahead, still stopping at its
+            # next real corner, rather than chasing that unreachable bearing.
+            outgoing=selected-1
+            selected=max(selected,outgoing+pursuit_index(route[outgoing:],pose[0],pose[1],kwargs.get('lookahead',.06)))
         self.route=tuple(tuple(p) for p in route)
         self.cursor=selected
         return follow_path(route,pose,_aim_index=selected,**kwargs)

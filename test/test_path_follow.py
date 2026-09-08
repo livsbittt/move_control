@@ -5,12 +5,45 @@ from move_control.control.path_follow import ProgressGuard, follow_path, PathFol
 
 
 class PathFollowTest(unittest.TestCase):
+    def test_actual_escape_with_refreshed_prefix_and_exact_offset_pivot_arrives(self):
+        follower=PathFollower()
+        route=[[-.221,-.177],[-.22,-.178],[-.24,-.178],[-.26,-.178],[-.28,-.178]]
+        pose=[-.221,-.177,.596]
+        pivot=(-.0398,-.0102)
+        signs=[]
+        for i in range(3000):
+            if i%100==0:route=[pose[:2]]+route[1:]
+            v,w,reason=follower.update(route,pose,route_age=0.,tf_age=0.)
+            if reason=='arrived':break
+            if abs(w)>.01:signs.append(1 if w>0 else -1)
+            angle=w*.02
+            c,s=math.cos(angle),math.sin(angle)
+            dx=(1-c)*pivot[0]+s*pivot[1]
+            dy=-s*pivot[0]+(1-c)*pivot[1]
+            if abs(w)>1e-12:
+                dx+=v/w*s;dy+=v/w*(1-c)
+            else:dx+=v*.02
+            pose[0]+=math.cos(pose[2])*dx-math.sin(pose[2])*dy
+            pose[1]+=math.sin(pose[2])*dx+math.cos(pose[2])*dy
+            pose[2]+=angle
+        self.assertEqual(reason,'arrived')
+        self.assertLess(i*.02,40.)
+        self.assertLess(sum(a!=b for a,b in zip(signs,signs[1:])),4)
+
     def test_persistent_follower_skips_reached_initial_stub(self):
         follower=PathFollower()
         route=[(-.221,-.177),(-.22,-.178),(-.24,-.178),(-.26,-.178),(-.28,-.178)]
         v,w,_=follower.update(route,(-.221,-.177,.596),route_age=0.,tf_age=0.)
         self.assertEqual(v,0.)
         self.assertGreater(w,0.)  # Turn towards west, not the 1.4mm southeast stub.
+
+    def test_skipping_stub_still_targets_next_unreached_real_corner(self):
+        follower=PathFollower()
+        route=[(0.,.001),(0.,0.),(.02,0.),(.02,.1)]
+        v,w,_=follower.update(route,(0.,0.,0.),route_age=0.,tf_age=0.)
+        self.assertGreater(v,0.)
+        self.assertEqual(w,0.)
+        self.assertEqual(follower.cursor,2)
 
     def test_persistent_corner_survives_prefix_refresh_and_resets_on_hazard(self):
         follower=PathFollower()
