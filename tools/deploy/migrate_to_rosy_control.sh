@@ -85,9 +85,12 @@ else
 fi
 
 # The held lock moved with the tree; follow it so the EXIT trap releases the
-# right directory and the deploy log lands under the new name.
+# right directory and the deploy log lands under the new name. Both are read by
+# lock_release and log_deploy over in lib.sh, which shellcheck cannot see.
 RELEASES="$NEW_RELEASES"
+# shellcheck disable=SC2034
 LOCK_DIR="$RELEASES/.deploy.lock"
+# shellcheck disable=SC2034
 DEPLOY_LOG="$RELEASES/deploy.log"
 
 # --- 2. current/previous pointers ------------------------------------------
