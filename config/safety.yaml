@@ -11,7 +11,10 @@ safety_node:
     us_hits: 3
     sensor_timeout: 1.0
     camera_as_wall: false
-    # Maze corners: camera obstacle = turn (not reverse). Cliff/drop stays off.
+    # Maze corners: camera obstacle = turn (not reverse).
+    # camera_as_wall covers /camera/cliff, which camera_detect_node now holds
+    # permanently false -- a monocular camera cannot separate a dark wall from
+    # a dark hole, so floor IR owns cliff. Leave it false.
     camera_block_as_wall: false
     imu_topic: /imu_raw
     tilt_deg: 20.0

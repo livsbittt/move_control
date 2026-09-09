@@ -39,11 +39,16 @@ class CameraNearObstacleTest(unittest.TestCase):
         frame[:, :80] = frame[:, 240:] = 240
         self.assertFalse(self.classify(frame)['blocked'])
 
-    def test_near_dark_drop_still_reports_cliff(self):
+    def test_near_dark_area_is_reported_as_evidence_not_as_a_drop(self):
+        # The camera cannot tell a dark wall from a dark hole at the same ground
+        # line, so it publishes the darkness and draws no verdict. Floor IR owns
+        # the cliff decision. See the comment above `cliff = False` in camera.py.
         frame = self.frame()
         frame[165:230, :100] = 5
         result = self.classify(frame)
-        self.assertTrue(result['cliff'])
+        self.assertFalse(result['cliff'])
+        self.assertGreater(result['cols'][0]['void'], .8)
+        self.assertTrue(any(r['kind'] == 'dark_region' for r in result['regions']))
 
     def test_colored_side_tape_is_not_a_dark_drop(self):
         frame = self.frame()
@@ -62,10 +67,12 @@ class CameraNearObstacleTest(unittest.TestCase):
         self.assertFalse(result['cliff'])
         self.assertTrue(result['blocked'])
 
-    def test_dark_colored_drop_still_reports_cliff(self):
+    def test_dark_colored_area_is_also_only_evidence(self):
         frame = self.frame()
         frame[165:230, :100] = (20, 5, 5)
-        self.assertTrue(self.classify(frame)['cliff'])
+        result = self.classify(frame)
+        self.assertFalse(result['cliff'])
+        self.assertGreater(result['cols'][0]['void'], .8)
 
     def test_gray_floor_does_not_depend_on_arbitrary_hue(self):
         result = classify_frame(self.frame(), floor_hsv=(90., 5., 100.),

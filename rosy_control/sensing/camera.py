@@ -1,5 +1,6 @@
 """Subject: camera look-ahead classify. Floor / void / obstacle."""
 import numpy as np
+from .camera_evidence import REGION_CAP
 from .camera_regions import foreground_regions
 
 
@@ -14,10 +15,10 @@ def classify_frame(
     near_y1=0.95,
     mid_y0=0.22,
     mid_y1=0.62,
-    void_frac=0.12,
-    obst_frac=0.35,
+    obst_frac=0.45,
     allow_floor_update=True,
     region_min_area_fraction=.0005,
+    ground=None,
 ):
     """Return dict of flags and column scores. bgr is HxWx3 uint8 BGR."""
     import cv2
@@ -75,7 +76,8 @@ def classify_frame(
     # hue_shift stays in the call signature for existing callers.
     void = (v_ch < fv * void_v_ratio) & (~floor)
     obst = (~floor) & (~void)
-    regions = foreground_regions(obst | void, void, near_y0, near_y1, region_min_area_fraction)
+    regions = foreground_regions(obst | void, void, near_y0, near_y1,
+                                region_min_area_fraction, ground)
 
     k = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
     void = cv2.morphologyEx(void.astype(np.uint8), cv2.MORPH_OPEN, k).astype(bool)
@@ -107,8 +109,25 @@ def classify_frame(
             }
         )
 
-    on_floor = any(c['floor'] >= 0.20 for c in cols)
-    cliff = on_floor and any(c['void'] >= void_frac for c in cols)
+    # The camera does not assert a drop, and the flag stays False by design.
+    #
+    # Monocularly, a dark wall and a dark hole at the same ground line produce
+    # the same image, so any appearance test picks one by fiat. Both choices were
+    # measured on the recorded frames and both are wrong:
+    #   darkness alone       -> cliff=True on the dark red wall above a bright
+    #                           wood floor in camera-before-wander.jpg
+    #   "ignore dark regions touching the image top, they are walls"
+    #                        -> a desk edge whose beyond-scene is dark reaches
+    #                           row 0 too, so a drop filling 49% of all three
+    #                           near columns reported nothing. On that same
+    #                           reference frame 100% of void pixels form one
+    #                           row-0-touching component, so the test could never
+    #                           fire in the environment the robot works in.
+    # A false positive costs a needless turn; a false negative costs the desk.
+    # Neither is acceptable when the floor IR already owns this decision, so the
+    # darkness stays published as evidence -- cols[*]['void'] and regions with
+    # kind='dark_region' -- and no verdict is drawn from it here.
+    cliff = False
     # A visible wall in the upper/mid view does not imply nearby contact:
     # the measured corridor frame had a clear lower half and a wall 0.65 m
     # ahead. Require obstacle in the near centre, also catching low objects
@@ -136,10 +155,11 @@ def classify_frame(
         'mid_obst': mid_obst,
         'floor_hsv': new_floor,
         'quality': quality,
-        'regions': regions[:64],
+        'regions': regions[:REGION_CAP],
         'region_count': len(regions),
-        'regions_truncated': len(regions) > 64,
+        'regions_truncated': len(regions) > REGION_CAP,
     }
+
 
 def _empty_result(reason='empty_roi'):
     return {

@@ -11,16 +11,27 @@ from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image
 from std_msgs.msg import Bool, Float32, String
 from rosy_control.sensing.camera import classify_frame
-from rosy_control.sensing.camera_evidence import legacy_flags
+from rosy_control.sensing.camera_evidence import observation_payload
+from rosy_control.sensing.camera_policy import CameraPolicy
 
 
 class RenderedCamera(Node):
     def __init__(self):
         super().__init__('rendered_camera_adapter')
         self.declare_parameter('region_min_area_fraction', .0005)
+        # Same hysteresis the real node runs. This adapter used to keep its own
+        # (hits hardcoded to 2, no warmup, no cliff hysteresis), so a green sim
+        # run said nothing about camera_detect_node.
+        self.declare_parameter('hits', 2)
+        self.declare_parameter('warmup_frames', 12)
+        # Same thresholds as the robot. Relying on classify_frame's signature
+        # defaults would let config/camera.yaml drift away from the sim again,
+        # which is the divergence this adapter was unified to remove.
+        self.declare_parameter('void_v_ratio', .50)
+        self.declare_parameter('obst_frac', .45)
         self.floor, self.last_stamp = None, None
-        self.hits = 0
-        self.last_cliff = False
+        self.policy = CameraPolicy(hits=int(self.get_parameter('hits').value),
+                                   warmup_frames=int(self.get_parameter('warmup_frames').value))
         self.image = self.create_publisher(Image, '/camera/front', 10)
         self.blocked = self.create_publisher(Bool, '/camera/blocked', 10)
         self.cliff = self.create_publisher(Bool, '/camera/cliff', 10)
@@ -43,29 +54,28 @@ class RenderedCamera(Node):
             bgr = bgr[:, :, ::-1]
         bgr = np.ascontiguousarray(bgr)
         result = classify_frame(bgr, floor_hsv=self.floor,
+            void_v_ratio=float(self.get_parameter('void_v_ratio').value),
+            obst_frac=float(self.get_parameter('obst_frac').value),
             region_min_area_fraction=float(self.get_parameter('region_min_area_fraction').value))
         if result['floor_hsv'] is not None:
             self.floor = result['floor_hsv']
-        result['cliff'], result['blocked'] = legacy_flags(result, self.last_cliff)
-        self.last_cliff = result['cliff']
-        self.hits = self.hits+1 if result['blocked'] else 0
-        if not result['quality']['valid']:
-            self.hits = max(2, self.hits)
-        self.blocked.publish(Bool(data=self.hits >= 2))
-        self.cliff.publish(Bool(data=bool(result['cliff'])))
-        self.side.publish(Float32(data=result['side']))
+        cliff, blocked = self.policy.update(result)
+        self.blocked.publish(Bool(data=blocked))
+        self.cliff.publish(Bool(data=cliff))
         self.image.publish(msg)
-        self.evidence.publish(String(data=json.dumps(dict(stamp=stamp, blocked=self.hits >= 2,
-            cliff=bool(result['cliff']), side=result['side'], source='gazebo_rendered_pixels',
-            detector='floor_foreground_v2', quality=result['quality'], regions=result['regions'],
-            region_count=result['region_count'], regions_truncated=result['regions_truncated'],
-            image_size=[msg.width,msg.height]))))
         self.last_stamp = stamp
         self.frames += 1
         if self.frames % 20 == 1:
             cv2.imwrite(str(self.out/f'frame-{self.frames:06}.png'), bgr)
             (self.out/'latest.json').write_text(json.dumps(dict(stamp=stamp, frames=self.frames,
-                blocked=self.hits >= 2, cliff=bool(result['cliff']), source='gazebo_rendered_pixels')))
+                blocked=blocked, cliff=cliff, ready=self.policy.ready,
+                source='gazebo_rendered_pixels')))
+        if not self.policy.ready:
+            return
+        self.side.publish(Float32(data=result['side']))
+        self.evidence.publish(String(data=json.dumps(observation_payload(
+            stamp, cliff, blocked, result['side'], result, (msg.width, msg.height),
+            'gazebo_rendered_pixels'))))
 
 
 def main():

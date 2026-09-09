@@ -18,12 +18,14 @@ zip 위치 (핑키):
   ESTOP 은 wander 가 /estop/state (latched) 를 구독해 라벨에 반영. LCD 는 표시만.
 
 클래스 (SRP, subject 하나):
-  sensing/  lidar(스캔 기하·코=190°) | filt | body | camera(분류)
+  sensing/  lidar(스캔 기하·코=190°) | filt | body
+            camera(분류) camera_policy(히스테리시스) camera_controls(AE/AWB 고정)
+            camera_evidence(관측 직렬화) camera_ground(행→미터, 캘리브 전엔 None)
   control/  modes(라벨) | recover(hazard_action·wall_first_move·side_sign/ratio_sign) | route
   planning/ gridmap | astar | frontier | zigzag | goals(GoalBrain FSM)
   wander/  Senses | Judge | Contact | Motion | Node(idle)
   safety/  Bumper | Hazard | Gate | Scale | Node
-  camera_detect_node  capture (분류는 sensing/camera.py)
+  camera_detect_node  capture + AE/AWB 고정 (분류는 sensing/camera.py)
   lcd_control  LcdIO | LcdHud | StatusView | Battery | LedRing
   watch.py  graph interrupt   watch_node
 
@@ -65,7 +67,8 @@ zip 위치 (핑키):
   백엔드 API  :28162 (/state.json · /map.png · 버튼/teleop POST)
   지도: /map → PNG, 궤적(trail) + 로봇/목표/경로/frontier 대안 오버레이
         휠 줌(1–8x, 커서 기준) · 드래그 팬 · fit 버튼/f 키
-        카메라: /camera/front → JPEG 스트림 + HSV 장애물/절벽 판정 칩
+        카메라: /camera/front → JPEG 스트림 + HSV 장애물 판정 칩
+                (절벽 판정은 카메라가 하지 않음 — 바닥 IR 담당)
   제어 상태: /robot/mode · /wander/state · estop 래치 · /goal_node/state
             · /goal/eta · /robot/ok·health · /cmd_vel
   버튼: goal explore|coverage|stop → /goal/cmd

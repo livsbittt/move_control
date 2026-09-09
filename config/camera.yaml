@@ -4,7 +4,35 @@ camera_detect_node:
     height: 240
     fps: 8.0
     rotate_deg: 180
-    void_frac: 0.28
+    # One source for these three: the node's declare_parameter defaults and the
+    # classify_frame signature defaults match these, so a caller that omits them
+    # behaves like the robot instead of like a third setting.
+    # A pixel counts as dark below this fraction of the floor's own brightness.
+    # This is the live darkness knob; the old void_frac fed the withdrawn cliff
+    # verdict, did nothing measurable, and has been removed.
+    void_v_ratio: 0.50
     obst_frac: 0.45
+    # Smallest region worth reporting, as a fraction of the frame. At 320x240
+    # this floors at 12 px (camera_regions.py), which keeps two-pixel wires and
+    # chair legs while dropping isolated sensor noise.
+    region_min_area_fraction: 0.0005
     hits: 2
     warmup_frames: 12
+    # The ISP's Bayesian AWB re-decides every 10 frames (1.25 s at 8 fps) and
+    # then creeps with a 0.05 IIR, and its documented weakness is "large objects
+    # of a uniform but non-grey colour" -- which is what a floor is. Settle with
+    # AE/AWB on, then freeze exposure, gain and colour gains so the floor
+    # reference tracks the scene instead of the ISP. Measured before the lock:
+    # a 1.3x gain step on one unchanged frame flipped blocked False -> True.
+    camera_lock_enabled: true
+    camera_settle_seconds: 2.5
+    # Ground-plane calibration. All six must be measured before any distance is
+    # reported; a zero here refuses the whole plane and regions stay unranged
+    # (distance_m: null). A partly-correct calibration is worse than none.
+    # Procedure: docs/camera-ground-calibration.md
+    camera_height_m: 0.0        # measured lens height above the floor (m)
+    camera_pitch_rad: 0.0       # downward pitch (rad)
+    camera_focal_px: 0.0        # fx at THIS resolution (px)
+    camera_principal_x: 0.0     # cx (px)
+    camera_principal_y: 0.0     # cy (px)
+    camera_max_range_m: 0.0     # trustworthy range (m); beyond it is unknown
