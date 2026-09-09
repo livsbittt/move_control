@@ -1,9 +1,7 @@
 # web_node: frontend page port + backend API port + where teleop taps.
-# teleop_topic: auto (default) — safety alive -> /cmd_vel_raw, so every
-# teleop Twist still passes the safety gate (cliff/tilt/estop/stale > 0.5 s)
-# and teleop can never bypass it; sim rig (no safety, /cmd_vel has
-# consumers) -> /cmd_vel so teleop drives there. The resolved topic is
-# always shown on the page. Set an explicit topic to skip the resolve.
+# teleop_topic is accepted for launch compatibility, but web_node always
+# publishes /cmd_vel_raw. Missing safety never grants a path around the
+# gate. Isolated Gazebo uses the same topic and the same /safety/* gauges.
 web_node:
   ros__parameters:
     port: 28161

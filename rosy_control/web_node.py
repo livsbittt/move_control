@@ -280,8 +280,8 @@ def render_cam(msg):
 
 
 # Sensor view: the safety-fused values wander actually consumes, plus the
-# camera verdicts. The sim rig runs none of these nodes -> keys stay
-# absent and the browser falls back to raw /scan buckets for F/L/R.
+# camera verdicts. Missing keys stay absent so the dashboard waits for
+# safety instead of inventing F/L/R from raw /scan.
 SENSOR_TOPICS = [
     # topic                 type     STATE key
     ('/safety/min_range',   Float32, 'F'),
@@ -421,6 +421,7 @@ class WebNode(Node):
         self.create_subscription(String, '/safety/decision', self.on_safety_decision, 10)
         self.create_subscription(Bool, '/robot/ok', self.on_ok, 10)
         self.create_subscription(String, '/robot/health', self.on_health, 10)
+        self.create_subscription(String, '/robot/evidence_scope', self.on_evidence_scope, latched)
         self.create_subscription(Twist, '/cmd_vel', self.on_vel, 10)
 
         html_path = self.html_path()
@@ -649,6 +650,16 @@ class WebNode(Node):
     def on_health(self, msg):
         with LOCK:
             STATE[K_HEALTH] = msg.data
+
+    def on_evidence_scope(self, msg):
+        try:
+            value = json.loads(msg.data)
+        except (ValueError, TypeError):
+            return
+        if not isinstance(value, dict):
+            return
+        with LOCK:
+            STATE['evidence_scope'] = value
 
     def on_vel(self, msg):
         with LOCK:

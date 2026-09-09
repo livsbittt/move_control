@@ -19,13 +19,14 @@ import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rclpy.executors import SingleThreadedExecutor
-from rclpy.qos import qos_profile_sensor_data, QoSProfile, DurabilityPolicy
+from rclpy.qos import qos_profile_sensor_data, QoSProfile, DurabilityPolicy, ReliabilityPolicy
 from geometry_msgs.msg import TransformStamped
 from sensor_msgs.msg import LaserScan, Range, Imu, Image
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool, String, UInt16MultiArray
 from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster
 from tools.gz.inertial import body_gravity
+from tools.gz.c1_lidar import EVIDENCE_SCOPE, scan_tf_quaternion
 
 
 def normalize_odometry(msg):
@@ -57,6 +58,12 @@ class Auxiliary(Node):
         self.estop = self.create_publisher(String, '/estop/cmd', 10)
         self.command = self.create_publisher(String, '/wander/cmd', 10)
         self.odom = self.create_publisher(Odometry, '/odom', 10)
+        latched = QoSProfile(depth=1, reliability=ReliabilityPolicy.RELIABLE,
+                             durability=DurabilityPolicy.TRANSIENT_LOCAL)
+        self.evidence = self.create_publisher(String, '/robot/evidence_scope', latched)
+        self.evidence_payload = dict(EVIDENCE_SCOPE)
+        if os.environ.get('RIG_RENDERED_CAMERA') == '1':
+            self.evidence_payload['camera'] = 'rendered_pixels'
         self.create_subscription(Odometry, '/odom_gz', self.on_odom, 10)
         self.create_subscription(LaserScan, '/scan', self.on_scan, qos_profile_sensor_data)
         self.create_subscription(String, '/calibration/status', self.on_calibration,
@@ -80,7 +87,11 @@ class Auxiliary(Node):
         transform.header.frame_id = 'base_link'
         transform.child_frame_id = msg.header.frame_id
         transform.transform.translation.z = .10
-        transform.transform.rotation.w = 1.
+        x, y, z, w = scan_tf_quaternion()
+        transform.transform.rotation.x = x
+        transform.transform.rotation.y = y
+        transform.transform.rotation.z = z
+        transform.transform.rotation.w = w
         if self.static_frame != msg.header.frame_id:
             self.static.sendTransform(transform)
             self.static_frame = msg.header.frame_id
@@ -152,6 +163,7 @@ class Auxiliary(Node):
 
     def tick(self):
         now = self.get_clock().now().nanoseconds*1e-9
+        self.evidence.publish(String(data=json.dumps(self.evidence_payload)))
         if (self.pose and not self.released and now-self.started > 3. and
                 self.estop.get_subscription_count() > 0):
             self.estop.publish(String(data='release'))
@@ -170,12 +182,10 @@ def main():
     component = os.environ.get('RIG_COMPONENT', 'all')
     clock_node = Node('rig_clock_'+component)
     clock_provider = [clock_node]
-    # Change only this test process's source acceptance. Real entry points
-    # keep rejecting simulation timestamps and non-C1 scan shapes.
-    def simulation_scan(msg):
-        return len(msg.ranges) == 720 and msg.header.frame_id.startswith('pinky/')
-    for name in ('rosy_control.safety.bumper', 'rosy_control.startup_calibration_node'):
-        importlib.import_module(name).is_robot_scan = simulation_scan
+    # Opt the shared lidar predicate in. Real entry points never call this,
+    # so find_frontiers/line_route/bumper/calibration all see one function.
+    from rosy_control.sensing.lidar import enable_simulation_scans
+    enable_simulation_scans(True)
     # All production deadlines use the same simulation clock in this rig.
     class SimulationTime:
         def monotonic(self):
@@ -191,8 +201,9 @@ def main():
     from rosy_control.startup_calibration_node import StartupCalibrationNode
     from rosy_control.wander.node import WanderNode
     from rosy_control.goal_node import GoalNode
+    from rosy_control.web_node import WebNode
     factories = {'adapter': Auxiliary, 'safety': SafetyNode, 'calibration': StartupCalibrationNode,
-                 'wander': WanderNode, 'goal': GoalNode}
+                 'wander': WanderNode, 'goal': GoalNode, 'web': WebNode}
     selected = list(factories) if component == 'all' else [component]
     nodes = [clock_node]+[factories[name]() for name in selected]
     if component != 'all':

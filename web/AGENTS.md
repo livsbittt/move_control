@@ -39,6 +39,8 @@ only when its gen counter changes; posts to `/cmd`, `/wander`, `/estop`,
 - The nose bearing is `scan.nose_yaw`, resolved by web_node from the
   base←scan TF — the same one safety uses. If it is missing the page refuses
   to guess a mount angle (`noseYaw` returns null, `scan_reason` explains).
+  Distance gauges use `/safety/*` only. Isolated Gazebo labels synthetic
+  auxiliary sensors via `evidence_scope`; it does not invent F/L/R from `/scan`.
 - Design tokens live in the `:root` CSS block and the `T` object in the
   script (they must stay in sync); dataviz reference palette, dark. Overlay
   hues are validated categorical slots (route blue / alt orange / goal

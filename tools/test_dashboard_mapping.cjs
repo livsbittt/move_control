@@ -133,6 +133,34 @@ test('scan front follows supplied mount TF instead of hardcoded angle', () => {
   assert.equal(d.bucket({...scan,nose_yaw:null},-5,5),null);
 });
 
+test('distance gauges wait for safety topics instead of filling from raw scan', () => {
+  const d = dashboard();
+  d.S.data = {
+    scan: {amin: -Math.PI, inc: Math.PI / 360, rmin: .05, rmax: 40,
+           rs: Array(720).fill(.3), nose_yaw: Math.PI, frame: 'pinky/base/lidar'},
+  };
+  d.renderSensors(d.S.data);
+  assert.equal(d.elements.get('gFv').textContent, '—');
+  assert.match(String(d.elements.get('bools').innerHTML || ''), /safety 노드 대기/);
+  d.S.data.sensors = {F: .2, L: .3, R: .25};
+  d.renderSensors(d.S.data);
+  assert.match(d.elements.get('gFv').textContent, /20/);
+});
+
+test('simulation evidence is labeled without changing the safety gauge path', () => {
+  const d = dashboard();
+  d.S.data = {sensors: {F: .18}, evidence_scope: {
+    lidar: 'gpu_lidar', imu: 'gt_pose', ir: 'synthetic', us: 'lidar_derived',
+    camera: 'synthetic'}};
+  d.renderSensors(d.S.data);
+  assert.match(d.elements.get('evidencescope').textContent, /시뮬/);
+  assert.match(d.elements.get('evidencescope').textContent, /IR 가상/);
+  assert.match(d.elements.get('gFv').textContent, /18/);
+  d.S.data.evidence_scope = null;
+  d.renderSensors(d.S.data);
+  assert.match(d.elements.get('evidencescope').textContent, /로봇이 재는 값/);
+});
+
 test('map driving requires connection, released stop, active map and map pose', () => {
   const d = dashboard();
   const good = {estop: false, map: [10,10,.02], map_control: {paused:false}, pose_available:true,

@@ -250,8 +250,8 @@ def main():
     rclpy.init()
     component = os.environ.get('LOCALIZATION_COMPONENT', 'rig')
     if component == 'safety':
-        import rosy_control.safety.bumper as bumper
-        bumper.is_robot_scan = lambda msg: len(msg.ranges) == 720 and msg.header.frame_id.startswith('pinky/')
+        from rosy_control.sensing.lidar import enable_simulation_scans
+        enable_simulation_scans(True)
         from rosy_control.safety.node import SafetyNode
         node = SafetyNode()
     elif component == 'monitor':

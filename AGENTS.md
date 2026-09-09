@@ -3,7 +3,7 @@
 # rosy_control (Pinky Pro)
 
 ## Purpose
-ROS 2 Jazzy ament_python package for the **Pinky Pro** desk-maze robot (~11 cm; RPi, RPLidar C1, US-016, 3× IR cliff, BNO055 IMU, OV5647). Provides wander autonomy, the safety velocity gate, camera look-ahead, auto-calibration, SLAM mapping, map-driven goals, and a node-graph health monitor. Real hardware only — remote gazebo `/scan` messages are detected and rejected (`sensing/lidar.is_robot_scan`).
+ROS 2 Jazzy ament_python package for the **Pinky Pro** desk-maze robot (~11 cm; RPi, RPLidar C1, US-016, 3× IR cliff, BNO055 IMU, OV5647). Provides wander autonomy, the safety velocity gate, camera look-ahead, auto-calibration, SLAM mapping, map-driven goals, and a node-graph health monitor. Production entry points reject remote gazebo `/scan` (`sensing/lidar.is_robot_scan`). Isolated Gazebo rigs call `enable_simulation_scans()` so bumper, frontiers, routes and the dashboard share one predicate; auxiliary IR/IMU/camera stay synthetic.
 
 ## Key Files
 | File | Description |

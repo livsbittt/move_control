@@ -41,29 +41,29 @@ if plant == 'velocity':
     ET.SubElement(model, 'plugin', filename='gz-sim-velocity-control-system', name='gz::sim::systems::VelocityControl')
 (out/'plant.txt').write_text(plant)
 root.find('.//real_time_factor').text=os.environ.get('RIG_REALTIME_FACTOR', '1.0')
-sensor=model.find('.//sensor')
-sensor.find('.//samples').text='720'
-sensor.find('.//max_angle').text=str(3.141592653589793-2*3.141592653589793/720)
-sensor.find('.//min_angle').text=str(-3.141592653589793)
-sensor.find('.//range/max').text='8.0'
+from tools.gz.c1_lidar import align_gpu_lidar
+align_gpu_lidar(model.find('.//sensor'))
 root.write(out/'world.sdf')
-settings={'/**': {'ros__parameters': {'use_sim_time':True, 'robot_radius':.105,
-    'stop_distance':.14, 'clear_distance':.16, 'lidar_yaw_offset':0.,
-    'imu_angular_velocity_unit':'rad_s', 'calibration_us_max_range':8.,
+settings={'/**': {'ros__parameters': {'use_sim_time':True,
+    'imu_angular_velocity_unit':'rad_s',
     'calibration_auto_motion':True, 'result_path':str(out/'calibration.json')}}}
 (out/'rig.yaml').write_text(yaml.safe_dump(settings))
 slam=yaml.safe_load(Path('tools/gz/slam_sim.yaml').read_text())
 slam['slam_toolbox']['ros__parameters']['resolution']=.02
 (out/'slam.yaml').write_text(yaml.safe_dump(slam))
+robot=yaml.safe_load(Path('config/robot.yaml').read_text())
+radius=float(robot['/**']['ros__parameters']['robot_radius'])
 source_paths=sorted(list(Path('rosy_control').rglob('*.py'))+list(Path('config').glob('*.yaml')))
 manifest={'run_id':run_id, 'recorded_unix_s':time.time(), 'plant':plant,
     'ros_domain':227, 'gazebo_partition':'pinky_calmap227',
     'world_sha256':hashlib.sha256((out/'world.sdf').read_bytes()).hexdigest(),
     'source_at_start':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),
     'source_sha256':{str(path):hashlib.sha256(path.read_bytes()).hexdigest() for path in source_paths},
-    'robot_radius_m':settings['/**']['ros__parameters']['robot_radius'],
+    'robot_radius_m':radius,
     'physical_robot_verified':False,
-    'auxiliary_sensors':'Synthetic camera/IR; GT-derived IMU; lidar-derived US'}
+    'auxiliary_sensors':'Synthetic camera/IR; GT-derived IMU; lidar-derived US',
+    'lidar_mount':'c1_rear_zero',
+    'dashboard':'safety_fused'}
 (out/'run_manifest.json').write_text(json.dumps(manifest,indent=2))
 PY
 pids=()
@@ -79,12 +79,13 @@ setsid ros2 run ros_gz_bridge parameter_bridge \
   '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock' \
   --ros-args -p use_sim_time:=true -r /lidar/scan:=/scan -r /odometry_gt:=/odom \
   -r /model/pinky/cmd_vel:=/cmd_vel > "$out/bridge.log" 2>&1 & pids+=($!)
-for component in adapter safety calibration wander goal; do
+for component in adapter safety calibration wander goal web; do
   log="$out/$component.log"
   if [[ "$component" == adapter ]]; then log="$out/stack.log"; fi
   setsid env RIG_COMPONENT="$component" python3 tools/gz/calibration_mapping_rig.py --ros-args \
     --params-file config/robot.yaml --params-file config/wander.yaml \
-    --params-file config/goal.yaml --params-file "$out/rig.yaml" \
+    --params-file config/goal.yaml --params-file config/web.yaml \
+    --params-file "$out/rig.yaml" \
     > "$log" 2>&1 & pids+=($!)
 done
 sleep 3
@@ -93,5 +94,5 @@ setsid ros2 launch slam_toolbox online_async_launch.py use_sim_time:=true \
 setsid python3 tools/gz/calibration_mapping_audit.py > "$out/audit.log" 2>&1 & pids+=($!)
 setsid python3 tools/gz/map_run_monitor.py --out "$out/monitor" --timeout 7200 --stall 900 \
   > "$out/monitor.log" 2>&1 & pids+=($!)
-echo "Isolated rig running: $out, pids ${pids[*]}"
+echo "Isolated rig running: $out, pids ${pids[*]}, dashboard http://localhost:28161"
 wait

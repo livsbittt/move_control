@@ -17,12 +17,36 @@ def wrap_pi(a: float) -> float:
     return math.atan2(math.sin(a), math.cos(a))
 
 
+# Isolated Gazebo processes opt in. Production entry points never call this,
+# so a remote sim on the robot's domain still cannot feed /scan.
+_simulation_scans = False
+
+
+def enable_simulation_scans(enabled: bool = True) -> None:
+    global _simulation_scans
+    _simulation_scans = bool(enabled)
+
+
+def is_simulation_scan(msg) -> bool:
+    """GPU lidar shape used by the isolated Pinky Gazebo rigs."""
+    try:
+        n = len(getattr(msg, 'ranges', ()) or ())
+        frame = str(getattr(getattr(msg, 'header', None), 'frame_id', '') or '')
+    except Exception:
+        return False
+    return n == 720 and frame.startswith('pinky/')
+
+
 def is_robot_scan(msg) -> bool:
     """Keep the local C1. Drop remote gazebo /scan on the same domain.
 
     Local DenseBoost: ~720 beams, range_max 40 m, wall-clock stamp.
     Remote parameter_bridge: ~640 beams, range_max 12 m, sim-time stamp.
+    Isolated rigs call enable_simulation_scans() so find_frontiers/line_route
+    see the same function as bumper, not a per-importer monkey-patch.
     """
+    if _simulation_scans and is_simulation_scan(msg):
+        return True
     try:
         t = float(msg.header.stamp.sec) + float(msg.header.stamp.nanosec) * 1e-9
     except Exception:

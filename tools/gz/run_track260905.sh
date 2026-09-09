@@ -54,11 +54,8 @@ if plant == 'velocity':
     ET.SubElement(model, 'plugin', filename='gz-sim-velocity-control-system', name='gz::sim::systems::VelocityControl')
 (out/'plant.txt').write_text(plant)
 root.find('.//real_time_factor').text=os.environ.get('RIG_REALTIME_FACTOR', '1.0')
-sensor=model.find('.//sensor')
-sensor.find('.//samples').text='720'
-sensor.find('.//max_angle').text=str(3.141592653589793-2*3.141592653589793/720)
-sensor.find('.//min_angle').text=str(-3.141592653589793)
-sensor.find('.//range/max').text='8.0'
+from tools.gz.c1_lidar import align_gpu_lidar
+align_gpu_lidar(model.find('.//sensor'))
 if os.environ.get('RIG_RENDERED_CAMERA') == '1':
     from tools.gz.obstacle_camera import add_camera
     add_camera(root.getroot())
@@ -67,7 +64,7 @@ identity=json.loads((out/'track_identity.json').read_text())
 settings={'/**': {'ros__parameters': {'use_sim_time':True, 'robot_radius':identity['robot_radius_m'],
     'rotation_footprint_xy':[v for xy in identity['robot_geometry']['footprint_xy'] for v in xy],
     'simulation_motion_sweep_enabled':plant == 'wheel',
-    'stop_distance':.14, 'clear_distance':.16, 'lidar_yaw_offset':0.,
+    'stop_distance':.14, 'clear_distance':.16,
     'imu_angular_velocity_unit':'rad_s', 'calibration_us_max_range':8.,
     'calibration_auto_motion':True, 'result_path':str(out/'calibration.json'),
     'obstacle_tracking_enabled':os.environ.get('RIG_TRACK_OBSTACLES') == '1'}}}
@@ -126,12 +123,13 @@ setsid ros2 run ros_gz_bridge parameter_bridge \
   '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock' \
   --ros-args -p use_sim_time:=true -r /lidar/scan:=/scan -r /odometry_gt:=/odom_gz \
   -r /model/pinky/cmd_vel:=/cmd_vel > "$out/bridge.log" 2>&1 & pids+=($!)
-for component in adapter safety calibration wander goal; do
+for component in adapter safety calibration wander goal web; do
   log="$out/$component.log"
   if [[ "$component" == adapter ]]; then log="$out/stack.log"; fi
   setsid env RIG_COMPONENT="$component" python3 tools/gz/calibration_mapping_rig.py --ros-args \
     --params-file config/robot.yaml --params-file config/wander.yaml \
-    --params-file config/goal.yaml --params-file "$out/rig.yaml" \
+    --params-file config/goal.yaml --params-file config/web.yaml \
+    --params-file "$out/rig.yaml" \
     > "$log" 2>&1 & pids+=($!)
 done
 sleep 3

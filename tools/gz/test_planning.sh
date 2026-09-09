@@ -68,12 +68,12 @@ log "slam_toolbox (after static lidar TF exists)"
 ros2 launch slam_toolbox online_async_launch.py use_sim_time:=true \
   slam_params_file:="$PWD/tools/gz/slam_sim.yaml" > /tmp/gztest/slam.log 2>&1 &
 SL=$!
-log "web dashboard (:28161, api :28162)"
+log "web dashboard (:28161) — planner-only, no safety; production-identical UI is run_calibration_mapping.sh"
 python3 -c "import rosy_control.web_node as w; w.main()" --ros-args \
   -p use_sim_time:=true -p port:=28161 -p backend_port:=28162 \
   > /tmp/gztest/web.log 2>&1 &
 DA=$!
 log "all up: gz=$GZ bridge=$BR slam=$SL goal=$GO driver=$DR"
-log "logs: /tmp/gztest/*.log | dashboard: http://localhost:28161"
+log "logs: /tmp/gztest/*.log | planner web: http://localhost:28161 (safety gauges wait)"
 trap 'kill $DR $GO $SL $BR $DA $GUI 2>/dev/null; sleep 1; kill $GZ 2>/dev/null' INT TERM
 wait

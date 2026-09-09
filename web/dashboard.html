@@ -326,7 +326,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline:2px s
   <!-- ==================== 감지 ==================== -->
   <section class="region sense" aria-labelledby="h-sense">
     <div class="rhead"><h2 id="h-sense">감지</h2>
-      <span class="gloss">로봇이 재는 값</span></div>
+      <span class="gloss" id="evidencescope">로봇이 재는 값</span></div>
     <div class="rbody">
       <div class="block">
         <h3>라이다</h3>
@@ -1429,13 +1429,25 @@ function flagHtml(f, v) {
   return '<span class="' + cls + '" title="' + f.topic + '">' +
          (f.bad && v ? '⚠ ' : '') + f.ko + '</span>';
 }
-function renderSensors(s) {
-  const v = Object.assign({}, s.sensors || {});
-  if (s.scan) {   // no safety node (sim rig): read the raw scan sectors
-    if (v.F == null) v.F = bucket(s.scan, -10, 10);
-    if (v.L == null) v.L = bucket(s.scan, 45, 135);
-    if (v.R == null) v.R = bucket(s.scan, -135, -45);
+function renderEvidenceScope(s) {
+  const el = $('evidencescope');
+  if (!el) return;
+  const scope = s && s.evidence_scope;
+  if (!scope) {
+    el.textContent = '로봇이 재는 값';
+    return;
   }
+  const bits = ['시뮬 증거', 'safety 융합값'];
+  if (scope.ir === 'synthetic') bits.push('IR 가상');
+  if (scope.us === 'lidar_derived') bits.push('US 라이다 복제');
+  if (scope.imu === 'gt_pose') bits.push('IMU GT');
+  if (scope.camera === 'synthetic') bits.push('카메라 가상');
+  if (scope.camera === 'rendered_pixels') bits.push('카메라 렌더');
+  el.textContent = bits.join(' · ');
+}
+function renderSensors(s) {
+  renderEvidenceScope(s);
+  const v = Object.assign({}, s.sensors || {});
   const shown = CH.filter(ch => !ch.opt || v[ch.k] != null).map(ch => ch.k);
   buildGauges(shown);
   CH.forEach(ch => { if (shown.indexOf(ch.k) >= 0) paintGauge(ch, v[ch.k]); });

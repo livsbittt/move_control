@@ -24,11 +24,23 @@ bash tools/gz/test_planning.sh
 Pinky 실물 bringup 패키지는 필요하지 않다. headless도 GPU lidar용 EGL 렌더링은
 필요하므로 `/scan`이 없으면 먼저 `/tmp/gztest/gz.log`에서 렌더링 오류를 확인한다.
 
-기본은 GUI 없는 `gz sim -s -r --headless-rendering`이다.
-GUI가 필요하면 `RIG_GUI=1 bash tools/gz/test_planning.sh`로 실행한다.
-대시보드는 http://localhost:28161, 로그는 `/tmp/gztest/`에 있다.
-동일 ROS domain 13 / Gazebo partition `pinky_rig13`으로 두 번 실행하지 않는다.
+`tools/gz/test_planning.sh`는 계획 스택 드라이버이며 safety 게이트를 건너뛴다.
+실기와 같은 처리 경로(safety → `/cmd_vel`, 대시보드 게이지는 `/safety/*`)는
+격리 리그를 사용한다.
+
+```bash
+RIG_PLANT=velocity bash tools/gz/run_calibration_mapping.sh
+```
+
+대시보드는 http://localhost:28161 이다. 로그는 `/tmp/pinky-calmap227/`에 있다.
+IR/IMU/카메라는 가상 입력이며 페이지에 시뮬 증거로 표시된다. 바퀴 접지와
+독립 센서 모델은 이 경로의 범위가 아니다.
+동일 ROS domain 227 / Gazebo partition `pinky_calmap227`으로 두 번 실행하지 않는다.
 종료는 실행 터미널에서 Ctrl+C를 누른다.
+
+계획 전용 드라이버가 필요하면 `bash tools/gz/test_planning.sh`를 쓴다.
+GUI가 필요하면 `RIG_GUI=1 bash tools/gz/test_planning.sh`로 실행한다.
+이 드라이버의 웹 페이지는 실기 대시보드와 동일하지 않다.
 
 별도 WSL 터미널에서 실제 지도 수신·저장·검증:
 
