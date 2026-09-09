@@ -2,7 +2,7 @@ import math
 from types import SimpleNamespace
 import unittest
 
-from move_control.sensing.precision_range import precision_axis_range
+from rosy_control.sensing.precision_range import precision_axis_range
 
 
 def wall(distance=.3, slope=math.tan(math.radians(60)), nose=math.pi):

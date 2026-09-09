@@ -1,6 +1,6 @@
 import unittest
 
-from move_control.control.safe_trail import SafeTrail
+from rosy_control.control.safe_trail import SafeTrail
 
 
 class SafeTrailTest(unittest.TestCase):

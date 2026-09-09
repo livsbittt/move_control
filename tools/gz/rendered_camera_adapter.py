@@ -10,8 +10,8 @@ from rclpy.node import Node
 from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Image
 from std_msgs.msg import Bool, Float32, String
-from move_control.sensing.camera import classify_frame
-from move_control.sensing.camera_evidence import legacy_flags
+from rosy_control.sensing.camera import classify_frame
+from rosy_control.sensing.camera_evidence import legacy_flags
 
 
 class RenderedCamera(Node):

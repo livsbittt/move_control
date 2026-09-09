@@ -12,12 +12,12 @@ from std_msgs.msg import String
 from geometry_msgs.msg import TransformStamped
 from sensor_msgs.msg import LaserScan, Imu, Range
 
-from move_control.startup_calibration_node import StartupCalibrationNode
-from move_control.control.calibration import StationaryBaseline
-from move_control.control.round_trip import RoundTrip
+from rosy_control.startup_calibration_node import StartupCalibrationNode
+from rosy_control.control.calibration import StationaryBaseline
+from rosy_control.control.round_trip import RoundTrip
 from test.test_calibration import VALUES
 from test.test_calibration_certificate import complete_motion
-from move_control.control.calibration_certificate import make_certificate
+from rosy_control.control.calibration_certificate import make_certificate
 
 
 class StartupCalibrationTest(unittest.TestCase):
@@ -37,7 +37,7 @@ class StartupCalibrationTest(unittest.TestCase):
         self.node.raw_pub = Mock()
         self.node.ready_pub = Mock()
         self.node.read_tf = Mock()
-        self.clock = patch('move_control.startup_calibration_node.time.monotonic', return_value=100.)
+        self.clock = patch('rosy_control.startup_calibration_node.time.monotonic', return_value=100.)
         self.now = self.clock.start()
         original_tick = self.node.tick
         def tick_with_gate_ack():
@@ -320,7 +320,7 @@ class StartupCalibrationTest(unittest.TestCase):
         self.assertIsNone(self.node.baseline.latest('imu'))
 
     def test_environment_is_measured_while_estop_still_blocks_motion(self):
-        from move_control.planning import OccupancyMap
+        from rosy_control.planning import OccupancyMap
         for i in range(21):
             self.refresh(96.+i*.2)
         self.node.environment_map = OccupancyMap(20,20,.02,fill=0)

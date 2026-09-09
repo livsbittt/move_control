@@ -3,7 +3,7 @@ import unittest
 from unittest.mock import Mock
 import rclpy
 from rclpy.time import Time
-from move_control.wander.node import WanderNode
+from rosy_control.wander.node import WanderNode
 
 
 class BackupTest(unittest.TestCase):

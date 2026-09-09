@@ -1,6 +1,6 @@
 import unittest
 
-from move_control.control.calibration import StationaryBaseline, SENSORS, motion_evidence, motion_result
+from rosy_control.control.calibration import StationaryBaseline, SENSORS, motion_evidence, motion_result
 
 
 VALUES = {'lidar': (.65,), 'us': (.65,), 'odom': (0., 0., 0., 0.),

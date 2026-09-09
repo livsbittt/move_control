@@ -25,8 +25,8 @@ def main():
     from sensor_msgs.msg import LaserScan, Range, Imu
     from std_msgs.msg import String, UInt16MultiArray
     from tf2_ros import TransformBroadcaster, StaticTransformBroadcaster, Buffer, TransformListener
-    from move_control.localization_node import yaw
-    from move_control.sensing.localization import lease_ready
+    from rosy_control.localization_node import yaw
+    from rosy_control.sensing.localization import lease_ready
 
     class Rig(Node):
         def __init__(self):
@@ -250,15 +250,15 @@ def main():
     rclpy.init()
     component = os.environ.get('LOCALIZATION_COMPONENT', 'rig')
     if component == 'safety':
-        import move_control.safety.bumper as bumper
+        import rosy_control.safety.bumper as bumper
         bumper.is_robot_scan = lambda msg: len(msg.ranges) == 720 and msg.header.frame_id.startswith('pinky/')
-        from move_control.safety.node import SafetyNode
+        from rosy_control.safety.node import SafetyNode
         node = SafetyNode()
     elif component == 'monitor':
-        from move_control.localization_node import LocalizationNode
+        from rosy_control.localization_node import LocalizationNode
         node = LocalizationNode()
     elif component == 'goal':
-        from move_control.goal_node import GoalNode
+        from rosy_control.goal_node import GoalNode
         node = GoalNode()
     else:
         node = Rig()

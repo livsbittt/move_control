@@ -80,7 +80,7 @@ slam['slam_toolbox']['ros__parameters']['resolution']=.02
 if os.environ.get('RIG_TRACK_OBSTACLES') == '1':
     slam['slam_toolbox']['ros__parameters']['scan_topic']='/mapping/scan'
 (out/'slam.yaml').write_text(yaml.safe_dump(slam))
-source_paths=sorted(list(Path('move_control').rglob('*.py'))+list(Path('config').glob('*.yaml'))+
+source_paths=sorted(list(Path('rosy_control').rglob('*.py'))+list(Path('config').glob('*.yaml'))+
                     list(Path('tools/gz').glob('*.py'))+list(Path('tools/gz').glob('*.sh')))
 manifest={'run_id':run_id, 'recorded_unix_s':time.time(), 'plant':plant,
     'calibration_case':os.environ.get('RIG_CALIBRATION_CASE'),
@@ -107,7 +107,7 @@ trap 'exit 130' INT TERM
 setsid gz sim -s -r --headless-rendering "$out/world.sdf" > "$out/gz.log" 2>&1 & pids+=($!)
 sleep 4
 if [[ "${RIG_TRACK_OBSTACLES:-0}" == 1 ]]; then
-  setsid python3 -m move_control.obstacle_observer_node --ros-args -p use_sim_time:=true \
+  setsid python3 -m rosy_control.obstacle_observer_node --ros-args -p use_sim_time:=true \
     > "$out/obstacle-observer.log" 2>&1 & pids+=($!)
   setsid python3 -m tools.gz.record_obstacle_decisions --ros-args -p use_sim_time:=true \
     > "$out/obstacle-recorder.log" 2>&1 & pids+=($!)

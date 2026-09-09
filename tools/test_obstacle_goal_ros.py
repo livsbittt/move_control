@@ -9,8 +9,8 @@ from rclpy.time import Time
 from geometry_msgs.msg import TransformStamped
 from std_msgs.msg import String
 from tf2_ros import Buffer
-from move_control.goal_node import GoalNode
-from move_control.planning.gridmap import OccupancyMap
+from rosy_control.goal_node import GoalNode
+from rosy_control.planning.gridmap import OccupancyMap
 
 
 class ObstacleGoalTest(unittest.TestCase):

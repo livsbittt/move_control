@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Web node: live map + control state in a browser.
 
-    ros2 run move_control web_node
-    ros2 launch move_control web.launch.py
+    ros2 run rosy_control web_node
+    ros2 launch rosy_control web.launch.py
     frontend  http://localhost:28161   (port param — the page)
     backend   http://localhost:28162   (backend_port — the API below)
 
@@ -30,7 +30,7 @@ import math
 import os
 import threading
 import time
-from move_control.control.navigation_session import validate_options
+from rosy_control.control.navigation_session import validate_options
 import http.server
 import uuid
 
@@ -41,13 +41,13 @@ from rclpy.qos import qos_profile_sensor_data
 from rclpy.time import Time
 from tf2_ros import Buffer, TransformListener, TransformException
 from rclpy.clock import Clock, ClockType
-from move_control.sensing.map_pose import record_odom, display_pose
-from move_control.sensing.lidar_mount import nose_from_quaternion
+from rosy_control.sensing.map_pose import record_odom, display_pose
+from rosy_control.sensing.lidar_mount import nose_from_quaternion
 from ament_index_python.packages import get_package_share_directory
 from geometry_msgs.msg import PoseStamped, Twist
 from nav_msgs.msg import OccupancyGrid, Odometry, Path
 from sensor_msgs.msg import Image, LaserScan, BatteryState
-from move_control.sensing.battery import battery_values, battery_snapshot
+from rosy_control.sensing.battery import battery_values, battery_snapshot
 from std_msgs.msg import Bool, Float32, String
 from visualization_msgs.msg import MarkerArray
 from rcl_interfaces.srv import GetParameters
@@ -221,7 +221,7 @@ def render_png(msg, epoch=None):
     (unknown #161615 / free #232322 / wall #e1e0d9) so overlays blend —
     dark unknown recedes, light walls read as structure."""
     try:
-        from move_control.sensing.map_raster import occupancy_bgr
+        from rosy_control.sensing.map_raster import occupancy_bgr
         import cv2
     except ImportError:
         if not MAP_PNG.get('warned'):
@@ -725,7 +725,7 @@ class WebNode(Node):
         """Installed share copy first; source-tree fallback for running
         from the repo before colcon build."""
         try:
-            p = os.path.join(get_package_share_directory('move_control'),
+            p = os.path.join(get_package_share_directory('rosy_control'),
                              'web', 'dashboard.html')
             if os.path.isfile(p):
                 return p

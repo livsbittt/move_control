@@ -1,9 +1,9 @@
-from move_control.control.obstacle_risk import collision_risk, observation_risk
-from move_control.control.obstacle_risk import camera_hold
+from rosy_control.control.obstacle_risk import collision_risk, observation_risk
+from rosy_control.control.obstacle_risk import camera_hold
 
 
 def test_future_or_malformed_packet_does_not_poison_current_observation():
-    from move_control.control.obstacle_risk import accept_observation
+    from rosy_control.control.obstacle_risk import accept_observation
     old = {'stamp': 9.9}
     for stamp in (1000., float('nan'), True, '10', -1.):
         assert accept_observation({'stamp': stamp}, old, 10.) is old

@@ -13,7 +13,7 @@ from rcl_interfaces.msg import ParameterValue, ParameterType
 from rcl_interfaces.srv import GetParameters
 from slam_toolbox.srv import Reset, Pause
 from nav_msgs.msg import OccupancyGrid
-from move_control import web_node as web
+from rosy_control import web_node as web
 
 
 class Service:

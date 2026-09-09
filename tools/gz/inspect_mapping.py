@@ -4,9 +4,9 @@ from pathlib import Path
 import sys
 import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from move_control.planning.gridmap import OccupancyMap
-from move_control.planning.frontier import frontier_points, pick_goal
-from move_control.planning.astar import best_route
+from rosy_control.planning.gridmap import OccupancyMap
+from rosy_control.planning.frontier import frontier_points, pick_goal
+from rosy_control.planning.astar import best_route
 
 out = Path('/tmp/pinky-calmap227')
 snapshot = np.load(out/'map_grid.npz')

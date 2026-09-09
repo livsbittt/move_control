@@ -1,6 +1,6 @@
-from move_control.planning.gridmap import OccupancyMap
-from move_control.planning.obstacle_overlay import obstacle_overlay
-from move_control.planning.astar import best_route
+from rosy_control.planning.gridmap import OccupancyMap
+from rosy_control.planning.obstacle_overlay import obstacle_overlay
+from rosy_control.planning.astar import best_route
 
 
 def test_local_obstacle_overlay_preserves_saved_map_and_unknown_space():

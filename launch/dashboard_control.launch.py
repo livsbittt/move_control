@@ -9,7 +9,7 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    share = get_package_share_directory('move_control')
+    share = get_package_share_directory('rosy_control')
     cfg = os.path.join(share, 'config')
     robot = os.path.join(cfg, 'robot.yaml')
 
@@ -17,7 +17,7 @@ def generate_launch_description():
         parameters = [robot] + [os.path.join(cfg, item) for item in extra]
         if overrides:
             parameters.append(overrides)
-        return Node(package='move_control', executable=executable, output='screen',
+        return Node(package='rosy_control', executable=executable, output='screen',
                     parameters=parameters, respawn=True, respawn_delay=1.0)
 
     return LaunchDescription([

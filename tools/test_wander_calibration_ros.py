@@ -8,7 +8,7 @@ from rclpy.parameter import Parameter
 from std_msgs.msg import Bool, String
 from geometry_msgs.msg import TransformStamped, PoseStamped
 from nav_msgs.msg import Path
-from move_control.wander.node import WanderNode
+from rosy_control.wander.node import WanderNode
 
 
 class CalibrationGateTest(unittest.TestCase):
@@ -20,14 +20,14 @@ class CalibrationGateTest(unittest.TestCase):
         self.node.navigation_goal_pub = Mock()
         self.node.pub = Mock()
         payload = 'session:' + json.dumps(dict(strategy='nearest', duration_s=10, stall_s=10))
-        with patch('move_control.wander.node.time.monotonic', return_value=100), patch.object(self.node, '_session_now', return_value=100):
+        with patch('rosy_control.wander.node.time.monotonic', return_value=100), patch.object(self.node, '_session_now', return_value=100):
             self.node.calibration_received = 100
             self.node.on_cmd(String(data=payload))
         self.assertTrue(self.node.navigation_session.active)
         self.assertEqual(self.node.navigation_goal_pub.publish.call_args.args[0].data, 'explore_nearest')
         self.node.on_cmd(String(data='coverage'))
         self.assertEqual(self.node.navigation_session.options['strategy'], 'nearest')
-        with patch('move_control.wander.node.time.monotonic', return_value=110), patch.object(self.node, '_session_now', return_value=110):
+        with patch('rosy_control.wander.node.time.monotonic', return_value=110), patch.object(self.node, '_session_now', return_value=110):
             self.node.calibration_received = 110
             self.node._tick_session()
         self.assertFalse(self.node.enabled)

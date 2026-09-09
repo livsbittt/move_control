@@ -1,7 +1,7 @@
 import math
 import unittest
 
-from move_control.control.safety_profile import SafetyProfile, bounded_command
+from rosy_control.control.safety_profile import SafetyProfile, bounded_command
 
 
 class ProfileTest(unittest.TestCase):

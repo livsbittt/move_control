@@ -9,7 +9,7 @@
 #
 # ROS coverage split -- read this before trusting a green run:
 #   Most of test/ is ROS-free by design (sensing/, control/, planning/, watch.py
-#   import no ROS). A few modules do reach move_control.safety / move_control.wander,
+#   import no ROS). A few modules do reach rosy_control.safety / rosy_control.wander,
 #   whose __init__ pulls in rclpy and the message packages. Off-robot -- your PC and
 #   GitHub Actions -- those cannot import, so this script skips exactly those files
 #   and says so loudly. On the robot (--system) ROS is present and the whole suite
@@ -89,9 +89,9 @@ if not absent:
     out.write_text("", encoding="utf-8")
     raise SystemExit(0)
 
-# move_control.safety / move_control.wander re-export their ROS node modules
+# rosy_control.safety / rosy_control.wander re-export their ROS node modules
 # from __init__, so importing anything under them needs ROS.
-needle = re.compile(r"move_control\.(safety|wander)\b")
+needle = re.compile(r"rosy_control\.(safety|wander)\b")
 skip = sorted(p.as_posix() for p in pathlib.Path("test").glob("test_*.py")
               if needle.search(p.read_text(encoding="utf-8")))
 out.write_text("\n".join(skip), encoding="utf-8")

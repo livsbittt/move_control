@@ -14,7 +14,7 @@ python3 - <<'PY'
 import hashlib, json, os
 from pathlib import Path
 root = Path.cwd()
-paths = [p for folder in ('move_control', 'config', 'launch', 'tools/gz', 'test')
+paths = [p for folder in ('rosy_control', 'config', 'launch', 'tools/gz', 'test')
          for p in (root/folder).rglob('*') if p.suffix in ('.py', '.yaml', '.sh', '.npz')]
 paths += [root/'map/calibrated_2026-09-08'/name for name in ('map.yaml', 'map.pgm', 'world.sdf')]
 manifest = {'source_base': '8853261', 'ros_domain': 228, 'gz_partition': 'pinky_localization228',

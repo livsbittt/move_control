@@ -1,6 +1,6 @@
 import math
 import pytest
-from move_control.control.trail_retreat import TrailRetreat, _tracking_target
+from rosy_control.control.trail_retreat import TrailRetreat, _tracking_target
 
 
 def started(route=None):

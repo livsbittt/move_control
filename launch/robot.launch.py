@@ -18,8 +18,8 @@ def _share(pkg, *parts):
 
 
 def generate_launch_description():
-    robot = _share('move_control', 'config', 'robot.yaml')
-    mc = _share('move_control', 'config')
+    robot = _share('rosy_control', 'config', 'robot.yaml')
+    mc = _share('rosy_control', 'config')
     imu = Node(
         package='pinky_imu_bno055',
         executable='main_node',
@@ -29,7 +29,7 @@ def generate_launch_description():
         respawn_delay=1.0,
     )
     camera = Node(
-        package='move_control',
+        package='rosy_control',
         executable='camera_detect_node',
         output='screen',
         parameters=[os.path.join(mc, 'camera.yaml')],
@@ -37,7 +37,7 @@ def generate_launch_description():
         respawn_delay=1.0,
     )
     safety = Node(
-        package='move_control',
+        package='rosy_control',
         executable='safety_node',
         output='screen',
         parameters=[
@@ -51,7 +51,7 @@ def generate_launch_description():
         respawn_delay=1.0,
     )
     wander = Node(
-        package='move_control',
+        package='rosy_control',
         executable='wander_node',
         output='screen',
         parameters=[robot, os.path.join(mc, 'wander.yaml')],
@@ -67,7 +67,7 @@ def generate_launch_description():
         respawn_delay=1.0,
     )
     web = Node(
-        package='move_control',
+        package='rosy_control',
         executable='web_node',
         output='screen',
         parameters=[robot, os.path.join(mc, 'web.yaml')],
@@ -75,7 +75,7 @@ def generate_launch_description():
         respawn_delay=1.0,
     )
     watch = Node(
-        package='move_control',
+        package='rosy_control',
         executable='watch_node',
         output='screen',
         parameters=[{'hz': 1.0, 'once': False}],
@@ -83,7 +83,7 @@ def generate_launch_description():
         respawn_delay=1.0,
     )
     calibration = Node(
-        package='move_control', executable='startup_calibration_node',
+        package='rosy_control', executable='startup_calibration_node',
         output='screen', parameters=[robot], respawn=True, respawn_delay=1.0,
     )
     on_safety_exit = RegisterEventHandler(

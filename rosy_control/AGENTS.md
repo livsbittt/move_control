@@ -1,7 +1,7 @@
 <!-- Parent: ../AGENTS.md -->
 <!-- Generated: 2026-09-06 | Updated: 2026-09-06 -->
 
-# move_control/ (Python package)
+# rosy_control/ (Python package)
 
 ## Purpose
 The package's Python code: executable ROS node wrappers at the top level and the pure-logic "subject" modules grouped into `control/`, `planning/`, `sensing/` subpackages plus `safety/` and `wander/` node packages. Data flow: sensor → geometry (`sensing/`) → policy (`control/`) → map goals (`planning/`).

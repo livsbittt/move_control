@@ -2,7 +2,7 @@ import math
 import unittest
 from types import SimpleNamespace
 
-from move_control.sensing.wall_tracker import WallTracker, _fit
+from rosy_control.sensing.wall_tracker import WallTracker, _fit
 
 
 def corner(travel=0., outer=False, dropout=False, slope=1.):

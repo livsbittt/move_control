@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from move_control.control.footprint_sweep import footprint_sweep_clearance, footprint_translation_limits
+from rosy_control.control.footprint_sweep import footprint_sweep_clearance, footprint_translation_limits
 
 
 BOX=[[-.07,-.05],[.07,-.05],[.07,.05],[-.07,.05]]

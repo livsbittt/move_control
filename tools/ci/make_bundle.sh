@@ -50,15 +50,15 @@ BUILD_HOST="$(hostname 2>/dev/null || echo unknown)"
 BUILT_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 mkdir -p "$OUT_DIR"
-BASE="move_control-${VERSION}"
+BASE="rosy_control-${VERSION}"
 TAR="$OUT_DIR/${BASE}.tar.gz"
 
 if [ "$ALLOW_DIRTY" = 1 ]; then
   # Tracked files as they currently sit on disk. One tar process fed from
   # git ls-files -- a copy-per-file loop costs minutes on Windows.
-  git ls-files -z | tar --null -T - -czf "$TAR" --transform='s,^,move_control/,'
+  git ls-files -z | tar --null -T - -czf "$TAR" --transform='s,^,rosy_control/,'
 else
-  git archive --format=tar.gz --prefix=move_control/ -o "$TAR" "$REF"
+  git archive --format=tar.gz --prefix=rosy_control/ -o "$TAR" "$REF"
 fi
 
 sha256_of() {
@@ -74,7 +74,7 @@ echo "${SUM}  ${BASE}.tar.gz" > "$OUT_DIR/${BASE}.tar.gz.sha256"
 # user, so the manifest -- not the ssh login -- is what says who shipped this.
 cat > "$OUT_DIR/${BASE}.manifest.json" <<JSON
 {
-  "name": "move_control",
+  "name": "rosy_control",
   "version": "${VERSION}",
   "package_version": "${PKG_VERSION}",
   "commit": "${COMMIT}",

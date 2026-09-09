@@ -6,7 +6,7 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    cfg = os.path.join(get_package_share_directory('move_control'), 'config')
+    cfg = os.path.join(get_package_share_directory('rosy_control'), 'config')
     robot = os.path.join(cfg, 'robot.yaml')
     return LaunchDescription([
         Node(
@@ -18,7 +18,7 @@ def generate_launch_description():
             respawn_delay=1.0,
         ),
         Node(
-            package='move_control',
+            package='rosy_control',
             executable='camera_detect_node',
             output='screen',
             parameters=[os.path.join(cfg, 'camera.yaml')],
@@ -26,7 +26,7 @@ def generate_launch_description():
             respawn_delay=1.0,
         ),
         Node(
-            package='move_control',
+            package='rosy_control',
             executable='safety_node',
             output='screen',
             parameters=[
@@ -39,7 +39,7 @@ def generate_launch_description():
             respawn_delay=1.0,
         ),
         Node(
-            package='move_control',
+            package='rosy_control',
             executable='wander_node',
             output='screen',
             parameters=[robot, os.path.join(cfg, 'wander.yaml')],

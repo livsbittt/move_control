@@ -55,7 +55,7 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         self.declare_parameter('calibration_distance_m', .03)
         self.declare_parameter('robot_radius', .076)
         self.declare_parameter('rotation_footprint_xy', [], ParameterDescriptor(dynamic_typing=True))
-        self.declare_parameter('result_path', str(Path.home() / '.local/state/move_control/calibration.json'))
+        self.declare_parameter('result_path', str(Path.home() / '.local/state/rosy_control/calibration.json'))
         latched = QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL,
                              reliability=ReliabilityPolicy.RELIABLE)
         self.status_pub = self.create_publisher(String, '/calibration/status', latched)

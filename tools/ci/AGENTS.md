@@ -12,14 +12,14 @@ commit into the one artifact the robot installs.
 | File | Description |
 |------|-------------|
 | `run_tests.sh` | Runs `test/`. Builds `.venv-ci` on a dev PC; `--system` uses the interpreter as-is (the robot). |
-| `make_bundle.sh` | Builds `dist/move_control-<version>.tar.gz` + `.sha256` + `.manifest.json` from a git ref. |
+| `make_bundle.sh` | Builds `dist/rosy_control-<version>.tar.gz` + `.sha256` + `.manifest.json` from a git ref. |
 | `requirements-dev.txt` | Test dependencies for the PC venv only. The robot gets numpy/opencv from apt. |
 
 ## The ROS coverage split — read before trusting a green run
 
 `sensing/`, `control/`, `planning/` and `watch.py` import no ROS, which is what
-makes most of `test/` runnable anywhere. `move_control.safety` and
-`move_control.wander` re-export their ROS node modules from `__init__`, so any
+makes most of `test/` runnable anywhere. `rosy_control.safety` and
+`rosy_control.wander` re-export their ROS node modules from `__init__`, so any
 test reaching into those needs `rclpy` and the message packages.
 
 `run_tests.sh` probes for ROS, and when it is absent it skips exactly those

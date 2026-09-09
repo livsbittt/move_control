@@ -6,8 +6,8 @@ import unittest
 
 import numpy as np
 
-from move_control.control.rotation_envelope import RotationEnvelope, validate_envelope, pivot_clearance, suggest_rotation_translation, straight_translation_limits
-from move_control.sensing.scan_motion import match_motion, scan_points
+from rosy_control.control.rotation_envelope import RotationEnvelope, validate_envelope, pivot_clearance, suggest_rotation_translation, straight_translation_limits
+from rosy_control.sensing.scan_motion import match_motion, scan_points
 
 
 def delta(center, yaw):

@@ -4,7 +4,7 @@ import sys
 import math
 import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
-from move_control.sensing.localization import MapAgreement
+from rosy_control.sensing.localization import MapAgreement
 d = np.load(sys.argv[1])
 m = MapAgreement(d['grid'], float(d['resolution']), d['origin'])
 ranges, angles, truth = d['ranges'], d['angles'], d['truth']

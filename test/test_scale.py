@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 
-from move_control.safety.scale import (
+from rosy_control.safety.scale import (
     corridor_width,
     fit_map,
     fit_open_max,

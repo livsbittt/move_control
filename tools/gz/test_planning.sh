@@ -45,7 +45,7 @@ ros2 run ros_gz_bridge parameter_bridge \
 BR=$!
 sleep 2
 log "goal_node"
-python3 -c "import move_control.goal_node as g; g.main()" --ros-args \
+python3 -c "import rosy_control.goal_node as g; g.main()" --ros-args \
   -p use_sim_time:=true --params-file config/goal.yaml \
      --params-file tools/gz/goal_sim.yaml \
   > /tmp/gztest/goal.log 2>&1 &
@@ -69,7 +69,7 @@ ros2 launch slam_toolbox online_async_launch.py use_sim_time:=true \
   slam_params_file:="$PWD/tools/gz/slam_sim.yaml" > /tmp/gztest/slam.log 2>&1 &
 SL=$!
 log "web dashboard (:28161, api :28162)"
-python3 -c "import move_control.web_node as w; w.main()" --ros-args \
+python3 -c "import rosy_control.web_node as w; w.main()" --ros-args \
   -p use_sim_time:=true -p port:=28161 -p backend_port:=28162 \
   > /tmp/gztest/web.log 2>&1 &
 DA=$!

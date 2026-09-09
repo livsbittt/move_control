@@ -3,7 +3,7 @@ import unittest
 
 import numpy as np
 
-from move_control.sensing.map_raster import occupancy_bgr
+from rosy_control.sensing.map_raster import occupancy_bgr
 
 
 class MapRasterTest(unittest.TestCase):

@@ -8,7 +8,7 @@ from launch.substitutions import LaunchConfiguration
 
 
 def generate_launch_description():
-    folder = os.path.join(get_package_share_directory('move_control'), 'launch')
+    folder = os.path.join(get_package_share_directory('rosy_control'), 'launch')
 
     def include(name, arguments):
         return IncludeLaunchDescription(PythonLaunchDescriptionSource(os.path.join(folder, name)),

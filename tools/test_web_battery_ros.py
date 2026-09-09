@@ -4,8 +4,8 @@ from types import SimpleNamespace
 from unittest.mock import Mock
 from sensor_msgs.msg import BatteryState, Image
 from rclpy.time import Time
-from move_control import web_node as web
-from move_control.sensing.battery import battery_snapshot
+from rosy_control import web_node as web
+from rosy_control.sensing.battery import battery_snapshot
 
 
 class BatteryAdapterTest(unittest.TestCase):

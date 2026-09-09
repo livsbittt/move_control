@@ -1,6 +1,6 @@
 import math
 import pytest
-from move_control.control.calibration_tf import transform_health, map_motion_continuous
+from rosy_control.control.calibration_tf import transform_health, map_motion_continuous
 
 
 @pytest.mark.parametrize('age,reason', [(0.1,'ok'),(1.01,'stale'),(-.76,'future')])

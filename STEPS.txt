@@ -1,19 +1,19 @@
-Pinky Pro move_control
+Pinky Pro rosy_control
 ======================
 
 zip 위치 (핑키):
-  /home/pinky/dev_ws/wj/src/move_control.zip
+  /home/pinky/dev_ws/wj/src/rosy_control.zip
 
 풀기 (지우지 말고 덮기):
   cd /home/pinky/dev_ws/wj/src
-  unzip -o move_control.zip
-  ls move_control/move_control/calib_node.py
+  unzip -o rosy_control.zip
+  ls rosy_control/rosy_control/calib_node.py
 
 구조 문서: AGENTS.md (폴더별) · CLAUDE.md (아키텍처) · STEPS.txt (운영)
 
 공유 파라미터 (하나만):
-  src/move_control/config/robot.yaml
-  모드/정책 정의: move_control/control/modes.py (라벨) · move_control/control/recover.py (hazard_action 등 정책) — ROS 없는 순수 로직.
+  src/rosy_control/config/robot.yaml
+  모드/정책 정의: rosy_control/control/modes.py (라벨) · rosy_control/control/recover.py (hazard_action 등 정책) — ROS 없는 순수 로직.
   wander 가 /robot/mode 발행 (정본). /safety/mode 는 같은 값의 LCD 하위호환 별칭.
   ESTOP 은 wander 가 /estop/state (latched) 를 구독해 라벨에 반영. LCD 는 표시만.
 
@@ -28,14 +28,14 @@ zip 위치 (핑키):
   watch.py  graph interrupt   watch_node
 
 런:
-  ros2 launch move_control robot.launch.py
+  ros2 launch rosy_control robot.launch.py
   (bringup+ADC+LED 이미 켜진 뒤. IMU→safety→wander→LCD/web/watch)
   좁은 맵: safety 가 L+R 로 /safety/map_range /safety/open_max 자동.
   감시: ros2 topic echo /robot/health
 
 빌드:
   cd /home/pinky/dev_ws/wj
-  colcon build --packages-select move_control lcd_control
+  colcon build --packages-select rosy_control lcd_control
 
 테스트 (개발 PC, ROS 불필요):
   python3 -m pytest test/ -q   # 89개
@@ -46,7 +46,7 @@ zip 위치 (핑키):
   source /home/pinky/dev_ws/wj/install/setup.bash
 
 확인:
-  ros2 pkg executables move_control
+  ros2 pkg executables rosy_control
   → calib_node  camera_detect_node  control_node  goal_node  safety_node  watch_node  wander_node  web_node
   ros2 pkg executables lcd_control
   → lcd_node
@@ -59,8 +59,8 @@ zip 위치 (핑키):
   DB        /home/pinky/dev_ws/wj/pinky.db  (journal_mode=WAL)
 
 
-웹 대시보드 (move_control web_node — 지도+제어 한 페이지):
-  ros2 launch move_control web.launch.py        # 또는: ros2 run move_control web_node
+웹 대시보드 (rosy_control web_node — 지도+제어 한 페이지):
+  ros2 launch rosy_control web.launch.py        # 또는: ros2 run rosy_control web_node
   브라우저  http://<핑키IP>:28161
   백엔드 API  :28162 (/state.json · /map.png · 버튼/teleop POST)
   지도: /map → PNG, 궤적(trail) + 로봇/목표/경로/frontier 대안 오버레이
@@ -83,7 +83,7 @@ zip 위치 (핑키):
 1) 자동 캘리브 (wander 끄고, 책상 가운데)
   창1  ros2 launch pinky_bringup bringup_robot.launch.xml
   창2  ros2 run pinky_sensor_adc main_node
-  창3  ros2 run move_control calib_node
+  창3  ros2 run rosy_control calib_node
 
   ros2 topic pub --once /calib/step std_msgs/msg/String "{data: auto}"
   상태: ros2 topic echo /calib/status
@@ -105,7 +105,7 @@ zip 위치 (핑키):
 2) 자율 주행
   창1 bringup
   창2 adc
-  창3 ros2 launch move_control wander.launch.py
+  창3 ros2 launch rosy_control wander.launch.py
       (robot.yaml + wander/safety yaml)
   창4 LCD/LED (별 패키지, 모터와 무관):
       ros2 run pinky_led led_server
@@ -150,16 +150,16 @@ zip 위치 (핑키):
             ros2 topic pub --once /lcd/view std_msgs/msg/String "{data: camera}"
 
   맵 만들기 (wander 켠 채로, 이 로봇 SLAM):
-      ros2 launch move_control map.launch.py
+      ros2 launch rosy_control map.launch.py
       웹 http://<핑키IP>:8090  의 Map 그림이 커져야 함
-      (실시간 지도+제어 뷰: ros2 launch move_control web.launch.py → :28161)
+      (실시간 지도+제어 뷰: ros2 launch rosy_control web.launch.py → :28161)
       저장:
         mkdir -p /home/pinky/dev_ws/wj/maps
         ros2 run nav2_map_server map_saver_cli -f /home/pinky/dev_ws/wj/maps/pinky
       LCD 맵은 라이다 폴라 HUD. 점유격자 맵은 /map + 웹.
 
 맵 기반 목표 (goal_node — 조언 전용, 모터는 wander/control 소관):
-  ros2 launch move_control goal.launch.py
+  ros2 launch rosy_control goal.launch.py
   상태:      ros2 topic echo /goal_node/state
   목표/경로: ros2 topic echo /goal_point  /route
   도착 예상: ros2 topic echo /goal/eta   (초. 0 = 추정 없음)
@@ -180,10 +180,10 @@ zip 위치 (핑키):
 
 
 3) 20cm / 90도 (wander 끄고, safety+control)
-  ros2 run move_control safety_node --ros-args \
-    --params-file /home/pinky/dev_ws/wj/src/move_control/config/safety.yaml
-  ros2 run move_control control_node --ros-args \
-    --params-file /home/pinky/dev_ws/wj/src/move_control/config/control.yaml
+  ros2 run rosy_control safety_node --ros-args \
+    --params-file /home/pinky/dev_ws/wj/src/rosy_control/config/safety.yaml
+  ros2 run rosy_control control_node --ros-args \
+    --params-file /home/pinky/dev_ws/wj/src/rosy_control/config/control.yaml
   ros2 topic pub --once /goal_distance std_msgs/msg/Float64 "{data: 0.2}"
   ros2 topic pub --once /goal_rotate std_msgs/msg/Float64 "{data: 90.0}"
 

@@ -1,6 +1,6 @@
 import math
 import pytest
-from move_control.control.calibration_return import CalibrationReturn
+from rosy_control.control.calibration_return import CalibrationReturn
 
 
 def scan(radius=.4):

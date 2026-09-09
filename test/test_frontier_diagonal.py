@@ -1,6 +1,6 @@
 """Raycast boundaries are staircases; diagonal adjacency must retain them."""
-from move_control.planning.gridmap import OccupancyMap
-from move_control.planning.frontier import frontier_points
+from rosy_control.planning.gridmap import OccupancyMap
+from rosy_control.planning.frontier import frontier_points
 
 
 def test_diagonal_boundary_is_one_frontier_instead_of_discarded_singletons():

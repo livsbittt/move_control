@@ -1,5 +1,5 @@
 import pytest
-from move_control.control.rotation_relocation import RotationRelocation
+from rosy_control.control.rotation_relocation import RotationRelocation
 
 
 def tick(controller, now, pose=(0.,0.,0.), **kwargs):

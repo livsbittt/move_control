@@ -1,5 +1,5 @@
 """Comfort clearance must not turn a safe mission into a backward escape."""
-from move_control.planning import FREE, OCC, OccupancyMap, GoalBrain
+from rosy_control.planning import FREE, OCC, OccupancyMap, GoalBrain
 
 
 def committed_escape_fixture():

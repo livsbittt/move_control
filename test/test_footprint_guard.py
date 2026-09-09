@@ -1,5 +1,5 @@
 import math
-from move_control.control.footprint_guard import translation_clearance
+from rosy_control.control.footprint_guard import translation_clearance
 
 
 def test_straight_front_uses_chassis_edge_not_turning_radius():

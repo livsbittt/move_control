@@ -5,7 +5,7 @@ import rclpy
 from rclpy.parameter import Parameter
 from std_msgs.msg import String
 from geometry_msgs.msg import TransformStamped
-from move_control.wander.node import WanderNode
+from rosy_control.wander.node import WanderNode
 
 
 class ObstacleWanderTest(unittest.TestCase):

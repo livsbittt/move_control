@@ -7,7 +7,7 @@ from pathlib import Path
 import hashlib
 import json
 
-LOCK = '/home/pinky/.local/state/move_control/adc-i2c-1-08.lock'
+LOCK = '/home/pinky/.local/state/rosy_control/adc-i2c-1-08.lock'
 
 
 def patch_battery(source):

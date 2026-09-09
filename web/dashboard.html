@@ -13,7 +13,7 @@
   --unk: #161615; --grid: #2c2c2a;     --border: rgba(255,255,255,0.10);
   --rule: rgba(255,255,255,0.07);
   --ink: #ffffff; --ink-2: #c3c2b7;    --muted: #898781;
-  /* map raster — must match render_png in move_control/web_node.py */
+  /* map raster — must match render_png in rosy_control/web_node.py */
   --free: #232322; --wall: #e1e0d9;
   /* categorical overlays (validated trio) + pin */
   --route: #3987e5; --alt: #d95926; --goal: #199e70; --pin: #d55181;
@@ -561,7 +561,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline:2px s
 const CFG = {
   poll_ms: 333, result_ms: 5000, map_recheck_ms: 120, stale_ms: 1500,
   teleop_period_ms: 100, cam_stale_ms: 3000,
-  // clamps must match the /teleop handler in move_control/web_node.py
+  // clamps must match the /teleop handler in rosy_control/web_node.py
   lin_max: 0.2, ang_max: 1.0,
   lin_steps: [0.02, 0.05, 0.10, 0.20],
   ang_steps: [0.25, 0.50, 0.75, 1.00],

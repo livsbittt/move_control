@@ -32,15 +32,15 @@ from tf2_ros import Buffer as TfBuffer, TransformListener
 from rclpy.time import Time
 from geometry_msgs.msg import TransformStamped
 
-from move_control.control.recover import (
+from rosy_control.control.recover import (
     escape_open,
     front_block,
     guard_speed,
     is_stuck_motion,
     ratio_sign,
 )
-from move_control.sensing.lidar import sector_min
-from move_control.control.pursuit import pursuit_index, pursuit_speed
+from rosy_control.sensing.lidar import sector_min
+from rosy_control.control.pursuit import pursuit_index, pursuit_speed
 
 
 def wrap(a):

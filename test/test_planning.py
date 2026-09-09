@@ -3,7 +3,7 @@ import math
 import unittest
 from unittest import mock
 
-from move_control.planning import (FREE, OCC, UNKNOWN, GoalBrain,
+from rosy_control.planning import (FREE, OCC, UNKNOWN, GoalBrain,
                                    OccupancyMap, ZigzagPlanner, best_route,
                                    frontier, frontier_points,
                                    parse_goal_cmd, pick_goal)
@@ -507,7 +507,7 @@ class GoalBrainTest(RoomCase):
         brain = GoalBrain(min_size=2, probe_when_done=True, blacklist_plans=3)
         m = self.known_room()
         brain.covered = set(m.free_cells())
-        with mock.patch('move_control.planning.goals.best_route',
+        with mock.patch('rosy_control.planning.goals.best_route',
                         return_value=None):
             g1, _r, s1 = brain.plan(m, self.START)
             self.assertIsNone(g1)
@@ -564,7 +564,7 @@ class ManualGoalTest(RoomCase):
         brain.set_manual(*self.EAST)
         # best_route snaps to nearest free cells, so no fixture goal is
         # unroutable — mock the router to exercise the unreachable branch.
-        with mock.patch('move_control.planning.goals.best_route',
+        with mock.patch('rosy_control.planning.goals.best_route',
                         return_value=None):
             for _ in range(2):
                 goal, route, status = brain.plan(self.m, self.START)
@@ -711,7 +711,7 @@ class ArrivalProgressionRegression(unittest.TestCase):
         brain = GoalBrain(clear_m=.02, min_size=3)
         target, route, _ = brain.plan(m, (.2, .3))
         brain.complete_goal(m, target, target)
-        with mock.patch('move_control.planning.goals.pick_goal', return_value=None) as pick:
+        with mock.patch('rosy_control.planning.goals.pick_goal', return_value=None) as pick:
             brain.plan(m, target)
             self.assertIn(m.world_to_grid(*target), pick.call_args.kwargs['exclude'])
 

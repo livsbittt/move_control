@@ -2,10 +2,10 @@ import json
 from pathlib import Path
 import numpy as np
 import pytest
-from move_control.planning.gridmap import OccupancyMap
-from move_control.planning.straight_escape import straight_escape
-from move_control.control.straight_escape import StraightEscape
-from move_control.control.footprint_sweep import footprint_translation_limits
+from rosy_control.planning.gridmap import OccupancyMap
+from rosy_control.planning.straight_escape import straight_escape
+from rosy_control.control.straight_escape import StraightEscape
+from rosy_control.control.footprint_sweep import footprint_translation_limits
 
 
 def test_actual_corner_has_a_short_fixed_heading_exit():

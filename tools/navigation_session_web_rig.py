@@ -16,8 +16,8 @@ from rclpy.clock import Clock, ClockType
 from rclpy.executors import SingleThreadedExecutor
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
-from move_control import web_node as web
-from move_control.wander.node import WanderNode
+from rosy_control import web_node as web
+from rosy_control.wander.node import WanderNode
 
 
 def main():

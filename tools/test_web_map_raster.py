@@ -4,7 +4,7 @@ import unittest
 import cv2
 import numpy as np
 from nav_msgs.msg import OccupancyGrid
-from move_control import web_node as web
+from rosy_control import web_node as web
 
 
 class MapRasterTest(unittest.TestCase):

@@ -1,7 +1,7 @@
 import unittest
 from types import SimpleNamespace
 from unittest.mock import Mock
-from move_control import web_node as web
+from rosy_control import web_node as web
 
 
 class TeleopGateTest(unittest.TestCase):

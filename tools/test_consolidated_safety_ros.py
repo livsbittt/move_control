@@ -9,8 +9,8 @@ from rclpy.parameter import Parameter
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan, Range
 from std_msgs.msg import Bool, Float32MultiArray, String
-from move_control.control.calibration_profile import make_profile
-from move_control.safety.node import SafetyNode
+from rosy_control.control.calibration_profile import make_profile
+from rosy_control.safety.node import SafetyNode
 
 
 class ConsolidatedSafetyTest(unittest.TestCase):

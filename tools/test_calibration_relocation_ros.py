@@ -11,7 +11,7 @@ from rclpy.parameter import Parameter
 from rclpy.time import Time
 from sensor_msgs.msg import LaserScan, Imu
 from nav_msgs.msg import Odometry
-from move_control.startup_calibration_node import StartupCalibrationNode
+from rosy_control.startup_calibration_node import StartupCalibrationNode
 
 
 class RelocationAdapterTest(unittest.TestCase):
@@ -37,7 +37,7 @@ class RelocationAdapterTest(unittest.TestCase):
         scan.angle_min = -math.pi
         scan.angle_increment = math.tau/720
         scan.ranges = [.8]*720
-        with patch('move_control.calibration_rotation.time.monotonic', return_value=100):
+        with patch('rosy_control.calibration_rotation.time.monotonic', return_value=100):
             n.rotation_scan_sample(scan, True)
         self.assertEqual(len(n.rotation_points), 180)
         self.assertEqual(len(n.relocation_points), 720)
@@ -113,7 +113,7 @@ class RelocationAdapterTest(unittest.TestCase):
                     else:
                         msg.orientation.w = 1.
                         msg.linear_acceleration.z = 9.81
-                    with patch('move_control.startup_calibration_node.time.monotonic',return_value=100.):
+                    with patch('rosy_control.startup_calibration_node.time.monotonic',return_value=100.):
                         (n.on_odom if name=='odom' else n.on_imu)(msg)
                     self.assertEqual(n.baseline.samples[name][-1][0],100.)
                     self.assertFalse(n.baseline.samples[name][-1][2])
@@ -133,7 +133,7 @@ class RelocationAdapterTest(unittest.TestCase):
         scan.angle_min = -math.pi
         scan.angle_increment = math.tau/720
         scan.ranges = [.8]*720
-        with patch('move_control.calibration_rotation.time.monotonic',return_value=100.):
+        with patch('rosy_control.calibration_rotation.time.monotonic',return_value=100.):
             n.rotation_scan_sample(scan,True)
         self.assertEqual(n.rotation_scan[0],100.)
         self.assertEqual(len(n.relocation_points),720)
@@ -196,14 +196,14 @@ class RelocationAdapterTest(unittest.TestCase):
         n = self._prepare_relocation()
         msg = Odometry()
         msg.header.stamp = Time(seconds=999.85).to_msg()
-        with patch('move_control.startup_calibration_node.time.monotonic',return_value=100.):
+        with patch('rosy_control.startup_calibration_node.time.monotonic',return_value=100.):
             self.assertAlmostEqual(n.relocation_source_deadline(msg),100.05)
         scan = LaserScan()
         scan.header.stamp = msg.header.stamp
         scan.angle_min = -math.pi
         scan.angle_increment = math.tau/720
         scan.ranges = [.8]*720
-        with patch('move_control.calibration_rotation.time.monotonic',return_value=100.):
+        with patch('rosy_control.calibration_rotation.time.monotonic',return_value=100.):
             n.rotation_scan_sample(scan,True)
         n.rotation_eligibility = Mock(return_value=None)
         n.tick_relocation(100.1)

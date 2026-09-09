@@ -2,8 +2,8 @@
 import math
 import unittest
 
-from move_control.sensing.lidar import MOUNT_YAW_DEG, NOSE_YAW, robot_yaw
-from move_control.control.route import line_route
+from rosy_control.sensing.lidar import MOUNT_YAW_DEG, NOSE_YAW, robot_yaw
+from rosy_control.control.route import line_route
 from test.test_frontier import FakeScan
 
 

@@ -1,12 +1,12 @@
 import unittest
 import math
-from move_control.control.calibration_profile import ProfileLease, make_profile
+from rosy_control.control.calibration_profile import ProfileLease, make_profile
 
 
 class ProfileLeaseTest(unittest.TestCase):
     def test_translation_trial_retains_constraint_without_gains_and_expires(self):
         from test.test_calibration_certificate import RotationCertificateTest
-        from move_control.control.rotation_envelope import RotationEnvelope
+        from rosy_control.control.rotation_envelope import RotationEnvelope
         estimator=RotationEnvelope(.08)
         for yaw in (.2,.2,-.2,-.2):estimator.add((0,0,yaw),(0,0,yaw),yaw,.0001)
         rotation=RotationCertificateTest.rotation();rotation['envelope']=estimator.report()
@@ -27,7 +27,7 @@ class ProfileLeaseTest(unittest.TestCase):
 
     def test_explicit_recalibration_lease_retains_only_geometry_constraint(self):
         from test.test_calibration_certificate import RotationCertificateTest
-        from move_control.control.rotation_envelope import RotationEnvelope
+        from rosy_control.control.rotation_envelope import RotationEnvelope
         estimator=RotationEnvelope(.08)
         for yaw in (.2,.2,-.2,-.2):
             estimator.add((0,0,yaw),(0,0,yaw),yaw,.0001)
@@ -56,7 +56,7 @@ class ProfileLeaseTest(unittest.TestCase):
 
     def test_rotation_estimate_binds_exact_configured_geometry(self):
         from test.test_calibration_certificate import RotationCertificateTest
-        from move_control.control.rotation_envelope import RotationEnvelope
+        from rosy_control.control.rotation_envelope import RotationEnvelope
         footprint=[[-.04,-.05],[-.04,.05],[.08,.05],[.08,-.05]]
         radius=math.hypot(.08,.05)
         envelope=RotationEnvelope(radius,footprint)

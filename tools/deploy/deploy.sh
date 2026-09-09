@@ -4,7 +4,7 @@
 #
 #   ./tools/deploy/deploy.sh                     # build from HEAD, then deploy
 #   ./tools/deploy/deploy.sh --ref v0.2.0
-#   ./tools/deploy/deploy.sh --bundle dist/move_control-0.2.0.tar.gz
+#   ./tools/deploy/deploy.sh --bundle dist/rosy_control-0.2.0.tar.gz
 #   ./tools/deploy/deploy.sh --rollback          # roll the robot back one version
 #   ./tools/deploy/deploy.sh --list              # what the robot has installed
 #
@@ -72,6 +72,7 @@ sync_scripts() {
   ssh "${SSH_OPTS[@]}" "$TARGET_SSH" "mkdir -p '$PINKY_REMOTE_DEPLOY_DIR'"
   scp "${SCP_OPTS[@]}" -q \
     tools/deploy/lib.sh tools/deploy/pinky_update.sh tools/deploy/pinky_rollback.sh \
+    tools/deploy/migrate_to_rosy_control.sh \
     "$TARGET_SSH:$PINKY_REMOTE_DEPLOY_DIR/"
   ssh "${SSH_OPTS[@]}" "$TARGET_SSH" "chmod +x '$PINKY_REMOTE_DEPLOY_DIR'/*.sh"
 }
@@ -93,7 +94,7 @@ esac
 if [ -z "$BUNDLE" ]; then
   echo "deploy: building bundle from $REF"
   ./tools/ci/make_bundle.sh --ref "$REF"
-  BUNDLE="$(ls -t dist/move_control-*.tar.gz | head -1)"
+  BUNDLE="$(ls -t dist/rosy_control-*.tar.gz | head -1)"
 fi
 [ -f "$BUNDLE" ] || { echo "deploy: bundle not found: $BUNDLE" >&2; exit 2; }
 BASE="$(basename "$BUNDLE")"
@@ -104,7 +105,7 @@ done
 
 # --- ship -------------------------------------------------------------------
 sync_scripts
-REMOTE_TMP="/tmp/move_control-deploy"
+REMOTE_TMP="/tmp/rosy_control-deploy"
 echo "deploy: copying $BASE to $TARGET_SSH:$REMOTE_TMP"
 remote "mkdir -p '$REMOTE_TMP'"
 scp "${SCP_OPTS[@]}" -q "$BUNDLE" "$BUNDLE.sha256" "$STEM.manifest.json" "$TARGET_SSH:$REMOTE_TMP/"
@@ -113,4 +114,4 @@ echo "deploy: running the updater on $PINKY_HOST as '$DEPLOYED_BY'"
 remote "DEPLOYED_BY='$DEPLOYED_BY' '$PINKY_REMOTE_DEPLOY_DIR/pinky_update.sh' --bundle '$REMOTE_TMP/$BASE' ${PASSTHRU[*]+${PASSTHRU[*]}}"
 
 echo "deploy: done. Source is updated; the robot is NOT driving."
-echo "deploy: start it when ready:  ssh $TARGET_SSH 'ros2 launch move_control robot.launch.py'"
+echo "deploy: start it when ready:  ssh $TARGET_SSH 'ros2 launch rosy_control robot.launch.py'"

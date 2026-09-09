@@ -55,7 +55,7 @@ settings={'/**': {'ros__parameters': {'use_sim_time':True, 'robot_radius':.105,
 slam=yaml.safe_load(Path('tools/gz/slam_sim.yaml').read_text())
 slam['slam_toolbox']['ros__parameters']['resolution']=.02
 (out/'slam.yaml').write_text(yaml.safe_dump(slam))
-source_paths=sorted(list(Path('move_control').rglob('*.py'))+list(Path('config').glob('*.yaml')))
+source_paths=sorted(list(Path('rosy_control').rglob('*.py'))+list(Path('config').glob('*.yaml')))
 manifest={'run_id':run_id, 'recorded_unix_s':time.time(), 'plant':plant,
     'ros_domain':227, 'gazebo_partition':'pinky_calmap227',
     'world_sha256':hashlib.sha256((out/'world.sdf').read_bytes()).hexdigest(),

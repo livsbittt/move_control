@@ -5,7 +5,7 @@ import rclpy
 from rclpy.time import Time
 from geometry_msgs.msg import TransformStamped
 from sensor_msgs.msg import LaserScan
-from move_control.obstacle_observer_node import ObstacleObserver
+from rosy_control.obstacle_observer_node import ObstacleObserver
 
 
 class ObstacleObserverTest(unittest.TestCase):

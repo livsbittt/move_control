@@ -72,11 +72,11 @@ ln -sfn "$DEST" "$RELEASES/current"
 [ -n "$CURRENT" ] && ln -sfn "$CURRENT" "$RELEASES/previous"
 
 if [ "$DO_BUILD" = 1 ]; then
-  info "colcon build --packages-select move_control"
-  ( cd "$WS" && colcon build --packages-select move_control ) \
+  info "colcon build --packages-select rosy_control"
+  ( cd "$WS" && colcon build --packages-select rosy_control ) \
     || die "rebuild failed after rollback -- inspect $WS by hand"
 fi
 
 log_deploy MANUAL_ROLLBACK "$(basename "$DEST")" "$DEPLOYED_BY" "from=$(basename "${CURRENT:-none}")"
 info "now on $(basename "$DEST")"
-info "driving is NOT started -- run 'ros2 launch move_control robot.launch.py' when you are ready."
+info "driving is NOT started -- run 'ros2 launch rosy_control robot.launch.py' when you are ready."

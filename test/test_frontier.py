@@ -2,9 +2,9 @@
 import math
 import unittest
 
-from move_control.sensing.lidar import find_frontiers, robot_yaw
-from move_control.planning.gridmap import OccupancyMap, FREE, OCC, UNKNOWN
-from move_control.planning.frontier import pick_goal, _reachable_costs
+from rosy_control.sensing.lidar import find_frontiers, robot_yaw
+from rosy_control.planning.gridmap import OccupancyMap, FREE, OCC, UNKNOWN
+from rosy_control.planning.frontier import pick_goal, _reachable_costs
 
 
 class _Stamp:

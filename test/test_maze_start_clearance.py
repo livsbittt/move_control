@@ -1,7 +1,7 @@
 """A base-centred robot must fit its configured maze planning margin."""
 from pathlib import Path
 import yaml
-from move_control.planning import OccupancyMap, GoalBrain
+from rosy_control.planning import OccupancyMap, GoalBrain
 
 
 def corridor():
@@ -51,7 +51,7 @@ def test_genuinely_too_close_start_stays_blocked_at_robot_margin():
 
 
 def test_escape_cannot_cross_unknown_or_travel_far_to_find_clearance():
-    from move_control.planning.escape import start_escape
+    from rosy_control.planning.escape import start_escape
     m = corridor()
     for c in range(m.w):
         m.set_cell(c, 7, -1)

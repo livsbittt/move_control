@@ -2,7 +2,7 @@
 import math
 import unittest
 
-from move_control.control.recover import (
+from rosy_control.control.recover import (
     ESCAPE_MIN_TURN,
     ExitSteer,
     backup_limit_m,

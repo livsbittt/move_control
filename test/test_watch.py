@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import unittest
 
-from move_control.watch import FOREIGN, REQUIRED, inspect
+from rosy_control.watch import FOREIGN, REQUIRED, inspect
 
 
 def healthy():

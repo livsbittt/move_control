@@ -9,8 +9,8 @@ from unittest.mock import Mock, patch
 import rclpy
 from rclpy.parameter import Parameter
 from std_msgs.msg import String
-from move_control.startup_calibration_node import StartupCalibrationNode
-from move_control.control.calibration_certificate import make_certificate
+from rosy_control.startup_calibration_node import StartupCalibrationNode
+from rosy_control.control.calibration_certificate import make_certificate
 from test.test_calibration_certificate import complete_motion
 
 

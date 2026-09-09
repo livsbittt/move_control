@@ -1,5 +1,5 @@
 import math
-from move_control.sensing.pose import planar_pose
+from rosy_control.sensing.pose import planar_pose
 
 
 def test_map_pose_requires_finite_valid_quaternion_and_position():

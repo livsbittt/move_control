@@ -8,14 +8,14 @@ import os
 
 import pytest
 
-from move_control.control.straight_escape import StraightEscape
-from move_control.sensing.pose import planar_pose
+from rosy_control.control.straight_escape import StraightEscape
+from rosy_control.sensing.pose import planar_pose
 
 
 def tick_navigation(node):
     # Execute the production callback with message constructors replaced only;
     # no ROS import, discovery or publisher is needed for this integration seam.
-    source = Path(__file__).parents[1] / 'move_control/wander/navigator.py'
+    source = Path(__file__).parents[1] / 'rosy_control/wander/navigator.py'
     tree = ast.parse(source.read_text(encoding='utf-8'))
     owner = next(item for item in tree.body if isinstance(item, ast.ClassDef)
                  and item.name == 'Navigator')

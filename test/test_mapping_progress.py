@@ -2,8 +2,8 @@ import math
 import unittest
 from unittest.mock import patch
 
-from move_control.planning import GoalBrain, OccupancyMap, ZigzagPlanner, FREE
-from move_control.planning.zigzag import cover_ring
+from rosy_control.planning import GoalBrain, OccupancyMap, ZigzagPlanner, FREE
+from rosy_control.planning.zigzag import cover_ring
 
 
 class MappingProgressTest(unittest.TestCase):
@@ -29,7 +29,7 @@ class MappingProgressTest(unittest.TestCase):
         brain.mode = 'coverage'
         m = OccupancyMap(12, 12, .05, fill=FREE)
         pose = (.225, .225)
-        with patch('move_control.planning.goals.best_route', return_value=None):
+        with patch('rosy_control.planning.goals.best_route', return_value=None):
             statuses = [brain.plan(m, pose)[2] for _ in range(50)]
         self.assertTrue(brain._coverage_deferred)
         self.assertNotIn('coverage done', statuses)
@@ -46,7 +46,7 @@ class MappingProgressTest(unittest.TestCase):
     def test_manual_goal_does_not_retry_raw_map_by_default(self):
         brain = GoalBrain(clear_m=.14)
         brain.set_manual(.8, .8)
-        with patch('move_control.planning.goals.best_route', return_value=None) as route:
+        with patch('rosy_control.planning.goals.best_route', return_value=None) as route:
             brain.plan(OccupancyMap(20, 20, .05, fill=FREE), (.4, .4))
         self.assertEqual([call.kwargs['clear_m'] for call in route.call_args_list], [.14])
 

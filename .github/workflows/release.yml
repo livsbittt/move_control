@@ -37,7 +37,7 @@ jobs:
         id: bundle
         run: |
           ./tools/ci/make_bundle.sh --ref HEAD
-          echo "version=$(ls dist/*.manifest.json | head -1 | sed 's:.*/move_control-::; s:\.manifest\.json$::')" >> "$GITHUB_OUTPUT"
+          echo "version=$(ls dist/*.manifest.json | head -1 | sed 's:.*/rosy_control-::; s:\.manifest\.json$::')" >> "$GITHUB_OUTPUT"
 
       # Fail loudly here rather than on the robot: the updater refuses any
       # release that is missing one of the three assets.
@@ -47,7 +47,7 @@ jobs:
           tar=$(ls *.tar.gz)
           sha256sum -c "$tar.sha256"
           test -f "${tar%.tar.gz}.manifest.json"
-          tar -tzf "$tar" | head -1 | grep -q '^move_control/'
+          tar -tzf "$tar" | head -1 | grep -q '^rosy_control/'
           echo "bundle ok: $tar"
 
       - name: Publish release
@@ -59,7 +59,7 @@ jobs:
             dist/*.tar.gz.sha256
             dist/*.manifest.json
           body: |
-            move_control ${{ steps.bundle.outputs.version }}
+            rosy_control ${{ steps.bundle.outputs.version }}
 
             Install on the robot (source only -- this does not start driving):
 

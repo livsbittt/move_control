@@ -1,5 +1,5 @@
 import math
-from move_control.planning import OccupancyMap,GoalBrain
+from rosy_control.planning import OccupancyMap,GoalBrain
 
 
 def test_failed_coverage_target_is_deferred_not_marked_cleaned():
