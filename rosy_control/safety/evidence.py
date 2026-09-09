@@ -98,12 +98,15 @@ class Evidence:
         self.publish_calibration_applied()
 
     def required_observation_failure(self):
+        now = time.monotonic()
+        if self.calibration_lease.limited_sensor_hold(now):
+            return 'limited_sensor_authorization_unavailable'
         required = ['lidar', 'imu']
         if bool(self.get_parameter('cliff_enable').value):
             required.append('ir')
-        now = time.monotonic()
+        excluded = self.calibration_lease.sensor_exclusions(now)
         return next((name+'_unavailable' for name in required
-                     if not self.observations.fresh(name, now)), None)
+                     if name not in excluded and not self.observations.fresh(name, now)), None)
 
     def record_decision(self, v, w, reason):
         now = time.monotonic()

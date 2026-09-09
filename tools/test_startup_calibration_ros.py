@@ -474,7 +474,10 @@ class StartupCalibrationTest(unittest.TestCase):
         self.now.return_value = 111.
         self.node.tick()
         self.assertEqual(self.node.phase, 'ready')
-        self.assertEqual(self.node.report()['phase'], 'sensor_hold')
+        self.assertEqual(self.node.report()['phase'], 'ready')
+        self.assertEqual(self.node.report()['runtime_state'], 'sensor_hold')
+        self.assertTrue(self.node.report()['calibration_complete'])
+        self.assertFalse(self.node.report()['recalibration_required'])
         self.assertTrue(self.node.report()['calibration_verified'])
         self.assertFalse(self.node.report()['settings_applied'])
         self.assertAlmostEqual(self.node.scale_pub.publish.call_args.args[0].data[0], 1.1, places=6)

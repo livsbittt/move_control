@@ -3,6 +3,7 @@ import hashlib
 import json
 import math
 from .rotation_envelope import validate_envelope
+from .calibration_certificate import rotation_leg_count
 
 
 def revision(packet):
@@ -10,13 +11,17 @@ def revision(packet):
     return hashlib.sha256(json.dumps(content, sort_keys=True, allow_nan=False).encode()).hexdigest()[:16]
 
 
-def make_profile(session, sequence, issued, enabled, gains, geometry, rotation=None, rotation_trial=False, translation_trial=False):
+def make_profile(session, sequence, issued, enabled, gains, geometry, rotation=None, rotation_trial=False, translation_trial=False, limited_sensors=False):
     packet = {'schema_version': 1, 'session': session, 'sequence': sequence,
               'issued_s': issued, 'ttl_s': 1.5, 'enabled': enabled,
               'linear_gains': list(gains), 'max_linear_mps': .014,
               'geometry_revision': geometry, 'rotation': rotation, 'rotation_trial': rotation_trial,
               'translation_trial': translation_trial,
               'domain': 'low_speed_straight', 'physical_commissioned': False}
+    if limited_sensors:
+        packet.update(limited_sensors=True, sensor_exclusions=['imu'],
+                      max_linear_mps=.005, max_angular_rad_s=.05,
+                      completion_source='operator_override')
     packet['revision'] = revision(packet)
     return packet
 
@@ -32,6 +37,7 @@ class ProfileLease:
         self.received = None
         self.reason = 'missing'
         self._rotation_required = False
+        self._limited_selected = False
 
     def accept(self, packet, wall_now, now, geometry):
         try:
@@ -53,8 +59,20 @@ class ProfileLease:
                 raise ValueError('stale')
             if len(gains) != 2 or not all(math.isfinite(v) and .75 <= v <= 1.25 for v in gains):
                 raise ValueError('gains')
+            limited = packet.get('limited_sensors', False)
+            if type(limited) is not bool:
+                raise ValueError('limited_sensors')
+            if limited:
+                if (packet.get('sensor_exclusions') != ['imu'] or
+                        packet.get('max_angular_rad_s') != .05 or
+                        packet.get('completion_source') != 'operator_override' or
+                        packet.get('rotation') is not None or packet.get('rotation_trial') or
+                        packet.get('translation_trial') or list(gains) != [1., 1.]):
+                    raise ValueError('limited_sensor_domain')
+            elif packet.get('sensor_exclusions'):
+                raise ValueError('unexpected_sensor_exclusions')
             if (packet['geometry_revision'] != geometry or not geometry or
-                    packet['domain'] != 'low_speed_straight' or packet['max_linear_mps'] != .014 or
+                    packet['domain'] != 'low_speed_straight' or packet['max_linear_mps'] != (.005 if limited else .014) or
                     type(packet['enabled']) is not bool or packet['physical_commissioned'] is not False):
                 raise ValueError('domain')
             rotation = packet.get('rotation')
@@ -67,15 +85,20 @@ class ProfileLease:
                 raise ValueError('translation_trial')
             if packet['enabled'] and rotation is not None:
                 if (rotation['done'] is not True or rotation['error'] is not None or
-                        rotation['max_angular_rad_s'] != .06 or len(rotation['legs']) != 8 or
+                        rotation['max_angular_rad_s'] != .06 or len(rotation['legs']) != rotation_leg_count(rotation) or
                         len(rotation['angular_gains']) != 2 or
                         not all(math.isfinite(v) and .75 <= v <= 1.25 for v in rotation['angular_gains'])):
                     raise ValueError('rotation_domain')
                 if 'envelope' in rotation and not validate_envelope(rotation['envelope']):
                     raise ValueError('rotation_envelope')
+                if 'envelope' in rotation:
+                    refined = rotation['envelope'].get('uncertainty_model') == 'cross_endpoint_residual_over_excitation_v2'
+                    if refined != (rotation_leg_count(rotation) == 10):
+                        raise ValueError('rotation_sequence')
             if self.session and self.session != session:
                 self.retired.add(self.session)
             self.session, self.sequence = session, sequence
+            self._limited_selected = limited
             self.active = json.loads(json.dumps(packet, allow_nan=False))
             self.deadline = now + ttl - max(0., wall_now-issued)
             self.received = now
@@ -97,6 +120,15 @@ class ProfileLease:
 
     def gains(self, now):
         return tuple(self.active['linear_gains']) if self.live(now) else (1., 1.)
+
+    def sensor_exclusions(self, now):
+        return ('imu',) if self.live(now) and self.active.get('limited_sensors') is True else ()
+
+    def motion_limits(self, now):
+        return (.005, .05) if self.sensor_exclusions(now) else None
+
+    def limited_sensor_hold(self, now):
+        return self._limited_selected and not self.live(now)
 
     def rotation_trial_live(self, now):
         """Explicit short-lived trial authorization retains constraints, not gains."""

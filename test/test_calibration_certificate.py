@@ -55,6 +55,56 @@ class CalibrationCertificateTest(unittest.TestCase):
         with self.assertRaises(ValueError):make_certificate({'bad':float('nan')},complete_motion())
 
 class RotationCertificateTest(unittest.TestCase):
+    def test_cross_endpoint_sequence_requires_all_ten_response_legs(self):
+        report = self.rotation()
+        report['trial_sequence'] = 'cross_endpoint_v2'
+        report['target_sequence_deg'] = [10, 0, -10, 0, 10, 0, -10, 0, 10, 0]
+        with self.assertRaises(ValueError):
+            make_certificate({}, complete_motion(), report)
+        report['legs'].extend(copy.deepcopy(report['legs'][4:6]))
+        record = make_certificate({}, complete_motion(), report)
+        self.assertIsNotNone(validate_certificate(record, {}))
+        for sequence in ('origin_endpoints_v1', 'unknown'):
+            invalid = copy.deepcopy(report)
+            invalid['trial_sequence'] = sequence
+            with self.assertRaises(ValueError):
+                make_certificate({}, complete_motion(), invalid)
+
+    def test_steady_response_certificate_preserves_neutral_operational_gains(self):
+        from rosy_control.control.rotation_trial import RotationTrial
+        trial = RotationTrial(0.)
+        yaw = speed = 0.
+        moving_since = None
+        for i in range(1, 1400):
+            now = i*.05
+            if speed:
+                if moving_since is None:
+                    moving_since = now
+                if now-moving_since >= .4:
+                    yaw += speed*.05/1.12
+            else:
+                moving_since = None
+            speed = trial.update(now, yaw, yaw, yaw, 0., True)
+            if trial.done or trial.error:
+                break
+        self.assertTrue(trial.done, trial.error)
+        report = trial.report()
+        record = make_certificate({}, complete_motion(), report)
+        self.assertIsNotNone(validate_certificate(record, {}))
+        self.assertEqual(record['rotation']['angular_gains'], [1., 1.])
+        for mutate in (
+                lambda r: r.update(response_verified=False),
+                lambda r: r.update(compensation_verified=True),
+                lambda r: r.update(estimated_steady_gains=[1., 1.]),
+                lambda r: r['legs'][0].update(integrated_ratio=1.),
+                lambda r: r['legs'][0].update(fit_samples=2),
+                lambda r: r['legs'][0].update(onset_latency_s=2.),
+                lambda r: r['legs'][0].update(sensor_rates_rad_s=[.05, .1, .05])):
+            invalid = copy.deepcopy(report)
+            mutate(invalid)
+            with self.assertRaises(ValueError):
+                make_certificate({}, complete_motion(), invalid)
+
     @staticmethod
     def rotation():
         from rosy_control.control.rotation_trial import RotationTrial

@@ -1,0 +1,14 @@
+[Unit]
+Description=Rosy IMU initialization with bounded recovery
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+[Service]
+ExecStart=/bin/bash %h/.local/bin/rosy-imu-session
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStopSec=8
+
+[Install]
+WantedBy=default.target

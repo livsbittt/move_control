@@ -92,6 +92,17 @@ def validate_certificate(record, configuration) -> dict | None:
         return None
 
 
+def rotation_leg_count(rotation):
+    """Sequence identity keeps legacy certificates and refined trials distinct."""
+    sequence = rotation.get('trial_sequence')
+    if sequence is None:
+        return 8
+    if (sequence == 'cross_endpoint_v2' and rotation.get('target_sequence_deg') ==
+            [10, 0, -10, 0, 10, 0, -10, 0, 10, 0]):
+        return 10
+    return None
+
+
 def _rotation_valid(rotation):
     from .rotation_envelope import validate_envelope
     if isinstance(rotation, dict) and 'envelope' in rotation and not validate_envelope(rotation['envelope']):
@@ -100,11 +111,21 @@ def _rotation_valid(rotation):
             rotation.get('error') is not None or rotation.get('max_angular_rad_s') != .06 or
             rotation.get('geometry_commissioned') is not False):
         return False
-    gains, legs = rotation.get('angular_gains'), rotation.get('legs')
+    steady = 'response_verified' in rotation
+    if steady and (rotation.get('response_verified') is not True or
+                   rotation.get('compensation_verified') is not False or
+                   rotation.get('angular_gains') != [1., 1.]):
+        return False
+    gains = rotation.get('estimated_steady_gains' if steady else 'angular_gains')
+    legs = rotation.get('legs')
     if not isinstance(gains, list) or len(gains) != 2 or not all(_number(v) and .75 <= v <= 1.25 for v in gains):
         return False
-    if not isinstance(legs, list) or len(legs) != 8:
+    if not isinstance(legs, list) or len(legs) != rotation_leg_count(rotation):
         return False
+    if 'envelope' in rotation:
+        refined = rotation['envelope'].get('uncertainty_model') == 'cross_endpoint_residual_over_excitation_v2'
+        if refined != (rotation_leg_count(rotation) == 10):
+            return False
     for i, leg in enumerate(legs):
         if not isinstance(leg, dict) or type(leg.get('direction')) is not int or leg['direction'] != (1,-1,-1,1)[i%4]:
             return False
@@ -113,7 +134,10 @@ def _rotation_valid(rotation):
             return False
         if not math.radians(7) <= measured <= math.radians(13) or not .75 <= ratio <= 1.25:
             return False
-        if abs(commanded/measured-ratio) > 1e-9:
+        integrated = leg.get('integrated_ratio') if steady else ratio
+        if not _number(integrated) or commanded <= 0 or abs(commanded/measured-integrated) > 1e-9:
+            return False
+        if steady and not _steady_leg_valid(leg):
             return False
         if i >= 4 and abs(ratio-gains[int(leg['direction'] < 0)]) > .12:
             return False
@@ -122,3 +146,18 @@ def _rotation_valid(rotation):
         if max(observed)-min(observed) > .12 or abs(sum(observed)/len(observed)-gain) > 1e-9:
             return False
     return True
+
+
+def _steady_leg_valid(leg):
+    """Startup latency is not a steady gain; certify the measured model explicitly."""
+    rate, latency, span = (leg.get(k) for k in
+                          ('steady_rate_rad_s', 'onset_latency_s', 'fit_span_rad'))
+    samples, rates = leg.get('fit_samples'), leg.get('sensor_rates_rad_s')
+    if (not all(_number(v) for v in (rate, latency, span)) or rate <= 0 or
+            not -.2 <= latency <= 1. or not math.radians(5) <= span <= math.radians(7) + 1e-9 or
+            type(samples) is not int or samples < 8 or
+            not isinstance(rates, list) or len(rates) != 3 or
+            not all(_number(v) and v > 0 for v in rates)):
+        return False
+    return (abs(rates[0]-rate) <= 1e-9 and max(rates)-min(rates) <= .2*rate and
+            abs(.06/rate-leg['ratio']) <= 1e-9)

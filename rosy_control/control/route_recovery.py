@@ -15,11 +15,12 @@ class RouteRecovery:
         self.requested = None
         self.failed_goal = None
         self.failed_exit = None
+        self.failed_reason = None
         self.attempts = 0
         self.waiting = self.exhausted = False
         self.alignment_heading = self.alignment_best_error = None
 
-    def update(self, now, pose, reason, goal, route_stamp, safe, route_exit=None):
+    def update(self, now, pose, reason, goal, route_stamp, safe, route_exit=None, *, time_bounded=False):
         if not safe or pose is None:
             if self.hold_since is None:
                 self.hold_since = now
@@ -49,6 +50,7 @@ class RouteRecovery:
             if different and route_stamp is not None and route_stamp > self.requested:
                 self.waiting = False
                 self.failed_goal = self.failed_exit = None
+                self.failed_reason = None
                 self.progress_since, self.blocked_since = now, None
                 self.alignment_heading = self.alignment_best_error = None
                 return 'alternative'
@@ -72,7 +74,7 @@ class RouteRecovery:
                         self.alignment_best_error = error
                         self.progress_since = now
             blocked = reason in ('no_route','hazard','front_blocked','stalled_restart_required',
-                                 'stale_route','off_route','arrived')
+                                 'stale_route','off_route','arrived','gate_rotation_blocked')
             if blocked:
                 if self.blocked_since is None:
                     self.blocked_since = now
@@ -81,7 +83,7 @@ class RouteRecovery:
             due = (self.blocked_since is not None and now-self.blocked_since>=self.wait_seconds)
             if not due and now-self.progress_since < self.progress_seconds:
                 return 'following'
-        if self.attempts >= self.max_attempts:
+        if not time_bounded and self.attempts >= self.max_attempts:
             self.exhausted = True
             return 'exhausted'
         self.attempts += 1
@@ -90,4 +92,5 @@ class RouteRecovery:
         # episode's exit here can veto every fresh route after map replanning.
         self.failed_goal = goal
         self.failed_exit = route_exit
+        self.failed_reason = reason
         return 'replan'

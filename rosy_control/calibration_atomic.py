@@ -102,13 +102,16 @@ class CalibrationAtomic:
         result = self.rotation_trial.report() if self.rotation_trial else self.saved_rotation
         if result is not None and self.rotation_trial and getattr(self, 'rotation_envelope', None) is not None:
             result['envelope'] = self.rotation_envelope.report()
+        if result is not None and getattr(self, 'rotation_registration_failure', None):
+            result['registration_failure'] = self.rotation_registration_failure
         return result
 
     def profile_packet(self):
-        enabled = self.phase == 'ready' and self.runtime_ready and self.geometry_fresh(time.monotonic())
+        enabled = self.phase in ('ready', 'existing_settings', 'limited_sensors') and self.runtime_ready and self.geometry_fresh(time.monotonic())
         scales = self.round_trip.scales if self.phase == 'ready' and self.round_trip and self.round_trip.done else [1., 1.]
         return make_profile(self.profile_session, self.profile_sequence+1,
             self.get_clock().now().nanoseconds*1e-9, enabled, scales,
             self.trial_geometry_revision or self.geometry_revision, self.rotation_report(),
             rotation_trial=self.phase == 'validating_rotation' and self.geometry_fresh(time.monotonic()),
-            translation_trial=self.phase in ('validating_motion', 'relocating_calibration', 'returning_calibration') and self.geometry_fresh(time.monotonic()))
+            translation_trial=self.phase in ('validating_motion', 'relocating_calibration', 'returning_calibration') and self.geometry_fresh(time.monotonic()),
+            limited_sensors=getattr(self, 'limited_sensors', False))

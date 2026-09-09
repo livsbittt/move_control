@@ -22,7 +22,8 @@ def generate_launch_description():
 
     return LaunchDescription([
         IncludeLaunchDescription(PythonLaunchDescriptionSource(
-            os.path.join(share, 'launch', 'map.launch.py'))),
+            os.path.join(share, 'launch', 'map.launch.py')),
+            launch_arguments={'start_goal': 'false'}.items()),
         TimerAction(period=1.5, actions=[node('safety_node',
             ('safety.yaml', 'cliff_calib.yaml', 'auto_calib.yaml'),
             {'start_estopped': True, 'lidar_use_tf': True,

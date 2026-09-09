@@ -183,17 +183,41 @@ class WallTracker:
         if len(matches) > 1:
             points = sorted(point for wall in matches for point in wall['_raw_points'])
             merged = _fit(points)
-            # A tilted bridge can fit two nearby parallel surfaces despite
-            # neither fragment supporting the other. Require mutual support,
-            # as well as the combined fit, before treating them as one wall.
-            equivalent = merged is not None and all(
-                abs(x-wall['slope']*y-wall['intercept'])/math.hypot(1., wall['slope']) <= .003
-                for wall in matches for _, y, x in merged['_points'])
+            # A short fragment's slope is noisy outside its observed support.
+            # Check continuity at adjacent boundaries, not by extrapolating
+            # every fragment across the far end of the entire wall. The joint
+            # fit still requires 3mm support; an 8mm parallel step cannot hide
+            # behind a tilted joint fit because its boundary is discontinuous.
+            ordered = sorted(matches, key=lambda wall: wall['lo'])
+            equivalent = merged is not None
+            for left, right in zip(ordered, ordered[1:]):
+                boundary_y = (left['_points'][-1][1]+right['_points'][0][1])/2
+                separation = abs((left['slope']-right['slope'])*boundary_y+
+                                 left['intercept']-right['intercept'])
+                normal = min(math.hypot(1., left['slope']), math.hypot(1., right['slope']))
+                equivalent = equivalent and left['hi'] < right['lo'] and separation/normal <= .003
             if equivalent and (abs(merged['slope']-self.anchor['slope']) <= .12
                     and abs(merged['intercept']-reference_b) <= .012
                     and abs(merged['intercept']-self.anchor['intercept']) <= .06):
                 merged['fragments'] = len(matches)
                 matches = [merged]
+        if len(matches) > 1:
+            # A short edge segment can meet the broad reacquisition window
+            # without representing the established wall. Retain a unique
+            # live plane only if it covers >=2/3 of the previous support and
+            # stays within the 3mm predicted normal-distance precision. Equal
+            # competing surfaces, an 8mm replacement, and overlapping support
+            # remain ambiguous; no historical distance substitutes for a scan.
+            old_width = self.wall['hi']-self.wall['lo']
+            dominant = [wall for wall in matches
+                        if min(wall['hi'], self.wall['hi'])-max(wall['lo'], self.wall['lo']) >= 2*old_width/3
+                        and abs(wall['intercept']-reference_b)/math.hypot(1., wall['slope']) <= .003]
+            if len(dominant) == 1:
+                chosen = dominant[0]
+                peripheral = [wall for wall in matches if wall is not chosen]
+                if all(wall['hi'] < chosen['lo'] or wall['lo'] > chosen['hi'] for wall in peripheral):
+                    chosen = dict(chosen, association='dominant_support', peripheral_fragments=len(peripheral))
+                    matches = [chosen]
         if len(matches) == 1:
             self.wall = matches[0]
             self.stable += 1

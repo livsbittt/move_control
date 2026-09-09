@@ -47,6 +47,8 @@ def main():
     def refresh():
         with web.LOCK:
             web.STATE['calibration_received'] = time.monotonic()
+            # This fixture records goal commands instead of planning a route.
+            web.STATE['planner_received'] = time.monotonic()
     relay.create_timer(.1, refresh, clock=steady)
     html = (Path(__file__).resolve().parents[1]/'web/dashboard.html').read_bytes()
     html = html.replace(b'__BACKEND_PORT__', b'28862')

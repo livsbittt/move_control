@@ -57,16 +57,30 @@ def _segments(ref):
     directions = edges/np.maximum(lengths[:,None],1e-12)
     aligned = np.sum(directions[1:]*directions[:-1],axis=1) > .995
     supported = np.r_[False,aligned] | np.r_[aligned,False]
+    # Quantized millimetre returns make individual short-edge angles noisy.
+    # A contiguous four-return line fit can independently support those edges
+    # while retaining the existing gap limit and rejecting non-collinear corners.
+    for start in range(len(ref)-3):
+        if np.any(lengths[start:start+3] >= .08):
+            continue
+        window=ref[start:start+4]
+        centered=window-window.mean(axis=0)
+        _,_,axes=np.linalg.svd(centered,full_matrices=False)
+        extent=np.ptp(centered@axes[0])
+        if extent >= .01 and np.max(np.abs(centered@axes[1])) <= .001:
+            supported[start:start+3]=True
     keep = (lengths > .0001) & (lengths < .08) & supported
     if keep.sum() < max(20,.4*len(ref)):
         return None  # Unordered point clouds retain point-to-point registration.
     return ref[:-1][keep],edges[keep],lengths[keep]**2
 
 
-def _fit_segments(segments,cur,hint):
+def _fit_segments(segments,cur,hint,initial=None):
     starts,edges,length2 = segments
     normals = np.column_stack((-edges[:,1],edges[:,0]))/np.sqrt(length2[:,None])
     rotation,translation = _rotation(hint),np.zeros(2)
+    if initial is not None:
+        rotation,translation=initial[0].copy(),initial[1].copy()
     def correspondence(aligned):
         offsets=aligned[:,None,:]-starts[None,:,:]
         fractions=np.sum(offsets*edges[None,:,:],axis=2)/length2
@@ -74,7 +88,10 @@ def _fit_segments(segments,cur,hint):
         distance2=np.sum((aligned[:,None,:]-projections)**2,axis=2)
         closest=np.argmin(distance2,axis=1)
         errors=np.sqrt(distance2[np.arange(len(cur)),closest])
-        interior=(fractions[np.arange(len(cur)),closest]>=0.)&(fractions[np.arange(len(cur)),closest]<=1.)
+        # Dot/divide roundoff can place an exact endpoint at 1+2e-16.
+        # This admits at most 8e-14 m beyond an <=8 cm supported segment,
+        # not extrapolation across an unobserved physical gap.
+        interior=(fractions[np.arange(len(cur)),closest]>=-1e-12)&(fractions[np.arange(len(cur)),closest]<=1.+1e-12)
         keep=interior&(errors<=min(.04,max(.002,float(np.quantile(errors,.8)))))
         return closest,errors,keep
     for _ in range(14):
@@ -128,7 +145,15 @@ def match_motion(reference_points, current_points, yaw_hint=0.):
     segments=_segments(ref)
     # Beam endpoints move along walls as scan angle changes. Their sampling
     # distance is not robot translation; register against supported wall segments.
-    fit=(lambda hint:_fit_segments(segments,cur,hint)) if segments is not None else (lambda hint:_fit(ref,cur,hint))
+    initial=_fit(ref,cur,yaw_hint) if segments is not None else None
+    def fit(hint):
+        if segments is None:
+            return _fit(ref,cur,hint)
+        # Point correspondences initialize only; acceptance still requires
+        # supported segment coverage, geometric rank and final residual guards.
+        # Retain distinct yaw seeds; only their translation initializer is shared.
+        seed=(_rotation(hint),initial[1]) if initial is not None else None
+        return _fit_segments(segments,cur,hint,seed)
     candidates = [r for offset in (0., -.08, .08) if
                   (r := fit(yaw_hint+offset)) is not None]
     if not candidates:

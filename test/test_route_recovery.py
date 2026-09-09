@@ -16,6 +16,18 @@ def test_zero_command_hold_replans_then_requires_a_different_fresh_route():
     assert r.attempts==1
 
 
+def test_bounded_session_uses_time_budget_instead_of_three_attempt_cutoff():
+    r=RouteRecovery()
+    for i in range(5):
+        start=i*10.
+        goal=(1.+i,0.)
+        if i:
+            assert r.update(start,(0,0,0),'forward',goal,start,True,time_bounded=True)=='alternative'
+        assert r.update(start+1,(0,0,0),'front_blocked',goal,start+1,True,time_bounded=True)=='following'
+        assert r.update(start+6,(0,0,0),'front_blocked',goal,start+6,True,time_bounded=True)=='replan'
+    assert not r.exhausted
+
+
 def test_waiting_for_planner_preserves_budget_but_failed_drives_are_bounded():
     r = RouteRecovery()
     tick(r, 0)

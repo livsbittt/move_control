@@ -5,6 +5,39 @@ from rosy_control.control.path_follow import ProgressGuard, follow_path, PathFol
 
 
 class PathFollowTest(unittest.TestCase):
+    def test_limited_speed_corner_alignment_does_not_chatter_without_sensor_noise(self):
+        follower = PathFollower()
+        route = [(0., 0.), (.1, 0.), (.1, .16)]
+        pose = [.075, -.006, 0.]
+        changes = []
+        for step in range(1500):
+            v, w, reason = follower.update(route, pose, route_age=0., tf_age=0.)
+            scale = min(1., .005/max(abs(v), 1e-12), .05/max(abs(w), 1e-12))
+            v, w = v*scale, w*scale
+            if not changes or changes[-1] != reason:
+                changes.append(reason)
+            pose[0] += v*math.cos(pose[2])*.02
+            pose[1] += v*math.sin(pose[2])*.02
+            pose[2] += w*.02
+        self.assertLess(len(changes), 20)
+        self.assertGreater(pose[1], 0.)
+
+    def test_alignment_hysteresis_keeps_stop_boundary_and_resets_with_new_geometry(self):
+        follower = PathFollower()
+        route = [(0., 0.), (.3, 0.)]
+        def update(yaw, points=route):
+            return follower.update(points, (0., 0., yaw), route_age=0., tf_age=0.)
+        self.assertEqual(update(.31)[2], 'align')
+        self.assertEqual(update(.25)[2], 'align')
+        self.assertEqual(update(.19)[2], 'forward')
+        self.assertEqual(update(.29)[2], 'forward')
+        self.assertEqual(update(.31)[2], 'align')
+        # Changing the endpoint resets history; it still obeys the 0.3 boundary.
+        self.assertEqual(update(.25, [(0.,0.),(.4,0.)])[2], 'forward')
+        self.assertEqual(update(.31)[2], 'align')
+        follower.reset()
+        self.assertEqual(update(.25)[2], 'forward')
+
     def test_actual_escape_with_refreshed_prefix_and_exact_offset_pivot_arrives(self):
         follower=PathFollower()
         route=[[-.221,-.177],[-.22,-.178],[-.24,-.178],[-.26,-.178],[-.28,-.178]]

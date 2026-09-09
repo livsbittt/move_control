@@ -2,6 +2,15 @@
 import math
 
 
+def preflight_clearance_wait(phase, motion_start, reason, now, requested):
+    """Allow only a bounded, stationary retry of otherwise valid clearance."""
+    return (phase == 'validating_motion' and motion_start is None
+            and reason in ('Insufficient clearance for minimum 2 cm motion evidence',
+                           'Insufficient remaining forward travel clearance',
+                           'Insufficient rear clearance for bounded return')
+            and 0 <= now-requested < 2.)
+
+
 def motion_clearance(limits, requested, target=None, forward=0., round_trip=True, selection_margin_m=0.):
     keys = ('front_m','rear_m','front_stop_m','rear_stop_m','us_stop_m')
     if not all(isinstance(limits.get(k), (int, float)) and math.isfinite(limits[k]) and limits[k] > 0 for k in keys):

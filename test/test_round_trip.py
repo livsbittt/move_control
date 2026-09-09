@@ -30,6 +30,35 @@ def test_stall_never_publishes_ready_and_stops():
     assert trip.error and not trip.done and speed == 0.
 
 
+def test_slam_global_correction_is_reported_separately_from_wheel_calibration():
+    trip = RoundTrip(0., snapshot(0.))
+    x = speed = 0.
+    for i in range(1, 701):
+        x += speed*.05*.92
+        sample = snapshot(x)
+        if i >= 20:
+            sample['map_tf'] = (x-.14, .09, -.33)
+        speed = trip.update(i*.05, sample)
+        if trip.done or trip.error:
+            break
+    assert trip.done, trip.error
+    assert trip.report()['localization_consistent'] is False
+    assert trip.legs[0]['map_pose_consistent'] is False
+    assert abs(trip.scales[0]-1/.92) < .02
+
+
+def test_slam_correction_cannot_hide_lidar_wheel_disagreement():
+    trip = RoundTrip(0., snapshot(0.))
+    trip.stage = 'settle_out'
+    trip.settle_until = 0.
+    trip.commanded = .03
+    sample = snapshot(.005)
+    sample['lidar'] = (.62,)
+    sample['map_tf'] = (-.14, .09, -.33)
+    assert trip.update(.1, sample) == 0.
+    assert trip.error == 'LiDAR and wheel distance disagree during round trip'
+
+
 def test_pause_in_controller_aborts_instead_of_reusing_command():
     trip = RoundTrip(0., snapshot(0.))
     assert trip.update(1., snapshot(0.)) == 0.

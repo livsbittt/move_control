@@ -26,6 +26,7 @@ class NavigationSession:
         self.reason = 'idle'
         self.started = self.updated = self.progress_at = 0.
         self.anchor = None
+        self.translation_offset = (0., 0.)
 
     def start(self, options, now):
         options = validate_options(options)
@@ -34,6 +35,7 @@ class NavigationSession:
         self.options = options
         self.started = self.updated = self.progress_at = now
         self.anchor = None
+        self.translation_offset = (0., 0.)
         self.active = True
         self.reason = 'running'
         return True
@@ -55,14 +57,21 @@ class NavigationSession:
             return self.reason
         # Rotation alone is not progress. Current continuous odometry is
         # supplied by the node; missing samples cannot renew this deadline.
-        if not translating:
+        valid_pose = pose is not None and len(pose) == 2 and all(math.isfinite(v) for v in pose)
+        if not translating or not valid_pose:
             self.anchor = None
-        if translating and pose is not None and len(pose) == 2 and all(math.isfinite(v) for v in pose):
-            if self.anchor is None:
-                self.anchor = tuple(pose)
-            elif math.dist(self.anchor, pose) >= .02:
-                self.anchor = tuple(pose)
-                self.progress_at = now
+        else:
+            if self.anchor is not None:
+                # Keep net translation across short drives separated by turns.
+                # Pivot motion and missing-pose intervals never add distance;
+                # reversing over the same short segment cancels prior progress.
+                self.translation_offset = tuple(
+                    total+current-previous for total, current, previous in
+                    zip(self.translation_offset, pose, self.anchor))
+                if math.hypot(*self.translation_offset) >= .02:
+                    self.translation_offset = (0., 0.)
+                    self.progress_at = now
+            self.anchor = tuple(pose)
         if now - self.progress_at >= self.options['stall_s']:
             self.finish('no_translation')
             return self.reason

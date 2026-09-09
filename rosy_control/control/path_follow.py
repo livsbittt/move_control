@@ -3,10 +3,11 @@ import math
 
 from .pursuit import pursuit_index, pursuit_speed
 
+GOAL_TOLERANCE_M = .025
 
 def follow_path(route, pose, *, route_age, tf_age, blocked=False,
                 max_age=5.0, max_tf_age=1.0, speed=.014, turn=.10,
-                lookahead=.06, tolerance=.025, max_deviation=.08, _aim_index=None):
+                lookahead=.06, tolerance=GOAL_TOLERANCE_M, max_deviation=.08, _aim_index=None, _aligning=False):
     """Return semantic (linear, angular, reason); no odometry fallback."""
     if blocked:
         return 0.0, 0.0, 'hazard'
@@ -38,6 +39,10 @@ def follow_path(route, pose, *, route_age, tf_age, blocked=False,
     error = math.atan2(aim[1] - y, aim[0] - x) - yaw
     error = math.atan2(math.sin(error), math.cos(error))
     linear = pursuit_speed(max(0.0, speed), distance, error)
+    # Keep the existing 0.3-rad stop boundary; resume further inside it so
+    # translation toward a nearby corner cannot toggle the mode every tick.
+    if _aligning and abs(error) > .2:
+        linear = 0.
     angular = max(-abs(turn), min(abs(turn), 1.4 * error))
     return linear, angular, 'forward' if linear > 0 else 'align'
 
@@ -54,6 +59,7 @@ class PathFollower:
     def reset(self):
         self.route=()
         self.cursor=None
+        self.aligning=False
 
     def update(self,route,pose,**kwargs):
         initial=follow_path(route,pose,**kwargs)
@@ -77,6 +83,9 @@ class PathFollower:
         selected=pursuit_index(route,pose[0],pose[1],kwargs.get('lookahead',.06))
         if retained is not None:
             selected=max(selected,retained)
+        else:
+            # A new target geometry has no alignment history to inherit.
+            self.aligning=False
         # A generated current-pose prefix can leave a tiny sharp-corner stub.
         # Reaching that vertex already satisfies the same 5mm corner tolerance.
         reached=False
@@ -91,7 +100,9 @@ class PathFollower:
             selected=max(selected,outgoing+pursuit_index(route[outgoing:],pose[0],pose[1],kwargs.get('lookahead',.06)))
         self.route=tuple(tuple(p) for p in route)
         self.cursor=selected
-        return follow_path(route,pose,_aim_index=selected,**kwargs)
+        result=follow_path(route,pose,_aim_index=selected,_aligning=self.aligning,**kwargs)
+        self.aligning=result[2]=='align'
+        return result
 
 
 class ProgressGuard:

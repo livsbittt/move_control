@@ -19,9 +19,11 @@ from ..sensing.body import URDF_RADIUS, use_radius
 from ..sensing.lidar import NOSE_YAW
 from ..sensing.localization import lease_ready
 from ..control.lidar_guard import lidar_blocked, lidar_can_rotate
+from ..control.rotation_clearance import rotation_clearance_allowed
 from ..control.rotation_envelope import pivot_clearance, suggest_rotation_translation, straight_translation_limits
 from ..control.motion_sweep import bounded_sweep_clearance, bounded_translation_limits
 from ..control.footprint_sweep import footprint_sweep_clearance, footprint_translation_limits
+from ..control.escape_space import escape_space_plan
 from .bumper import Bumper
 from .gate import Gate
 from .hazard import Hazard
@@ -365,12 +367,12 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence, Obstacles):
         if rotation_estimate is not None:
             pivot_margin = pivot_clearance(getattr(self, 'lidar_rotation_points', None),
                 rotation_estimate['center_m'], rotation_estimate['pivot_radius_m'])
-            # The obstacle distances and swept body must share the same pivot.
-            # Sector freshness remains required; a missing point cloud cannot authorize a turn.
-            can_rotate = bool(lidar_ok and getattr(self, 'lidar_rotation_observed', False) and
-                pivot_margin is not None and pivot_margin > .010 and
-                all(math.isfinite(v) and v > 0 for v in (self.lidar_front, self.lidar_rear,
-                    self.lidar_left, self.lidar_right, self.lidar_rear_left, self.lidar_rear_right)))
+            # Exact pivot clearance needs complete coverage. Otherwise retain
+            # the conservative learned swept-radius check above.
+            can_rotate = rotation_clearance_allowed(
+                can_rotate, getattr(self, 'lidar_rotation_observed', False), lidar_ok,
+                pivot_margin, (self.lidar_front, self.lidar_rear, self.lidar_left,
+                    self.lidar_right, self.lidar_rear_left, self.lidar_rear_right))
         elif self.calibration_lease.rotation_estimate_required():
             can_rotate = False
         rotation_trial = self.calibration_lease.rotation_trial_live(time.monotonic())
@@ -417,7 +419,32 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence, Obstacles):
                 getattr(self, 'lidar_rotation_observed', False) and not can_rotate):
             relocation = suggest_rotation_translation(self.lidar_rotation_points,
                 rotation_estimate['center_m'], rotation_estimate['pivot_radius_m'], body_radius)
+        escape = None
+        source_age = self.age(getattr(self, 'lidar_measurement_time', None))
+        scan_age = max(self.age(self.last_scan_time), source_age)
+        if (footprint and rotation_estimate is not None and not rotation_trial and
+                not translation_trial and 0 <= source_age <= .2 and 0 <= scan_age <= .2):
+            fully_observed = bool(getattr(self, 'lidar_rotation_observed', False))
+            cache_key = (self.lidar_measurement_time.nanoseconds, self.profile.revision,
+                         rotation_estimate['required_radius_m'], rotation_estimate['pivot_radius_m'],
+                         tuple(rotation_estimate['center_m']), fully_observed, can_rotate, tuple(travel))
+            cache = getattr(self, '_escape_space_cache', None)
+            if cache is None or cache[0] != cache_key:
+                prediction = escape_space_plan(getattr(self, 'lidar_rotation_points', None),
+                    rotation_radius=rotation_estimate['required_radius_m'],
+                    center=rotation_estimate['center_m'], pivot_radius=rotation_estimate['pivot_radius_m'],
+                    fully_observed=fully_observed, can_rotate=can_rotate,
+                    forward_room=travel[0], reverse_room=travel[1])
+                self._escape_space_cache = (cache_key, prediction)
+            escape = dict(self._escape_space_cache[1])
+            scan_age = max(self.age(self.last_scan_time), self.age(self.lidar_measurement_time))
+            if not 0 <= scan_age <= .2:
+                escape = None
+            else:
+                escape.update(geometry_revision=self.profile.revision,
+                              issued_s=self.get_clock().now().nanoseconds*1e-9, scan_age_s=scan_age)
         self.motion_limits_pub.publish(String(data=json.dumps({
+            'execution_escape': escape,
             'can_rotate': can_rotate,
             'bounded_motion_enabled': bounded_motion,
             'bounded_translation_limits_m': bounded_travel,
@@ -567,6 +594,10 @@ class SafetyNode(Node, Bumper, Hazard, Gate, Scale, Evidence, Obstacles):
             cmd.angular.z *= gains[0 if cmd.angular.z >= 0 else 1]
         scale = min(1., self.profile.max_linear / max(abs(cmd.linear.x), 1e-12),
                     self.profile.max_angular / max(abs(cmd.angular.z), 1e-12))
+        limited_caps = self.calibration_lease.motion_limits(time.monotonic())
+        if limited_caps is not None:
+            scale = min(scale, limited_caps[0] / max(abs(cmd.linear.x), 1e-12),
+                        limited_caps[1] / max(abs(cmd.angular.z), 1e-12))
         cmd.linear.x *= scale
         cmd.angular.z *= scale
         if bounded_motion and (cmd.linear.x or cmd.angular.z):

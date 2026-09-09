@@ -440,6 +440,9 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline:2px s
     <div class="block" id="calibrationcard">
       <h3>자동 시작 보정</h3>
       <p class="hint" id="calibrationstatus" role="status">교정 노드 연결 대기</p>
+      <p class="command-status" id="calibrationpartial" role="status" aria-live="polite" hidden>부분 센싱 · IMU 제외 · 미교정 · 주행 불가. 정지 상태에서 나머지 센서만 확인합니다.</p>
+      <p class="command-status" id="calibrationexistingstatus" role="status" aria-live="polite" hidden></p>
+      <p class="command-status" id="calibrationlimitedstatus" role="status" aria-live="polite" hidden></p>
       <progress id="calibrationprogress" value="0" max="9" aria-label="정상 검사 수"></progress>
       <p class="hint" id="calibrationsummary" aria-live="polite">센서 검사 대기</p>
       <p class="hint" id="calibrationenvironment" aria-live="polite">환경 여유 측정 대기</p>
@@ -450,6 +453,9 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline:2px s
       <p class="hint">공간 확보·복귀는 지원되는 실행 환경에서만 수행합니다. 복귀 경로가 막히면 정지합니다.</p>
       <div class="btnrow">
         <button type="button" id="calibrationretry" data-calibration="retry">선택 적용 · 보정 다시 시작</button>
+        <button type="button" id="calibrationsensing" data-calibration="sensing_only">IMU 제외 · 정지 센싱</button>
+        <button type="button" id="calibrationexisting" data-calibration="use_existing_settings">보정 없이 · 기존 설정값 사용</button>
+        <button type="button" id="calibrationlimited" data-calibration="use_limited_sensors">IMU 제외 · 제한 주행</button>
         <button type="button" id="calibrationmotion" data-calibration="validate_motion" disabled>4초 저속 이동 검증</button>
         <button type="button" data-calibration="abort">검증 중단</button>
       </div>
@@ -461,6 +467,7 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline:2px s
         <div class="sub first">
           <h4>지도 기반</h4>
           <p class="hint" id="navready" role="status">지도와 위치 확인 중…</p>
+          <p class="hint" id="navmotion" role="status">실시간 안전 판단 수신 대기</p>
           <label for="navstrategy">탐색 방법</label>
           <select id="navstrategy">
             <option value="gain">정보량 우선 · 새 영역 / 이동 거리</option>
@@ -627,6 +634,12 @@ async function post(path, body) {
 function calibrationReady(s) {
   return !!s && s.calibration_ready === true && !!s.calibration && s.calibration.ready === true;
 }
+function existingSettings(s) {
+  return !!(s && s.calibration && s.calibration.mode === 'existing_settings');
+}
+function limitedSensors(s) {
+  return !!(s && s.calibration && s.calibration.mode === 'limited_sensors');
+}
 function renderOverview(s) {
   const battery = s && s.battery;
   const live = battery && battery.available === true;
@@ -635,8 +648,16 @@ function renderOverview(s) {
   const missing = {missing:'배터리 측정 대기',stale:'배터리 수신 지연',not_present:'배터리 연결 미확인',invalid:'유효한 측정값 없음'};
   setTxt('batterydetail', live ? (Number.isFinite(battery.voltage) ? battery.voltage.toFixed(2)+' V · ' : '') + batteryStates[battery.status] : missing[battery && battery.reason] || '배터리 측정 대기');
   $('batteryfill').style.width = live && Number.isFinite(battery.percent) ? Math.max(0,Math.min(100,battery.percent))+'%' : '0%';
-  setTxt('overviewcal', calibrationReady(s) ? '적용 완료' : s && s.calibration && s.calibration.phase === 'sensor_hold' ? '센서 재확인' : '준비 필요');
+  setTxt('overviewcal', calibrationReady(s) ? '적용 완료' : s && s.calibration && (s.calibration.phase === 'sensor_hold' || s.calibration.runtime_state === 'sensor_hold') ? '센서 재확인' : '준비 필요');
   setTxt('overviewcaldetail', calibrationReady(s) ? '보정값 적용 확인됨' : '상세 원인은 조작 영역에서 확인');
+  if (existingSettings(s)) {
+    setTxt('overviewcal', '기존 설정값 · 미보정');
+    setTxt('overviewcaldetail', calibrationReady(s) ? '실시간 안전 조건 확인됨 · 주행은 직접 선택' : '실시간 안전 조건 대기 · 주행 불가');
+  }
+  if (limitedSensors(s)) {
+    setTxt('overviewcal', '보정 완료(일부 센서 모드)');
+    setTxt('overviewcaldetail', '수동 완료 · IMU 제외 · 저속 제한 · ' + (calibrationReady(s) ? '주행은 직접 선택' : '안전 조건 대기'));
+  }
   setTxt('overviewpose', s && s.pose_available ? '위치 확인됨' : '위치 확인 대기');
   const stopped = !s || !s.wander || s.wander.startsWith('stop') || s.wander === 'wait';
   setTxt('overviewmotion', !s ? '연결 끊김' : s.estop ? '비상정지' : stopped ? '대기 중' : '주행 중');
@@ -664,19 +685,44 @@ function togglePreview() {
 function renderCalibration(s) {
   const calibration = s && s.calibration;
   const phase = calibration && calibration.phase;
+  const limited = limitedSensors(s);
+  const partial = phase === 'sensing_only' || !!(calibration && calibration.partial && !limited);
+  const existing = existingSettings(s);
+  $('calibrationexistingstatus').hidden = !existing;
+  setTxt('calibrationexistingstatus', '기존 설정값 모드 · 미보정 · 이동·회전 보정 검증 생략. ' +
+    (calibrationReady(s) ? '실시간 안전 조건 확인됨 · 주행은 직접 선택합니다.' : '실시간 안전 조건 대기 · 주행 불가.') +
+    (existing && Array.isArray(calibration.waiting_reasons) && calibration.waiting_reasons.length ? ' · ' + calibration.waiting_reasons.map(reason => reason === 'estop' ? '비상정지 해제 대기' : reason).join(' · ') : ''));
+  $('calibrationpartial').hidden = !partial;
+  setTxt('calibrationpartial', '부분 센싱 · IMU 제외 · 미교정 · 주행 불가. 정지 상태에서 나머지 센서만 확인합니다.');
+  $('calibrationlimitedstatus').hidden = !limited;
+  if (limited) {
+    const excluded = Array.isArray(calibration.excluded_sensors) ? calibration.excluded_sensors.map(name => String(name).toUpperCase()).join(', ') : 'IMU';
+    const caps = calibration.speed_limits;
+    const speed = caps && Number.isFinite(caps.linear_mps) && Number.isFinite(caps.angular_rad_s)
+      ? ' · 최대 ' + (caps.linear_mps * 100).toFixed(1) + 'cm/s · ' + caps.angular_rad_s + 'rad/s' : '';
+    const waiting = Array.isArray(calibration.waiting_reasons) ? calibration.waiting_reasons.map(reason => reason === 'estop' ? '비상정지 해제 대기' : reason).join(' · ') : '';
+    setTxt('calibrationlimitedstatus', '보정 완료(일부 센서 모드) · 수동 완료 · ' + excluded + ' 제외 · 저속 제한' + speed + ' · ' +
+      (calibrationReady(s) ? '나머지 안전 조건 확인됨 · 주행은 직접 선택합니다.' : '나머지 안전 조건 대기 · 주행 불가.') + (waiting ? ' · ' + waiting : ''));
+  }
   const names = {lidar:'LiDAR', odom:'이동 거리', ir:'바닥 IR', imu:'자세 IMU', us:'초음파', camera:'카메라', tf:'센서 위치', map:'지도', map_tf:'지도 내 위치'};
   const states = {collecting:'수집 중', ok:'정상', stale:'수신 지연', unstable:'불안정', invalid:'확인 필요'};
   const phases = {collecting:'정지 센서 확인 중', waiting_motion:'정지 확인 완료 · 이동 검증 대기', validating_motion:'저속 이동 검증 중', ready:'교정 완료 · 주행 가능', sensor_hold:'보정 유지 · 센서 재확인 중', failed:'교정 실패', aborted:'교정 중단'};
   const sensors = calibration && calibration.sensors || {};
+  phases.sensing_only = '부분 센싱 · IMU 제외 · 미교정 · 주행 불가';
+  phases.existing_settings = '기존 설정값 모드 · 미보정 · ' + (calibrationReady(s) ? '운행 조건 확인됨' : '안전 조건 대기');
+  phases.limited_sensors = '보정 완료(일부 센서 모드) · ' + (calibrationReady(s) ? '운행 조건 확인됨' : '안전 조건 대기');
   phases.validating_rotation = '좌우 회전 반복 검증 중';
   phases.relocating_calibration = '교정 공간 확보 중 · 제한 직선 이동';
   phases.returning_calibration = '보정 측정 완료 · 원위치 복귀 중';
   phases.waiting_space = '교정 공간 부족 · 안전 정지';
   phases.return_blocked = '보정 측정 완료 · 복귀 불가로 정지';
-  if (phase === 'ready' && !calibrationReady(s)) phases.ready = '안전 노드 적용 확인 대기';
+  if (phase === 'ready' && !calibrationReady(s)) phases.ready = calibration.recalibration_required === true
+    ? '보정 대상 변경 · 재보정 필요' : calibration.runtime_state === 'sensor_hold'
+    ? '보정 완료 유지 · 실시간 안전 조건 대기' : '안전 노드 적용 확인 대기';
   let count = 0;
   const lines = Object.keys(names).map(key => {
     const sensor = sensors[key];
+    if (sensor && sensor.excluded === true) return names[key] + ': 제외 · 정상 판정 및 교정에 사용하지 않음';
     if (sensor && sensor.ok === true) count++;
     return names[key] + ': ' + (sensor ? (states[sensor.status] || sensor.status) +
       ' · ' + (sensor.samples || 0) + '개 · ' + (sensor.detail || '') : '데이터 대기');
@@ -701,7 +747,10 @@ function renderCalibration(s) {
     lines.push('로봇 반경 ' + (env.body_radius_m*100).toFixed(1) + 'cm · 최소 중심 여유 ' + (env.minimum_clearance_m*100).toFixed(1) + 'cm · 선호 여유 ' + (env.preferred_clearance_m*100).toFixed(1) + 'cm');
     if (env.map_lidar_mismatch) lines.push('지도와 LiDAR 벽 거리 차이 있음 · 환경 여유를 줄여 차이를 보상하지 않습니다');
   }
-  setTxt('calibrationsummary', '센서 검사 ' + count + '/9 · ' + (phase === 'sensor_hold' ? '저장된 보정 유지 · 해당 센서 정상 수신 후 자동 복구' : phase === 'ready' ? '왕복 검증 및 저장 완료' : phase === 'validating_motion' ? '왕복 검증 중 — 앞뒤 공간을 비워 주세요' : phase === 'waiting_motion' ? '비상정지 해제 및 안전 조건 대기' : phase === 'failed' || phase === 'aborted' ? '정지됨 · 원인 확인 후 재시작하세요' : '검사 중'));
+  setTxt('calibrationsummary', '센서 검사 ' + count + '/9 · ' + (calibration && calibration.recalibration_required === true ? '\uBCF4\uC815 \uB300\uC0C1 \uBCC0\uACBD \u00b7 \uC7AC\uBCF4\uC815 \uD544\uC694' : phase === 'sensor_hold' || calibration && calibration.runtime_state === 'sensor_hold' ? '저장된 보정 유지 · 해당 센서 정상 수신 후 자동 복구' : phase === 'ready' ? '왕복 검증 및 저장 완료' : phase === 'validating_motion' ? '왕복 검증 중 — 앞뒤 공간을 비워 주세요' : phase === 'waiting_motion' ? '비상정지 해제 및 안전 조건 대기' : phase === 'failed' || phase === 'aborted' ? '정지됨 · 원인 확인 후 재시작하세요' : '검사 중'));
+  if (partial) setTxt('calibrationsummary', '부분 센싱 · IMU 제외 · ' + (calibration.partial_baseline_ready ? '나머지 센서 기준값 수집 완료' : '나머지 센서 기준값 수집 중') + ' · 전체 교정 미완료');
+  if (existing) setTxt('calibrationsummary', '기존 설정값 사용 · 미보정 · 실시간 센서 검사 ' + count + '/9 · 비상정지와 센서 안전 조건 유지');
+  if (limited) setTxt('calibrationsummary', '수동 완료 · IMU 제외 · 저속 제한 · 나머지 센서와 비상정지 안전 조건 유지');
   if (calibration && calibration.motion && calibration.motion.stage) {
     const m = calibration.motion;
     lines.push('왕복 ' + m.cycle + '/2 · 목표 ' + (m.target_m * 100).toFixed(1) + 'cm · ' + ({outbound:'전진 중',settle_out:'전진 거리 확인',returning:'출발점으로 복귀 중',settle_home:m.done ? '복귀 확인 완료' : '복귀 오차 확인'}[m.stage] || m.stage));
@@ -751,6 +800,12 @@ function renderCalibration(s) {
   $('calibrationmotion').disabled = !!(calibration && calibration.auto_motion) || phase !== 'waiting_motion' || !s || s.estop !== false ||
     !s.map_control || s.map_control.paused !== false;
   $('calibrationretry').disabled = phase === 'validating_motion' || phase === 'validating_rotation';
+  setTxt('calibrationretry', partial ? '부분 센싱 종료 · 전체 보정 다시 시작' : '선택 적용 · 보정 다시 시작');
+  if (existing) setTxt('calibrationretry', '기존 설정값 모드 종료 · 전체 보정 시작');
+  if (limited) setTxt('calibrationretry', '제한 주행 종료 · 전체 보정 시작');
+  $('calibrationsensing').disabled = partial;
+  $('calibrationexisting').disabled = existing;
+  $('calibrationlimited').disabled = limited;
   $('wanderstart').disabled = !calibrationReady(s) || s.estop !== false;
   document.querySelectorAll('[data-hold]').forEach(button => {
     button.disabled = button.dataset.hold !== 'stop' && (!calibrationReady(s) || s.estop !== false);
@@ -806,47 +861,114 @@ function renderMapping(control) {
     control.paused === true ? '지도 수집 일시정지' :
     control.paused === false ? '지도 수집 중' : '매핑 상태 확인 중…');
 }
+function plannerStatus(s) {
+  const raw = s && s.gstate || '';
+  if (raw.startsWith('planning blocked:')) return '지도 경로 계산 대기 · ' + raw.split(/\s+eta=/)[0].replace('planning blocked:', '').trim();
+  return raw ? '경로 계획: ' + raw.replace(/\beta=/g, '계획 ETA=').replace(/\bv=/g, '계획 속도=') : '-';
+}
 function renderNavigation(s) {
   renderNavigationSession(s);
-  const planningBlocked = s && (s.gstate || '').includes('robot inside obstacle clearance');
+  renderNavigationMotion(s);
+  const planningBlocked = s && (s.gstate || '').startsWith('planning blocked:');
   const reason = !s ? '로봇 연결 대기' : s.estop !== false ? '비상정지 상태' :
     !s.map || !s.map_control || s.map_control.paused !== false ? '매핑을 재개해 주세요' :
-    !s.pose_available ? '지도 내 로봇 위치 확인 대기' : '';
+    !s.pose_available ? '지도 내 로봇 위치 확인 대기' : s.planner_fresh !== true ? '경로 계획 노드 연결 대기 · 매핑 기능을 다시 시작해 주세요' : '';
   $('navexplore').disabled = !!reason || !calibrationReady(s);
   $('navcoverage').disabled = !!reason || !calibrationReady(s);
   const recovery = s && s.wander || '';
+  const executionStates = {
+    gate_rotation_blocked:'회전 조건 미충족 · 대체 경로 탐색',
+    execution_escape_reverse:'관측된 후방 공간으로 이동 · 회전 여유 재확인',
+    execution_escape_forward:'관측된 전방 공간으로 이동 · 회전 여유 재확인',
+    execution_escape_complete:'공간 확보 이동 완료 · 재탐색',
+    execution_escape_stopped:'공간 확보 이동 중단',
+  };
+  const executionState = Object.keys(executionStates).find(key => recovery.includes(key));
+  if (!reason && calibrationReady(s) && executionState) {
+    setTxt('navready', executionStates[executionState]);
+    return;
+  }
+  if (!reason && calibrationReady(s) && recovery.includes('stalled_restart_required')) {
+    setTxt('navready', '이동 정체 감지 · 자동 재계획 전 대기 중 · 실제 출력과 안전 판단을 확인하세요');
+    return;
+  }
   if (!reason && calibrationReady(s) && /replanning_|recovery_|alternative_accepted/.test(recovery)) {
-    setTxt('navready', recovery.includes('exhausted') ? '정체 · 대체 경로 3회 시도 후 정지. 주변을 확인한 뒤 모드를 다시 시작하세요' :
+    setTxt('navready', recovery.includes('exhausted') ? '자동 복구 중단 · 실행 상태와 정지 사유를 확인하세요' :
       recovery.includes('alternative_accepted') ? '대체 경로 확인 · 주행 재개' : '정체 감지 · 실패한 목표를 제외하고 다른 경로를 찾는 중');
     return;
   }
   if (!reason && calibrationReady(s) && planningBlocked) {
-    setTxt('navready', '경로 대기 · 현재 위치가 벽의 안전 여유 영역에 걸립니다');
+    const startClearance = /robot inside obstacle clearance|map start clearance/.test(s.gstate || '');
+    setTxt('navready', '지도 경로 계산 대기 · ' + (startClearance ? '지도 격자의 시작 위치 여유가 부족합니다. ' : '') + '실제 센서 차단 여부는 안전 상태에서 확인하세요');
     return;
   }
-  if (!reason && calibrationReady(s) && (s.gstate || '').startsWith('escape:')) {
-    setTxt('navready', '탈출 중 · 벽에서 여유를 확보한 뒤 탐색을 이어갑니다');
+  if (!reason && calibrationReady(s) && /^(escape:|verified start connection:)/.test(s.gstate || '')) {
+    setTxt('navready', '지도 시작 연결 경로 선택 · 실제 이동 여부와 차단은 모터 출력 및 안전 상태에서 확인하세요');
     return;
   }
   if (!reason && calibrationReady(s) && (s.gstate || '').startsWith('narrow passage:')) {
-    setTxt('navready', '좁은 통로 · 로봇 크기와 최소 여유를 확인한 경로로 탐색합니다');
+    setTxt('navready', '좁은 통로 경로 선택 · 계획 ETA와 속도는 실제 이동이 아닙니다. 아래 안전 판단과 최종 출력을 확인하세요');
     return;
   }
-  const calibrationWait = s && s.calibration && s.calibration.calibration_verified === true
+  const calibrationWait = limitedSensors(s) ? '보정 완료(일부 센서 모드) · 안전 조건 대기' + (s.calibration.message ? ' · ' + s.calibration.message : '') : existingSettings(s) ? '기존 설정값 · 미보정 · 실시간 안전 조건 대기' + (s.calibration.message ? ' · ' + s.calibration.message : '') : s && s.calibration && s.calibration.calibration_verified === true
     ? '보정 유지 · 센서 재확인 중' + (s.calibration.message ? ' · ' + s.calibration.message : '')
     : '자동 보정을 완료해 주세요';
   setTxt('navready', reason || (!calibrationReady(s) ? calibrationWait : '') || '준비됨 · 모드를 고르면 주행합니다');
+}
+function renderNavigationMotion(s) {
+  const decision = s && s.safety_decision;
+  const speed = (v, w) => Number.isFinite(v) && Number.isFinite(w)
+    ? (v*100).toFixed(1) + 'cm/s · ' + w.toFixed(3) + 'rad/s' : '수신 대기';
+  const lines = [];
+  if (decision) {
+    lines.push('주행 요청 ' + speed(decision.requested_v, decision.requested_omega));
+    lines.push('안전 게이트 최종 출력 ' + speed(decision.safe_v, decision.safe_omega));
+    const reasons = {allow:'허용', command_stale:'주행 명령 수신 지연', trajectory_changed:'안전 제한으로 요청 궤적 변경',
+      bounded_sweep_unavailable:'이동 궤적 관측 부족', bounded_sweep_blocked:'이동 궤적 여유 부족',
+      localization_unavailable:'위치 정보 대기', pickup:'들림 감지'};
+    lines.push('안전 판단 ' + ({stop:'정지',limit:'제한',allow:'허용'}[decision.action] || '확인 중') +
+      ' · ' + (reasons[decision.reason] || decision.reason || '사유 수신 대기'));
+  } else lines.push('최신 안전 판단 수신 대기 · 출력과 정지 사유 확인 불가');
+  const limits = s && s.motion_limits_fresh && s.motion_limits;
+  if (!limits) lines.push('회전 판단: 최신 안전 정보 대기');
+  else if (limits.can_rotate === false) lines.push('회전 보류 · ' +
+    (limits.rotation_scan_observed !== true ? '전방위 스캔 관측 미완료' : '관측 완료 · 회전 여유 또는 다른 안전 조건 미충족') +
+    (Number.isFinite(limits.rotation_pivot_clearance_m) ? ' · 측정 여유 ' + (limits.rotation_pivot_clearance_m*100).toFixed(1) + 'cm' : ''));
+  else if (limits.can_rotate === true) lines.push('회전 조건 허용 · 실제 회전 여부는 최종 출력으로 확인');
+  const escape = limits && limits.execution_escape;
+  if (escape && Array.isArray(escape.candidates)) {
+    const candidates = escape.candidates.filter(item => item && (item.direction === 1 || item.direction === -1) &&
+      Number.isFinite(item.target_m) && item.target_m > 0);
+    if (candidates.length) lines.push('형상 기반 필요 이동 추정 (이동한 거리 아님): ' + candidates.map(item =>
+      (item.direction === 1 ? '전방 ' : '후방 ') + (item.target_m*100).toFixed(1) + 'cm · ' +
+      (item.objective === 'restore_rotation' ? '회전 여유 확보 후보' : '여유 개선 후보')).join(' / '));
+    else lines.push('형상 기반 이동 후보 없음' + (escape.reason ? ' · ' + escape.reason : ''));
+  }
+  if (s && s.wander) lines.push('제어 상태 ' + s.wander);
+  const execution = s && s.navigation_session_fresh && s.navigation_session && s.navigation_session.execution_escape;
+  if (execution && execution.reason) {
+    const why = {motion:'공간 확보 이동 요청 중',safety_hold:'실시간 안전 조건 재확인',
+      waiting_for_route:'경로 상태 대기',waiting_for_candidate:'최신 이동 후보 대기',
+      rotation_restored:'회전 조건 회복',pose_or_geometry_changed:'위치 또는 형상 변경으로 중단',
+      budget:'이동 또는 시간 한도 도달',no_progress:'이동 진전 없음',idle:'대기'};
+    lines.push('공간 확보 판단: ' + (why[execution.reason] || execution.reason));
+    if (Number.isFinite(execution.episode_elapsed_s)) lines.push('현재 복구 경과 ' + execution.episode_elapsed_s.toFixed(1) + '초');
+    if (Number.isFinite(execution.remaining_s)) lines.push('복구에 사용 가능한 남은 시간 ' + Math.max(0,execution.remaining_s).toFixed(1) + '초');
+    if (Number.isFinite(execution.target_remaining_m)) lines.push('현재 후보 잔여 이동 추정 ' + (execution.target_remaining_m*100).toFixed(1) + 'cm');
+  }
+  setTxt('navmotion', lines.join(' / '));
 }
 function renderNavigationSession(s) {
   const session = s && s.navigation_session;
   const fresh = !!(s && s.navigation_session_fresh && session);
   const active = fresh && session.active;
   if (active) setTxt('navsessionerror', '');
-  $('navsessionstart').disabled = !fresh || active || !calibrationReady(s) ||
+  $('navsessionstart').disabled = !fresh || s.planner_fresh !== true || active || !calibrationReady(s) ||
     s.estop !== false || !String(s.wander || '').startsWith('stop') ||
     !s.pose_available || !s.map || !s.map_control || s.map_control.paused !== false;
   ['navstrategy', 'navduration', 'navstall'].forEach(id => { $(id).disabled = !!active; });
   if (!fresh) { setTxt('navsessionstatus', '실행 상태 수신 불가 · 로봇 노드 연결 확인'); return; }
+  if (s.planner_fresh !== true) { setTxt('navsessionstatus', '경로 계획 노드 연결 대기 · 지도 수집과 경로 계획 상태를 확인해 주세요'); return; }
   const labels = {gain:'정보량 우선', nearest:'가까운 곳 우선', coverage:'영역 순회'};
   const reasons = {idle:'대기', running:'실행 중', stopped:'사용자 또는 제어 정지',
     interrupted:'안전 조건 변경으로 중단', time_limit:'전체 시간 제한으로 정지',
@@ -1519,10 +1641,10 @@ const BIND = [
   ['wander', s => s.wander || '-'],
   ['estop', s => s.estop === true ? '걸림' : (s.estop === false ? '해제' : '-')],
   ['ok', s => (s.ok == null) ? '-' : (s.ok ? '정상' : '이상')],
-  ['gstate', s => s.gstate || '-'],
+  ['gstate', s => plannerStatus(s)],
   ['ttopic', s => s.teleop_topic || '-'],
   ['health', s => s.health || '-'],
-  ['eta', s => (s.eta != null && s.eta > 0) ? s.eta.toFixed(0) + ' s' : '-'],
+  ['eta', s => (s.gstate || '').startsWith('planning blocked:') ? '-' : (s.eta != null && s.eta > 0) ? '계획 ' + s.eta.toFixed(0) + ' s' : '-'],
   ['vel', s => s.vel ?
     (s.vel[0] * 100).toFixed(1) + ' cm/s, ' +
     (s.vel[1] * 180 / Math.PI).toFixed(0) + '°/s' : '-'],

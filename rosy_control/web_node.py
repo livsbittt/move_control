@@ -370,6 +370,7 @@ class WebNode(Node):
         self.calibration_pub = self.create_publisher(String, '/calibration/cmd', 10)
         with LOCK:
             STATE['calibration_ready'] = False
+            STATE.pop('calibration_received', None)
             STATE['calibration'] = {'phase': 'unavailable', 'ready': False,
                                     'message': 'Waiting for startup calibration', 'sensors': {}}
         self.map_control = MapControl(self)
@@ -464,7 +465,8 @@ class WebNode(Node):
         self.odom_frame = msg.header.frame_id or 'odom'
         with LOCK:
             record_odom(STATE, p.x, p.y, TRAIL_MAX)
-        self.refresh_pose()
+        # The steady 5 Hz timer owns TF lookup and trail reprojection. Keep
+        # every odometry sample for distance without repeating display work.
 
     def refresh_pose(self):
         """Invalidate stopped publishers even when no odometry callback arrives."""
@@ -629,6 +631,7 @@ class WebNode(Node):
     def on_gstate(self, msg):
         with LOCK:
             STATE[K_GSTATE] = msg.data
+            STATE['planner_received'] = time.monotonic()
 
     def on_eta(self, msg):
         with LOCK:
@@ -786,6 +789,8 @@ def _handler(node, html, api):
             if path == '/state.json':
                 with LOCK:
                     STATE['navigation_session_fresh'] = 0 <= time.monotonic()-STATE.get('navigation_session_received', -1e9) <= 1.5
+                    # goal.yaml publishes at 0.5 Hz, slower than session status.
+                    STATE['planner_fresh'] = 0 <= time.monotonic()-STATE.get('planner_received', -1e9) <= 5.
                     STATE['battery'] = battery_snapshot(STATE.get('battery_sample', {}), STATE.get('battery_received'), time.monotonic())
                     STATE['motion_limits_fresh'] = 0 <= time.monotonic()-STATE.get('motion_limits_received', -1e9) <= .75
                     if time.monotonic() - STATE.get('calibration_received', -1e9) > 3.0:
@@ -841,8 +846,15 @@ def _handler(node, html, api):
                 return
             ln = int(self.headers.get('Content-Length', 0))
             body = self.rfile.read(ln).decode()
-            def reject(reason):
-                self.send_response(409)
+            logged_action = self.path in ('/calibration', '/estop', '/wander', '/navigation/start', '/goal', '/map/reset', '/map/resume', '/map/pause')
+            if logged_action:
+                print(json.dumps({'event': 'operator_request', 'path': self.path,
+                                  'command': body[:180], 'client': self.client_address[0]}), flush=True)
+            def reject(reason, status=409):
+                if logged_action:
+                    print(json.dumps({'event': 'operator_rejected', 'path': self.path,
+                                      'reason': reason}), flush=True)
+                self.send_response(status)
                 self.send_header('Content-Type', 'application/json')
                 self.end_headers()
                 self.wfile.write(json.dumps({'ok': False, 'error': reason}).encode())
@@ -854,16 +866,22 @@ def _handler(node, html, api):
                 phase = STATE.get('calibration', {}).get('phase')
                 released = STATE.get(K_ESTOP) is False
                 mapping_active = STATE.get('map_control', {}).get('paused') is False
+                planner_fresh = 0 <= time.monotonic()-STATE.get('planner_received', -1e9) <= 5.
+                calibration_received = STATE.get('calibration_received')
             if self.path == '/calibration':
-                if body not in ('retry', 'retry:stay', 'retry:return_origin', 'validate_motion', 'abort'):
+                if body not in ('retry', 'retry:stay', 'retry:return_origin', 'validate_motion', 'abort', 'sensing_only', 'use_existing_settings', 'use_limited_sensors'):
                     self.send_response(400)
                     self.end_headers()
+                    return
+                if body != 'abort' and not calibration_receiver_available(
+                        calibration_received, time.monotonic(), node.calibration_pub):
+                    reject('Calibration node connecting; wait for its heartbeat and retry', status=503)
                     return
                 if body == 'validate_motion' and (
                         phase != 'waiting_motion' or not released or not mapping_active):
                     reject('Motion validation requires waiting_motion, active mapping and released emergency stop')
                     return
-                if body in ('retry', 'retry:stay', 'retry:return_origin', 'abort'):
+                if body in ('retry', 'retry:stay', 'retry:return_origin', 'abort', 'sensing_only', 'use_existing_settings', 'use_limited_sensors'):
                     with LOCK:
                         STATE['calibration_ready'] = False
                 node.calibration_pub.publish(String(data=body))
@@ -879,6 +897,9 @@ def _handler(node, html, api):
                 return
             verb = POST_VERBS.get(self.path)
             if self.path == '/navigation/start':
+                if not planner_fresh:
+                    reject('Route planner unavailable; start the map capability with goal_node')
+                    return
                 try:
                     options = validate_options(json.loads(body))
                 except (ValueError, TypeError) as error:
@@ -907,6 +928,9 @@ def _handler(node, html, api):
                     if self.path == '/wander' and body != 'stop' and not released:
                         reject('Release emergency stop before selecting a driving mode')
                         return
+                    if self.path == '/wander' and body in ('explore', 'coverage') and not planner_fresh:
+                        reject('Route planner unavailable; start the map capability with goal_node')
+                        return
                     getattr(node, attr).publish(String(data=body))
                     self.send_response(200)
                 else:
@@ -923,6 +947,9 @@ def _handler(node, html, api):
                     if (tw.linear.x or tw.angular.z) and not ready:
                         reject('Startup calibration must pass before teleoperation')
                         return
+                    if (tw.linear.x or tw.angular.z) and not released:
+                        reject('Emergency stop must be released before teleoperation')
+                        return
                     node.teleop_pub.publish(tw)
                     self.send_response(200)
                 except (ValueError, TypeError):
@@ -932,6 +959,9 @@ def _handler(node, html, api):
                 if xy is None or max(abs(xy[0]), abs(xy[1])) > GOAL_BOUND:
                     self.send_response(400)
                 else:
+                    if not planner_fresh:
+                        reject('Route planner unavailable; start the map capability with goal_node')
+                        return
                     if not ready or not released:
                         reject('Manual driving requires completed calibration and released emergency stop')
                         return
@@ -951,6 +981,20 @@ def make_api_handler(node, html):
 
 def make_page_handler(html):
     return _handler(None, html, api=False)
+
+
+def calibration_receiver_available(received, now, publisher):
+    """Do not acknowledge commands while the startup subscriber is absent."""
+    if received is None or not 0 <= now-received <= 3.:
+        return False
+    count = getattr(publisher, 'get_subscription_count', None)
+    if not callable(count):
+        return True
+    try:
+        subscribers = count()
+        return type(subscribers) is int and subscribers >= 1
+    except RuntimeError:
+        return False
 
 
 def _parse_xy(text):

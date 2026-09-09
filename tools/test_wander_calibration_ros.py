@@ -12,6 +12,37 @@ from rosy_control.wander.node import WanderNode
 
 
 class CalibrationGateTest(unittest.TestCase):
+    def test_bounded_escape_uses_fresh_directional_limits_without_renewing_session(self):
+        from unittest.mock import patch
+        self.node.navigation_session.start(dict(strategy='gain',duration_s=30,stall_s=20),100.)
+        self.node.navigation_recovery.waiting=True
+        self.node.navigation_recovery.failed_exit=(.1,0.)
+        self.node.motion_limits=dict(translation_mode=True,reverse_travel_m=.1,
+            geometry_revision='test',can_rotate=False,rotation_scan_observed=False,
+            execution_escape=dict(geometry_revision='test',issued_s=100.,scan_age_s=.05,
+                rotation_restored=False,candidates=[dict(direction=-1,target_m=.023,
+                    available_m=.1,predicted_rotation_clearance_m=.015)]))
+        self.node.odom_x=self.node.odom_y=self.node.odom_yaw=0.
+        self.node.tilt=self.node.cliff=False
+        self.node._odom_fresh=Mock(return_value=True)
+        self.node._motion_limits_fresh=Mock(return_value=True)
+        self.node._can_reverse=Mock(return_value=True)
+        self.node._obstacle_wait=Mock(return_value=None)
+        for now, expected in ((100.,-.005),(105.,-.005)):
+            self.node.motion_limits_received=self.node.odom_received=now
+            self.node.odom_stamp_ns=int(now*1e9)
+            self.node.motion_limits['execution_escape']['issued_s']=now
+            with patch('rosy_control.wander.navigator.time.monotonic',return_value=now), \
+                    patch.object(self.node,'_session_now',return_value=now):
+                velocity,reason=self.node._execution_escape_step(now,(0.,0.,0.),True)
+            self.assertEqual(velocity,expected)
+        self.assertEqual(self.node.navigation_session.started,100.)
+        self.assertEqual(self.node.navigation_session.progress_at,100.)
+        with patch('rosy_control.wander.navigator.time.monotonic',return_value=106.), \
+                patch.object(self.node,'_session_now',return_value=106.):
+            velocity,reason=self.node._execution_escape_step(106.,(0.,0.,0.),True)
+        self.assertEqual((velocity,reason),(0.,'execution_escape_stopped'))
+
     def test_session_budget_stops_raw_and_planner_without_browser(self):
         from unittest.mock import patch
         self.node.on_calibration(Bool(data=True))
@@ -36,7 +67,7 @@ class CalibrationGateTest(unittest.TestCase):
         output = self.node.pub.publish.call_args.args[0]
         self.assertEqual((output.linear.x, output.angular.z), (0., 0.))
 
-    def test_arrival_once_per_endpoint_resets_stuck_and_new_goal_rearms(self):
+    def test_arrival_retries_without_flooding_and_new_goal_rearms(self):
         self.node.on_calibration(Bool(data=True))
         self.node.estop = False
         self.node.on_cmd(String(data='explore'))
@@ -74,13 +105,18 @@ class CalibrationGateTest(unittest.TestCase):
         arrive(.2)
         self.assertEqual(self.node.navigation_arrival_pub.publish.call_count, 1)
         self.node.navigation_goal_pub.publish.assert_not_called()
-        arrive(.3)
+        self.node.navigation_arrival_sent_at -= .5
+        retry_stamp = arrive(.2)
         self.assertEqual(self.node.navigation_arrival_pub.publish.call_count, 2)
+        retry = json.loads(self.node.navigation_arrival_pub.publish.call_args.args[0].data)
+        self.assertEqual(retry['route_stamp_ns'], retry_stamp)
+        arrive(.3)
+        self.assertEqual(self.node.navigation_arrival_pub.publish.call_count, 3)
         cmd = self.node.pub.publish.call_args.args[0]
         self.assertEqual((cmd.linear.x, cmd.angular.z), (0., 0.))
         self.node.estop = True
         arrive(.4)
-        self.assertEqual(self.node.navigation_arrival_pub.publish.call_count, 2)
+        self.assertEqual(self.node.navigation_arrival_pub.publish.call_count, 3)
 
     def test_live_safety_limits_replace_old_wall_band_and_missing_values_do_not(self):
         self.node.front_range = .15

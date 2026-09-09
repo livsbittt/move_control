@@ -22,8 +22,7 @@ goal_node:
     # Robot swath ~15 cm; 12 cm lanes overlap. Waypoint every 20 cm.
     lane_width: 0.12
     lane_step: 0.20
-    # Coverage waypoint counts as reached within this distance.
-    reach_tol: 0.05
+    # Arrival tolerance comes from the shared reach_tol in robot.yaml.
     # Show at most this many frontier alternatives on /goal/options.
     max_options: 3
     # Stall watchdog: after this many plan calls (2 s each) with under

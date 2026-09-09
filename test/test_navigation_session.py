@@ -47,3 +47,24 @@ class NavigationSessionTest(unittest.TestCase):
             pose = (.041*(1-math.cos(yaw)), -.041*math.sin(yaw))
             self.assertIsNone(session.tick(second, pose, translating=False))
         self.assertEqual(session.tick(10, (.04, -.03), translating=False), 'no_translation')
+
+    def test_short_translations_across_alignment_pauses_count_as_real_progress(self):
+        session = NavigationSession()
+        session.start(dict(strategy='gain', duration_s=30, stall_s=10), 0)
+        session.tick(0, (0., 0.), True)
+        session.tick(3, (.012, 0.), True)
+        session.tick(4, (.014, .004), False)  # Pivot/settling motion is excluded.
+        session.tick(6, (.015, .006), True)
+        session.tick(8, (.025, .006), True)
+        self.assertEqual(session.progress_at, 8)
+        self.assertIsNone(session.tick(10, (.025, .006), False))
+        self.assertEqual(session.tick(18, (.025, .006), False), 'no_translation')
+
+    def test_short_forward_reverse_oscillation_does_not_renew_progress(self):
+        session = NavigationSession()
+        session.start(dict(strategy='gain', duration_s=30, stall_s=10), 0)
+        for second, pose, moving in ((0, (0.,0.), True), (2,(.008,0.),True),
+                (3,(.008,0.),False), (4,(.008,0.),True), (6,(0.,0.),True),
+                (7,(0.,0.),False), (8,(0.,0.),True), (9,(.008,0.),True)):
+            self.assertIsNone(session.tick(second, pose, moving))
+        self.assertEqual(session.tick(10, (.008,0.), False), 'no_translation')

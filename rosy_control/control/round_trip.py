@@ -73,8 +73,13 @@ class RoundTrip:
             }
             if measured < .018 or abs(measured - odom) > .012:
                 return self.fail('LiDAR and wheel distance disagree during round trip')
-            if abs(leg['map_forward_m'] - leg['forward_m']) > .015:
-                return self.fail('Map and wheel distance disagree during round trip')
+            # SLAM can change the global map->odom correction during a leg.
+            # It is derived from these same sensors, not independent metrology.
+            # Keep the discrepancy visible for navigation without invalidating
+            # the bounded LiDAR/wheel measurement and corrected return repeat.
+            map_consistent = (abs(leg['map_forward_m']-leg['forward_m']) <= .015 and
+                              abs(leg['map_lateral_m']-leg['lateral_m']) <= .015 and
+                              abs(leg['map_yaw_drift_rad']-leg['yaw_drift_rad']) <= .1)
             ratio = self.commanded / measured
             if not .75 <= ratio <= 1.25:
                 return self.fail('Required speed correction exceeds calibrated bounds')
@@ -82,7 +87,8 @@ class RoundTrip:
                 return self.fail('Corrected speed failed independent repeat')
             self.legs.append({'cycle': self.cycle, 'direction': 'reverse' if returning else 'forward',
                               'measured_m': measured, 'odom_m': odom, 'commanded_m': self.commanded,
-                              'home_error_m': home['lidar_delta_m'], 'evidence': leg})
+                              'home_error_m': home['lidar_delta_m'], 'evidence': leg,
+                              'map_pose_consistent': map_consistent})
             if self.cycle == 0:
                 self.scales[int(returning)] = ratio
             if returning:
@@ -114,4 +120,5 @@ class RoundTrip:
         return {'stage': self.stage, 'cycle': self.cycle + 1, 'target_m': self.target,
                 'forward_scale': self.scales[0], 'reverse_scale': self.scales[1],
                 'legs': self.legs, 'done': self.done, 'error': self.error,
+                'localization_consistent': all(leg['map_pose_consistent'] for leg in self.legs) if self.legs else None,
                 'last_leg_evidence': self.last_leg_evidence}

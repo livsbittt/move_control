@@ -136,7 +136,7 @@ test('scan front follows supplied mount TF instead of hardcoded angle', () => {
 test('map driving requires connection, released stop, active map and map pose', () => {
   const d = dashboard();
   const good = {estop: false, map: [10,10,.02], map_control: {paused:false}, pose_available:true,
-    calibration_ready:true, calibration:{ready:true}};
+    calibration_ready:true, calibration:{ready:true},planner_fresh:true};
   for (const bad of [null, {...good, estop:true}, {...good, map:null},
       {...good, pose_available:false}, {...good, map_control:{paused:true}}]) {
     d.renderNavigation(bad);

@@ -1,0 +1,120 @@
+{
+  "source": "physical v20 bounded navigation, 2026-09-10",
+  "observed_failure": "one missing proposal permanently consumed escape despite fresh next frame",
+  "samples": [
+    {
+      "now": 1788968602.5071754,
+      "pose": [
+        0.25558448029334374,
+        -0.20804742095645254,
+        -1.781
+      ],
+      "proposal": {
+        "candidates": [
+          {
+            "direction": -1,
+            "target_m": 0.007,
+            "available_m": 0.1022885054871027,
+            "predicted_rotation_clearance_m": 0.010138158818482457,
+            "objective": "restore_rotation"
+          }
+        ],
+        "rotation_restored": false,
+        "reason": "observed_space_candidate",
+        "current_rotation_clearance_m": 0.0064352718433395295,
+        "geometry_revision": "c3af2903d9a6985c",
+        "issued_s": 1788968602.5061116,
+        "scan_age_s": 0.140811825
+      },
+      "geometry": "c3af2903d9a6985c"
+    },
+    {
+      "now": 1788968603.1163025,
+      "pose": [
+        0.2560544542786042,
+        -0.2063081384647674,
+        -1.783
+      ],
+      "proposal": {
+        "candidates": [
+          {
+            "direction": -1,
+            "target_m": 0.011,
+            "available_m": 0.09961044044035425,
+            "predicted_rotation_clearance_m": 0.010306626591691653,
+            "objective": "restore_rotation"
+          }
+        ],
+        "rotation_restored": false,
+        "reason": "observed_space_candidate",
+        "current_rotation_clearance_m": 0.004195380123288434,
+        "geometry_revision": "c3af2903d9a6985c",
+        "issued_s": 1788968603.1144056,
+        "scan_age_s": 0.151976735
+      },
+      "geometry": "c3af2903d9a6985c"
+    },
+    {
+      "now": 1788968603.164537,
+      "pose": [
+        0.2561247380237733,
+        -0.20604826124478112,
+        -1.783
+      ],
+      "proposal": null,
+      "geometry": "c3af2903d9a6985c"
+    },
+    {
+      "now": 1788968603.2553387,
+      "pose": [
+        0.2562059546018785,
+        -0.205748435379989,
+        -1.783
+      ],
+      "proposal": {
+        "candidates": [
+          {
+            "direction": -1,
+            "target_m": 0.002,
+            "available_m": 0.09961044044035425,
+            "predicted_rotation_clearance_m": 0.01044424755975673,
+            "objective": "restore_rotation"
+          }
+        ],
+        "rotation_restored": false,
+        "reason": "observed_space_candidate",
+        "current_rotation_clearance_m": 0.009413394487648913,
+        "geometry_revision": "c3af2903d9a6985c",
+        "issued_s": 1788968603.254104,
+        "scan_age_s": 0.18704071
+      },
+      "geometry": "c3af2903d9a6985c"
+    },
+    {
+      "now": 1788968603.3068426,
+      "pose": [
+        0.25625480342152734,
+        -0.20556857209897395,
+        -1.784
+      ],
+      "proposal": {
+        "candidates": [
+          {
+            "direction": -1,
+            "target_m": 0.008,
+            "available_m": 0.0979669658996882,
+            "predicted_rotation_clearance_m": 0.01056242924761007,
+            "objective": "restore_rotation"
+          }
+        ],
+        "rotation_restored": false,
+        "reason": "observed_space_candidate",
+        "current_rotation_clearance_m": 0.006180459961709489,
+        "geometry_revision": "c3af2903d9a6985c",
+        "issued_s": 1788968603.3056579,
+        "scan_age_s": 0.139375917
+      },
+      "geometry": "c3af2903d9a6985c"
+    }
+  ]
+}

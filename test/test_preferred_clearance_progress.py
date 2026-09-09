@@ -33,13 +33,13 @@ def test_escape_target_commits_until_matching_execution_completion():
     assert not brain.plan(m,target)[2].startswith('escape:')
 
 
-def test_new_obstacle_blocks_committed_escape_instead_of_switching_goal():
+def test_new_obstacle_releases_invalid_escape_without_claiming_arrival():
     m,brain,start,target=committed_escape_fixture()
     m.set_cell(*m.world_to_grid(*target),OCC)
     goal,route,status=brain.plan(m,start)
     assert goal is None and route is None
-    assert 'committed escape' in status
-    assert brain._committed_escape[0]==target
+    assert brain._committed_escape is None
+    assert not brain._completed_goals
 
 
 def test_offline_planning_does_not_require_execution_arrival_feedback():
@@ -93,3 +93,30 @@ def test_active_frontier_survives_pivot_motion_across_comfort_boundary():
     assert status.startswith('narrow passage: explore')
     assert route['clearance_m'] == .12
     assert all(m.inflate(.12/m.res).is_free(*cell) for cell in route['cells'])
+
+
+def test_obstructed_escape_target_selects_another_safe_goal_same_tick():
+    m=OccupancyMap(40,30,.05,fill=FREE)
+    brain=GoalBrain(clear_m=.10,retry_clear_m=.10,start_escape_clear_m=.10)
+    brain.execution_feedback=True
+    start=m.grid_to_world(5,10)
+    target=m.grid_to_world(25,10)
+    brain._committed_escape=(target,.10)
+    m.set_cell(*m.world_to_grid(*target),OCC)
+    goal,route,status=brain.plan(m,start)
+    assert goal is not None and route is not None
+    assert goal != target
+    assert all(m.inflate(.10/m.res).is_free(*cell) for cell in route['cells'])
+    assert not brain._completed_goals
+
+
+def test_obstacle_across_direct_route_is_routed_around_without_abandoning_goal():
+    m=OccupancyMap(40,30,.05,fill=FREE)
+    brain=GoalBrain(clear_m=.10,retry_clear_m=.10)
+    start=m.grid_to_world(5,10);target=m.grid_to_world(25,10)
+    brain._committed_escape=(target,.10)
+    for row in range(6,15):m.set_cell(15,row,OCC)
+    goal,route,status=brain.plan(m,start)
+    assert goal==target and route is not None
+    assert all(m.inflate(.10/m.res).is_free(*cell) for cell in route['cells'])
+    assert any(row<4 or row>16 for col,row in route['cells'])

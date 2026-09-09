@@ -40,14 +40,18 @@ def test_start_inside_clearance_reports_reason_and_never_snaps_robot():
     brain = GoalBrain(clear_m=.12, retry_clear_m=.12)
     goal, route, status = brain.plan(m, m.grid_to_world(12, 6))
     assert goal is None and route is None
-    assert status == 'planning blocked: robot inside obstacle clearance'
+    assert status.startswith('planning blocked: map start clearance')
+    assert 'actual=120.0mm grid=120.0mm required=120.0mm' in status
+    assert status.endswith('no safe local connection')
 
 
 def test_genuinely_too_close_start_stays_blocked_at_robot_margin():
     m = corridor()
     goal, route, status = GoalBrain(clear_m=.12, start_escape_clear_m=.10).plan(m, m.grid_to_world(12, 3))
     assert goal is None and route is None
-    assert 'inside obstacle clearance' in status
+    assert status.startswith('planning blocked: map start clearance')
+    assert 'actual=60.0mm grid=60.0mm required=100.0mm' in status
+    assert status.endswith('no safe local connection')
 
 
 def test_escape_cannot_cross_unknown_or_travel_far_to_find_clearance():

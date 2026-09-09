@@ -13,6 +13,8 @@
     # Initial actuator ceilings; persisted measured values remain authoritative.
     safety_max_linear: 0.014
     safety_max_angular: 0.10
+    # Shared goal completion distance for planning, route following and arrival ACK.
+    reach_tol: 0.025
     # Mesh-verified box, 10mm stand-off, straight <=14mm/s only; turn radius retained.
     footprint_guard_enabled: true
     # Installed Pinky BNO055 driver publishes raw /16 values in degrees/s.

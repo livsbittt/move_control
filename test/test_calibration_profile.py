@@ -4,6 +4,28 @@ from rosy_control.control.calibration_profile import ProfileLease, make_profile
 
 
 class ProfileLeaseTest(unittest.TestCase):
+    def test_refined_rotation_sequence_binds_new_envelope_and_complete_response(self):
+        from test.test_calibration_certificate import RotationCertificateTest
+        from rosy_control.control.rotation_envelope import RotationEnvelope, CROSS_ENDPOINT_MODEL
+        import copy
+        estimator = RotationEnvelope(.083, uncertainty_model=CROSS_ENDPOINT_MODEL)
+        for i, yaw in enumerate((-.35, .35, -.35, .35)):
+            self.assertTrue(estimator.add((0, 0, yaw), (0, 0, yaw), yaw, .0009,
+                                          endpoint_pair=[i, i+1]))
+        rotation = RotationCertificateTest.rotation()
+        rotation['trial_sequence'] = 'cross_endpoint_v2'
+        rotation['target_sequence_deg'] = [10, 0, -10, 0, 10, 0, -10, 0, 10, 0]
+        rotation['legs'].extend(copy.deepcopy(rotation['legs'][4:6]))
+        rotation['envelope'] = estimator.report()
+        lease = ProfileLease()
+        self.assertTrue(lease.accept(make_profile('refined', 1, 100., True, (1., 1.), 'g', rotation), 100., 10., 'g'))
+        self.assertEqual(lease.rotation_envelope(10., .083, [])['uncertainty_model'], CROSS_ENDPOINT_MODEL)
+        for mutate in (lambda r: r['legs'].pop(), lambda r: r.pop('trial_sequence'),
+                       lambda r: r['target_sequence_deg'].__setitem__(8, -10)):
+            invalid = copy.deepcopy(rotation)
+            mutate(invalid)
+            self.assertFalse(ProfileLease().accept(make_profile('bad', 1, 100., True, (1., 1.), 'g', invalid), 100., 10., 'g'))
+
     def test_translation_trial_retains_constraint_without_gains_and_expires(self):
         from test.test_calibration_certificate import RotationCertificateTest
         from rosy_control.control.rotation_envelope import RotationEnvelope

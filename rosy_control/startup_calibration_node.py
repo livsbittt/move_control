@@ -29,20 +29,28 @@ from .sensing.wall_tracker import WallTracker
 from .control.round_trip import RoundTrip
 from .control.calibration_tf import transform_health, map_motion_continuous
 from .control.calibration_certificate import make_certificate, validate_certificate
-from .control.calibration_clearance import motion_clearance
+from .control.calibration_clearance import motion_clearance, preflight_clearance_wait
 from .control.navigation_calibration import environment_profile, map_ray
 from .planning import OccupancyMap
 from .calibration_rotation import CalibrationRotation
 from .calibration_atomic import CalibrationAtomic
 from .calibration_relocation import CalibrationRelocationAdapter
+from .control.sensing_only import partial_sensing_report
+from .control.configured_operation import configured_waiting_reasons, configured_status
+from .control.startup_diagnostics import StartupDiagnostics
+from .control.calibration_runtime import calibration_runtime, precision_scan_required
 
 
 class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, CalibrationRelocationAdapter):
     def __init__(self, parameter_overrides=None):
         super().__init__('startup_calibration_node', parameter_overrides=parameter_overrides or [])
+        self.startup_diagnostics = StartupDiagnostics()
         self.declare_parameter('lidar_yaw_offset', NOSE_YAW)
         self.declare_parameter('imu_angular_velocity_unit', 'rad_s')
         self.declare_parameter('calibration_auto_motion', True)
+        self.declare_parameter('localization_required', False)
+        self.declare_parameter('calibration_sensing_only', False,
+                               ParameterDescriptor(read_only=True))
         self.declare_parameter('calibration_rotation', True)
         self.declare_parameter('calibration_relocation_enabled', False)
         self.declare_parameter('calibration_after_relocation', 'stay')
@@ -94,15 +102,19 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         self.lidar_nose = None
         self.estop = None
         self.wander_state = ('', 0.)
-        self.reset()
-        self.restore_certificate()
+        sensing_only = bool(self.get_parameter('calibration_sensing_only').value)
+        self.reset(sensing_only=sensing_only)
+        if not sensing_only:
+            self.restore_certificate()
         self.timer = self.create_timer(.05, self.tick)
 
-    def reset(self, invalidate_certificate=False):
-        if invalidate_certificate:
-            self.certificate_path().unlink(missing_ok=True)
+    def reset(self, invalidate_certificate=False, sensing_only=False, existing_settings=False, limited_sensors=False):
         self.zero()
         self.wander_pub.publish(String(data='stop'))
+        self.sensing_only = sensing_only
+        self.existing_settings = existing_settings
+        self.limited_sensors = limited_sensors
+        self.configured_waiting = ['fresh_sensor_checks'] if existing_settings else []
         self.profile_session = uuid.uuid4().hex
         self.profile_sequence = 0
         self.profile_revision = self.applied_profile = None
@@ -120,14 +132,21 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         self.raw_ranges = {}
         self.us_source_valid = False
         self.phase, self.message = 'collecting', 'Keep robot stationary on safe level floor'
+        if sensing_only:
+            self.phase, self.message = 'sensing_only', 'Stationary partial sensing; IMU excluded; motion prohibited'
+        elif existing_settings:
+            self.phase = 'limited_sensors' if limited_sensors else 'existing_settings'
+            self.message = 'Existing parameters selected; checking live sensors without calibration'
         self.started = time.monotonic()
         self.motion_start = None
         self.precision_pause_started = None
         self.precision_pause_total = 0.
         self.precision_pause_map = False
         self.map_tf_diagnostic = {'valid': False, 'reason': 'not_received'}
-        self.runtime_ready = True
+        self.runtime_ready = not (sensing_only or existing_settings)
         self.runtime_healthy_since = None
+        self.runtime_waiting = []
+        self.recalibration_required = False
         self.selected_target = None
         self.motion_clearance = {}
         self.round_trip = None
@@ -140,6 +159,8 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         self.sensors = self.baseline.report(self.started)
         self.last_report = 0.
         try:
+            if invalidate_certificate:
+                self.certificate_path().unlink(missing_ok=True)
             self.persist()  # A previous boot's ready file is not current evidence.
         except (OSError, ValueError) as exc:
             self.phase, self.message = 'failed', f'Cannot invalidate previous calibration result: {exc}'
@@ -169,6 +190,12 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
 
     def on_estop(self, msg):
         self.estop = bool(msg.data)
+        if self.estop and self.existing_settings:
+            self.runtime_ready = False
+            self.runtime_healthy_since = None
+            self.zero()
+            self.wander_pub.publish(String(data='stop'))
+            self.publish()
         if self.estop and self.phase in ('validating_motion', 'validating_rotation', 'relocating_calibration', 'returning_calibration'):
             self.finish(False, 'Emergency stop engaged')
 
@@ -193,8 +220,9 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         odom_rows = self.baseline.samples['odom']
         if not odom_rows or not 0 <= time.monotonic()-odom_rows[-1][0] <= .2:
             pose = None
-        self.rotation_scan_sample(msg, valid and self.stamped(msg, .25))
-        if self.phase in ('ready', 'validating_rotation'):
+        if precision_scan_required(self.phase):
+            self.rotation_scan_sample(msg, valid and self.stamped(msg, .25))
+        if not precision_scan_required(self.phase) or self.phase == 'validating_rotation':
             # A navigation turn may leave the calibration wall entirely.
             # Runtime sensor health uses actual scan returns, not a wall fit.
             precision = distance
@@ -205,6 +233,11 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
                 now=time.monotonic())
         else:
             precision = math.inf
+            self.wall_tracker.diagnostic = {
+                'status': 'invalid',
+                'reason': 'Waiting for fresh odometry' if valid and pose is None else 'Scan or transform unavailable',
+                'locked': self.wall_tracker.locked,
+                'odom_age_s': time.monotonic()-odom_rows[-1][0] if odom_rows else None}
         self.add_range('lidar', precision, valid and math.isfinite(precision))
         # Braking still observes the original raw cone; the fitted wall only
         # supplies measurement evidence and cannot hide a closer obstacle.
@@ -268,7 +301,7 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         self.add('imu', (gravity, gyro, tilt,
                          gx, gy, gz, a.x, a.y, a.z, roll, pitch),
                  unit in ('rad_s', 'deg_s') and self.stamped(msg, .2 if self.phase in ('relocating_calibration','returning_calibration') else .25 if self.phase == 'validating_rotation' else 1.) and .9 <= norm <= 1.1 and 8 <= gravity <= 11.5 and
-                 (self.phase in ('ready', 'validating_rotation') or gyro < .15) and tilt < math.radians(20))
+                 (self.phase in ('ready', 'validating_rotation', 'existing_settings', 'limited_sensors') or gyro < .15) and tilt < math.radians(20))
 
     def on_camera(self, msg):
         pixels = np.frombuffer(bytes(msg.data), np.uint8)
@@ -339,11 +372,16 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
             forward = motion_evidence(self.motion_start[1], current)['lidar_delta_m']
         round_trip = bool(self.get_parameter('calibration_round_trip').value)
         requested = float(self.get_parameter('calibration_distance_m').value) if round_trip else MOTION_LIMIT
+        target = self.selected_target
+        preflight = self.phase == 'validating_motion' and self.motion_start is None and target is not None
+        if preflight:
+            # Footprint eligibility may change while waiting for wander's stop.
+            # Refit only downward before the origin; never resize a moving trial.
+            requested = min(requested, target)
+            target = None
         self.motion_clearance = motion_clearance(limits, requested,
-            target=self.selected_target, forward=forward, round_trip=round_trip,
+            target=target, forward=forward, round_trip=round_trip,
             selection_margin_m=.003)
-        if self.motion_clearance['reason']:
-            return self.motion_clearance['reason']
         if self.estop is not False:
             return 'Emergency stop must be explicitly released'
         if self.get_parameter('calibration_round_trip').value:
@@ -362,6 +400,10 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         if any(key not in self.hazards or now - self.hazards[key][0] > .75
                or self.hazards[key][1] for key in required):
             return 'Safety hazard or missing fresh safety state'
+        if self.motion_clearance['reason']:
+            return self.motion_clearance['reason']
+        if preflight:
+            self.selected_target = self.motion_clearance['target_m']
         return None
 
     def precision_sensors_fresh(self, now):
@@ -396,14 +438,18 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
                        ('stale','ExtrapolationException','LookupException','ConnectivityException'))
         waiting_wall = (not health['lidar']['eligible'] and self.wall_tracker.diagnostic.get('reason') in
                         ('Tracked wall missing or ambiguous', 'Waiting for three associated scans'))
-        waiting = ({'map_tf'} if waiting_map else set()) | ({'lidar'} if waiting_wall else set())
+        waiting_odom = (not health['lidar']['eligible'] and
+                        self.wall_tracker.diagnostic.get('reason') == 'Waiting for fresh odometry')
+        waiting = (({'map_tf'} if waiting_map else set()) | ({'lidar'} if waiting_wall else set()) |
+                   ({'lidar', 'odom'} if waiting_odom else set()))
         if not waiting:
             return False
         for name, item in health.items():
             if name not in waiting and not item['eligible']:
                 return False
         odom_rows = self.baseline.samples['odom']
-        if not odom_rows or not 0 <= now-odom_rows[-1][0] <= .2:
+        if (not odom_rows or not odom_rows[-1][2] or now < odom_rows[-1][0] or
+                (not waiting_odom and now-odom_rows[-1][0] > .2)):
             return False
         stamp, limits = self.safety_limits
         if not 0 <= now-stamp <= .75:
@@ -430,7 +476,9 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         if self.round_trip.error:
             return False
         self.sensors = health
-        self.message = ('Map TF paused at zero speed; waiting for fresh consistent pose (maximum 1s)'
+        self.message = ('Precision LiDAR paused at zero speed; waiting for fresh odometry (maximum 1s)'
+                        if waiting_odom else
+                        'Map TF paused at zero speed; waiting for fresh consistent pose (maximum 1s)'
                         if waiting_map else
                         'Precision LiDAR paused at zero speed; reacquiring the same wall (maximum 1s)')
         self.publish()
@@ -471,6 +519,15 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
 
     def on_command(self, msg):
         command = msg.data.strip().lower()
+        if command == 'use_existing_settings':
+            self.reset(existing_settings=True)
+            return
+        if command == 'use_limited_sensors':
+            self.reset(existing_settings=True, limited_sensors=True)
+            return
+        if command == 'sensing_only':
+            self.reset(sensing_only=True)
+            return
         if command in ('retry:stay', 'retry:return_origin'):
             self.after_relocation = command.partition(':')[2]
             command = 'retry'
@@ -478,14 +535,24 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
             self.finish(False, 'Calibration aborted', 'aborted')
         elif command == 'retry':
             self.reset(invalidate_certificate=True)
-        elif command == 'sensor_check' and self.phase == 'ready':
+        elif command == 'sensor_check' and self.phase in ('ready', 'existing_settings', 'limited_sensors'):
             self.zero()
             self.wander_pub.publish(String(data='stop'))
             self.runtime_ready = False
             self.runtime_healthy_since = None
-            self.message = 'Saved calibration retained; checking current sensors without motion'
+            self.message = ('Existing parameters retained; checking live sensors without calibration'
+                            if self.existing_settings else 'Saved calibration retained; checking current sensors without motion')
             self.publish()
         elif command == 'validate_motion':
+            if getattr(self, 'existing_settings', False):
+                self.message = 'Calibration skipped by selection; use retry to start full calibration'
+                self.publish()
+                return
+            if self.sensing_only:
+                self.zero()
+                self.message = 'Motion prohibited in partial sensing; use retry for full calibration'
+                self.publish()
+                return
             now = time.monotonic()
             self.sensors = self.stationary_report(now)
             reason = self.safe_motion(now)
@@ -537,6 +604,51 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         self.read_tf()
         # TF collection timestamps its own samples; evaluate freshness after it.
         now = time.monotonic()
+        if self.phase in ('validating_motion', 'failed', 'aborted'):
+            # A recovered stream must not retain a paused/failed sample label.
+            # Readiness and trial acceptance still use their independent gates.
+            self.sensors = self.runtime_health(now)
+        if getattr(self, 'existing_settings', False) and self.phase in ('existing_settings', 'limited_sensors'):
+            previously_ready = self.runtime_ready
+            self.sensors = self.runtime_health(now)
+            for name, item in self.sensors.items():
+                item['required_for_operation'] = name not in ('camera', 'map', 'map_tf') or (
+                    name in ('map', 'map_tf') and bool(self.get_parameter('localization_required').value))
+                item['detail'] = item.get('detail', '').replace('saved calibration retained', 'existing parameters retained')
+            limited = getattr(self, 'limited_sensors', False)
+            if limited:
+                self.sensors['imu'].update(required_for_operation=False, excluded=True, eligible=False,
+                    status='excluded', detail='IMU excluded by explicit limited-speed operation selection')
+            self.configured_waiting = configured_waiting_reasons(
+                self.sensors, bool(self.get_parameter('localization_required').value),
+                self.geometry_fresh(now), self.estop,
+                {key.rsplit('/', 1)[-1]: value for key, value in self.hazards.items()}, now, exclude_imu=limited)
+            if self.configured_waiting:
+                self.zero()
+                self.runtime_ready = False
+                self.runtime_healthy_since = None
+                if previously_ready:
+                    self.wander_pub.publish(String(data='stop'))
+            elif not self.runtime_ready:
+                self.zero()
+                if self.runtime_healthy_since is None:
+                    self.runtime_healthy_since = now
+                self.runtime_ready = now-self.runtime_healthy_since >= 1.
+            self.message = ('Existing parameters; calibration unverified; waiting: ' + ', '.join(self.configured_waiting)
+                            if self.configured_waiting else 'Existing parameters; calibration unverified; live sensors healthy')
+            if previously_ready != self.runtime_ready or now-self.last_report >= .5:
+                self.publish()
+            return
+        if self.sensing_only:
+            self.zero()
+            self.runtime_ready = False
+            self.sensors = partial_sensing_report(self.stationary_report(now))['sensors']
+            self.baseline_values = {name: value for name, value in self.baseline.statistics(now).items()
+                                    if name != 'imu'}
+            if now-self.last_report >= .5:
+                self.wander_pub.publish(String(data='stop'))
+                self.publish()
+            return
         if self.phase == 'returning_calibration':
             self.tick_return(now)
             return
@@ -548,17 +660,24 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
             return
         if self.phase == 'ready':
             previously_ready = self.runtime_ready
-            self.sensors = self.runtime_health(now)
-            missing = [name for name, item in self.sensors.items() if not item['eligible']]
-            if not self.geometry_fresh(now):
-                missing.append('safety_geometry')
+            received = getattr(self, 'geometry_received', None)
+            runtime = calibration_runtime(self.runtime_health(now),
+                localization_required=bool(self.get_parameter('localization_required').value),
+                geometry_fresh=self.geometry_fresh(now),
+                established_revision=getattr(self, 'trial_geometry_revision', None),
+                current_revision=getattr(self, 'geometry_revision', None),
+                current_geometry_fresh=received is not None and 0 <= now-received <= 1.)
+            self.sensors = runtime['sensors']
+            self.runtime_waiting = missing = runtime['waiting_reasons']
+            self.recalibration_required = runtime['recalibration_required']
             if missing:
                 self.zero()
                 if self.runtime_ready:
                     self.wander_pub.publish(String(data='stop'))
                 self.runtime_ready = False
                 self.runtime_healthy_since = None
-                self.message = 'Saved calibration retained; rechecking sensors: ' + ', '.join(missing)
+                self.message = ('Calibration identity changed; explicit recalibration required'
+                    if self.recalibration_required else 'Saved calibration retained; runtime hold: ' + ', '.join(missing))
             elif not self.runtime_ready:
                 self.zero()
                 if self.runtime_healthy_since is None:
@@ -602,6 +721,11 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         elif self.phase == 'validating_motion':
             reason = self.safe_motion(now)
             if reason:
+                if preflight_clearance_wait(self.phase, self.motion_start, reason, now, self.requested):
+                    self.zero()
+                    self.message = 'Waiting for stable preflight clearance: ' + reason
+                    self.publish()
+                    return
                 if reason.startswith('Sensor data became stale or invalid') and self.pause_precision(now):
                     return
                 if self.precision_pause_started is not None:
@@ -682,7 +806,12 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         imu = self.baseline_values.get('imu', {}).get('mean', [])
         lidar = self.baseline_values.get('lidar', {}).get('mean', [])
         us = self.baseline_values.get('us', {}).get('mean', [])
-        return {'phase': 'sensor_hold' if self.phase == 'ready' and not self.runtime_ready else self.phase,
+        return {'phase': self.phase,
+                'calibration_complete': self.phase == 'ready',
+                'recalibration_required': bool(getattr(self, 'recalibration_required', False)),
+                'runtime_state': ('recalibration_required' if getattr(self, 'recalibration_required', False)
+                    else 'ready' if self.runtime_ready else 'sensor_hold') if self.phase == 'ready' else 'not_ready',
+                'runtime_waiting_reasons': list(getattr(self, 'runtime_waiting', [])),
                 'ready': self.phase == 'ready' and self.runtime_ready and self.settings_applied(),
                 'rotation': self.rotation_report(),
                 'relocation': self.relocation.report() if self.relocation else None,
@@ -709,7 +838,12 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
                            'motion_seconds': 35. if self.get_parameter('calibration_round_trip').value else MOTION_SECONDS,
                            'motion_distance_m': MOTION_LIMIT,
                            'round_trip_target_m': float(self.get_parameter('calibration_distance_m').value)},
-                'settings_applied': self.phase == 'ready' and self.settings_applied()}
+                'settings_applied': self.phase in ('ready', 'existing_settings', 'limited_sensors') and self.settings_applied(),
+                **(configured_status(self.phase in ('existing_settings', 'limited_sensors') and self.runtime_ready and self.settings_applied(),
+                    self.configured_waiting + ([] if self.settings_applied() else ['settings_acknowledgement']),
+                    limited_sensors=self.limited_sensors)
+                   if self.existing_settings else {}),
+                **(partial_sensing_report(self.sensors) if self.sensing_only else {})}
 
     def publish(self):
         self.last_report = time.monotonic()
@@ -718,10 +852,18 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         self.profile_revision = packet['revision']
         self.profile_pub.publish(String(data=json.dumps(packet, allow_nan=False)))
         self.scale_pub.publish(Float32MultiArray(data=packet['linear_gains']))
-        self.status_pub.publish(String(data=json.dumps(self.report(), allow_nan=False)))
-        self.ready_pub.publish(Bool(data=self.phase == 'ready' and self.runtime_ready and self.settings_applied()))
+        report = self.report()
+        self.status_pub.publish(String(data=json.dumps(report, allow_nan=False)))
+        diagnostics = getattr(self, 'startup_diagnostics', None)
+        if diagnostics is not None:
+            event = diagnostics.update(report)
+            if event is not None:
+                self.get_logger().info(json.dumps(event, allow_nan=False))
+        self.ready_pub.publish(Bool(data=bool(report['ready'])))
 
     def finish(self, passed, message, phase=None):
+        if self.sensing_only or self.existing_settings:
+            passed = False
         self.zero()
         self.phase = phase or ('ready' if passed else 'failed')
         self.runtime_ready = bool(passed)

@@ -2,10 +2,75 @@ import math
 import unittest
 import numpy as np
 from rosy_control.sensing.scan_rotation import scan_rotation
-from rosy_control.control.rotation_trial import RotationTrial
+from rosy_control.control.rotation_trial import RotationTrial, steady_response
 
 
 class RotationTrialTest(unittest.TestCase):
+    def test_quantized_scan_and_startup_delay_validate_steady_response_without_compensation(self):
+        trial = RotationTrial(0.)
+        yaw = speed = 0.
+        moving_since = None
+        for i in range(1, 1400):
+            now = i*.05
+            if speed:
+                if moving_since is None:
+                    moving_since = now
+                if now-moving_since >= .4:
+                    yaw += speed*.05/1.12
+            else:
+                moving_since = None
+            # Real scan alignment has 0.5-degree bins and arrives at 10 Hz.
+            if i % 2 == 0:
+                lidar = round(yaw/math.radians(.5))*math.radians(.5)
+            elif i == 1:
+                lidar = 0.
+            speed = trial.update(now, lidar, yaw, yaw, 0., True)
+            if trial.done or trial.error:
+                break
+        self.assertIsNone(trial.error)
+        self.assertTrue(trial.done)
+        report = trial.report()
+        self.assertTrue(report['response_verified'])
+        self.assertFalse(report['compensation_verified'])
+        self.assertEqual(report['angular_gains'], [1., 1.])
+        from rosy_control.control.calibration_profile import ProfileLease, make_profile
+        lease = ProfileLease()
+        packet = make_profile('latency-test', 1, 100., True, (1., 1.), 'geometry', report)
+        self.assertTrue(lease.accept(packet, 100., 10., 'geometry'))
+        self.assertEqual(lease.angular_gains(10.), (1., 1.))
+        self.assertFalse(lease.active['rotation']['compensation_verified'])
+        self.assertEqual(len(report['legs']), 8)
+        self.assertTrue(any(leg['integrated_ratio'] > 1.25 for leg in report['legs']))
+        for leg in report['legs']:
+            self.assertAlmostEqual(leg['ratio'], 1.12, delta=.08)
+            self.assertGreater(leg['onset_latency_s'], .2)
+            self.assertGreaterEqual(leg['fit_span_rad'], math.radians(5))
+
+    def test_steady_fit_rejects_insufficient_span_and_sensor_rate_disagreement(self):
+        rows = [(i*.1, i*.005, i*.005, i*.005) for i in range(10)]
+        self.assertIsNone(steady_response(rows, 0., 1, 0.))
+        rows = [(i*.1, i*.005, i*.008, i*.005) for i in range(30)]
+        self.assertIsNone(steady_response(rows, 0., 1, 0.))
+
+    def test_rejected_gain_retains_evidence_without_accepting_failed_leg(self):
+        trial = RotationTrial(0.)
+        yaw = speed = 0.
+        for i in range(1, 200):
+            yaw += speed*.05/1.4
+            speed = trial.update(i*.05, yaw, yaw, yaw, 0., True)
+            if trial.error:
+                break
+        self.assertEqual(trial.error, 'Rotation correction outside trial bounds')
+        self.assertEqual(speed, 0.)
+        self.assertEqual(trial.legs, [])
+        evidence = trial.report()['failed_leg']
+        self.assertAlmostEqual(evidence['ratio'], 1.4)
+        self.assertAlmostEqual(evidence['commanded_rad']/evidence['measured_rad'], 1.4)
+        self.assertEqual(evidence['index'], 0)
+        self.assertEqual(evidence['imu_yaw_rad'], yaw)
+        trial.update(20., 0., 0., 0., 0., True)
+        self.assertEqual(trial.report()['failed_leg'], evidence)
+
     def test_gain_above_one_repeats_within_trial_command_limit(self):
         trial=RotationTrial(0.)
         yaw=speed=0.

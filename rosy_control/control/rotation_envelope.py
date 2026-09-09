@@ -5,6 +5,7 @@ import copy
 
 RANGE_RESIDUAL_FLOOR_M = .0005
 UNCERTAINTY_MODEL = 'empirical_residual_over_excitation_v1'
+CROSS_ENDPOINT_MODEL = 'cross_endpoint_residual_over_excitation_v2'
 
 
 def pivot_clearance(points, center, pivot_radius):
@@ -107,12 +108,14 @@ def validate_envelope(report, radius_floor=0.):
         trials = report['trials']
         if not summary_valid or not isinstance(trials, list) or not 4 <= len(trials) <= 24:
             return False
-        recomputed = RotationEnvelope(body, report['footprint_xy'])
+        model = report['uncertainty_model']
+        recomputed = RotationEnvelope(body, report['footprint_xy'], uncertainty_model=model)
         for trial in trials:
-            if not recomputed.add(trial['scan_delta'], trial['odom_delta'], trial['imu_yaw'], trial['residual_m']):
+            if not recomputed.add(trial['scan_delta'], trial['odom_delta'], trial['imu_yaw'], trial['residual_m'],
+                                  endpoint_pair=trial.get('endpoint_pair')):
                 return False
         expected = recomputed.report()
-        if not expected['valid'] or report['uncertainty_model'] != UNCERTAINTY_MODEL:
+        if not expected['valid']:
             return False
         if report['sample_count'] != expected['sample_count'] or counts != expected['directional_counts']:
             return False
@@ -128,7 +131,10 @@ class RotationEnvelope:
     Each delta is expressed in its own trial's initial base frame. IMU yaw is
     a delta, not absolute heading. Radius is a trusted chassis circumradius.
     """
-    def __init__(self, radius, footprint=()):
+    def __init__(self, radius, footprint=(), uncertainty_model=UNCERTAINTY_MODEL):
+        if uncertainty_model not in (UNCERTAINTY_MODEL, CROSS_ENDPOINT_MODEL):
+            raise ValueError('Unknown rotation uncertainty model')
+        self.uncertainty_model = uncertainty_model
         if not math.isfinite(radius) or radius <= 0:
             raise ValueError('positive finite body radius required')
         self.radius = float(radius)
@@ -151,7 +157,7 @@ class RotationEnvelope:
         self.rejected = False
         self.reason = 'insufficient_bilateral_evidence'
 
-    def add(self, scan_delta, odom_delta, imu_yaw, residual_m):
+    def add(self, scan_delta, odom_delta, imu_yaw, residual_m, endpoint_pair=None):
         if self.rejected:
             return False
         try:
@@ -161,7 +167,14 @@ class RotationEnvelope:
                 raise ValueError()
         except (TypeError, ValueError, OverflowError):
             return self._reject('nonfinite_evidence')
-        if not math.radians(5) <= abs(yaw) <= math.radians(15) or not 0 <= residual_m <= .008:
+        if self.uncertainty_model == CROSS_ENDPOINT_MODEL:
+            index = len(self.trials)
+            if (index >= 4 or not isinstance(endpoint_pair,list) or
+                    any(type(value) is not int for value in endpoint_pair) or endpoint_pair != [index, index+1] or
+                    (yaw < 0) != (index % 2 == 0)):
+                return self._reject('invalid_sequential_endpoint_pair')
+        minimum, maximum = (15, 25) if self.uncertainty_model == CROSS_ENDPOINT_MODEL else (5, 15)
+        if not math.radians(minimum) <= abs(yaw) <= math.radians(maximum) or not 0 <= residual_m <= .008:
             return self._reject('insufficient_excitation_or_poor_scan')
         if abs(yaw-oyaw) > .035 or abs(yaw-imu_yaw) > .035 or math.hypot(x-ox,y-oy) > .012:
             return self._reject('sensor_disagreement')
@@ -178,6 +191,8 @@ class RotationEnvelope:
         self.samples = self.samples[-24:]
         self.trials.append(dict(scan_delta=[x,y,yaw], odom_delta=[ox,oy,oyaw],
                                 imu_yaw=imu_yaw, residual_m=residual_m))
+        if self.uncertainty_model == CROSS_ENDPOINT_MODEL:
+            self.trials[-1]['endpoint_pair'] = list(endpoint_pair)
         self.trials = self.trials[-24:]
         self.reason = 'insufficient_bilateral_evidence'
         return True
@@ -204,4 +219,4 @@ class RotationEnvelope:
                     body_radius_m=self.radius, required_radius_m=max(self.radius,math.hypot(cx,cy)+pivot_radius),
                     footprint_xy=copy.deepcopy(self.footprint), pivot_radius_m=pivot_radius,
                     sample_count=len(samples), directional_counts=counts, reason=reason,
-                    uncertainty_model=UNCERTAINTY_MODEL, trials=copy.deepcopy(self.trials))
+                    uncertainty_model=self.uncertainty_model, trials=copy.deepcopy(self.trials))

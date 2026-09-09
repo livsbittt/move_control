@@ -38,6 +38,7 @@ from .control.obstacle_risk import accept_observation, TRACK_UNCERTAINTY
 from rclpy.time import Time
 from .goal_escape import GoalEscape
 from .control.escape_budget import EscapeBudget
+from .control.path_follow import GOAL_TOLERANCE_M
 
 
 def grid_clearance(distance, resolution):
@@ -76,7 +77,7 @@ class GoalNode(Node, GoalEscape):
         self.create_subscription(String, '/calibration/status', self.on_calibration_profile, 10)
         self.declare_parameter('lane_width', 0.12)
         self.declare_parameter('lane_step', 0.20)
-        self.declare_parameter('reach_tol', 0.05)
+        self.declare_parameter('reach_tol', GOAL_TOLERANCE_M)
         self.declare_parameter('max_options', 3)
         # Nominal cruise for the ETA when odom history is not in yet.
         self.declare_parameter('speed_mps', 0.014)
@@ -248,6 +249,11 @@ class GoalNode(Node, GoalEscape):
         self.navigation_feedback_received = time.monotonic() if msg.data.startswith("route_") else None
 
     def on_arrival(self, msg):
+        def reject(reason):
+            if getattr(self, '_arrival_rejection', None) != reason:
+                self.get_logger().info('arrival rejected: ' + reason)
+                self._arrival_rejection = reason
+
         if self.mode not in ('explore', 'coverage') or self.map_obj is None:
             return
         try:
@@ -258,16 +264,21 @@ class GoalNode(Node, GoalEscape):
                     or not all(isinstance(v, (int, float)) and math.isfinite(v) for v in target)):
                 return
             if not any(t == stamp and tuple(target) == xy for t, xy in self.issued_routes):
+                reject('route stamp or published endpoint mismatch')
                 return
             if (self.last_executable_goal is None or
                     math.dist(target, self.last_executable_goal) > .005):
+                reject('endpoint no longer matches active goal')
                 return
             pose, _ = self.pose()
-            if pose[0] is None or math.dist(pose, target) > .04:
+            if pose[0] is None or math.dist(pose, target) > self.brain.reach_tol:
+                reject('fresh planner pose not within arrival distance')
                 return
         except (ValueError, KeyError, TypeError):
             return
         self.brain.complete_goal(self.map_obj, pose, target)
+        self._arrival_rejection = None
+        self.get_logger().info(f'arrival accepted: stamp={stamp} target={target}; selecting next goal')
         self._clear_route('goal reached; selecting next target')
         self.plan()
 
@@ -531,7 +542,11 @@ class GoalNode(Node, GoalEscape):
         points = route['points']
         self.last_executable_exit = next((p for p in points if math.dist(p, points[0]) >= .06), points[-1])
         stamp = self.get_clock().now().to_msg()
-        self.issued_routes.append((stamp.sec*1000000000+stamp.nanosec, (x, y)))
+        # A committed goal survives small SLAM lattice shifts, while its new
+        # route ends at the current cell centre. Arrival identifies the exact
+        # emitted endpoint, not the saved pre-shift mission coordinate.
+        endpoint = tuple(float(v) for v in points[-1])
+        self.issued_routes.append((stamp.sec*1000000000+stamp.nanosec, endpoint))
         self.issued_routes = self.issued_routes[-8:]
         gp = PoseStamped()
         gp.header.frame_id = 'map'

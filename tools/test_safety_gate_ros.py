@@ -12,6 +12,41 @@ from rosy_control.safety.node import SafetyNode
 
 
 class SafetyGateTest(unittest.TestCase):
+    def test_escape_prediction_is_cached_and_never_reuses_stale_geometry(self):
+        from rosy_control.control.rotation_envelope import RotationEnvelope
+        from rosy_control.control.escape_space import escape_space_plan
+        n = self.node
+        n.set_parameters([Parameter('footprint_guard_enabled', value=True),
+                          Parameter('lidar_use_tf', value=True)])
+        n.release_estop(); n._refresh_distances(); n.refresh_profile()
+        estimator = RotationEnvelope(.083)
+        for yaw in (.17, -.17, .18, -.18):
+            estimator.add((0., 0., yaw), (0., 0., yaw), yaw, .0005)
+        n.calibration_lease.rotation_envelope = Mock(return_value=estimator.report())
+        n.motion_limits_pub = Mock()
+        self.fresh_sensors()
+        n.lidar_mount = (-.017, 0.)
+        n.translation_clearance = (.05, .1)
+        n.lidar_measurement_time = n.now()
+        n.lidar_rotation_points = [(0., .10), (.3, .2), (-.3, .2)]
+        n.lidar_rotation_clearance = .10
+        n.lidar_rotation_observed = False
+        for field in ('lidar_front', 'lidar_rear', 'lidar_left', 'lidar_right',
+                      'lidar_rear_left', 'lidar_rear_right'):
+            setattr(n, field, .2)
+        n.on_cmd(Twist())
+        with patch('rosy_control.safety.node.escape_space_plan', wraps=escape_space_plan) as prediction:
+            n.tick(); n.tick()
+            self.assertEqual(prediction.call_count, 1)
+        packet = json.loads(n.motion_limits_pub.publish.call_args.args[0].data)
+        self.assertEqual(packet['execution_escape']['geometry_revision'], n.profile.revision)
+        self.assertLessEqual(packet['execution_escape']['scan_age_s'], .2)
+        self.assertEqual(n.pub.publish.call_args.args[0].linear.x, 0.)
+        n.last_scan_time = None
+        n.tick()
+        packet = json.loads(n.motion_limits_pub.publish.call_args.args[0].data)
+        self.assertIsNone(packet['execution_escape'])
+
     def test_translation_retry_retains_sweep_but_enforces_straight_domain(self):
         with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
                 patch('rosy_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
@@ -264,12 +299,12 @@ class SafetyGateTest(unittest.TestCase):
             packet = CalibrationAtomic.profile_packet(calibration)
             calibration.profile_sequence += 1
             n.on_calibration_profile(String(data=json.dumps(packet)))
-        def turn(speed=.04):
+        def turn(speed=.04, clearance=.4):
             self.fresh_sensors()
             for field in ('lidar_front','lidar_rear','lidar_left','lidar_right',
                           'lidar_rear_left','lidar_rear_right'):
                 setattr(n,field,.4)
-            n.lidar_rotation_clearance=.4
+            n.lidar_rotation_clearance=clearance
             command=Twist(); command.angular.z=speed
             n.on_cmd(command); n.tick()
             return n.pub.publish.call_args.args[0].angular.z
@@ -290,7 +325,10 @@ class SafetyGateTest(unittest.TestCase):
         n.lidar_rotation_points=[(.08,0.)]
         self.assertEqual(turn(),0.)
         n.lidar_rotation_points=[(.4,0.)]; n.lidar_rotation_observed=False
-        self.assertEqual(turn(),0.)
+        # Partial angular coverage retains the conservative full swept radius;
+        # it cannot use the tighter exact-pivot optimization.
+        self.assertEqual(turn(), .04)
+        self.assertEqual(turn(clearance=rotation['envelope']['required_radius_m']+.009), 0.)
         n.lidar_rotation_observed=True
         n.calibration_lease.deadline=0.
         self.assertEqual(turn(),0.)

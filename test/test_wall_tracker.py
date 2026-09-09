@@ -1,8 +1,12 @@
 import math
 import unittest
+import gzip
+import json
+from pathlib import Path
 from types import SimpleNamespace
 
 from rosy_control.sensing.wall_tracker import WallTracker, _fit
+from rosy_control.control.calibration import StationaryBaseline
 
 
 def corner(travel=0., outer=False, dropout=False, slope=1.):
@@ -41,6 +45,53 @@ def world_wall(pose, mount=(-.017, 0.)):
 
 
 class WallTrackerTest(unittest.TestCase):
+    def test_new_position_edge_fragments_do_not_veto_actual_central_wall(self):
+        path = Path(__file__).parent / 'fixtures/wall_tracker_after_9mm_20260909.json.gz'
+        with gzip.open(path, 'rt') as stream:
+            frames = json.load(stream)['frames']
+        # Both collection and a locked trial use the same established wall;
+        # displaced peripheral returns cannot replace its dominant support.
+        for locked in (False, True):
+            tracker = WallTracker()
+            baseline = StationaryBaseline()
+            qualified = 0
+            for i, frame in enumerate(frames):
+                scan = SimpleNamespace(**frame['scan'], ranges=[math.inf if v is None else v
+                                                               for v in frame['ranges']])
+                value = tracker.update(scan, frame['nose'], pose=frame['pose'], mount=frame['mount'],
+                                       now=frame['now'], locked=locked and i >= 3)
+                baseline.add('lidar', (value,), frame['now'], valid=math.isfinite(value))
+                qualified += baseline.report(frame['now'])['lidar']['ok']
+                if math.isfinite(value):
+                    self.assertAlmostEqual(value, .333, delta=.002)
+                    self.assertLessEqual(tracker.diagnostic['residual_m'], .003)
+            self.assertGreater(qualified, 0, f'locked={locked}')
+
+    def test_stationary_capture_does_not_restart_for_noisy_coplanar_fragments(self):
+        path = Path(__file__).parent / 'fixtures/wall_tracker_stationary_20260909.json.gz'
+        with gzip.open(path, 'rt') as stream:
+            frames = json.load(stream)['frames']
+        tracker = WallTracker()
+        baseline = StationaryBaseline()
+        qualified = 0
+        invalid = 0
+        for frame in frames:
+            scan = SimpleNamespace(**frame['scan'], ranges=[math.inf if value is None else value
+                                                           for value in frame['ranges']])
+            value = tracker.update(scan, frame['nose'], pose=frame['pose'],
+                                   mount=frame['mount'], now=frame['now'])
+            invalid += not math.isfinite(value)
+            baseline.add('lidar', (value,), frame['now'], valid=math.isfinite(value))
+            qualified += baseline.report(frame['now'])['lidar']['ok']
+            if math.isfinite(value):
+                self.assertLessEqual(tracker.diagnostic['residual_m'], .003)
+                self.assertAlmostEqual(value, .342, delta=.003)
+        # Before the fix: 34/200 invalid despite a stationary wall. Retain
+        # rejection/requalification for the genuinely non-coplanar edge frames.
+        self.assertEqual(len(frames), 200)
+        self.assertLessEqual(invalid, 10)
+        self.assertGreater(qualified, 0)  # The unchanged full-baseline policy can now pass.
+
     def test_prediction_never_replaces_lidar_distance_with_wrong_forward_odom(self):
         tracker = WallTracker()
         for i in range(3):
@@ -219,3 +270,19 @@ class WallTrackerTest(unittest.TestCase):
             scan.ranges[i] = other.ranges[i]
         self.assertTrue(math.isinf(tracker.update(scan, math.pi, locked=True)))
         self.assertEqual(tracker.diagnostic['matches'], 2)
+
+    def test_dominant_shifted_parallel_plane_cannot_replace_tracked_wall(self):
+        tracker = WallTracker()
+        collect(tracker, world_wall((0., 0., 0.)))
+        scan = world_wall((0., 0., 0.))
+        displaced = world_wall((-.008, 0., 0.))
+        for i in range(len(scan.ranges)):
+            angle = scan.angle_min+i*scan.angle_increment-math.pi
+            angle = math.atan2(math.sin(angle), math.cos(angle))
+            if angle < math.radians(20):
+                scan.ranges[i] = displaced.ranges[i]
+        scan.ranges[40] = math.inf
+        # The displaced plane has >2/3 support, but 8mm exceeds the separate
+        # 3mm predicted-distance guard. Majority alone cannot prove identity.
+        self.assertTrue(math.isinf(tracker.update(scan, math.pi, locked=True)))
+        self.assertEqual(tracker.diagnostic['reason'], 'Tracked wall missing or ambiguous')

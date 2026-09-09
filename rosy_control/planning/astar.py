@@ -8,6 +8,7 @@ import heapq
 import math
 
 from .gridmap import FREE, nearest_free
+from .start_connection import start_connections, connection_route_clear
 
 _STEPS = ((1, 0), (-1, 0), (0, 1), (0, -1),
           (1, 1), (1, -1), (-1, 1), (-1, -1))
@@ -27,16 +28,20 @@ def best_route(m, start, goal, clear_m=0.06, avoid_points=()):
     # Execution failures are temporary path exclusions, not fake SLAM walls.
     avoided = {cell for cell in m.free_cells() if cell != sc and any(
         math.dist(m.grid_to_world(*cell), point) <= .05 for point in avoid_points)} if avoid_points else set()
-    if not grid.is_free(*sc):
-        return None  # Snapping the robot can create a first leg through a wall.
+    connected = not grid.is_free(*sc)
+    seeds = start_connections(m, start, clear_m, grid, avoid_points) if connected else [(0.,sc)]
+    if not seeds:
+        return None
     gc = nearest_free(grid, m.world_to_grid(*goal), max_occ=2)
     if sc is None or gc is None:
         return None
-    g = {sc: 0.0}
+    g = {cell: distance/m.res for distance,cell in seeds}
     came = {}
     closed = set()
-    heap = [(math.hypot(gc[0] - sc[0], gc[1] - sc[1]), 0, sc)]
-    cnt = 0
+    heap = [(cost+math.hypot(gc[0]-cell[0],gc[1]-cell[1]), i, cell)
+            for i,(cell,cost) in enumerate(g.items())]
+    heapq.heapify(heap)
+    cnt = len(heap)
     while heap:
         _f, _n, cur = heapq.heappop(heap)
         if cur in closed:
@@ -44,8 +49,11 @@ def best_route(m, start, goal, clear_m=0.06, avoid_points=()):
         closed.add(cur)
         if cur == gc:
             cells = _walk(came, cur)
+            points = ([tuple(start)] if connected else []) + [m.grid_to_world(c, r) for c, r in cells]
+            if connected and not connection_route_clear(m, points, clear_m):
+                return None
             return {
-                'points': [m.grid_to_world(c, r) for c, r in cells],
+                'points': points,
                 'cells': cells,
                 'length': g[cur] * m.res,
                 'clearance_m': clear_m,

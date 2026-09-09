@@ -8,11 +8,13 @@ the sensor envelope outward while the map may still be growing. goal_node
 and tools/explore_sim.py are thin drivers around this brain.
 """
 import math
+from ..control.path_follow import GOAL_TOLERANCE_M
 
 from .astar import best_route
 from .escape import start_escape
 from .frontier import pick_goal, _reachable_costs
 from .zigzag import ZigzagPlanner, cover_ring
+from .start_connection import start_connections, start_clearance_diagnostic, connection_route_clear
 
 
 def parse_goal_cmd(text):
@@ -33,7 +35,7 @@ class GoalBrain:
     """Decide the next point to go. Owns mode + covered set, not the map."""
 
     def __init__(self, min_size=6, clear_m=0.06, retry_clear_m=0.0,
-                 lane_width=0.12, lane_step=0.20, reach_tol=0.05,
+                 lane_width=0.12, lane_step=0.20, reach_tol=GOAL_TOLERANCE_M,
                  max_options=3, stall_plans=6, progress_m=0.03,
                  stall_min_dist=0.15, blacklist_plans=20,
                  escape_clear_m=0.08, probe_when_done=False,
@@ -251,7 +253,7 @@ class GoalBrain:
             if self.mode == 'manual':
                 return None, None, 'manual goal expired'
             return None                      # expired -> normal planning
-        if math.hypot(x - pose[0], y - pose[1]) < self.reach_tol:
+        if math.hypot(x - pose[0], y - pose[1]) <= self.reach_tol:
             self._manual = None
             return None, None, 'manual goal reached'
         route = None
@@ -290,7 +292,7 @@ class GoalBrain:
                        self._probe[1] - pose[1]) if self._probe else None
         if self._probe is not None:
             cell = m.world_to_grid(*self._probe)
-            if d < self.reach_tol:
+            if d <= self.reach_tol:
                 self._probe = None  # reached
             elif not m.is_free(*cell):
                 self._probe = None  # noisy SLAM took the cell back
@@ -393,8 +395,12 @@ class GoalBrain:
             self.last_options = []
             if (route is None or not m.inflate(minimum/m.res).is_free(*m.world_to_grid(*target)) or
                     math.dist(route['points'][-1],target)>.005):
-                return None,None,'planning blocked: committed escape unavailable'
-            return target,route,'escape: moving to preferred clearance'
+                # Commitment prevents rank jitter, not obstacle avoidance.
+                # New occupancy invalidates this target: select another route
+                # in this same tick without claiming the old goal was reached.
+                self._committed_escape = None
+            else:
+                return target,route,'escape: moving to preferred clearance'
         if m.is_free(*start) and not m.inflate(self.clear_m / m.res).is_free(*start):
             minimum = self.start_escape_clear_m
             if ((self._manual is not None or self._explore_viewpoint is not None)
@@ -432,10 +438,31 @@ class GoalBrain:
                 finally:
                     self.clear_m, self.retry_clear_m = preferred, retry
             self.last_options = []
-            return None, None, 'planning blocked: robot inside obstacle clearance'
+            if 0 < minimum < self.clear_m:
+                anchors = start_connections(m, pose, minimum,
+                    avoid_points=[xy for xy,_ in self._failed_exits])
+                # A nearby connector is shorter than the arrival tolerance.
+                # Select a real mission beyond it, not a tiny escape goal that
+                # could be consumed without leaving the blocked grid cell.
+                preferred, retry = self.clear_m, self.retry_clear_m
+                self.clear_m = self.retry_clear_m = minimum
+                try:
+                    for distance, cell in anchors[:3]:
+                        anchor = m.grid_to_world(*cell)
+                        goal, route, status = self._plan(m, anchor, coverage_pose=pose)
+                        if route and math.dist(goal,pose) > self.reach_tol:
+                            route = dict(route, points=[tuple(pose)]+route['points'],
+                                         length=distance+route['length'])
+                            if not connection_route_clear(m, route['points'], minimum):
+                                continue
+                            self.last_options = []
+                            return goal, route, 'verified start connection: '+status
+                finally:
+                    self.clear_m, self.retry_clear_m = preferred, retry
+            return None, None, start_clearance_diagnostic(m, pose, minimum or self.clear_m)
         return self._plan(m, pose)
 
-    def _plan(self, m, pose):
+    def _plan(self, m, pose, coverage_pose=None):
         """Next point to go: (goal_xy | None, route | None, status str).
 
         goal and route are None for transitional statuses (skipped waypoint,
@@ -506,7 +533,8 @@ class GoalBrain:
             # this branch picks them up automatically on a later plan.
             if self.mode != 'explore':
                 self.mode = 'explore'
-        cover_ring(self.covered, m, pose[0], pose[1],
+        covered_pose = pose if coverage_pose is None else coverage_pose
+        cover_ring(self.covered, m, covered_pose[0], covered_pose[1],
                    radius_m=self.lane_width / 2)
         coverage_clear = self.clear_m
         if 0 < self.start_escape_clear_m < coverage_clear:
@@ -542,7 +570,7 @@ class GoalBrain:
                 route = best_route(m, pose, requested, clear_m=self.retry_clear_m)
             goal = route['points'][-1] if route else None
             if (goal is None or m.world_to_grid(*goal) in self.covered or
-                    math.hypot(goal[0] - pose[0], goal[1] - pose[1]) < self.reach_tol):
+                    math.hypot(goal[0] - pose[0], goal[1] - pose[1]) <= self.reach_tol):
                 self._coverage_deferred[m.world_to_grid(*requested)] = self._plan_n + self.blacklist_plans
                 continue
             return goal, route, (f'coverage goal=({goal[0]:.2f},{goal[1]:.2f}) '

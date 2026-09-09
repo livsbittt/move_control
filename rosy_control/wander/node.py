@@ -270,7 +270,9 @@ class WanderNode(Node, Senses, Judge, Contact, Motion, Navigator):
                     self._set_enabled(False)
                     self.stop_reason = reason
                     self._publish(Twist(), 'stop:' + reason)
-        self.session_pub.publish(String(data=json.dumps(session.snapshot())))
+        status=session.snapshot()
+        status['execution_escape']=self.execution_escape.snapshot()
+        self.session_pub.publish(String(data=json.dumps(status)))
 
     def _session_now(self):
         # The Gazebo adapter replaces this module's time helper with sim time.
