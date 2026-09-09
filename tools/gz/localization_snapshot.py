@@ -23,7 +23,7 @@ def grid(msg):
     data['resolution'] = msg.info.resolution
     data['origin'] = [msg.info.origin.position.x, msg.info.origin.position.y]
 def truth(msg):
-    from move_control.localization_node import yaw
+    from rosy_control.localization_node import yaw
     data['truth'] = [msg.pose.pose.position.x, msg.pose.pose.position.y, yaw(msg.pose.pose.orientation)]
 n.create_subscription(LaserScan, '/scan_source', scan, qos_profile_sensor_data)
 n.create_subscription(OccupancyGrid, '/map', grid, QoSProfile(depth=1, durability=DurabilityPolicy.TRANSIENT_LOCAL))
@@ -32,7 +32,7 @@ for _ in range(200):
     rclpy.spin_once(n, timeout_sec=.1)
     if len(data) == 6:
         np.savez('/tmp/localization228-snapshot.npz', **data)
-        from move_control.sensing.localization import MapAgreement
+        from rosy_control.sensing.localization import MapAgreement
         field = MapAgreement(data['grid'], data['resolution'], data['origin'])
         print('truth', data['truth'], 'agreement', field.score(data['truth'], data['ranges'], data['angles']), flush=True)
         print('axes', data['ranges'][::45], flush=True)

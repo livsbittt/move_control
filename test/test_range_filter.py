@@ -1,5 +1,5 @@
-from move_control.sensing.range_filter import CalibrationRangeFilter
-from move_control.control.calibration import StationaryBaseline
+from rosy_control.sensing.range_filter import CalibrationRangeFilter
+from rosy_control.control.calibration import StationaryBaseline
 
 
 def test_isolated_spike_is_rejected_but_sustained_change_is_preserved():

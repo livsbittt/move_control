@@ -24,7 +24,7 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from move_control.planning import (FREE, OCC, UNKNOWN, GoalBrain,
+from rosy_control.planning import (FREE, OCC, UNKNOWN, GoalBrain,
                                    OccupancyMap, cover_ring)
 
 RES = 0.05          # m/cell, same as slam_toolbox resolution

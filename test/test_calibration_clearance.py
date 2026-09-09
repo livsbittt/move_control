@@ -1,6 +1,6 @@
 import math
-from move_control.control.calibration_clearance import motion_clearance
-from move_control.control.lidar_guard import directional_lidar_limits
+from rosy_control.control.calibration_clearance import motion_clearance
+from rosy_control.control.lidar_guard import directional_lidar_limits
 
 
 def limits(front=.183):

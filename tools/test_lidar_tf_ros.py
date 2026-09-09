@@ -9,16 +9,16 @@ from geometry_msgs.msg import TransformStamped, Twist
 from rclpy.parameter import Parameter
 from sensor_msgs.msg import LaserScan
 from tf2_ros import TransformException
-from move_control.safety.node import SafetyNode
-from move_control import web_node as web
+from rosy_control.safety.node import SafetyNode
+from rosy_control import web_node as web
 
 
 class LidarTfTest(unittest.TestCase):
     def test_blind_wedge_cannot_remove_a_rotation_obstacle(self):
         import json
         from std_msgs.msg import String
-        from move_control.control.rotation_envelope import RotationEnvelope
-        from move_control.control.calibration_profile import make_profile
+        from rosy_control.control.rotation_envelope import RotationEnvelope
+        from rosy_control.control.calibration_profile import make_profile
         n = self.node
         n.release_estop()
         self.scan_once()
@@ -76,7 +76,7 @@ class LidarTfTest(unittest.TestCase):
         self.node.destroy_node()
 
     def scan_once(self):
-        with patch('move_control.safety.bumper.is_robot_scan', return_value=True):
+        with patch('rosy_control.safety.bumper.is_robot_scan', return_value=True):
             self.node.on_scan(self.scan)
 
     def test_tf_mount_wins_over_machine_calibration_and_refresh(self):

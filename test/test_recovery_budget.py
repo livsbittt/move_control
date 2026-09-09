@@ -1,6 +1,6 @@
 import unittest
 
-from move_control.control.recovery_budget import RecoveryBudget
+from rosy_control.control.recovery_budget import RecoveryBudget
 
 
 class RecoveryBudgetTest(unittest.TestCase):

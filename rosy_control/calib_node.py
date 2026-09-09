@@ -27,9 +27,9 @@ from rclpy.qos import qos_profile_sensor_data
 from sensor_msgs.msg import Imu, LaserScan, Range
 from std_msgs.msg import String, UInt16MultiArray
 
-from move_control.sensing.body import URDF_RADIUS, use_radius
-from move_control.sensing.lidar import NOSE_YAW, is_robot_scan, sector_range
-from move_control.safety_node import parse_us_range, roll_pitch
+from rosy_control.sensing.body import URDF_RADIUS, use_radius
+from rosy_control.sensing.lidar import NOSE_YAW, is_robot_scan, sector_range
+from rosy_control.safety_node import parse_us_range, roll_pitch
 
 
 def yaw_from_quat(q) -> float:
@@ -105,11 +105,11 @@ class CalibNode(Node):
         super().__init__('calib_node')
         self.declare_parameter(
             'save_path',
-            '/home/pinky/dev_ws/wj/src/move_control/config/cliff_calib.yaml',
+            '/home/pinky/dev_ws/wj/src/rosy_control/config/cliff_calib.yaml',
         )
         self.declare_parameter(
             'sign_path',
-            '/home/pinky/dev_ws/wj/src/move_control/config/auto_calib.yaml',
+            '/home/pinky/dev_ws/wj/src/rosy_control/config/auto_calib.yaml',
         )
         self.declare_parameter('ir_topic', '/ir_sensor/range')
         self.declare_parameter('samples', 30)

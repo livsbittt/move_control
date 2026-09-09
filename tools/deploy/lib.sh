@@ -7,14 +7,14 @@
 #   $RELEASES/previous          -> the version to roll back to
 #   $RELEASES/deploy.log        append-only history: who shipped what, and how it went
 #   $RELEASES/.deploy.lock/     mkdir-based mutex (holder identity inside)
-#   $WS/src/move_control        symlink -> $RELEASES/<version>
+#   $WS/src/rosy_control        symlink -> $RELEASES/<version>
 
 PINKY_HOME="${PINKY_HOME:-$HOME}"
 WS="${PINKY_WS:-$PINKY_HOME/dev_ws/wj}"
-RELEASES="${PINKY_RELEASES:-$PINKY_HOME/releases/move_control}"
+RELEASES="${PINKY_RELEASES:-$PINKY_HOME/releases/rosy_control}"
 # Consumed by the scripts that source this file, not here.
 # shellcheck disable=SC2034
-SRC_LINK="$WS/src/move_control"
+SRC_LINK="$WS/src/rosy_control"
 DEPLOY_LOG="$RELEASES/deploy.log"
 LOCK_DIR="$RELEASES/.deploy.lock"
 LOCK_STALE_SECONDS="${PINKY_LOCK_STALE_SECONDS:-1800}"

@@ -6,8 +6,8 @@ import rclpy
 from rclpy.time import Time
 from geometry_msgs.msg import TransformStamped
 from std_msgs.msg import String
-from move_control.goal_node import GoalNode
-from move_control.wander.node import WanderNode
+from rosy_control.goal_node import GoalNode
+from rosy_control.wander.node import WanderNode
 
 
 class RecoveryIntegrationTest(unittest.TestCase):

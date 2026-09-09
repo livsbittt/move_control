@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle, Polygon
-from move_control.control.rotation_envelope import validate_envelope
+from rosy_control.control.rotation_envelope import validate_envelope
 
 
 def main():

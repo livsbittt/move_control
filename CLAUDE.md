@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-`move_control` — a ROS 2 Jazzy ament_python package for the **Pinky Pro** robot: a ~11 cm desk-maze robot (Raspberry Pi, RPLidar C1, US-016 ultrasonic, 3-channel IR cliff sensors, BNO055 IMU, OV5647 camera). It provides the wander autonomy, the safety velocity gate, camera look-ahead, auto-calibration, SLAM mapping, and a node-graph health monitor.
+`rosy_control` — a ROS 2 Jazzy ament_python package for the **Pinky Pro** robot: a ~11 cm desk-maze robot (Raspberry Pi, RPLidar C1, US-016 ultrasonic, 3-channel IR cliff sensors, BNO055 IMU, OV5647 camera). It provides the wander autonomy, the safety velocity gate, camera look-ahead, auto-calibration, SLAM mapping, and a node-graph health monitor.
 
-This repo is deployed to the robot at `/home/pinky/dev_ws/wj/src/move_control` (see `STEPS.txt`). Real-hardware only: remote gazebo `/scan` messages are detected and deliberately rejected (`lidar.is_robot_scan` — beam count + range_max + wall-clock stamp).
+This repo is deployed to the robot at `/home/pinky/dev_ws/wj/src/rosy_control` (see `STEPS.txt`). Real-hardware only: remote gazebo `/scan` messages are detected and deliberately rejected (`lidar.is_robot_scan` — beam count + range_max + wall-clock stamp).
 
 ## Commands
 
@@ -19,7 +19,7 @@ source /home/pinky/dev_ws/wj/install/setup.bash
 
 Build (in the robot workspace `/home/pinky/dev_ws/wj`):
 ```bash
-colcon build --packages-select move_control lcd_control
+colcon build --packages-select rosy_control lcd_control
 ```
 
 Tests — pure-logic unittest suite (89 tests, no ROS needed; run from repo root, `python3-numpy`/`python3-opencv` required):
@@ -33,13 +33,13 @@ Run (bringup order matters — bringup+ADC first):
 ```bash
 ros2 launch pinky_bringup bringup_robot.launch.xml   # bringup (lidar+motors)
 ros2 run pinky_sensor_adc main_node                  # ADC (IR cliff / US)
-ros2 launch move_control robot.launch.py             # full stack: imu+camera→safety→wander→lcd+web+watch
+ros2 launch rosy_control robot.launch.py             # full stack: imu+camera→safety→wander→lcd+web+watch
 # or wander.launch.py (imu+camera+safety+wander only)
-ros2 launch move_control map.launch.py               # slam_toolbox mapping
-ros2 launch move_control goal.launch.py              # goal node: /map -> /goal_point + /route
-ros2 launch move_control web.launch.py               # web_node: map + control dashboard on :28161 (api :28162)
+ros2 launch rosy_control map.launch.py               # slam_toolbox mapping
+ros2 launch rosy_control goal.launch.py              # goal node: /map -> /goal_point + /route
+ros2 launch rosy_control web.launch.py               # web_node: map + control dashboard on :28161 (api :28162)
 python3 tools/explore_sim.py --quiet                  # ASCII sim: frontier explore -> zigzag coverage
-ros2 launch move_control calib.launch.py             # calibration node
+ros2 launch rosy_control calib.launch.py             # calibration node
 ```
 
 Drive the calibrator and wanderer by topic:
@@ -50,7 +50,7 @@ ros2 topic pub --once /goal_distance std_msgs/msg/Float64 "{data: 0.2}"  # contr
 ros2 topic pub --once /goal_rotate   std_msgs/msg/Float64 "{data: 90.0}" # control_node rotate test
 ```
 
-Observe: `/wander/state` (FSM verb), `/robot/mode` (canonical fused label), `/safety/mode` (deprecated alias, same label), `/robot/health`, `/camera/debug`, `/goal_point`, `/route`, `/goal/options`, `/goal_node/state`, `ros2 pkg executables move_control`. The `web_node` dashboard (:28161, `web.launch.py`) draws the live map + trail and these labels, with goal/wander/estop buttons and gate-safe teleop.
+Observe: `/wander/state` (FSM verb), `/robot/mode` (canonical fused label), `/safety/mode` (deprecated alias, same label), `/robot/health`, `/camera/debug`, `/goal_point`, `/route`, `/goal/options`, `/goal_node/state`, `ros2 pkg executables rosy_control`. The `web_node` dashboard (:28161, `web.launch.py`) draws the live map + trail and these labels, with goal/wander/estop buttons and gate-safe teleop.
 
 There is no linter configured. LCD/LED live in **other packages** (`lcd_control`, `pinky_web`) — not in this repo; the web dashboard (`web_node`, :28161) is part of this package, and `robot.launch.py` starts it in place of pinky_web.
 

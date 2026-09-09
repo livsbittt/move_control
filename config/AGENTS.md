@@ -22,7 +22,7 @@ All ROS parameters. `robot.yaml` is the **single shared source** loaded first by
 - Machine-written files (`auto_calib.yaml`) carry timestamps from real calibration runs.
 
 ### Testing Requirements
-- No unit tests cover yaml; after param changes, rebuild (`colcon build --packages-select move_control lcd_control`) and re-run the on-robot smoke echo checks.
+- No unit tests cover yaml; after param changes, rebuild (`colcon build --packages-select rosy_control lcd_control`) and re-run the on-robot smoke echo checks.
 
 ### Common Patterns
 - Launch order: `robot.yaml` first (`/**`), then per-node yaml.

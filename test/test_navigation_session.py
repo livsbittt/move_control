@@ -1,5 +1,5 @@
 import unittest
-from move_control.control.navigation_session import NavigationSession, validate_options
+from rosy_control.control.navigation_session import NavigationSession, validate_options
 
 
 class NavigationSessionTest(unittest.TestCase):

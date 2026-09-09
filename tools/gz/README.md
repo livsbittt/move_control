@@ -12,14 +12,14 @@ sudo apt install -y git ros-jazzy-ros-base ros-jazzy-ros-gz \
   ros-jazzy-slam-toolbox python3-numpy python3-opencv python3-pytest
 mkdir -p ~/dev
 cd ~/dev
-git clone https://github.com/livsbittt/move_control.git
-cd move_control
+git clone https://github.com/livsbittt/rosy_control.git
+cd rosy_control
 source /opt/ros/jazzy/setup.bash
 python3 -m pytest test/ -q
 bash tools/gz/test_planning.sh
 ```
 
-이미 clone했다면 `cd ~/dev/move_control && git pull --ff-only` 후 실행한다.
+이미 clone했다면 `cd ~/dev/rosy_control && git pull --ff-only` 후 실행한다.
 이 전용 Gazebo runner는 소스에서 Python 노드를 시작하므로 colcon 빌드나
 Pinky 실물 bringup 패키지는 필요하지 않다. headless도 GPU lidar용 EGL 렌더링은
 필요하므로 `/scan`이 없으면 먼저 `/tmp/gztest/gz.log`에서 렌더링 오류를 확인한다.
@@ -33,7 +33,7 @@ GUI가 필요하면 `RIG_GUI=1 bash tools/gz/test_planning.sh`로 실행한다.
 별도 WSL 터미널에서 실제 지도 수신·저장·검증:
 
 ```bash
-cd ~/dev/move_control
+cd ~/dev/rosy_control
 source /opt/ros/jazzy/setup.bash
 export ROS_DOMAIN_ID=13 ROS_LOCALHOST_ONLY=1
 mkdir -p artifacts/headless

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>move_control</name>
+  <name>rosy_control</name>
   <version>0.1.0</version>
   <description>Pinky Pro forward/back control node. Subscribes /odom, publishes /cmd_vel.</description>
   <maintainer email="56295815+livsbittt@users.noreply.github.com">livsbittt</maintainer>

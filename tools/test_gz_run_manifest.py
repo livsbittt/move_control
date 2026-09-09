@@ -29,7 +29,7 @@ class RigManifestTest(unittest.TestCase):
             self.assertFalse((out/'map.pgm').exists())
             self.assertEqual(len(list((out/'archive').glob('*/map.pgm'))), 1)
             self.assertEqual(manifest['world_sha256'], hashlib.sha256((out/'world.sdf').read_bytes()).hexdigest())
-            self.assertIn('move_control/planning/goals.py', manifest['source_sha256'])
+            self.assertIn('rosy_control/planning/goals.py', manifest['source_sha256'])
 
 
 if __name__ == '__main__':

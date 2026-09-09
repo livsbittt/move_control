@@ -3,7 +3,7 @@
 
 Thin I/O around planning.GoalBrain: explore = frontier point at the edge of
 the unknown; no frontier left -> coverage = zigzag waypoints until done.
-All decision logic lives in move_control/planning/goals.py and is unit-tested
+All decision logic lives in rosy_control/planning/goals.py and is unit-tested
 without ROS.
 
 Publishes:

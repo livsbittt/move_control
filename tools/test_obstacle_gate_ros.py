@@ -6,7 +6,7 @@ import rclpy
 from rclpy.parameter import Parameter
 from geometry_msgs.msg import TransformStamped, Twist
 from std_msgs.msg import String
-from move_control.safety.node import SafetyNode
+from rosy_control.safety.node import SafetyNode
 
 
 class ObstacleGateTest(unittest.TestCase):

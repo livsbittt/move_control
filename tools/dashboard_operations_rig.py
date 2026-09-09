@@ -18,7 +18,7 @@ from std_msgs.msg import String, Bool
 from rcl_interfaces.srv import GetParameters
 from rcl_interfaces.msg import ParameterValue, ParameterType
 from slam_toolbox.srv import Pause, Reset
-from move_control.web_node import WebNode
+from rosy_control.web_node import WebNode
 
 
 class Fixture(Node):

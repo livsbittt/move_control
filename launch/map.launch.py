@@ -8,7 +8,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 
 def generate_launch_description():
     params = os.path.join(
-        get_package_share_directory('move_control'), 'config', 'mapper.yaml'
+        get_package_share_directory('rosy_control'), 'config', 'mapper.yaml'
     )
     slam = os.path.join(
         get_package_share_directory('slam_toolbox'),

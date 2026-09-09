@@ -19,13 +19,13 @@ ever brings the stack up.
 
 ## Layout on the robot
 ```
-~/releases/move_control/<version>/   unpacked bundle, one directory per version
-~/releases/move_control/current      -> the version in use
-~/releases/move_control/previous     -> the rollback target
-~/releases/move_control/deploy.log   append-only: utc, event, version, by, from, detail
-~/releases/move_control/.deploy.lock mkdir mutex, holder identity inside
+~/releases/rosy_control/<version>/   unpacked bundle, one directory per version
+~/releases/rosy_control/current      -> the version in use
+~/releases/rosy_control/previous     -> the rollback target
+~/releases/rosy_control/deploy.log   append-only: utc, event, version, by, from, detail
+~/releases/rosy_control/.deploy.lock mkdir mutex, holder identity inside
 ~/pinky-deploy/                      the updater scripts themselves
-~/dev_ws/wj/src/move_control         symlink -> the current version
+~/dev_ws/wj/src/rosy_control         symlink -> the current version
 ```
 
 The updater lives in `~/pinky-deploy/`, **outside** the versioned tree, because
@@ -50,7 +50,7 @@ cp tools/deploy/deploy.env.example tools/deploy/deploy.local.env   # 로봇 IP �
 ~/pinky-deploy/pinky_rollback.sh --list
 
 # 업데이트는 주행을 시작하지 않는다. 준비되면 직접:
-ros2 launch move_control robot.launch.py
+ros2 launch rosy_control robot.launch.py
 ```
 
 ## What the gates actually check
@@ -60,10 +60,10 @@ ros2 launch move_control robot.launch.py
 2. **Stopped** — refuses to switch while `wander_node` reports a driving state.
    No running nodes, or no `wander_node`, counts as stopped. `--allow-active`
    overrides it explicitly; there is no silent bypass.
-3. **Build** — `colcon build --packages-select move_control`.
+3. **Build** — `colcon build --packages-select rosy_control`.
 4. **Tests** — the whole suite via `run_tests.sh --system`; ROS is present here,
    so this is the run that covers the files a PC or Actions run has to skip.
-5. **Entry points** — `ros2 pkg executables move_control` must list at least 8
+5. **Entry points** — `ros2 pkg executables rosy_control` must list at least 8
    (`PINKY_EXPECTED_EXECUTABLES` to change), which catches a build that
    "succeeded" without registering console scripts.
 
@@ -81,7 +81,7 @@ switches at all.
   holder's name and the lock's age. Older than `PINKY_LOCK_STALE_SECONDS`
   (default 1800) it is broken automatically; `--force-lock` is the explicit
   override.
-- **Credentials.** `move_control` is a public repo, so `--from-github` needs no
+- **Credentials.** `rosy_control` is a public repo, so `--from-github` needs no
   token. If it is ever made private, export `GH_TOKEN` — the same code path
   sends it as a bearer token. Never commit the robot's address or keys:
   `deploy.local.env` is git-ignored for exactly that reason.
@@ -90,7 +90,7 @@ switches at all.
   the new version wrote outside the package. `calib_node` writes
   `config/auto_calib.yaml` into the *current* version directory, so a rollback
   leaves the older version's calibration in place.
-- The first run migrates the existing real `src/move_control` directory to
+- The first run migrates the existing real `src/rosy_control` directory to
   `pre-cicd-<timestamp>` so even the first switch has a rollback target.
 
 ## Dependencies

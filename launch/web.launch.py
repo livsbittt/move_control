@@ -6,11 +6,11 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    cfg = os.path.join(get_package_share_directory('move_control'), 'config')
+    cfg = os.path.join(get_package_share_directory('rosy_control'), 'config')
     robot = os.path.join(cfg, 'robot.yaml')
     return LaunchDescription([
         Node(
-            package='move_control',
+            package='rosy_control',
             executable='web_node',
             output='screen',
             parameters=[robot, os.path.join(cfg, 'web.yaml')],

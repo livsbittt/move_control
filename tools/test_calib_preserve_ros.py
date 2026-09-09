@@ -7,7 +7,7 @@ from unittest.mock import Mock
 import rclpy
 import yaml
 from rclpy.parameter import Parameter
-from move_control.calib_node import CalibNode
+from rosy_control.calib_node import CalibNode
 
 
 class CalibrationPreserveTest(unittest.TestCase):

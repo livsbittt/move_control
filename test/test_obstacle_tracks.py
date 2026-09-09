@@ -1,9 +1,9 @@
 import math
 import pytest
 
-from move_control.sensing.obstacle_tracks import ObstacleTracker, transform_points
-from move_control.sensing.obstacle_tracks import scan_clusters
-from move_control.sensing.obstacle_tracks import observed_free
+from rosy_control.sensing.obstacle_tracks import ObstacleTracker, transform_points
+from rosy_control.sensing.obstacle_tracks import scan_clusters
+from rosy_control.sensing.obstacle_tracks import observed_free
 
 
 def test_stationary_world_point_survives_robot_translation_and_rotation():
@@ -131,7 +131,7 @@ def test_repeated_ambiguous_split_keeps_one_unknown_group_per_return():
 
 
 def test_tilted_scan_cannot_be_projected_into_a_flat_obstacle_map():
-    from move_control.sensing.obstacle_tracks import scan_plane_pose
+    from rosy_control.sensing.obstacle_tracks import scan_plane_pose
     import math
     angle = math.radians(20.)
     assert scan_plane_pose(0.,0.,(0.,math.sin(angle/2),0.,math.cos(angle/2))) is None

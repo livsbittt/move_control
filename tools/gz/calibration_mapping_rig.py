@@ -84,7 +84,7 @@ class Auxiliary(Node):
         if self.static_frame != msg.header.frame_id:
             self.static.sendTransform(transform)
             self.static_frame = msg.header.frame_id
-        from move_control.sensing.lidar import sector_range
+        from rosy_control.sensing.lidar import sector_range
         distance = sector_range(msg, 0., math.radians(8), pctl=.1)
         echo = Range()
         echo.header = msg.header
@@ -174,7 +174,7 @@ def main():
     # keep rejecting simulation timestamps and non-C1 scan shapes.
     def simulation_scan(msg):
         return len(msg.ranges) == 720 and msg.header.frame_id.startswith('pinky/')
-    for name in ('move_control.safety.bumper', 'move_control.startup_calibration_node'):
+    for name in ('rosy_control.safety.bumper', 'rosy_control.startup_calibration_node'):
         importlib.import_module(name).is_robot_scan = simulation_scan
     # All production deadlines use the same simulation clock in this rig.
     class SimulationTime:
@@ -182,15 +182,15 @@ def main():
             return clock_provider[0].get_clock().now().nanoseconds*1e-9
         def __getattr__(self, name):
             return getattr(time, name)
-    for name in ('move_control.safety.node', 'move_control.safety.evidence',
-                 'move_control.safety.bumper', 'move_control.startup_calibration_node',
-                 'move_control.calibration_rotation', 'move_control.calibration_atomic', 'move_control.wander.node',
-                 'move_control.wander.senses', 'move_control.wander.judge', 'move_control.goal_node'):
+    for name in ('rosy_control.safety.node', 'rosy_control.safety.evidence',
+                 'rosy_control.safety.bumper', 'rosy_control.startup_calibration_node',
+                 'rosy_control.calibration_rotation', 'rosy_control.calibration_atomic', 'rosy_control.wander.node',
+                 'rosy_control.wander.senses', 'rosy_control.wander.judge', 'rosy_control.goal_node'):
         importlib.import_module(name).time = SimulationTime()
-    from move_control.safety.node import SafetyNode
-    from move_control.startup_calibration_node import StartupCalibrationNode
-    from move_control.wander.node import WanderNode
-    from move_control.goal_node import GoalNode
+    from rosy_control.safety.node import SafetyNode
+    from rosy_control.startup_calibration_node import StartupCalibrationNode
+    from rosy_control.wander.node import WanderNode
+    from rosy_control.goal_node import GoalNode
     factories = {'adapter': Auxiliary, 'safety': SafetyNode, 'calibration': StartupCalibrationNode,
                  'wander': WanderNode, 'goal': GoalNode}
     selected = list(factories) if component == 'all' else [component]

@@ -1,6 +1,6 @@
 import unittest
-from move_control.control.space_speed import limit_for_space
-from move_control.control.safety_profile import SafetyProfile
+from rosy_control.control.space_speed import limit_for_space
+from rosy_control.control.safety_profile import SafetyProfile
 
 
 class SpaceSpeedTest(unittest.TestCase):

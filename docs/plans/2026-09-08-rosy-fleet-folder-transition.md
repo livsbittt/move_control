@@ -1,5 +1,9 @@
 # Rosy Fleet 폴더 전환 초안
 
+> 2026-09-09 갱신: 아래 "ROS 패키지명은 `move_control`을 유지한다"는 결정은 폐기되었다.
+> 패키지명은 `rosy_control`로 전환했다 — `docs/plans/2026-09-09-rosy-control-package-rename.md`.
+> 나머지 판단(폴더 구조, 이력·증거 문자열을 일괄 치환하지 않는다)은 유효하다.
+
 > 후속 결정: 아래 통합·legacy 배치 제안은 채택하지 않는다. `Rosy`는 OS,
 > `Rosy Fleet`은 독립 관제 개발 공간으로 유지한다. 현재 저장소는 보조
 > 워크트리 통합 후 `Rosy Control`로 폴더명을 변경하며 ROS 패키지명은

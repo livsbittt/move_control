@@ -2,8 +2,8 @@ import math
 import unittest
 from types import SimpleNamespace
 
-from move_control.control.lidar_guard import lidar_limits, lidar_blocked, lidar_can_rotate, scan_body_clearance
-from move_control.sensing.lidar import NOSE_YAW, sector_range
+from rosy_control.control.lidar_guard import lidar_limits, lidar_blocked, lidar_can_rotate, scan_body_clearance
+from rosy_control.sensing.lidar import NOSE_YAW, sector_range
 
 
 class LidarGuardTest(unittest.TestCase):

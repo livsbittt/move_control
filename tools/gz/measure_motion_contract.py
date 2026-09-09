@@ -100,7 +100,7 @@ def main():
                 raise RuntimeError('translation capsule insufficient')
     result={'manifest':manifest,'physical_robot_verified':False,'trials':[]}
     result['runtime_source_sha256']={str(p):hashlib.sha256(p.read_bytes()).hexdigest()
-        for p in Path('/tmp/pinky-navigation-fix/move_control').rglob('*.py')}
+        for p in Path('/tmp/pinky-navigation-fix/rosy_control').rglob('*.py')}
     try:
         pump(3.)
         assert [p.node_name for p in node.get_publishers_info_by_topic('/cmd_vel')]==['safety_node']

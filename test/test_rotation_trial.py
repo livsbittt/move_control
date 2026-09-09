@@ -1,8 +1,8 @@
 import math
 import unittest
 import numpy as np
-from move_control.sensing.scan_rotation import scan_rotation
-from move_control.control.rotation_trial import RotationTrial
+from rosy_control.sensing.scan_rotation import scan_rotation
+from rosy_control.control.rotation_trial import RotationTrial
 
 
 class RotationTrialTest(unittest.TestCase):

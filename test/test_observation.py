@@ -1,6 +1,6 @@
 import unittest
 
-from move_control.sensing.observation import Observations
+from rosy_control.sensing.observation import Observations
 
 
 class ObservationTest(unittest.TestCase):

@@ -1,4 +1,4 @@
-from move_control.control.round_trip import RoundTrip
+from rosy_control.control.round_trip import RoundTrip
 
 
 def snapshot(x):

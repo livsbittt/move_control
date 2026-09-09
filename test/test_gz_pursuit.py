@@ -1,6 +1,6 @@
 import unittest
 
-from move_control.control.pursuit import pursuit_index, pursuit_speed
+from rosy_control.control.pursuit import pursuit_index, pursuit_speed
 
 
 class PursuitTest(unittest.TestCase):

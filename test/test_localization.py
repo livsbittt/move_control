@@ -4,7 +4,7 @@ import math
 from pathlib import Path
 import numpy as np
 
-from move_control.sensing.localization import MapAgreement, Confidence, lease_ready, planar_yaw
+from rosy_control.sensing.localization import MapAgreement, Confidence, lease_ready, planar_yaw
 
 
 class LocalizationTests(unittest.TestCase):

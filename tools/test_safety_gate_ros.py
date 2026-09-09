@@ -7,14 +7,14 @@ import rclpy
 from rclpy.parameter import Parameter
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Bool, Float32MultiArray, String
-from move_control.control.calibration_profile import make_profile
-from move_control.safety.node import SafetyNode
+from rosy_control.control.calibration_profile import make_profile
+from rosy_control.safety.node import SafetyNode
 
 
 class SafetyGateTest(unittest.TestCase):
     def test_translation_retry_retains_sweep_but_enforces_straight_domain(self):
         with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
-                patch('move_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
+                patch('rosy_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
             self.prepare_bounded_sweep()
             n=self.node
             packet=make_profile('bounded-test',n.calibration_lease.sequence+1,
@@ -36,7 +36,7 @@ class SafetyGateTest(unittest.TestCase):
             sweep.assert_not_called()
 
     def prepare_bounded_sweep(self, enabled=True, simulation=True, estimate=True, footprint=()):
-        from move_control.control.rotation_envelope import RotationEnvelope
+        from rosy_control.control.rotation_envelope import RotationEnvelope
         n=self.node
         n.set_parameters([Parameter('simulation_motion_sweep_enabled',value=enabled),
                           Parameter('use_sim_time',value=simulation),
@@ -69,7 +69,7 @@ class SafetyGateTest(unittest.TestCase):
         radius=self.node.robot_r
         shape=[(x*.8*radius,y*.6*radius) for x,y in ((1,1),(-1,1),(-1,-1),(1,-1))]
         with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
-                patch('move_control.safety.node.footprint_sweep_clearance',return_value=.02) as sweep:
+                patch('rosy_control.safety.node.footprint_sweep_clearance',return_value=.02) as sweep:
             self.prepare_bounded_sweep(footprint=shape)
             actual=self.bounded_command(.008,0.)
             self.assertAlmostEqual(sweep.call_args.args[5],.010)
@@ -120,7 +120,7 @@ class SafetyGateTest(unittest.TestCase):
 
     def test_bounded_sweep_requires_opt_in_and_simulation(self):
         with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
-                patch('move_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
+                patch('rosy_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
             self.prepare_bounded_sweep(enabled=False)
             self.node.lidar_rotation_points=[(.08,0.)]
             actual=self.bounded_command()
@@ -135,7 +135,7 @@ class SafetyGateTest(unittest.TestCase):
 
     def test_first_calibration_retains_existing_straight_gate_before_estimate(self):
         with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
-                patch('move_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
+                patch('rosy_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
             self.prepare_bounded_sweep(estimate=False)
             actual=self.bounded_command(.008,0.)
             self.assertGreater(actual.linear.x,0.)
@@ -143,7 +143,7 @@ class SafetyGateTest(unittest.TestCase):
 
     def test_bounded_sweep_checks_corrected_limited_command_and_stops_whole_arc(self):
         with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
-                patch('move_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
+                patch('rosy_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
             self.prepare_bounded_sweep()
             actual=self.bounded_command(.008,0.)
             self.assertAlmostEqual(sweep.call_args.args[4],.010)
@@ -160,7 +160,7 @@ class SafetyGateTest(unittest.TestCase):
 
     def test_bounded_sweep_rejects_missing_estimate_and_incomplete_or_stale_scan(self):
         with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
-                patch('move_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
+                patch('rosy_control.safety.node.bounded_sweep_clearance',return_value=.01) as sweep:
             self.prepare_bounded_sweep()
             self.node.calibration_lease.deadline=0.
             actual=self.bounded_command()
@@ -187,8 +187,8 @@ class SafetyGateTest(unittest.TestCase):
 
     def test_full_pivot_shape_allows_pure_spin_despite_circle_approximation(self):
         with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
-                patch('move_control.safety.node.bounded_sweep_clearance',return_value=0.), \
-                patch('move_control.safety.node.pivot_clearance',return_value=.03):
+                patch('rosy_control.safety.node.bounded_sweep_clearance',return_value=0.), \
+                patch('rosy_control.safety.node.pivot_clearance',return_value=.03):
             self.prepare_bounded_sweep()
             actual=self.bounded_command(0.,.04)
             self.assertEqual(actual.linear.x,0.)
@@ -196,8 +196,8 @@ class SafetyGateTest(unittest.TestCase):
 
     def test_pure_spin_still_requires_latency_padded_pivot_clearance(self):
         with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
-                patch('move_control.safety.node.bounded_sweep_clearance',return_value=0.) as sweep, \
-                patch('move_control.safety.node.pivot_clearance',return_value=.011):
+                patch('rosy_control.safety.node.bounded_sweep_clearance',return_value=0.) as sweep, \
+                patch('rosy_control.safety.node.pivot_clearance',return_value=.011):
             self.prepare_bounded_sweep()
             actual=self.bounded_command(0.,.04)
             self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
@@ -205,8 +205,8 @@ class SafetyGateTest(unittest.TestCase):
 
     def test_tiny_final_translation_cannot_use_full_spin_shortcut(self):
         with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
-                patch('move_control.safety.node.bounded_sweep_clearance',return_value=0.) as sweep, \
-                patch('move_control.safety.node.pivot_clearance',return_value=.03):
+                patch('rosy_control.safety.node.bounded_sweep_clearance',return_value=0.) as sweep, \
+                patch('rosy_control.safety.node.pivot_clearance',return_value=.03):
             self.prepare_bounded_sweep()
             actual=self.bounded_command(1e-7,.04)
             self.assertEqual((actual.linear.x,actual.angular.z),(0.,0.))
@@ -214,8 +214,8 @@ class SafetyGateTest(unittest.TestCase):
 
     def test_full_spin_shortcut_never_authorized_by_stale_or_partial_scan(self):
         with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
-                patch('move_control.safety.node.bounded_sweep_clearance',return_value=0.), \
-                patch('move_control.safety.node.pivot_clearance',return_value=.03):
+                patch('rosy_control.safety.node.bounded_sweep_clearance',return_value=0.), \
+                patch('rosy_control.safety.node.pivot_clearance',return_value=.03):
             self.prepare_bounded_sweep()
             self.node.lidar_rotation_observed=False
             actual=self.bounded_command(0.,.04)
@@ -227,8 +227,8 @@ class SafetyGateTest(unittest.TestCase):
 
     def test_full_spin_shortcut_stays_within_measured_angular_domain(self):
         with patch.dict('os.environ',{'ROS_DOMAIN_ID':'227','GZ_PARTITION':'pinky_calmap227'}), \
-                patch('move_control.safety.node.bounded_sweep_clearance',return_value=None) as sweep, \
-                patch('move_control.safety.node.pivot_clearance',return_value=.03):
+                patch('rosy_control.safety.node.bounded_sweep_clearance',return_value=None) as sweep, \
+                patch('rosy_control.safety.node.pivot_clearance',return_value=.03):
             self.prepare_bounded_sweep()
             n=self.node
             # Inject a wider downstream cap to ensure this optimization has
@@ -246,8 +246,8 @@ class SafetyGateTest(unittest.TestCase):
 
     def test_recalibration_retains_sweep_restriction_without_restoring_gains(self):
         from types import SimpleNamespace
-        from move_control.calibration_atomic import CalibrationAtomic
-        from move_control.control.rotation_envelope import RotationEnvelope
+        from rosy_control.calibration_atomic import CalibrationAtomic
+        from rosy_control.control.rotation_envelope import RotationEnvelope
         n = self.node
         n.release_estop(); n._refresh_distances(); n.refresh_profile()
         envelope = RotationEnvelope(n.robot_r)
@@ -297,7 +297,7 @@ class SafetyGateTest(unittest.TestCase):
 
     def test_learned_rotation_restriction_survives_lease_loss_and_missing_scan(self):
         import math
-        from move_control.control.rotation_envelope import RotationEnvelope
+        from rosy_control.control.rotation_envelope import RotationEnvelope
         n = self.node
         n.release_estop()
         n._refresh_distances()

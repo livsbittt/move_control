@@ -23,7 +23,7 @@ Launch files for the full stack. Bringup order is load-bearing: bringup+ADC firs
 - Keep `respawn=True` on the stack nodes.
 
 ### Testing Requirements
-- Launch files are verified on-robot only; after editing, run `ros2 launch move_control robot.launch.py` and watch `/robot/health` + `/robot/mode`.
+- Launch files are verified on-robot only; after editing, run `ros2 launch rosy_control robot.launch.py` and watch `/robot/health` + `/robot/mode`.
 
 ## Dependencies
 

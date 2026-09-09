@@ -3,8 +3,8 @@
 # web/ (web_node dashboard UI)
 
 ## Purpose
-Single-page browser UI served by `move_control/web_node.py` (installed to
-`share/move_control/web/`). Polls `/state.json` every 333 ms and `/map.png`
+Single-page browser UI served by `rosy_control/web_node.py` (installed to
+`share/rosy_control/web/`). Polls `/state.json` every 333 ms and `/map.png`
 only when its gen counter changes; posts to `/cmd`, `/wander`, `/estop`,
 `/goal`, `/teleop`, `/map/reset`, `/map/resume`.
 

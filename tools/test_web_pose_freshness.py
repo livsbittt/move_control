@@ -4,7 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import Mock, patch
 
 from geometry_msgs.msg import TransformStamped
-from move_control import web_node as web
+from rosy_control import web_node as web
 
 
 class WebPoseFreshnessTest(unittest.TestCase):

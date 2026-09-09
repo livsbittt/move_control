@@ -82,7 +82,7 @@ def main():
             np.sqrt(((chunk[:, None]-walls[None, :])**2).sum(axis=2)).min(axis=1)
             for chunk in np.array_split(points, max(1, math.ceil(len(points)/100)))
         ]) if len(points) and len(walls) else np.array([])
-        from move_control import web_node
+        from rosy_control import web_node
         paths = [Path(inspect.getfile(web_node)).resolve(), Path(web_node.WebNode.html_path(None)).resolve()]
         helper = paths[0].parent / 'sensing/map_raster.py'
         if helper.exists():

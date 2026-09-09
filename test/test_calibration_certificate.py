@@ -1,8 +1,8 @@
 import copy
 import unittest
 
-from move_control.control.calibration_certificate import make_certificate, validate_certificate
-from move_control.control.round_trip import RoundTrip
+from rosy_control.control.calibration_certificate import make_certificate, validate_certificate
+from rosy_control.control.round_trip import RoundTrip
 
 
 def complete_motion():
@@ -57,7 +57,7 @@ class CalibrationCertificateTest(unittest.TestCase):
 class RotationCertificateTest(unittest.TestCase):
     @staticmethod
     def rotation():
-        from move_control.control.rotation_trial import RotationTrial
+        from rosy_control.control.rotation_trial import RotationTrial
         trial=RotationTrial(0.)
         yaw=speed=0.
         for i in range(1,1201):

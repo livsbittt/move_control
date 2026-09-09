@@ -3,7 +3,7 @@ from glob import glob
 
 from setuptools import find_packages, setup
 
-package_name = 'move_control'
+package_name = 'rosy_control'
 
 setup(
     name=package_name,
@@ -25,17 +25,17 @@ setup(
     license='Apache-2.0',
     entry_points={
         'console_scripts': [
-            'control_node = move_control.control_node:main',
-            'safety_node = move_control.safety_node:main',
-            'wander_node = move_control.wander_node:main',
-            'calib_node = move_control.calib_node:main',
-            'startup_calibration_node = move_control.startup_calibration_node:main',
-            'camera_detect_node = move_control.camera_detect_node:main',
-            'obstacle_observer_node = move_control.obstacle_observer_node:main',
-            'watch_node = move_control.watch_node:main',
-            'goal_node = move_control.goal_node:main',
-            'localization_node = move_control.localization_node:main',
-            'web_node = move_control.web_node:main',
+            'control_node = rosy_control.control_node:main',
+            'safety_node = rosy_control.safety_node:main',
+            'wander_node = rosy_control.wander_node:main',
+            'calib_node = rosy_control.calib_node:main',
+            'startup_calibration_node = rosy_control.startup_calibration_node:main',
+            'camera_detect_node = rosy_control.camera_detect_node:main',
+            'obstacle_observer_node = rosy_control.obstacle_observer_node:main',
+            'watch_node = rosy_control.watch_node:main',
+            'goal_node = rosy_control.goal_node:main',
+            'localization_node = rosy_control.localization_node:main',
+            'web_node = rosy_control.web_node:main',
         ],
     },
 )

@@ -8,7 +8,7 @@ import rclpy
 from geometry_msgs.msg import TransformStamped
 from nav_msgs.msg import OccupancyGrid
 from std_msgs.msg import String
-from move_control.goal_node import GoalNode, grid_clearance
+from rosy_control.goal_node import GoalNode, grid_clearance
 
 
 class GoalRouteTest(unittest.TestCase):
@@ -137,7 +137,7 @@ class GoalRouteTest(unittest.TestCase):
         self.assertIn('manual goal reached', result['status'])
 
     def test_environment_profile_applies_only_when_ready_fresh_and_same_map_resolution(self):
-        from move_control.control.navigation_calibration import environment_profile
+        from rosy_control.control.navigation_calibration import environment_profile
         p = environment_profile(.076, .05, [(.14,.13,None,None)]*30)
         self.node.on_calibration_profile(String(data=json.dumps({'ready':True,'navigation_profile':p})))
         self.known_map()

@@ -1,7 +1,7 @@
 import math
 import unittest
 
-from move_control.control.path_follow import ProgressGuard, follow_path, PathFollower
+from rosy_control.control.path_follow import ProgressGuard, follow_path, PathFollower
 
 
 class PathFollowTest(unittest.TestCase):

@@ -12,7 +12,7 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    folder = os.path.join(get_package_share_directory('move_control'), 'config')
+    folder = os.path.join(get_package_share_directory('rosy_control'), 'config')
     config = os.path.join(folder, 'localization.yaml')
     sim = {'use_sim_time': LaunchConfiguration('use_sim_time')}
     return LaunchDescription([
@@ -25,7 +25,7 @@ def generate_launch_description():
         Node(package='nav2_lifecycle_manager', executable='lifecycle_manager',
              name='localization_lifecycle_manager', parameters=[sim, {
                  'autostart': True, 'node_names': ['map_server', 'amcl']}], output='screen'),
-        Node(package='move_control', executable='localization_node',
+        Node(package='rosy_control', executable='localization_node',
              parameters=[os.path.join(folder, 'robot.yaml'), config,
                          os.path.join(folder, 'auto_calib.yaml'), sim], respawn=True, respawn_delay=1., output='screen'),
     ])

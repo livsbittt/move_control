@@ -1,4 +1,4 @@
-from move_control.sensing.battery import battery_values, battery_snapshot
+from rosy_control.sensing.battery import battery_values, battery_snapshot
 
 
 def test_zero_charge_is_valid_and_nan_never_becomes_an_estimated_percentage():

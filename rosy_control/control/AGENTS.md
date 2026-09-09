@@ -32,7 +32,7 @@ Robot-frame geometry → motion policy. Pure logic, **no ROS imports** — the u
 ## Dependencies
 
 ### Internal
-- Consumed by `move_control/wander/` (FSM + label), `move_control/safety/` (gate/hazard respond to the same thresholds).
+- Consumed by `rosy_control/wander/` (FSM + label), `rosy_control/safety/` (gate/hazard respond to the same thresholds).
 
 ### External
 - `dataclasses`, `math` only.

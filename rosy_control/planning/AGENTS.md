@@ -34,7 +34,7 @@ Occupancy-grid planning: map check → point to go, best route, coverage. Pure l
 
 ### Internal
 - Fed by `sensing/lidar` frontiers (safety topics `/safety/frontier_*`, `/safety/route_*`) and `/map` from slam_toolbox via `goal_node`.
-- Used by `move_control/goal_node.py` (ROS I/O) and `tools/explore_sim.py` (offline sim).
+- Used by `rosy_control/goal_node.py` (ROS I/O) and `tools/explore_sim.py` (offline sim).
 
 ### External
 - `collections.deque`, `heapq`, `math` only.

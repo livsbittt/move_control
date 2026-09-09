@@ -3,7 +3,7 @@
 import math
 import unittest
 
-from move_control.control.modes import (
+from rosy_control.control.modes import (
     MODES,
     NON_FORWARD_STATES,
     WANDER_TO_MODE,
@@ -108,7 +108,7 @@ class SubjectRolesTest(unittest.TestCase):
     def test_subject_roles_and_groups(self):
         # Reorganized taxonomy: each subject answers exactly one question;
         # by_subject() is the display grouping the LCD/web can consume.
-        from move_control.control.modes import SUBJECT_ROLE, SUBJECTS_ORDER, \
+        from rosy_control.control.modes import SUBJECT_ROLE, SUBJECTS_ORDER, \
             by_subject
         for subj, role in SUBJECT_ROLE.items():
             self.assertTrue(role)

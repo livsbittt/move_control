@@ -1,4 +1,4 @@
-from move_control.control.escape_budget import EscapeBudget
+from rosy_control.control.escape_budget import EscapeBudget
 
 
 def move(b,now,start,end):

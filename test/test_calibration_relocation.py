@@ -1,7 +1,7 @@
 import math
 import unittest
 
-from move_control.control.calibration_relocation import CalibrationRelocation, _capsule_clear
+from rosy_control.control.calibration_relocation import CalibrationRelocation, _capsule_clear
 
 
 def room(rear=-.14,front=.5,side=.4):

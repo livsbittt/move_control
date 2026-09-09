@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from move_control.control.motion_sweep import bounded_sweep_clearance, bounded_translation_limits
+from rosy_control.control.motion_sweep import bounded_sweep_clearance, bounded_translation_limits
 
 
 def test_translation_prefilter_uses_body_capsule_not_sector_radius():

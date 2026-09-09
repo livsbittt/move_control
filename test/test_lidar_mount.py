@@ -1,6 +1,6 @@
 import math
 import unittest
-from move_control.sensing.lidar_mount import nose_from_quaternion
+from rosy_control.sensing.lidar_mount import nose_from_quaternion
 
 
 class LidarMountTest(unittest.TestCase):

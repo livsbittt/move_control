@@ -3,16 +3,16 @@
 # restores the previous version if the new one fails to build or verify.
 #
 # This updates SOURCE ONLY and never starts driving -- bring the stack up
-# yourself afterwards: ros2 launch move_control robot.launch.py
+# yourself afterwards: ros2 launch rosy_control robot.launch.py
 #
-#   pinky_update.sh --bundle /tmp/move_control-0.2.0.tar.gz
+#   pinky_update.sh --bundle /tmp/rosy_control-0.2.0.tar.gz
 #   pinky_update.sh --from-github               # latest release
 #   pinky_update.sh --from-github --tag v0.2.0
 set -euo pipefail
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib.sh"
 
 BUNDLE=""; MANIFEST=""; FROM_GITHUB=0; TAG=""
-REPO="${PINKY_REPO:-livsbittt/move_control}"
+REPO="${PINKY_REPO:-livsbittt/rosy_control}"
 DEPLOYED_BY="${DEPLOYED_BY:-}"
 FORCE_LOCK=0; ALLOW_ACTIVE=0; DO_BUILD=1
 
@@ -122,10 +122,10 @@ else
   STAGE="$RELEASES/.staging-$VERSION.$$"
   rm -rf "$STAGE"; mkdir -p "$STAGE"
   tar -xzf "$BUNDLE" -C "$STAGE" || { rm -rf "$STAGE"; cleanup_work; die "extract failed"; }
-  [ -d "$STAGE/move_control" ] || { rm -rf "$STAGE"; cleanup_work; die "bundle has no move_control/ root"; }
-  cp "$MANIFEST" "$STAGE/move_control/.bundle-manifest.json"
+  [ -d "$STAGE/rosy_control" ] || { rm -rf "$STAGE"; cleanup_work; die "bundle has no rosy_control/ root"; }
+  cp "$MANIFEST" "$STAGE/rosy_control/.bundle-manifest.json"
   # Rename into place so a version dir is never half-written.
-  mv "$STAGE/move_control" "$TARGET"
+  mv "$STAGE/rosy_control" "$TARGET"
   rm -rf "$STAGE"
 fi
 cleanup_work
@@ -153,7 +153,7 @@ swap_to() {  # atomic: build the new link beside the old one, then rename over i
   ln -sfn "$1" "$RELEASES/current"
 }
 
-build_ws() { ( cd "$WS" && colcon build --packages-select move_control ); }
+build_ws() { ( cd "$WS" && colcon build --packages-select rosy_control ); }
 
 rollback() {  # rollback <reason>
   local reason="$1"
@@ -176,7 +176,7 @@ swap_to "$TARGET"
 
 # --- 7. build and verify, rolling back on the first failure ----------------
 if [ "$DO_BUILD" = 1 ]; then
-  info "colcon build --packages-select move_control"
+  info "colcon build --packages-select rosy_control"
   build_ws || rollback "colcon build failed"
 fi
 
@@ -188,7 +188,7 @@ if [ "$DO_BUILD" = 1 ] && command -v ros2 >/dev/null 2>&1; then
   # shellcheck disable=SC1091
   [ -f "$WS/install/setup.bash" ] && . "$WS/install/setup.bash"
   EXPECTED_EXECUTABLES="${PINKY_EXPECTED_EXECUTABLES:-8}"
-  COUNT="$(ros2 pkg executables move_control 2>/dev/null | grep -c . || true)"
+  COUNT="$(ros2 pkg executables rosy_control 2>/dev/null | grep -c . || true)"
   [ "${COUNT:-0}" -ge "$EXPECTED_EXECUTABLES" ] \
     || rollback "only ${COUNT:-0}/$EXPECTED_EXECUTABLES entry points registered after build"
   info "$COUNT entry points registered"
@@ -197,4 +197,4 @@ fi
 log_deploy SUCCESS "$VERSION" "$DEPLOYED_BY" \
   "commit=${COMMIT:0:8} built_by=${BUILT_BY:-unknown} prev=$(basename "${PREVIOUS:-none}")"
 info "now on $VERSION"
-info "source updated. Driving is NOT started -- run 'ros2 launch move_control robot.launch.py' when you are ready."
+info "source updated. Driving is NOT started -- run 'ros2 launch rosy_control robot.launch.py' when you are ready."

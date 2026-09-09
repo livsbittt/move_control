@@ -1,7 +1,7 @@
 import math
 import unittest
 
-from move_control.sensing.map_pose import display_pose, record_odom, update_pose
+from rosy_control.sensing.map_pose import display_pose, record_odom, update_pose
 
 
 class MapPoseTest(unittest.TestCase):

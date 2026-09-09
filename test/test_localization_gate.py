@@ -5,8 +5,8 @@ import pytest
 pytest.importorskip('geometry_msgs')
 from geometry_msgs.msg import Twist
 from std_msgs.msg import String
-from move_control.safety.gate import Gate
-from move_control.safety.node import SafetyNode
+from rosy_control.safety.gate import Gate
+from rosy_control.safety.node import SafetyNode
 
 
 def fake_gate():

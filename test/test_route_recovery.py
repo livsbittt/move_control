@@ -1,4 +1,4 @@
-from move_control.control.route_recovery import RouteRecovery
+from rosy_control.control.route_recovery import RouteRecovery
 import math
 
 

@@ -1,5 +1,5 @@
-from move_control.control.navigation_calibration import environment_profile, map_ray
-from move_control.planning import OccupancyMap
+from rosy_control.control.navigation_calibration import environment_profile, map_ray
+from rosy_control.planning import OccupancyMap
 
 
 def samples(noise=0., left=.14, right=.13):

@@ -1,6 +1,6 @@
 import math
-from move_control.planning import OccupancyMap, GoalBrain
-from move_control.planning.astar import best_route
+from rosy_control.planning import OccupancyMap, GoalBrain
+from rosy_control.planning.astar import best_route
 
 
 def test_alternative_avoids_failed_entry_without_modifying_map():
