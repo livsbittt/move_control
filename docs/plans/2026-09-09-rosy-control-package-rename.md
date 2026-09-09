@@ -53,11 +53,15 @@
 5. `ros2 pkg executables rosy_control` 로 11개 실행 파일을 확인한 뒤
    `ros2 launch rosy_control robot.launch.py` 로 기동한다.
 
-## 저장소 외 남은 작업
+## 저장소 외 작업
 
-- GitHub 저장소 `livsbittt/move_control` → `rosy_control` rename, 이후
-  `git remote set-url origin`. GitHub가 옛 URL을 리다이렉트하므로 순서는 무관하다.
-- 위 로봇 마이그레이션은 실제 장비에서 아직 실행하지 않았다.
+- **완료** — GitHub 저장소를 `livsbittt/move_control` → `livsbittt/rosy_control`로
+  rename하고 로컬 `origin`을 새 URL로 갱신했다. GitHub가 옛 URL을 리다이렉트하므로
+  기존 클론도 계속 동작한다. 이 rename은 선택이 아니었다: 일괄 치환이
+  `pinky_update.sh`의 `REPO` 기본값을 `livsbittt/rosy_control`로 바꿔놓았기 때문에,
+  rename 전까지 `--from-github` 업데이터는 없는 저장소를 가리키고 있었다.
+- **미완** — 위 로봇 마이그레이션은 실제 장비에서 아직 실행하지 않았다. 장비 접근이
+  필요하며, 반드시 `--dry-run`을 먼저 돌려볼 것.
 
 ## 검증 결과
 
@@ -69,3 +73,14 @@
   prefix 게이트 통과.
 - `bash -n` — `tools/deploy/*.sh`, `tools/ci/*.sh` 전부 문법 정상.
 - 저장소에서 `docs/` 를 제외한 `move_control` 잔여 참조 0건.
+- AST 파싱 — `.py` 248개의 `Import`/`ImportFrom` 노드를 직접 검사. `move_control`
+  import 0건, `rosy_control` import 170건. 문자열 grep이 놓치는 동적 import
+  (`importlib.import_module`, `patch('...')`)까지 포함해 확인했다.
+- 런타임 import 스윕 — `rosy_control` 94개 모듈을 실제로 import. 65개 정상,
+  29개는 PC에 ROS가 없어 차단(예상된 결과), 깨진 것 0개. 실패 원인을 ROS 부재와
+  패키지명 문제로 구분해 세었으므로 후자가 전자에 묻히지 않는다.
+- 엔트리포인트 11개 전부 실제 대상 모듈에서 이름이 해석됨. `safety_node`와
+  `wander_node`는 `from .safety.node import main` 형태의 얇은 진입 모듈이다.
+- 패키지 식별자가 `package.xml` / `setup.py` / `resource/` 마커 / 모듈 디렉터리
+  네 곳에서 일치. 어긋나면 `colcon build`는 통과하고 `ros2 run`에서 실패한다.
+- 전환 이전 바이트코드가 남은 `__pycache__` 280개 제거 후 테스트 재실행, 결과 동일.
