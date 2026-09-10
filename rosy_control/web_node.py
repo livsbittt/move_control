@@ -880,7 +880,11 @@ def _handler(node, html, api):
                 planner_fresh = 0 <= time.monotonic()-STATE.get('planner_received', -1e9) <= 5.
                 calibration_received = STATE.get('calibration_received')
             if self.path == '/calibration':
-                if body not in ('retry', 'retry:stay', 'retry:return_origin', 'validate_motion', 'abort', 'sensing_only', 'use_existing_settings', 'use_limited_sensors'):
+                if body not in ('retry', 'retry:stay', 'retry:return_origin', 'retry:stay:full',
+                                'retry:stay:skip_motion', 'retry:return_origin:full',
+                                'retry:return_origin:skip_motion', 'validate_motion', 'abort',
+                                'partial_calibration', 'sensing_only', 'use_existing_settings',
+                                'use_limited_sensors'):
                     self.send_response(400)
                     self.end_headers()
                     return
@@ -892,7 +896,10 @@ def _handler(node, html, api):
                         phase != 'waiting_motion' or not released or not mapping_active):
                     reject('Motion validation requires waiting_motion, active mapping and released emergency stop')
                     return
-                if body in ('retry', 'retry:stay', 'retry:return_origin', 'abort', 'sensing_only', 'use_existing_settings', 'use_limited_sensors'):
+                if body in ('retry', 'retry:stay', 'retry:return_origin', 'retry:stay:full',
+                            'retry:stay:skip_motion', 'retry:return_origin:full',
+                            'retry:return_origin:skip_motion', 'abort', 'partial_calibration',
+                            'sensing_only', 'use_existing_settings', 'use_limited_sensors'):
                     with LOCK:
                         STATE['calibration_ready'] = False
                 node.calibration_pub.publish(String(data=body))

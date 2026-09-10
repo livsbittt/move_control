@@ -25,3 +25,9 @@ def test_discovery_must_confirm_subscriber_when_supported():
         assert not available(99.,SimpleNamespace(get_subscription_count=lambda:count))
     assert available(99.,SimpleNamespace(get_subscription_count=lambda:1))
     assert available(99.,SimpleNamespace())
+
+
+def test_partial_calibration_and_scoped_retry_are_accepted():
+    source = Path(__file__).parents[1].joinpath('rosy_control/web_node.py').read_text(encoding='utf-8')
+    for command in ('partial_calibration', 'retry:stay:full', 'retry:return_origin:skip_motion'):
+        assert command in source, command
