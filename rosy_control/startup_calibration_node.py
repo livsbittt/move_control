@@ -36,6 +36,7 @@ from .calibration_rotation import CalibrationRotation
 from .calibration_atomic import CalibrationAtomic
 from .calibration_relocation import CalibrationRelocationAdapter
 from .control.sensing_only import partial_sensing_report
+from .control.sensor_tiers import partial_plan
 from .control.configured_operation import configured_waiting_reasons, configured_status
 from .control.startup_diagnostics import StartupDiagnostics
 from .control.calibration_runtime import calibration_runtime, precision_scan_required
@@ -108,12 +109,15 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
             self.restore_certificate()
         self.timer = self.create_timer(.05, self.tick)
 
-    def reset(self, invalidate_certificate=False, sensing_only=False, existing_settings=False, limited_sensors=False):
+    def reset(self, invalidate_certificate=False, sensing_only=False, existing_settings=False,
+              limited_sensors=False, excluded_sensors=()):
         self.zero()
         self.wander_pub.publish(String(data='stop'))
         self.sensing_only = sensing_only
         self.existing_settings = existing_settings
         self.limited_sensors = limited_sensors
+        self.excluded_sensors = tuple(excluded_sensors)
+        self.calibration_scope = getattr(self, 'calibration_scope', 'full')
         self.configured_waiting = ['fresh_sensor_checks'] if existing_settings else []
         self.profile_session = uuid.uuid4().hex
         self.profile_sequence = 0
@@ -519,6 +523,26 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
 
     def on_command(self, msg):
         command = msg.data.strip().lower()
+        if command == 'partial_calibration':
+            # The operator asks for a partial calibration; the tier table decides
+            # whether one exists and which route it takes.
+            plan = partial_plan(self.stationary_report(time.monotonic()),
+                                bool(self.get_parameter('localization_required').value))
+            if not plan['available']:
+                self.message = ('Required sensor failed and cannot be excluded: '
+                                + ', '.join(plan['blocking_sensors'])
+                                if plan['blocking_sensors']
+                                else 'No failed sensor to exclude; use full calibration')
+                self.publish()
+                return
+            if plan['rotation_available']:
+                self.reset(excluded_sensors=plan['excluded_sensors'])
+            else:
+                # Rotation is IMU-against-odometry agreement, so excluding the IMU
+                # withdraws it; existing parameters plus the speed cap is what remains.
+                self.reset(existing_settings=True, limited_sensors=True,
+                           excluded_sensors=plan['excluded_sensors'])
+            return
         if command == 'use_existing_settings':
             self.reset(existing_settings=True)
             return
@@ -528,13 +552,19 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
         if command == 'sensing_only':
             self.reset(sensing_only=True)
             return
-        if command in ('retry:stay', 'retry:return_origin'):
-            self.after_relocation = command.partition(':')[2]
+        if command.startswith('retry:'):
+            parts = command.split(':')
+            self.after_relocation = parts[1] if len(parts) > 1 and parts[1] else 'stay'
+            self.calibration_scope = parts[2] if len(parts) > 2 and parts[2] else 'full'
             command = 'retry'
         if command == 'abort':
             self.finish(False, 'Calibration aborted', 'aborted')
         elif command == 'retry':
-            self.reset(invalidate_certificate=True)
+            # Skipping the measurement is the operating-parameters route, not a calibration.
+            if getattr(self, 'calibration_scope', 'full') == 'skip_motion':
+                self.reset(invalidate_certificate=True, existing_settings=True)
+            else:
+                self.reset(invalidate_certificate=True)
         elif command == 'sensor_check' and self.phase in ('ready', 'existing_settings', 'limited_sensors'):
             self.zero()
             self.wander_pub.publish(String(data='stop'))
@@ -840,6 +870,11 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
                            'motion_distance_m': MOTION_LIMIT,
                            'round_trip_target_m': float(self.get_parameter('calibration_distance_m').value)},
                 'settings_applied': self.phase in ('ready', 'existing_settings', 'limited_sensors') and self.settings_applied(),
+                'partial_option': {key: (list(value) if isinstance(value, tuple) else value)
+                                   for key, value in partial_plan(
+                                       self.sensors,
+                                       bool(self.get_parameter('localization_required').value)).items()},
+                'calibration_scope': getattr(self, 'calibration_scope', 'full'),
                 **(configured_status(self.phase in ('existing_settings', 'limited_sensors') and self.runtime_ready and self.settings_applied(),
                     self.configured_waiting + ([] if self.settings_applied() else ['settings_acknowledgement']),
                     limited_sensors=self.limited_sensors)
