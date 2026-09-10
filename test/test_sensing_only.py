@@ -12,6 +12,19 @@ class PartialSensingTests(unittest.TestCase):
     def healthy(self):
         return {name: {'ok': True} for name in SENSORS}
 
+    def test_exclusion_set_is_a_parameter_and_defaults_to_imu(self):
+        result = partial_sensing_report(self.healthy(), excluded=('camera',))
+        self.assertEqual(result['excluded_sensors'], ['camera'])
+        self.assertFalse(result['sensors']['camera']['eligible'])
+        self.assertTrue(result['sensors']['imu'].get('eligible', result['sensors']['imu'].get('ok')))
+        self.assertEqual(partial_sensing_report(self.healthy())['excluded_sensors'], ['imu'])
+
+    def test_multiple_exclusions_still_never_grant_motion(self):
+        result = partial_sensing_report(self.healthy(), excluded=('imu', 'camera'))
+        self.assertEqual(result['excluded_sensors'], ['imu', 'camera'])
+        self.assertFalse(result['motion_allowed'])
+        self.assertFalse(result['ready'])
+
     def test_healthy_partial_baseline_never_grants_motion(self):
         sensors = self.healthy()
         result = partial_sensing_report(sensors)
