@@ -1,10 +1,9 @@
 """Existing parameter operation is live permission, never calibration evidence."""
 
 
-def configured_waiting_reasons(sensors, localization_required, geometry_fresh, estop, hazards, now, exclude_imu=False):
+def configured_waiting_reasons(sensors, localization_required, geometry_fresh, estop, hazards, now, excluded=()):
     required = ('lidar', 'odom', 'ir', 'imu', 'us', 'tf')
-    if exclude_imu:
-        required = tuple(name for name in required if name != 'imu')
+    required = tuple(name for name in required if name not in excluded)
     if localization_required:
         required += ('map', 'map_tf')
     reasons = [name for name in required if not sensors.get(name, {}).get('eligible', False)]
@@ -22,10 +21,12 @@ def configured_waiting_reasons(sensors, localization_required, geometry_fresh, e
     return reasons
 
 
-def configured_status(ready, waiting_reasons, limited_sensors=False):
+def configured_status(ready, waiting_reasons, limited_sensors=False, excluded_sensors=None):
+    if excluded_sensors is None:
+        excluded_sensors = ('imu',) if limited_sensors else ()
     return {'mode': 'limited_sensors' if limited_sensors else 'existing_settings', 'existing_settings': True,
             'limited_sensors': limited_sensors, 'degraded': limited_sensors,
-            'excluded_sensors': ['imu'] if limited_sensors else [],
+            'excluded_sensors': list(excluded_sensors),
             **({'speed_limits': {'linear_mps': .005, 'angular_rad_s': .05}} if limited_sensors else {}),
             'settings_source': 'configured_parameters', 'calibration_skipped': True,
             'calibration_complete': True, 'completion_source': 'operator_override',

@@ -622,7 +622,8 @@ class StartupCalibrationNode(Node, CalibrationRotation, CalibrationAtomic, Calib
             self.configured_waiting = configured_waiting_reasons(
                 self.sensors, bool(self.get_parameter('localization_required').value),
                 self.geometry_fresh(now), self.estop,
-                {key.rsplit('/', 1)[-1]: value for key, value in self.hazards.items()}, now, exclude_imu=limited)
+                {key.rsplit('/', 1)[-1]: value for key, value in self.hazards.items()}, now,
+                excluded=tuple(getattr(self, 'excluded_sensors', ()) or (('imu',) if limited else ())))
             if self.configured_waiting:
                 self.zero()
                 self.runtime_ready = False

@@ -46,14 +46,20 @@ class ConfiguredOperationTests(unittest.TestCase):
     def test_localization_profile_requires_map_and_map_tf(self):
         self.assertEqual(self.reasons(localization_required=True), ['map', 'map_tf'])
 
-    def test_limited_mode_excludes_only_imu_from_live_requirements(self):
+    def test_limited_mode_excludes_only_the_named_sensors(self):
         sensors = self.health()
         sensors['imu']['eligible'] = False
-        self.assertEqual(self.reasons(sensors, exclude_imu=True), [])
+        self.assertEqual(self.reasons(sensors, excluded=('imu',)), [])
         for name in ('lidar', 'odom', 'ir', 'us', 'tf'):
             missing = {key: dict(value) for key, value in sensors.items()}
             missing[name]['eligible'] = False
-            self.assertIn(name, self.reasons(missing, exclude_imu=True))
+            self.assertIn(name, self.reasons(missing, excluded=('imu',)))
+
+    def test_status_reports_the_exclusion_set_it_was_given(self):
+        result = configured_status(False, [], limited_sensors=True, excluded_sensors=('imu', 'camera'))
+        self.assertEqual(result['excluded_sensors'], ['imu', 'camera'])
+        self.assertEqual(configured_status(False, [], limited_sensors=True)['excluded_sensors'], ['imu'])
+        self.assertEqual(configured_status(False, [])['excluded_sensors'], [])
 
     def test_limited_mode_completes_stage_without_claiming_calibration(self):
         result = configured_status(False, ['estop'], limited_sensors=True)
@@ -77,10 +83,10 @@ class ConfiguredOperationTests(unittest.TestCase):
     def test_fresh_front_obstacle_keeps_both_modes_available_for_directional_escape(self):
         hazards = {name: (10., False) for name in ('blocked', 'cliff', 'tilt', 'pickup')}
         hazards['blocked'] = (10., True)
-        for limited in (False, True):
-            self.assertEqual(self.reasons(hazards=hazards, exclude_imu=limited), [])
+        for excluded in ((), ('imu',)):
+            self.assertEqual(self.reasons(hazards=hazards, excluded=excluded), [])
             hazards['blocked'] = (9., True)
-            self.assertIn('safety_blocked', self.reasons(hazards=hazards, exclude_imu=limited))
+            self.assertIn('safety_blocked', self.reasons(hazards=hazards, excluded=excluded))
             hazards['blocked'] = (10., True)
 
     def test_operating_permission_never_becomes_calibration_evidence(self):
