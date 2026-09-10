@@ -448,17 +448,18 @@ button:focus-visible, input:focus-visible, summary:focus-visible { outline:2px s
       <p class="hint" id="calibrationenvironment" aria-live="polite">환경 여유 측정 대기</p>
       <details><summary>센서별 상세값</summary><pre class="hint" id="calibrationsensors" style="white-space:pre-wrap;overflow-wrap:anywhere">센서 데이터 대기</pre></details>
       <details class="procedure"><summary>검증 절차와 주의사항</summary><p>센서 확인 → 공간에 맞춘 전후 왕복 → 좌우 회전 검증 → 보정값 적용 확인 순서로 진행합니다. 이동과 회전 공간을 확보하세요. 실패·중단 시 정지하며 재시작은 직접 선택합니다.</p></details>
+      <label for="calibrationscope">보정 범위</label>
+      <select id="calibrationscope"><option value="full">전체 측정</option><option value="skip_motion">이동·회전 생략 · 기존 설정값</option></select>
       <label for="calibrationafter">공간 이동 후 보정이 끝나면</label>
       <select id="calibrationafter"><option value="stay">확보한 위치에 머물기</option><option value="return_origin">원래 위치로 복귀</option></select>
       <p class="hint">공간 확보·복귀는 지원되는 실행 환경에서만 수행합니다. 복귀 경로가 막히면 정지합니다.</p>
       <div class="btnrow">
-        <button type="button" id="calibrationretry" data-calibration="retry">선택 적용 · 보정 다시 시작</button>
-        <button type="button" id="calibrationsensing" data-calibration="sensing_only">IMU 제외 · 정지 센싱</button>
-        <button type="button" id="calibrationexisting" data-calibration="use_existing_settings">보정 없이 · 기존 설정값 사용</button>
-        <button type="button" id="calibrationlimited" data-calibration="use_limited_sensors">IMU 제외 · 제한 주행</button>
+        <button type="button" id="calibrationretry" data-calibration="retry">전체 보정</button>
+        <button type="button" id="calibrationpartialaction" data-calibration="partial_calibration">부분 보정 · 실패 센서 제외</button>
         <button type="button" id="calibrationmotion" data-calibration="validate_motion" disabled>4초 저속 이동 검증</button>
         <button type="button" data-calibration="abort">검증 중단</button>
       </div>
+      <p class="command-status" id="calibrationpartialreason" role="status" aria-live="polite" hidden></p>
       <div id="calibrationerror" role="alert"></div>
     </div>
 
@@ -799,13 +800,23 @@ function renderCalibration(s) {
   $('calibrationmotion').hidden = !!(calibration && calibration.auto_motion);
   $('calibrationmotion').disabled = !!(calibration && calibration.auto_motion) || phase !== 'waiting_motion' || !s || s.estop !== false ||
     !s.map_control || s.map_control.paused !== false;
-  $('calibrationretry').disabled = phase === 'validating_motion' || phase === 'validating_rotation';
-  setTxt('calibrationretry', partial ? '부분 센싱 종료 · 전체 보정 다시 시작' : '선택 적용 · 보정 다시 시작');
-  if (existing) setTxt('calibrationretry', '기존 설정값 모드 종료 · 전체 보정 시작');
-  if (limited) setTxt('calibrationretry', '제한 주행 종료 · 전체 보정 시작');
-  $('calibrationsensing').disabled = partial;
-  $('calibrationexisting').disabled = existing;
-  $('calibrationlimited').disabled = limited;
+  const busy = phase === 'validating_motion' || phase === 'validating_rotation';
+  $('calibrationretry').disabled = busy;
+  setTxt('calibrationretry', '전체 보정');
+  // The node owns the verdict; the page only renders which route it left open.
+  const option = calibration && calibration.partial_option || {available: false, reason: 'unknown'};
+  const blocking = Array.isArray(option.blocking_sensors) ? option.blocking_sensors : [];
+  const dropped = Array.isArray(option.excluded_sensors) ? option.excluded_sensors : [];
+  const label = list => list.map(name => names[name] || String(name).toUpperCase()).join(', ');
+  $('calibrationpartialaction').disabled = !option.available || busy;
+  const partialReasons = {
+    required_sensor_failed: label(blocking) + ' 실패 — 제외 불가(주행 필수). 전체 보정 재시도 또는 중단.',
+    no_failed_sensor: '제외할 실패 센서 없음 — 전체 보정을 사용하세요',
+    rotation_unavailable: label(dropped) + ' 제외 가능 — 회전 검증 없이 기존 설정값 · 저속 제한 주행',
+    calibration_continues: label(dropped) + ' 제외 가능 — 나머지 센서로 보정을 완주합니다',
+  };
+  $('calibrationpartialreason').hidden = !partialReasons[option.reason];
+  setTxt('calibrationpartialreason', partialReasons[option.reason] || '');
   $('wanderstart').disabled = !calibrationReady(s) || s.estop !== false;
   document.querySelectorAll('[data-hold]').forEach(button => {
     button.disabled = button.dataset.hold !== 'stop' && (!calibrationReady(s) || s.estop !== false);
@@ -815,7 +826,7 @@ function renderCalibration(s) {
 async function calibrationAction(action) {
   if (action === 'validate_motion' && $('calibrationmotion').disabled) return;
   setTxt('calibrationerror', '');
-  if (action === 'retry') action += ':' + ($('calibrationafter').value || 'stay');
+  if (action === 'retry') action += ':' + ($('calibrationafter').value || 'stay') + ':' + ($('calibrationscope').value || 'full');
   await post('/calibration', action);
 }
 const api = {
